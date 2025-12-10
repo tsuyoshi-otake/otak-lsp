@@ -1,0 +1,19 @@
+{
+  "name": "japanese-grammar-analyzer",
+  "description": "VSCode拡張機能として、MeCabを使用した高精度な日本語形態素解析を提供する",
+  "language": "ja",
+  "phases": {
+    "requirements": {
+      "status": "approved",
+      "approvedAt": "2025-12-10T00:00:00Z"
+    },
+    "design": {
+      "status": "approved",
+      "approvedAt": "2025-12-10T00:00:00Z"
+    },
+    "tasks": {
+      "status": "approved",
+      "approvedAt": "2025-12-10T00:00:00Z"
+    }
+  }
+}
