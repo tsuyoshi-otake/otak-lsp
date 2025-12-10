@@ -208,7 +208,7 @@ async function analyzeDocument(document: TextDocument): Promise<void> {
     const diagnostics: Diagnostic[] = [];
     if (configuration.enableGrammarCheck) {
       connection.console.log(`[DEBUG] Running grammar check...`);
-      const grammarDiagnostics = grammarChecker.check(tokens);
+      const grammarDiagnostics = grammarChecker.check(tokens, textToAnalyze);
       connection.console.log(`[DEBUG] Grammar check found ${grammarDiagnostics.length} issues`);
       for (const diag of grammarDiagnostics) {
         diagnostics.push({

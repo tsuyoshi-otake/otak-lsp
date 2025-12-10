@@ -43,21 +43,54 @@ const PROBLEMATIC_PARTICLE_COMBINATIONS = new Set([
  */
 export class GrammarChecker {
   private rules: GrammarRule[];
+  private lineStarts: number[] = [0];
 
   constructor() {
     this.rules = [
-      new DoubleParticleRule(),
-      new ParticleSequenceRule(),
-      new VerbParticleMismatchRule()
+      new DoubleParticleRule(this),
+      new ParticleSequenceRule(this),
+      new VerbParticleMismatchRule(this),
+      new RedundantCopulaRule(this)
     ];
+  }
+
+  /**
+   * テキストから行開始位置を計算
+   */
+  private calculateLineStarts(text: string): void {
+    this.lineStarts = [0];
+    for (let i = 0; i < text.length; i++) {
+      if (text[i] === '\n') {
+        this.lineStarts.push(i + 1);
+      }
+    }
+  }
+
+  /**
+   * オフセットから行と文字位置を取得
+   */
+  getLineAndChar(offset: number): { line: number; character: number } {
+    let line = 0;
+    for (let i = 1; i < this.lineStarts.length; i++) {
+      if (offset < this.lineStarts[i]) {
+        break;
+      }
+      line = i;
+    }
+    return { line, character: offset - this.lineStarts[line] };
   }
 
   /**
    * トークンリストをチェックして文法エラーを検出
    */
-  check(tokens: Token[]): Diagnostic[] {
+  check(tokens: Token[], text?: string): Diagnostic[] {
     if (!tokens || tokens.length === 0) {
       return [];
+    }
+
+    // テキストがあれば行開始位置を計算
+    if (text) {
+      this.calculateLineStarts(text);
     }
 
     const diagnostics: Diagnostic[] = [];
@@ -81,6 +114,11 @@ export class GrammarChecker {
  */
 class DoubleParticleRule implements GrammarRule {
   name = 'double-particle';
+  private checker: GrammarChecker;
+
+  constructor(checker: GrammarChecker) {
+    this.checker = checker;
+  }
 
   check(tokens: Token[], index: number): GrammarError | null {
     const current = tokens[index];
@@ -106,9 +144,11 @@ class DoubleParticleRule implements GrammarRule {
   }
 
   private createRange(start: Token, end: Token): Range {
+    const startPos = this.checker.getLineAndChar(start.start);
+    const endPos = this.checker.getLineAndChar(end.end);
     return {
-      start: { line: 0, character: start.start },
-      end: { line: 0, character: end.end }
+      start: startPos,
+      end: endPos
     };
   }
 }
@@ -119,6 +159,11 @@ class DoubleParticleRule implements GrammarRule {
  */
 class ParticleSequenceRule implements GrammarRule {
   name = 'particle-sequence';
+  private checker: GrammarChecker;
+
+  constructor(checker: GrammarChecker) {
+    this.checker = checker;
+  }
 
   check(tokens: Token[], index: number): GrammarError | null {
     const current = tokens[index];
@@ -161,9 +206,11 @@ class ParticleSequenceRule implements GrammarRule {
   }
 
   private createRange(start: Token, end: Token): Range {
+    const startPos = this.checker.getLineAndChar(start.start);
+    const endPos = this.checker.getLineAndChar(end.end);
     return {
-      start: { line: 0, character: start.start },
-      end: { line: 0, character: end.end }
+      start: startPos,
+      end: endPos
     };
   }
 }
@@ -174,6 +221,11 @@ class ParticleSequenceRule implements GrammarRule {
  */
 class VerbParticleMismatchRule implements GrammarRule {
   name = 'verb-particle-mismatch';
+  private checker: GrammarChecker;
+
+  constructor(checker: GrammarChecker) {
+    this.checker = checker;
+  }
 
   check(tokens: Token[], index: number): GrammarError | null {
     const current = tokens[index];
@@ -202,9 +254,75 @@ class VerbParticleMismatchRule implements GrammarRule {
   }
 
   private createRange(start: Token, end: Token): Range {
+    const startPos = this.checker.getLineAndChar(start.start);
+    const endPos = this.checker.getLineAndChar(end.end);
     return {
-      start: { line: 0, character: start.start },
-      end: { line: 0, character: end.end }
+      start: startPos,
+      end: endPos
+    };
+  }
+}
+
+/**
+ * 冗長な助動詞検出ルール
+ * 「でです」「にます」のような不自然な組み合わせを検出
+ */
+class RedundantCopulaRule implements GrammarRule {
+  name = 'redundant-copula';
+  private checker: GrammarChecker;
+
+  // 問題のある組み合わせパターン
+  private static readonly PROBLEMATIC_PATTERNS: Array<{particle: string; auxiliary: string; message: string}> = [
+    { particle: 'で', auxiliary: 'です', message: '「でです」は冗長です。「です」のみにしてください。' },
+    { particle: 'で', auxiliary: 'ます', message: '「でます」は不自然です。文の構造を見直してください。' },
+    { particle: 'に', auxiliary: 'です', message: '「にです」は不自然です。文の構造を見直してください。' },
+  ];
+
+  constructor(checker: GrammarChecker) {
+    this.checker = checker;
+  }
+
+  check(tokens: Token[], index: number): GrammarError | null {
+    const current = tokens[index];
+    const next = tokens[index + 1];
+
+    if (!current || !next) {
+      return null;
+    }
+
+    // 助詞 + 助動詞のパターンをチェック
+    if (!current.isParticle()) {
+      return null;
+    }
+
+    // 助動詞かどうかをチェック（品詞が助動詞）
+    if (next.pos !== '助動詞') {
+      return null;
+    }
+
+    // 問題のあるパターンを検索
+    for (const pattern of RedundantCopulaRule.PROBLEMATIC_PATTERNS) {
+      if (current.surface === pattern.particle && next.surface === pattern.auxiliary) {
+        const range = this.createRange(current, next);
+        return new GrammarError({
+          type: 'particle-sequence' as GrammarErrorType,
+          tokens: [current, next],
+          range,
+          message: pattern.message,
+          suggestion: `「${pattern.particle}」を削除する`
+        });
+      }
+    }
+
+    return null;
+  }
+
+  private createRange(start: Token, end: Token): Range {
+    const startPos = this.checker.getLineAndChar(start.start);
+    const endPos = this.checker.getLineAndChar(end.end);
+    return {
+      start: startPos,
+      end: endPos
     };
   }
 }
