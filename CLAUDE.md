@@ -43,3 +43,48 @@ Kiro-style Spec Driven Development implementation on AI-DLC (AI Development Life
 - Load entire `.kiro/steering/` as project memory
 - Default files: `product.md`, `tech.md`, `structure.md`
 - Custom files are supported (managed via `/kiro:steering-custom`)
+
+---
+
+## Domain Knowledge: Japanese Grammar Analyzer VSCode Extension
+
+### Architecture
+- **LSP-based**: Language Server Protocol implementation with client/server architecture
+- **Morphological Analysis**: kuromoji.js (pure JavaScript, no external MeCab dependency)
+- **IPA Dictionary**: Embedded dictionary for Japanese tokenization
+
+### Key Implementation Details
+
+#### Position Calculation
+- kuromoji's `word_position` returns **byte offset** (UTF-8), not character offset
+- Japanese characters are 3 bytes in UTF-8, causing position mismatch
+- Solution: Calculate character positions sequentially from token surfaces instead of using `word_position`
+
+#### Grammar Rules Implemented
+1. **Double Particle (二重助詞)**: Detects repeated particles like 「がが」「をを」
+2. **Problematic Particle Sequence (助詞連続)**: Detects invalid combinations like 「がを」「をが」「にを」
+3. **Verb-Particle Mismatch (動詞-助詞不整合)**: Detects intransitive verbs with 「を」
+4. **Redundant Copula (冗長な助動詞)**: Detects patterns like 「でです」「でます」「にです」
+
+#### Semantic Highlighting
+- Token types: noun, verb, adjective, particle, adverb, other
+- Colors mapped to Japanese parts of speech (品詞)
+- Requires `workspace/semanticTokens/refresh` after async analysis completion
+
+#### Valid Particle Combinations (Not Flagged)
+- 「には」「では」「とは」「からは」「まで」「への」「からの」「との」
+
+### File Structure
+```
+client/src/extension.ts    - VSCode extension client, status bar, commands
+server/src/main.ts         - Language server entry point
+server/src/mecab/analyzer.ts - kuromoji wrapper (MeCab-compatible API)
+server/src/grammar/checker.ts - Grammar rule engine
+server/src/semantic/tokenProvider.ts - Semantic token provider
+server/src/hover/provider.ts - Hover information provider
+shared/src/types.ts        - Shared type definitions
+```
+
+### Supported Languages
+- plaintext, markdown, javascript, typescript, python, c, cpp, java, rust
+- For code files: analyzes Japanese text in comments only
