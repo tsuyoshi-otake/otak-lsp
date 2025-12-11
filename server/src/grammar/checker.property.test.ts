@@ -246,7 +246,7 @@ describe('Property-Based Tests: Grammar Checker', () => {
             expect(typeof diagnostic.severity).toBe('number');
 
             // ソース（source）
-            expect(diagnostic.source).toBe('japanese-grammar-analyzer');
+            expect(diagnostic.source).toBe('otak-lcp');
           }
         ),
         { numRuns: 100 }

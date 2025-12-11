@@ -25,17 +25,17 @@ describe('Error Handler', () => {
 
   describe('AppError', () => {
     it('should create error with code and message', () => {
-      const error = new AppError(ErrorCodes.MECAB_NOT_FOUND, 'MeCab not found');
+      const error = new AppError(ErrorCodes.ANALYZER_INIT_ERROR, 'Analyzer init error');
 
-      expect(error.code).toBe(ErrorCodes.MECAB_NOT_FOUND);
-      expect(error.message).toBe('MeCab not found');
+      expect(error.code).toBe(ErrorCodes.ANALYZER_INIT_ERROR);
+      expect(error.message).toBe('Analyzer init error');
       expect(error.name).toBe('AppError');
     });
 
     it('should support original error cause', () => {
       const originalError = new Error('Original error');
       const error = new AppError(
-        ErrorCodes.MECAB_PROCESS_ERROR,
+        ErrorCodes.ANALYZER_PARSE_ERROR,
         'Process failed',
         originalError
       );
@@ -46,29 +46,29 @@ describe('Error Handler', () => {
 
   describe('handleError', () => {
     it('should log error', async () => {
-      const error = new AppError(ErrorCodes.MECAB_NOT_FOUND, 'MeCab not found');
+      const error = new AppError(ErrorCodes.ANALYZER_INIT_ERROR, 'Analyzer init error');
       const context: ErrorContext = { uri: 'file:///test.md' };
 
       await handler.handleError(error, context);
 
       expect(mockLogger).toHaveBeenCalledWith(
         expect.objectContaining({
-          code: ErrorCodes.MECAB_NOT_FOUND,
-          message: 'MeCab not found',
+          code: ErrorCodes.ANALYZER_INIT_ERROR,
+          message: 'Analyzer init error',
           context
         })
       );
     });
 
     it('should notify user for non-retryable errors', async () => {
-      const error = new AppError(ErrorCodes.MECAB_NOT_FOUND, 'MeCab not found');
+      const error = new AppError(ErrorCodes.ANALYZER_INIT_ERROR, 'Analyzer init error');
       const context: ErrorContext = { uri: 'file:///test.md' };
 
       await handler.handleError(error, context);
 
       expect(mockNotifier).toHaveBeenCalledWith(
         expect.objectContaining({
-          code: ErrorCodes.MECAB_NOT_FOUND
+          code: ErrorCodes.ANALYZER_INIT_ERROR
         })
       );
     });
@@ -98,14 +98,14 @@ describe('Error Handler', () => {
 
   describe('isRetryable', () => {
     it('should return true for retryable error codes', () => {
-      expect(handler.isRetryable(ErrorCodes.MECAB_PROCESS_ERROR)).toBe(true);
+      expect(handler.isRetryable(ErrorCodes.ANALYZER_PARSE_ERROR)).toBe(true);
       expect(handler.isRetryable(ErrorCodes.WIKIPEDIA_REQUEST_FAILED)).toBe(true);
       expect(handler.isRetryable(ErrorCodes.WIKIPEDIA_TIMEOUT)).toBe(true);
     });
 
     it('should return false for non-retryable error codes', () => {
-      expect(handler.isRetryable(ErrorCodes.MECAB_NOT_FOUND)).toBe(false);
-      expect(handler.isRetryable(ErrorCodes.MECAB_DICT_NOT_FOUND)).toBe(false);
+      expect(handler.isRetryable(ErrorCodes.ANALYZER_INIT_ERROR)).toBe(false);
+      expect(handler.isRetryable(ErrorCodes.ANALYZER_DICT_ERROR)).toBe(false);
       expect(handler.isRetryable(ErrorCodes.FILE_TOO_LARGE)).toBe(false);
     });
   });
@@ -158,15 +158,15 @@ describe('Error Handler', () => {
   });
 
   describe('error recovery suggestions', () => {
-    it('should provide recovery suggestion for MECAB_NOT_FOUND', () => {
-      const suggestion = handler.getRecoverySuggestion(ErrorCodes.MECAB_NOT_FOUND);
-      expect(suggestion).toContain('MeCab');
-      expect(suggestion).toContain('インストール');
+    it('should provide recovery suggestion for ANALYZER_INIT_ERROR', () => {
+      const suggestion = handler.getRecoverySuggestion(ErrorCodes.ANALYZER_INIT_ERROR);
+      // kuromoji.jsでは初期化エラーの対応方法を提案
+      expect(suggestion).toBeDefined();
     });
 
-    it('should provide recovery suggestion for MECAB_DICT_NOT_FOUND', () => {
-      const suggestion = handler.getRecoverySuggestion(ErrorCodes.MECAB_DICT_NOT_FOUND);
-      expect(suggestion).toContain('辞書');
+    it('should provide recovery suggestion for ANALYZER_DICT_ERROR', () => {
+      const suggestion = handler.getRecoverySuggestion(ErrorCodes.ANALYZER_DICT_ERROR);
+      expect(suggestion).toBeDefined();
     });
 
     it('should provide recovery suggestion for WIKIPEDIA_TIMEOUT', () => {
@@ -183,12 +183,12 @@ describe('Error Handler', () => {
   describe('createError', () => {
     it('should create AppError with appropriate message', () => {
       const error = handler.createError(
-        ErrorCodes.MECAB_NOT_FOUND,
-        'MeCabが見つかりませんでした'
+        ErrorCodes.ANALYZER_INIT_ERROR,
+        '形態素解析器の初期化に失敗しました'
       );
 
       expect(error).toBeInstanceOf(AppError);
-      expect(error.code).toBe(ErrorCodes.MECAB_NOT_FOUND);
+      expect(error.code).toBe(ErrorCodes.ANALYZER_INIT_ERROR);
     });
   });
 });

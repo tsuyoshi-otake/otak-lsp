@@ -73,13 +73,14 @@ describe('Semantic Token Provider', () => {
 
   describe('provideSemanticTokens', () => {
     it('should return empty data for empty token list', () => {
-      const result = provider.provideSemanticTokens([]);
+      const result = provider.provideSemanticTokens([], '');
       expect(result.data).toHaveLength(0);
     });
 
     it('should return correct format for single token', () => {
+      const text = '日本語';
       const tokens = [createToken('日本語', '名詞', 0)];
-      const result = provider.provideSemanticTokens(tokens);
+      const result = provider.provideSemanticTokens(tokens, text);
 
       // 形式: [line, startChar, length, tokenType, tokenModifiers]
       expect(result.data.length).toBe(5);
@@ -91,12 +92,13 @@ describe('Semantic Token Provider', () => {
     });
 
     it('should handle multiple tokens on same line', () => {
+      const text = '私は行く';
       const tokens = [
         createToken('私', '名詞', 0),
         createToken('は', '助詞', 1),
         createToken('行く', '動詞', 2)
       ];
-      const result = provider.provideSemanticTokens(tokens);
+      const result = provider.provideSemanticTokens(tokens, text);
 
       // 3つのトークン、各5要素
       expect(result.data.length).toBe(15);
@@ -117,6 +119,7 @@ describe('Semantic Token Provider', () => {
     });
 
     it('should correctly map all POS types', () => {
+      const text = '私はとても美しい花を見る';
       const tokens = [
         createToken('私', '名詞', 0),
         createToken('は', '助詞', 1),
@@ -126,7 +129,7 @@ describe('Semantic Token Provider', () => {
         createToken('を', '助詞', 9),
         createToken('見る', '動詞', 10)
       ];
-      const result = provider.provideSemanticTokens(tokens);
+      const result = provider.provideSemanticTokens(tokens, text);
 
       // 7つのトークン
       expect(result.data.length).toBe(35);
@@ -162,12 +165,13 @@ describe('Semantic Token Provider', () => {
 
   describe('calculateRelativePosition', () => {
     it('should calculate correct relative positions', () => {
+      const text = 'あいう';
       const tokens = [
         createToken('あ', '名詞', 0),
         createToken('い', '名詞', 1),
         createToken('う', '名詞', 2)
       ];
-      const result = provider.provideSemanticTokens(tokens);
+      const result = provider.provideSemanticTokens(tokens, text);
 
       // 最初のトークンの startChar は絶対位置
       expect(result.data[1]).toBe(0);

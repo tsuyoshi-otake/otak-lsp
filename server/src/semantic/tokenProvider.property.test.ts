@@ -50,7 +50,7 @@ describe('Property-Based Tests: Semantic Token Provider', () => {
           fc.stringOf(fc.constantFrom(...'日本語テスト単語'), { minLength: 1, maxLength: 5 }),
           (surface) => {
             const tokens = [createToken(surface, '名詞', 0)];
-            const result = provider.provideSemanticTokens(tokens);
+            const result = provider.provideSemanticTokens(tokens, surface);
 
             expect(result.data.length).toBe(5);
             expect(result.data[3]).toBe(TokenType.Noun);
@@ -66,7 +66,7 @@ describe('Property-Based Tests: Semantic Token Provider', () => {
           fc.stringOf(fc.constantFrom(...'行読書食見'), { minLength: 1, maxLength: 3 }),
           (surface) => {
             const tokens = [createToken(surface, '動詞', 0)];
-            const result = provider.provideSemanticTokens(tokens);
+            const result = provider.provideSemanticTokens(tokens, surface);
 
             expect(result.data.length).toBe(5);
             expect(result.data[3]).toBe(TokenType.Verb);
@@ -82,7 +82,7 @@ describe('Property-Based Tests: Semantic Token Provider', () => {
           fc.stringOf(fc.constantFrom(...'美大小高低'), { minLength: 1, maxLength: 3 }),
           (surface) => {
             const tokens = [createToken(surface, '形容詞', 0)];
-            const result = provider.provideSemanticTokens(tokens);
+            const result = provider.provideSemanticTokens(tokens, surface);
 
             expect(result.data.length).toBe(5);
             expect(result.data[3]).toBe(TokenType.Adjective);
@@ -98,7 +98,7 @@ describe('Property-Based Tests: Semantic Token Provider', () => {
           fc.constantFrom('が', 'を', 'に', 'で', 'と', 'へ', 'から', 'まで', 'は', 'も'),
           (surface) => {
             const tokens = [createToken(surface, '助詞', 0)];
-            const result = provider.provideSemanticTokens(tokens);
+            const result = provider.provideSemanticTokens(tokens, surface);
 
             expect(result.data.length).toBe(5);
             expect(result.data[3]).toBe(TokenType.Particle);
@@ -114,7 +114,7 @@ describe('Property-Based Tests: Semantic Token Provider', () => {
           fc.constantFrom('とても', 'すぐ', 'まだ', 'もう', 'よく', 'たぶん'),
           (surface) => {
             const tokens = [createToken(surface, '副詞', 0)];
-            const result = provider.provideSemanticTokens(tokens);
+            const result = provider.provideSemanticTokens(tokens, surface);
 
             expect(result.data.length).toBe(5);
             expect(result.data[3]).toBe(TokenType.Adverb);
@@ -141,8 +141,9 @@ describe('Property-Based Tests: Semantic Token Provider', () => {
               currentPosition += spec.surface.length;
               return token;
             });
+            const text = tokenSpecs.map(spec => spec.surface).join('');
 
-            const result = provider.provideSemanticTokens(tokens);
+            const result = provider.provideSemanticTokens(tokens, text);
 
             // 各トークンは5つのデータ要素を持つ
             expect(result.data.length).toBe(tokens.length * 5);
@@ -166,8 +167,9 @@ describe('Property-Based Tests: Semantic Token Provider', () => {
               currentPosition += surface.length;
               return token;
             });
+            const text = surfaces.join('');
 
-            const result = provider.provideSemanticTokens(tokens);
+            const result = provider.provideSemanticTokens(tokens, text);
 
             // 最初のトークンの開始位置は0
             expect(result.data[1]).toBe(0);
@@ -198,8 +200,9 @@ describe('Property-Based Tests: Semantic Token Provider', () => {
               currentPosition += 1;
               return token;
             });
+            const text = 'あ'.repeat(posTypes.length);
 
-            const result = provider.provideSemanticTokens(tokens);
+            const result = provider.provideSemanticTokens(tokens, text);
 
             // 各トークンのタイプが正しくマッピングされている
             for (let i = 0; i < tokens.length; i++) {
@@ -219,7 +222,7 @@ describe('Property-Based Tests: Semantic Token Provider', () => {
           fc.constantFrom('名詞', '動詞', '形容詞', '助詞', '副詞', '記号', '接続詞', '感動詞'),
           (pos) => {
             const tokens = [createToken('あ', pos, 0)];
-            const result = provider.provideSemanticTokens(tokens);
+            const result = provider.provideSemanticTokens(tokens, 'あ');
 
             const tokenType = result.data[3];
             expect(tokenType).toBeGreaterThanOrEqual(0);

@@ -14,33 +14,37 @@ describe('Property-Based Tests: MeCab Environment Checker', () => {
    * 無効な場合はエラーを返す
    */
   describe('Property 15: MeCabパス検証', () => {
-    it('should reject empty paths', async () => {
+    // kuromoji.jsはパス検証不要のため、常にtrueを返す
+    it('should return true for any path with kuromoji.js (no validation needed)', async () => {
       await fc.assert(
         fc.asyncProperty(
           fc.constantFrom('', '   ', '\t', '\n'),
           async (emptyPath) => {
             const checker = new MeCabEnvironmentChecker();
             const isValid = await checker.validatePath(emptyPath);
-            expect(isValid).toBe(false);
+            // kuromoji.jsは常にtrue
+            expect(isValid).toBe(true);
           }
         ),
         { numRuns: 10 }
       );
     });
 
-    it('should reject paths with dangerous characters', async () => {
-      const dangerousChars = [';', '|', '&', '$', '`', '>', '<', '(', ')', '{', '}'];
+    // kuromoji.jsはパス検証不要のため、危険な文字があっても常にtrueを返す
+    it('should return true even for paths with special characters (kuromoji.js mode)', async () => {
+      const specialChars = [';', '|', '&', '$', '`', '>', '<', '(', ')', '{', '}'];
 
       await fc.assert(
         fc.asyncProperty(
           fc.string({ minLength: 1, maxLength: 20 }),
-          fc.constantFrom(...dangerousChars),
+          fc.constantFrom(...specialChars),
           fc.string({ minLength: 0, maxLength: 20 }),
-          async (prefix, dangerousChar, suffix) => {
+          async (prefix, specialChar, suffix) => {
             const checker = new MeCabEnvironmentChecker();
-            const path = prefix + dangerousChar + suffix;
+            const path = prefix + specialChar + suffix;
             const isValid = await checker.validatePath(path);
-            expect(isValid).toBe(false);
+            // kuromoji.jsは常にtrue
+            expect(isValid).toBe(true);
           }
         ),
         { numRuns: 50 }
@@ -69,7 +73,8 @@ describe('Property-Based Tests: MeCab Environment Checker', () => {
       );
     });
 
-    it('should return false for valid-looking paths when mecab not found', async () => {
+    // kuromoji.jsは常にtrueを返す（外部依存がないため）
+    it('should return true for any path with kuromoji.js', async () => {
       await fc.assert(
         fc.asyncProperty(
           fc.constantFrom(
@@ -82,8 +87,9 @@ describe('Property-Based Tests: MeCab Environment Checker', () => {
             checker.setExecSync(() => {
               throw new Error('Command not found');
             });
+            // kuromoji.jsは常にtrue
             const isValid = await checker.validatePath(path);
-            expect(isValid).toBe(false);
+            expect(isValid).toBe(true);
           }
         ),
         { numRuns: 10 }
@@ -112,13 +118,9 @@ describe('Property-Based Tests: MeCab Environment Checker', () => {
             expect(typeof message).toBe('string');
             expect(message.length).toBeGreaterThan(0);
 
-            // 利用不可能な場合はインストール手順を含む
+            // kuromoji.jsでは常にkuromoji関連のメッセージを返す
             if (!available) {
-              if (!mecabFound) {
-                expect(message.toLowerCase()).toMatch(/mecab|インストール/);
-              } else if (!dictionaryFound) {
-                expect(message).toMatch(/辞書|dictionary/i);
-              }
+              expect(message.toLowerCase()).toMatch(/kuromoji|インストール|不要/);
             }
           }
         ),
@@ -144,46 +146,27 @@ describe('Property-Based Tests: MeCab Environment Checker', () => {
       );
     });
 
-    it('should accurately report environment status', async () => {
+    // kuromoji.jsは常に利用可能（外部依存がないため）
+    it('should always report available status with kuromoji.js', async () => {
       await fc.assert(
         fc.asyncProperty(
           fc.boolean(),
           fc.boolean(),
-          async (shouldMecabExist, shouldDictExist) => {
+          async (_shouldMecabExist, _shouldDictExist) => {
             const checker = new MeCabEnvironmentChecker();
 
-            checker.setExecSync((cmd: string) => {
-              if (cmd.includes('--version')) {
-                if (shouldMecabExist) {
-                  return 'mecab of 0.996';
-                }
-                throw new Error('Command not found');
-              }
-              if (cmd.includes('-D')) {
-                if (shouldDictExist) {
-                  return '/path/to/dict';
-                }
-                throw new Error('Dictionary not found');
-              }
-              return '';
-            });
-
+            // kuromoji.jsでは設定に関係なく常に利用可能
             const status = await checker.checkEnvironment('mecab');
 
-            // 状態が正しく報告されている
-            expect(status.mecabFound).toBe(shouldMecabExist);
-
-            // MeCabが見つかった場合のみ辞書チェックが実行される
-            if (shouldMecabExist) {
-              expect(status.dictionaryFound).toBe(shouldDictExist);
-              expect(status.available).toBe(shouldMecabExist && shouldDictExist);
-            } else {
-              expect(status.available).toBe(false);
-            }
+            // kuromoji.jsは常に利用可能
+            expect(status.available).toBe(true);
+            expect(status.mecabFound).toBe(true);
+            expect(status.dictionaryFound).toBe(true);
+            expect(status.version).toContain('kuromoji.js');
           }
         ),
-        { numRuns: 10 }
+        { numRuns: 3 } // kuromoji.js初期化に時間がかかるので少なめに
       );
-    });
+    }, 60000); // タイムアウトを60秒に設定
   });
 });

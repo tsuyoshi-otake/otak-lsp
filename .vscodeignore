@@ -1,0 +1,105 @@
+# Development files
+.vscode/**
+.github/**
+.claude/**
+.kiro/**
+
+# Source files (bundled by esbuild)
+client/src/**
+server/src/**
+shared/src/**
+src/**
+
+# TypeScript build info (not needed)
+**/*.tsbuildinfo
+
+# TypeScript config
+tsconfig.json
+**/tsconfig.json
+
+# Test files
+**/*.test.ts
+**/*.test.js
+**/*.spec.ts
+**/*.spec.js
+jest.config.js
+
+# Build tools
+esbuild.js
+webpack.config.js
+
+# Documentation (keep only README)
+.gitignore
+.eslintrc*
+.prettierrc*
+CLAUDE.md
+evals-report.md
+*.md
+!README.md
+
+# Output directories we don't need
+out/**
+
+# Source maps and TypeScript source
+**/*.map
+**/*.ts
+!**/*.d.ts
+
+# Package artifacts
+*.vsix
+.git/**
+
+# ============================================
+# Node modules optimization
+# ============================================
+
+# Exclude all node_modules first
+node_modules/**
+
+# Re-include only required runtime dependencies
+!node_modules/kuromoji/**
+!node_modules/async/**
+!node_modules/doublearray/**
+!node_modules/zlibjs/**
+!node_modules/vscode-languageserver/**
+!node_modules/vscode-languageserver-textdocument/**
+!node_modules/vscode-languageserver-protocol/**
+!node_modules/vscode-languageclient/**
+!node_modules/vscode-jsonrpc/**
+!node_modules/vscode-languageserver-types/**
+
+# ============================================
+# Cleanup within included modules
+# ============================================
+
+# Exclude test/dev directories
+node_modules/**/test/**
+node_modules/**/tests/**
+node_modules/**/example/**
+node_modules/**/examples/**
+node_modules/**/demo/**
+node_modules/**/build/**
+node_modules/**/doc/**
+node_modules/**/docs/**
+
+# Exclude config files
+node_modules/**/.travis.yml
+node_modules/**/.codeclimate.yml
+node_modules/**/.jshintrc
+node_modules/**/.node-version
+node_modules/**/bower.json
+node_modules/**/gulpfile.js
+node_modules/**/jsdoc.json
+node_modules/**/Makefile
+
+# Exclude documentation
+node_modules/**/*.md
+node_modules/**/LICENSE*
+node_modules/**/CHANGELOG*
+node_modules/**/HISTORY*
+node_modules/**/NOTICE*
+node_modules/**/.github/**
+
+# Exclude TypeScript source (keep .d.ts)
+node_modules/**/*.ts
+!node_modules/**/*.d.ts

@@ -21,7 +21,6 @@ const mockDisposable = {
 };
 
 let mockConfigValues: Record<string, unknown> = {
-  mecabPath: 'mecab',
   enableGrammarCheck: true,
   enableSemanticHighlight: true,
   targetLanguages: ['markdown', 'javascript', 'typescript', 'python', 'c', 'cpp', 'java', 'rust'],
@@ -81,7 +80,6 @@ describe('Extension Client', () => {
     jest.clearAllMocks();
     // Reset config values
     mockConfigValues = {
-      mecabPath: 'mecab',
       enableGrammarCheck: true,
       enableSemanticHighlight: true,
       targetLanguages: ['markdown', 'javascript', 'typescript', 'python', 'c', 'cpp', 'java', 'rust'],
@@ -148,7 +146,6 @@ describe('Extension Client', () => {
       it('should return current configuration', () => {
         const config = client.getConfiguration();
 
-        expect(config.mecabPath).toBe('mecab');
         expect(config.enableGrammarCheck).toBe(true);
         expect(config.enableSemanticHighlight).toBe(true);
         expect(config.debounceDelay).toBe(500);
@@ -160,7 +157,6 @@ describe('Extension Client', () => {
         client.loadConfiguration();
         const config = client.getConfiguration();
 
-        expect(config.mecabPath).toBe('mecab');
         expect(config.enableGrammarCheck).toBe(true);
       });
 
@@ -170,7 +166,7 @@ describe('Extension Client', () => {
         const config = client.getConfiguration();
 
         // Should retain previous values (defaults)
-        expect(config.mecabPath).toBeDefined();
+        expect(config.enableGrammarCheck).toBeDefined();
       });
     });
 
@@ -187,11 +183,7 @@ describe('Extension Client', () => {
       });
     });
 
-    describe('getMeCabPath', () => {
-      it('should return configured MeCab path', () => {
-        expect(client.getMeCabPath()).toBe('mecab');
-      });
-    });
+    // MeCab関連のテストは削除（kuromoji.jsに移行したため）
 
     describe('isGrammarCheckEnabled', () => {
       it('should return grammar check setting', () => {

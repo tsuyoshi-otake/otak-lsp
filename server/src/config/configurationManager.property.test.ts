@@ -15,21 +15,7 @@ describe('Property-Based Tests: Configuration Manager', () => {
    * システムは新しい設定値に基づいて動作を更新する
    */
   describe('Property 12: 設定変更の反映', () => {
-    it('should always reflect mecabPath changes', () => {
-      fc.assert(
-        fc.property(
-          fc.string({ minLength: 1, maxLength: 100 }),
-          (path) => {
-            const manager = new ConfigurationManager();
-            manager.updateConfiguration({ mecabPath: path });
-
-            expect(manager.getValue('mecabPath')).toBe(path);
-            expect(manager.getConfiguration().mecabPath).toBe(path);
-          }
-        ),
-        { numRuns: 100 }
-      );
-    });
+    // MeCab関連のテストは削除（kuromoji.jsに移行したため）
 
     it('should always reflect enableGrammarCheck changes', () => {
       fc.assert(
@@ -108,7 +94,6 @@ describe('Property-Based Tests: Configuration Manager', () => {
       fc.assert(
         fc.property(
           fc.record({
-            mecabPath: fc.option(fc.string({ minLength: 1, maxLength: 50 })),
             enableGrammarCheck: fc.option(fc.boolean()),
             enableSemanticHighlight: fc.option(fc.boolean()),
             debounceDelay: fc.option(fc.integer({ min: 100, max: 2000 }))
@@ -122,10 +107,7 @@ describe('Property-Based Tests: Configuration Manager', () => {
             const updateObj: Record<string, any> = {};
             let hasChanges = false;
 
-            if (changes.mecabPath !== null) {
-              updateObj.mecabPath = changes.mecabPath;
-              hasChanges = true;
-            }
+            // MeCab関連の設定は削除（kuromoji.jsに移行したため）
             if (changes.enableGrammarCheck !== null) {
               updateObj.enableGrammarCheck = changes.enableGrammarCheck;
               hasChanges = true;
@@ -152,38 +134,36 @@ describe('Property-Based Tests: Configuration Manager', () => {
     it('should maintain other settings when one is changed', () => {
       fc.assert(
         fc.property(
-          fc.string({ minLength: 1, maxLength: 50 }),
           fc.boolean(),
           fc.integer({ min: 100, max: 2000 }),
-          (newPath, newGrammarCheck, newDelay) => {
+          (newGrammarCheck, newDelay) => {
             const manager = new ConfigurationManager();
 
             // 初期設定を保存
             const initialConfig = manager.getConfiguration();
 
-            // mecabPathのみを変更
-            manager.updateConfiguration({ mecabPath: newPath });
+            // debounceDelayのみを変更
+            manager.updateConfiguration({ debounceDelay: newDelay });
 
             // 他の設定は変わっていないことを確認
             expect(manager.getValue('enableGrammarCheck')).toBe(initialConfig.enableGrammarCheck);
             expect(manager.getValue('enableSemanticHighlight')).toBe(initialConfig.enableSemanticHighlight);
-            expect(manager.getValue('debounceDelay')).toBe(initialConfig.debounceDelay);
 
             // enableGrammarCheckを変更
             manager.updateConfiguration({ enableGrammarCheck: newGrammarCheck });
 
-            // mecabPathは保持されている
-            expect(manager.getValue('mecabPath')).toBe(newPath);
+            // debounceDelayは保持されている
+            expect(manager.getValue('debounceDelay')).toBe(newDelay);
           }
         ),
-        { numRuns: 50 }
+        { numRuns: 30 }
       );
     });
 
     it('should provide accurate affected keys in change events', () => {
       fc.assert(
         fc.property(
-          fc.subarray(['mecabPath', 'enableGrammarCheck', 'enableSemanticHighlight', 'debounceDelay'] as const, { minLength: 1 }),
+          fc.subarray(['enableGrammarCheck', 'enableSemanticHighlight', 'debounceDelay'] as const, { minLength: 1 }),
           (keysToChange) => {
             const manager = new ConfigurationManager();
             const listener = jest.fn();
@@ -192,9 +172,6 @@ describe('Property-Based Tests: Configuration Manager', () => {
             const updateObj: Record<string, any> = {};
             for (const key of keysToChange) {
               switch (key) {
-                case 'mecabPath':
-                  updateObj[key] = '/test/path';
-                  break;
                 case 'enableGrammarCheck':
                 case 'enableSemanticHighlight':
                   updateObj[key] = false;

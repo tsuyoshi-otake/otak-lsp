@@ -25,6 +25,7 @@ import { TextDocument } from 'vscode-languageserver-textdocument';
 import { MeCabAnalyzer } from './mecab/analyzer';
 import { CommentExtractor } from './parser/commentExtractor';
 import { GrammarChecker } from './grammar/checker';
+import { AdvancedRulesManager } from './grammar/advancedRulesManager';
 import { SemanticTokenProvider, tokenTypes, tokenModifiers } from './semantic/tokenProvider';
 import { HoverProvider } from './hover/provider';
 import { WikipediaClient } from './wikipedia/client';
@@ -40,6 +41,7 @@ const documents: TextDocuments<TextDocument> = new TextDocuments(TextDocument);
 let mecabAnalyzer: MeCabAnalyzer;
 let commentExtractor: CommentExtractor;
 let grammarChecker: GrammarChecker;
+let advancedRulesManager: AdvancedRulesManager;
 let semanticTokenProvider: SemanticTokenProvider;
 let hoverProvider: HoverProvider;
 let wikipediaClient: WikipediaClient;
@@ -69,6 +71,7 @@ connection.onInitialize((params: InitializeParams): InitializeResult => {
   mecabAnalyzer = new MeCabAnalyzer();
   commentExtractor = new CommentExtractor();
   grammarChecker = new GrammarChecker();
+  advancedRulesManager = new AdvancedRulesManager();
   semanticTokenProvider = new SemanticTokenProvider();
   wikipediaClient = new WikipediaClient();
   hoverProvider = new HoverProvider(wikipediaClient);
@@ -208,10 +211,28 @@ async function analyzeDocument(document: TextDocument): Promise<void> {
     // Grammar check
     const diagnostics: Diagnostic[] = [];
     if (configuration.enableGrammarCheck) {
-      connection.console.log(`[DEBUG] Running grammar check...`);
+      // Basic grammar rules
+      connection.console.log(`[DEBUG] Running basic grammar check...`);
       const grammarDiagnostics = grammarChecker.check(tokens, textToAnalyze);
-      connection.console.log(`[DEBUG] Grammar check found ${grammarDiagnostics.length} issues`);
+      connection.console.log(`[DEBUG] Basic grammar check found ${grammarDiagnostics.length} issues`);
       for (const diag of grammarDiagnostics) {
+        diagnostics.push({
+          severity: convertSeverity(diag.severity),
+          range: {
+            start: { line: diag.range.start.line, character: diag.range.start.character },
+            end: { line: diag.range.end.line, character: diag.range.end.character },
+          },
+          message: diag.message,
+          source: 'otak-lcp',
+          code: diag.code,
+        });
+      }
+
+      // Advanced grammar rules
+      connection.console.log(`[DEBUG] Running advanced grammar check...`);
+      const advancedDiagnostics = advancedRulesManager.checkText(textToAnalyze, tokens);
+      connection.console.log(`[DEBUG] Advanced grammar check found ${advancedDiagnostics.length} issues`);
+      for (const diag of advancedDiagnostics) {
         diagnostics.push({
           severity: convertSeverity(diag.severity),
           range: {

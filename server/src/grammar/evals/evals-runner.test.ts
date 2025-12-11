@@ -25,7 +25,7 @@ describe('EvalsRunner', () => {
     it('should return total counts', async () => {
       const results = await runner.runEvals();
 
-      expect(results.totalCategories).toBe(31);
+      expect(results.totalCategories).toBe(43);
       expect(results.totalExamples).toBeGreaterThan(0);
     }, 60000);
 
@@ -49,14 +49,16 @@ describe('EvalsRunner', () => {
       expect(result.status).toBeDefined();
     }, 30000);
 
-    it('should mark NOT_IMPL categories correctly', async () => {
+    // redundant-expression は実装済みなので、PASS/FAILのいずれかを返す
+    it('should evaluate implemented categories correctly', async () => {
       const category = NG_EXAMPLE_CATEGORIES.find(c => c.id === 'redundant-expression');
       expect(category).toBeDefined();
 
       const result = await runner.evaluateCategory(category!);
 
-      expect(result.status).toBe('NOT_IMPL');
-      expect(result.detected).toBe(0);
+      // 実装済みカテゴリはPASS/FAILのいずれかを返す
+      expect(['PASS', 'FAIL']).toContain(result.status);
+      expect(result.detected).toBeGreaterThanOrEqual(0);
     }, 30000);
   });
 

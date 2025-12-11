@@ -4,7 +4,7 @@
  * Feature: advanced-grammar-rules
  */
 
-import { Token, Diagnostic } from '../../../shared/src/types';
+import { Token, Diagnostic, Range, Position } from '../../../shared/src/types';
 import {
   AdvancedGrammarRule,
   AdvancedRulesConfig,
@@ -53,6 +53,53 @@ import {
 export class AdvancedRulesManager {
   private rules: AdvancedGrammarRule[];
   private config: AdvancedRulesConfig;
+  private lineStarts: number[] = [];
+
+  /**
+   * テキストから行開始位置を計算
+   */
+  private calculateLineStarts(text: string): void {
+    this.lineStarts = [0];
+    for (let i = 0; i < text.length; i++) {
+      if (text[i] === '\n') {
+        this.lineStarts.push(i + 1);
+      }
+    }
+  }
+
+  /**
+   * オフセットから行と文字位置を取得
+   */
+  private offsetToPosition(offset: number): Position {
+    let line = 0;
+    for (let i = 1; i < this.lineStarts.length; i++) {
+      if (offset < this.lineStarts[i]) {
+        break;
+      }
+      line = i;
+    }
+    return { line, character: offset - this.lineStarts[line] };
+  }
+
+  /**
+   * 診断のrangeを修正（offsetベースからline/charベースへ）
+   */
+  private fixDiagnosticRange(diagnostic: Diagnostic): Diagnostic {
+    // rangeのstart/endがoffsetとして使われている場合を修正
+    const startOffset = diagnostic.range.start.character;
+    const endOffset = diagnostic.range.end.character;
+
+    // line: 0 が使われている場合はoffsetベースと判断
+    if (diagnostic.range.start.line === 0 && diagnostic.range.end.line === 0) {
+      const start = this.offsetToPosition(startOffset);
+      const end = this.offsetToPosition(endOffset);
+      return {
+        ...diagnostic,
+        range: { start, end }
+      };
+    }
+    return diagnostic;
+  }
 
   constructor(config?: Partial<AdvancedRulesConfig>) {
     this.config = { ...DEFAULT_ADVANCED_RULES_CONFIG, ...config };
@@ -128,6 +175,9 @@ export class AdvancedRulesManager {
    * テキストをチェック
    */
   checkText(text: string, tokens: Token[]): Diagnostic[] {
+    // 行開始位置を計算
+    this.calculateLineStarts(text);
+
     const sentences = SentenceParser.parseSentences(text, tokens);
     const context: RuleContext = {
       documentText: text,
@@ -147,13 +197,17 @@ export class AdvancedRulesManager {
       }
     }
 
-    return diagnostics.map(d => d.toDiagnostic());
+    // offsetベースのrangeをline/charベースに変換
+    return diagnostics.map(d => this.fixDiagnosticRange(d.toDiagnostic()));
   }
 
   /**
    * 特定のルールのみでチェック
    */
   checkWithRules(text: string, tokens: Token[], ruleNames: string[]): Diagnostic[] {
+    // 行開始位置を計算
+    this.calculateLineStarts(text);
+
     const sentences = SentenceParser.parseSentences(text, tokens);
     const context: RuleContext = {
       documentText: text,
@@ -173,6 +227,7 @@ export class AdvancedRulesManager {
       }
     }
 
-    return diagnostics.map(d => d.toDiagnostic());
+    // offsetベースのrangeをline/charベースに変換
+    return diagnostics.map(d => this.fixDiagnosticRange(d.toDiagnostic()));
   }
 }

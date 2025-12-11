@@ -13,7 +13,6 @@
     "url": "https://github.com/tsuyoshi-otake-system-exe-jp/otak-lsp/issues"
   },
   "homepage": "https://github.com/tsuyoshi-otake-system-exe-jp/otak-lsp#readme",
-  "icon": "images/icon.png",
   "galleryBanner": {
     "color": "#F5F5F5",
     "theme": "light"
@@ -298,7 +297,7 @@
     }
   },
   "scripts": {
-    "vscode:prepublish": "npm run esbuild-base -- --production",
+    "vscode:prepublish": "node scripts/prepare-package.js && npm run esbuild-base -- --production",
     "compile": "npm run esbuild-base",
     "esbuild-base": "node esbuild.js",
     "watch": "node esbuild.js --watch",

@@ -76,14 +76,15 @@ describe('StyleConsistencyRule', () => {
       expect(rule.detectStyle(sentence)).toBe('joutai');
     });
 
-    it('should detect neutral style for da ending', () => {
+    it('should detect joutai style for da ending', () => {
+      // 「だ」は日本語文法上、常体（plain form copula）に分類される
       const sentence = new Sentence({
         text: 'これはテストだ',
         tokens: [],
         start: 0,
         end: 7
       });
-      expect(rule.detectStyle(sentence)).toBe('neutral');
+      expect(rule.detectStyle(sentence)).toBe('joutai');
     });
 
     it('should detect neutral style for verb ending', () => {
@@ -145,7 +146,7 @@ describe('StyleConsistencyRule', () => {
       expect(diagnostics).toHaveLength(0);
     });
 
-    it('should not flag neutral style sentences', () => {
+    it('should flag da ending as joutai mixed with keigo', () => {
       const sentences = [
         new Sentence({ text: 'これはテストです。', tokens: [], start: 0, end: 9 }),
         new Sentence({ text: 'これはテストだ。', tokens: [], start: 9, end: 17 })
@@ -154,8 +155,9 @@ describe('StyleConsistencyRule', () => {
 
       const diagnostics = rule.check([], context);
 
-      // 「だ」は中立なので、敬体との混在は検出しない
-      expect(diagnostics).toHaveLength(0);
+      // 「だ」は常体なので、敬体との混在を検出する
+      expect(diagnostics).toHaveLength(1);
+      expect(diagnostics[0].message).toContain('常体');
     });
 
     it('should include suggestion in diagnostic', () => {

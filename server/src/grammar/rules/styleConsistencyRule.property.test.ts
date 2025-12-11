@@ -64,11 +64,17 @@ describe('Property-Based Tests: StyleConsistencyRule', () => {
       );
     });
 
-    it('should recognize da and other endings as neutral', () => {
+    it('should recognize verb endings as neutral and da as joutai', () => {
+      // 「だ」は常体、動詞終止形は中立
       fc.assert(
         fc.property(
-          fc.constantFrom('だ', 'する', '行く', 'ない'),
-          (ending) => {
+          fc.constantFrom(
+            { ending: 'だ', expected: 'joutai' as StyleType },
+            { ending: 'する', expected: 'neutral' as StyleType },
+            { ending: '行く', expected: 'neutral' as StyleType },
+            { ending: 'ない', expected: 'neutral' as StyleType }
+          ),
+          ({ ending, expected }) => {
             const sentence = new Sentence({
               text: `これはテスト${ending}`,
               tokens: [],
@@ -76,7 +82,7 @@ describe('Property-Based Tests: StyleConsistencyRule', () => {
               end: 5 + ending.length
             });
             const style = rule.detectStyle(sentence);
-            expect(style).toBe('neutral');
+            expect(style).toBe(expected);
           }
         ),
         { numRuns: 30 }
@@ -90,7 +96,7 @@ describe('Property-Based Tests: StyleConsistencyRule', () => {
             { ending: 'です。', expected: 'keigo' as StyleType },
             { ending: 'ます。', expected: 'keigo' as StyleType },
             { ending: 'である。', expected: 'joutai' as StyleType },
-            { ending: 'だ。', expected: 'neutral' as StyleType }
+            { ending: 'だ。', expected: 'joutai' as StyleType }
           ),
           ({ ending, expected }) => {
             const sentence = new Sentence({

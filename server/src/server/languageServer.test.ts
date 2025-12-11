@@ -218,7 +218,6 @@ describe('Language Server', () => {
     it('should have default configuration', () => {
       const config = server.getConfiguration();
 
-      expect(config.mecabPath).toBe('mecab');
       expect(config.enableGrammarCheck).toBe(true);
       expect(config.enableSemanticHighlight).toBe(true);
       expect(config.debounceDelay).toBe(500);
@@ -226,13 +225,11 @@ describe('Language Server', () => {
 
     it('should update configuration', () => {
       server.updateConfiguration({
-        mecabPath: '/custom/path/mecab',
         enableGrammarCheck: false,
         debounceDelay: 1000
       });
 
       const config = server.getConfiguration();
-      expect(config.mecabPath).toBe('/custom/path/mecab');
       expect(config.enableGrammarCheck).toBe(false);
       expect(config.debounceDelay).toBe(1000);
     });

@@ -53,8 +53,8 @@ describe('Property-Based Tests: Error Handler', () => {
 
     it('should notify user for non-retryable errors on first occurrence', () => {
       const nonRetryableCodes = [
-        ErrorCodes.MECAB_NOT_FOUND,
-        ErrorCodes.MECAB_DICT_NOT_FOUND,
+        ErrorCodes.ANALYZER_INIT_ERROR,
+        ErrorCodes.ANALYZER_DICT_ERROR,
         ErrorCodes.FILE_TOO_LARGE,
         ErrorCodes.ENCODING_ERROR
       ];
@@ -88,7 +88,7 @@ describe('Property-Based Tests: Error Handler', () => {
 
     it('should delay notification for retryable errors until max retries exceeded', () => {
       const retryableCodes = [
-        ErrorCodes.MECAB_PROCESS_ERROR,
+        ErrorCodes.ANALYZER_PARSE_ERROR,
         ErrorCodes.WIKIPEDIA_REQUEST_FAILED,
         ErrorCodes.WIKIPEDIA_TIMEOUT
       ];

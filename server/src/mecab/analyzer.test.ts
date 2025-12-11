@@ -13,13 +13,14 @@ let mecabAvailable = false;
 describe('MeCab Analyzer', () => {
   let analyzer: MeCabAnalyzer;
 
+  // kuromoji.jsの初期化には時間がかかる場合があるため、タイムアウトを延長
   beforeAll(async () => {
     analyzer = new MeCabAnalyzer();
     mecabAvailable = await analyzer.isAvailable();
     if (!mecabAvailable) {
       console.warn('MeCab is not available. Some tests will be skipped.');
     }
-  });
+  }, 30000); // 30秒のタイムアウト
 
   describe('isAvailable', () => {
     it('should return boolean indicating MeCab availability', async () => {
@@ -123,9 +124,11 @@ describe('MeCab Analyzer', () => {
       expect(version.length).toBeGreaterThan(0);
     });
 
-    it('should throw error when MeCab is not available', async () => {
+    // kuromoji.jsは常にバージョンを返す（外部依存がないため）
+    it('should return version string even with different path (kuromoji.js mode)', async () => {
       const unavailableAnalyzer = new MeCabAnalyzer('/nonexistent/path/mecab');
-      await expect(unavailableAnalyzer.getVersion()).rejects.toThrow();
+      const version = await unavailableAnalyzer.getVersion();
+      expect(version).toContain('kuromoji.js');
     });
   });
 

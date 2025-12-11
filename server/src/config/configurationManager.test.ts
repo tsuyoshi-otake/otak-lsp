@@ -17,7 +17,6 @@ describe('Configuration Manager', () => {
     it('should return default configuration', () => {
       const config = manager.getConfiguration();
 
-      expect(config.mecabPath).toBe('mecab');
       expect(config.enableGrammarCheck).toBe(true);
       expect(config.enableSemanticHighlight).toBe(true);
       expect(config.targetLanguages).toContain('markdown');
@@ -34,12 +33,7 @@ describe('Configuration Manager', () => {
   });
 
   describe('updateConfiguration', () => {
-    it('should update mecabPath', () => {
-      manager.updateConfiguration({ mecabPath: '/custom/mecab' });
-
-      const config = manager.getConfiguration();
-      expect(config.mecabPath).toBe('/custom/mecab');
-    });
+    // MeCab関連のテストは削除（kuromoji.jsに移行したため）
 
     it('should update enableGrammarCheck', () => {
       manager.updateConfiguration({ enableGrammarCheck: false });
@@ -71,13 +65,11 @@ describe('Configuration Manager', () => {
 
     it('should update multiple settings at once', () => {
       manager.updateConfiguration({
-        mecabPath: '/path/to/mecab',
         enableGrammarCheck: false,
         debounceDelay: 750
       });
 
       const config = manager.getConfiguration();
-      expect(config.mecabPath).toBe('/path/to/mecab');
       expect(config.enableGrammarCheck).toBe(false);
       expect(config.debounceDelay).toBe(750);
       // 未変更の設定は保持される
@@ -90,7 +82,7 @@ describe('Configuration Manager', () => {
       const listener = jest.fn();
       manager.onDidChangeConfiguration(listener);
 
-      manager.updateConfiguration({ mecabPath: '/new/path' });
+      manager.updateConfiguration({ enableGrammarCheck: false });
 
       expect(listener).toHaveBeenCalledTimes(1);
     });
@@ -109,10 +101,10 @@ describe('Configuration Manager', () => {
       const listener = jest.fn();
       manager.onDidChangeConfiguration(listener);
 
-      manager.updateConfiguration({ mecabPath: '/new', debounceDelay: 100 });
+      manager.updateConfiguration({ enableGrammarCheck: false, debounceDelay: 100 });
 
       const event: ConfigurationChangeEvent = listener.mock.calls[0][0];
-      expect(event.affectedKeys).toContain('mecabPath');
+      expect(event.affectedKeys).toContain('enableGrammarCheck');
       expect(event.affectedKeys).toContain('debounceDelay');
     });
 
@@ -122,7 +114,7 @@ describe('Configuration Manager', () => {
       manager.onDidChangeConfiguration(listener1);
       manager.onDidChangeConfiguration(listener2);
 
-      manager.updateConfiguration({ mecabPath: '/new' });
+      manager.updateConfiguration({ enableGrammarCheck: false });
 
       expect(listener1).toHaveBeenCalledTimes(1);
       expect(listener2).toHaveBeenCalledTimes(1);
@@ -132,34 +124,32 @@ describe('Configuration Manager', () => {
       const listener = jest.fn();
       const disposable = manager.onDidChangeConfiguration(listener);
 
-      manager.updateConfiguration({ mecabPath: '/path1' });
+      manager.updateConfiguration({ enableGrammarCheck: false });
       expect(listener).toHaveBeenCalledTimes(1);
 
       disposable.dispose();
 
-      manager.updateConfiguration({ mecabPath: '/path2' });
+      manager.updateConfiguration({ debounceDelay: 1000 });
       expect(listener).toHaveBeenCalledTimes(1); // 増えていない
     });
   });
 
   describe('getValue', () => {
     it('should get specific configuration value', () => {
-      expect(manager.getValue('mecabPath')).toBe('mecab');
       expect(manager.getValue('enableGrammarCheck')).toBe(true);
       expect(manager.getValue('debounceDelay')).toBe(500);
     });
 
     it('should reflect updated values', () => {
-      manager.updateConfiguration({ mecabPath: '/updated' });
+      manager.updateConfiguration({ debounceDelay: 1000 });
 
-      expect(manager.getValue('mecabPath')).toBe('/updated');
+      expect(manager.getValue('debounceDelay')).toBe(1000);
     });
   });
 
   describe('reset', () => {
     it('should reset to default configuration', () => {
       manager.updateConfiguration({
-        mecabPath: '/custom',
         enableGrammarCheck: false,
         debounceDelay: 1000
       });
@@ -167,7 +157,6 @@ describe('Configuration Manager', () => {
       manager.reset();
 
       const config = manager.getConfiguration();
-      expect(config.mecabPath).toBe('mecab');
       expect(config.enableGrammarCheck).toBe(true);
       expect(config.debounceDelay).toBe(500);
     });
@@ -176,7 +165,7 @@ describe('Configuration Manager', () => {
       const listener = jest.fn();
       manager.onDidChangeConfiguration(listener);
 
-      manager.updateConfiguration({ mecabPath: '/custom' });
+      manager.updateConfiguration({ enableGrammarCheck: false });
       listener.mockClear();
 
       manager.reset();
