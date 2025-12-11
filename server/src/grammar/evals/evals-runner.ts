@@ -25,7 +25,12 @@ import {
   WeakExpressionRule,
   CommaCountRule,
   TermNotationRule,
-  KanjiOpeningRule
+  KanjiOpeningRule,
+  RedundantExpressionRule,
+  TautologyRule,
+  NoParticleChainRule,
+  MonotonousEndingRule,
+  LongSentenceRule
 } from '../rules';
 import { SentenceParser } from '../sentenceParser';
 import {
@@ -182,6 +187,12 @@ export class EvalsRunner {
     this.advancedRules.set('comma-count', new CommaCountRule());
     this.advancedRules.set('term-notation', new TermNotationRule());
     this.advancedRules.set('kanji-opening', new KanjiOpeningRule());
+    // Additional Grammar Rules
+    this.advancedRules.set('redundant-expression', new RedundantExpressionRule());
+    this.advancedRules.set('tautology', new TautologyRule());
+    this.advancedRules.set('no-particle-chain', new NoParticleChainRule());
+    this.advancedRules.set('monotonous-ending', new MonotonousEndingRule());
+    this.advancedRules.set('long-sentence', new LongSentenceRule());
   }
 
   /**
@@ -386,7 +397,13 @@ export class EvalsRunner {
       'weak-expression': ['weak-expression'],
       'comma-count': ['comma-count'],
       'term-notation': ['term-notation'],
-      'kanji-opening': ['kanji-opening']
+      'kanji-opening': ['kanji-opening'],
+      // Additional Grammar Rules
+      'redundant-expression': ['redundant-expression'],
+      'tautology': ['tautology'],
+      'no-particle-chain': ['no-particle-chain'],
+      'monotonous-ending': ['monotonous-ending'],
+      'long-sentence': ['long-sentence']
     };
 
     const expectedRules = ruleAliases[expectedRule] || [expectedRule];

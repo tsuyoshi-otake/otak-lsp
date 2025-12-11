@@ -20,7 +20,12 @@ export type AdvancedGrammarErrorType =
   | 'weak-expression'
   | 'comma-count'
   | 'term-notation'
-  | 'kanji-opening';
+  | 'kanji-opening'
+  | 'redundant-expression'
+  | 'tautology'
+  | 'no-particle-chain'
+  | 'monotonous-ending'
+  | 'long-sentence';
 
 /**
  * 文体タイプ
@@ -199,6 +204,63 @@ export interface KanjiOpening {
 }
 
 /**
+ * 冗長表現の情報
+ * Feature: additional-grammar-rules
+ */
+export interface RedundantExpression {
+  pattern: string;
+  redundantPart: string;
+  suggestion: string;
+  range: Range;
+}
+
+/**
+ * 重複表現（同語反復）の情報
+ * Feature: additional-grammar-rules
+ */
+export interface Tautology {
+  pattern: string;
+  duplicatedElement: string;
+  suggestions: string[];
+  range: Range;
+}
+
+/**
+ * 助詞「の」連続使用の情報
+ * Feature: additional-grammar-rules
+ */
+export interface NoParticleChain {
+  tokens: Token[];
+  chainLength: number;
+  range: Range;
+  suggestions: string[];
+}
+
+/**
+ * 文末表現の単調さの情報
+ * Feature: additional-grammar-rules
+ */
+export interface MonotonousEnding {
+  endingPattern: string;
+  sentences: Sentence[];
+  consecutiveCount: number;
+  range: Range;
+  variations: string[];
+}
+
+/**
+ * 長文の情報
+ * Feature: additional-grammar-rules
+ */
+export interface LongSentence {
+  sentence: Sentence;
+  characterCount: number;
+  threshold: number;
+  range: Range;
+  splitSuggestions: string[];
+}
+
+/**
  * 高度な文法ルール設定
  */
 export interface AdvancedRulesConfig {
@@ -214,6 +276,14 @@ export interface AdvancedRulesConfig {
   enableCommaCount: boolean;
   enableTermNotation: boolean;
   enableKanjiOpening: boolean;
+
+  // 追加文法ルールの有効/無効
+  // Feature: additional-grammar-rules
+  enableRedundantExpression: boolean;
+  enableTautology: boolean;
+  enableNoParticleChain: boolean;
+  enableMonotonousEnding: boolean;
+  enableLongSentence: boolean;
 
   // 技術用語辞典の有効/無効
   enableWebTechDictionary: boolean;
@@ -231,6 +301,12 @@ export interface AdvancedRulesConfig {
   commaCountThreshold: number;
   weakExpressionLevel: WeakExpressionLevel;
   customNotationRules: Map<string, string>;
+
+  // 追加文法ルールの設定
+  // Feature: additional-grammar-rules
+  noParticleChainThreshold: number;
+  monotonousEndingThreshold: number;
+  longSentenceThreshold: number;
 }
 
 /**
@@ -249,6 +325,13 @@ export const DEFAULT_ADVANCED_RULES_CONFIG: AdvancedRulesConfig = {
   enableTermNotation: true,
   enableKanjiOpening: true,
 
+  // 追加文法ルール（Feature: additional-grammar-rules）
+  enableRedundantExpression: true,
+  enableTautology: true,
+  enableNoParticleChain: true,
+  enableMonotonousEnding: true,
+  enableLongSentence: true,
+
   // 技術用語辞典はすべて有効
   enableWebTechDictionary: true,
   enableGenerativeAIDictionary: true,
@@ -263,7 +346,12 @@ export const DEFAULT_ADVANCED_RULES_CONFIG: AdvancedRulesConfig = {
 
   commaCountThreshold: 4,
   weakExpressionLevel: 'normal',
-  customNotationRules: new Map()
+  customNotationRules: new Map(),
+
+  // 追加文法ルールの閾値設定（Feature: additional-grammar-rules）
+  noParticleChainThreshold: 3,
+  monotonousEndingThreshold: 3,
+  longSentenceThreshold: 120
 };
 
 /**

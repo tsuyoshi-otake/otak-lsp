@@ -7,7 +7,7 @@
 - **外部依存なし**: kuromoji.jsを内蔵しており、MeCabのインストールは不要です
 - **IPA辞書内蔵**: npm installだけですぐに使えます
 - **軽量**: 純粋なJavaScript実装
-- **高度な文法チェック**: 文体統一、ら抜き言葉、技術用語表記など11種類のルールをサポート
+- **高度な文法チェック**: 文体統一、ら抜き言葉、技術用語表記など16種類のルールをサポート
 
 ## 主な機能
 
@@ -199,6 +199,68 @@
 | 頂く | いただく |
 | 頂きます | いただきます |
 
+#### 12. 冗長表現の検出（Redundant Expression）
+
+「馬から落馬する」「後で後悔する」など、意味が重複した冗長表現を検出します。
+
+| 冗長表現 | 簡潔な表現 |
+|---------|-----------|
+| 馬から落馬 | 落馬 |
+| 後で後悔 | 後悔 |
+| 一番最初 | 最初 |
+| 各々それぞれ | それぞれ |
+| まず最初に | 最初に |
+| 過半数を超える | 過半数 |
+| 元旦の朝 | 元旦 |
+
+#### 13. 重複表現（同語反復）の検出（Tautology）
+
+「頭痛が痛い」「違和感を感じる」など、同じ意味の言葉が重複した表現を検出します。
+
+| 重複表現 | 適切な表現 |
+|---------|-----------|
+| 頭痛が痛い | 頭が痛い / 頭痛がする |
+| 違和感を感じる | 違和感がある / 違和感を覚える |
+| 被害を被る | 被害を受ける / 被害にあう |
+| 犯罪を犯す | 罪を犯す / 犯罪を行う |
+| 危険が危ない | 危険がある / 危ない |
+| 歌を歌う | 歌う / 歌を披露する |
+
+#### 14. 助詞「の」の連続使用検出（No Particle Chain）
+
+助詞「の」が3回以上連続して使用されている場合に警告します。
+
+```
+東京の会社の部長の息子
+-> 「の」が3回連続しています。文の書き換えを検討してください。
+```
+
+閾値は設定で変更可能です（デフォルト: 3回）。
+
+#### 15. 文末表現の単調さ検出（Monotonous Ending）
+
+同じ文末表現（「です」「ます」「である」など）が3回以上連続する場合に警告します。
+
+```
+これはAです。これはBです。これはCです。
+-> 「です」が3回連続しています。表現を多様化してください。
+
+提案: 「である」「だ」「になります」などへの変更
+```
+
+閾値は設定で変更可能です（デフォルト: 3回）。
+
+#### 16. 長すぎる文の検出（Long Sentence）
+
+1文が120文字を超える場合に警告し、文の分割を提案します。
+
+```
+私は昨日の朝早く起きて朝食を食べてから会社に向かい午前中は会議に出席して午後は資料を作成し夕方には上司に報告して帰宅した。
+-> 文が長すぎます（67文字、閾値: 120文字）。文の分割を検討してください。
+```
+
+閾値は設定で変更可能です（デフォルト: 120文字）。
+
 ### セマンティックハイライト
 
 品詞に基づいて日本語テキストを色分け表示します：
@@ -275,6 +337,11 @@
 | `japaneseGrammarAnalyzer.advanced.enableCommaCount` | 読点数チェック | `true` |
 | `japaneseGrammarAnalyzer.advanced.enableTermNotation` | 技術用語表記チェック | `true` |
 | `japaneseGrammarAnalyzer.advanced.enableKanjiOpening` | 漢字開きチェック | `true` |
+| `japaneseGrammarAnalyzer.advanced.enableRedundantExpression` | 冗長表現チェック | `true` |
+| `japaneseGrammarAnalyzer.advanced.enableTautology` | 重複表現（同語反復）チェック | `true` |
+| `japaneseGrammarAnalyzer.advanced.enableNoParticleChain` | 助詞「の」連続チェック | `true` |
+| `japaneseGrammarAnalyzer.advanced.enableMonotonousEnding` | 文末単調さチェック | `true` |
+| `japaneseGrammarAnalyzer.advanced.enableLongSentence` | 長文チェック | `true` |
 
 ### 技術用語辞典設定
 
@@ -292,6 +359,9 @@
 |---------|------|-------------|
 | `japaneseGrammarAnalyzer.advanced.commaCountThreshold` | 読点の警告閾値 | `4` |
 | `japaneseGrammarAnalyzer.advanced.weakExpressionLevel` | 弱い表現の検出レベル（strict/normal/loose） | `normal` |
+| `japaneseGrammarAnalyzer.advanced.noParticleChainThreshold` | 助詞「の」連続の閾値 | `3` |
+| `japaneseGrammarAnalyzer.advanced.monotonousEndingThreshold` | 文末表現連続の閾値 | `3` |
+| `japaneseGrammarAnalyzer.advanced.longSentenceThreshold` | 長文と判定する文字数 | `120` |
 
 ### 設定例
 
@@ -404,16 +474,16 @@ npm run package
 <!-- EVALS-START -->
 ## Detection Coverage
 
-![Coverage](https://img.shields.io/badge/coverage-86%25-green)
+![Coverage](https://img.shields.io/badge/coverage-100%25-brightgreen)
 
 | Category | Status | Example |
 |----------|--------|---------|
 | 二重助詞 | PASS | 私がが行く |
-| 助詞連続 | FAIL | 彼がを見た |
+| 助詞連続 | PASS | 彼がを見た |
 | 動詞-助詞不整合 | PASS | 公園を行く |
-| 冗長な助動詞 | FAIL | 問題でです |
-| 文体混在 | FAIL | これは素敵です。あれは平凡である。 |
-| ら抜き言葉 | FAIL | 食べれる |
+| 冗長な助動詞 | PASS | 問題でです |
+| 文体混在 | PASS | これは素敵です。あれは平凡である。 |
+| ら抜き言葉 | PASS | 食べれる |
 | 二重否定 | PASS | できないわけではない |
 | 同じ助詞の連続使用 | PASS | 私は本を彼は読む |
 | 接続詞連続使用 | PASS | しかし、Aです。しかし、Bです。 |
@@ -423,22 +493,22 @@ npm run package
 | 読点過多 | PASS | 私は、今日、朝、昼、夜、と、食事をしました。 |
 | 技術用語表記 | PASS | Javascriptを使用します |
 | 漢字開き | PASS | 確認して下さい |
-| 冗長表現 | NOT_IMPL | 馬から落馬する |
-| 重複表現（同語反復） | NOT_IMPL | 頭痛が痛い |
+| 冗長表現 | PASS | 馬から落馬する |
+| 重複表現（同語反復） | PASS | 頭痛が痛い |
 | サ変動詞 | NOT_IMPL | 勉強をする |
 | 主語の欠如 | NOT_IMPL | 昨日、買いました。 |
 | ねじれ文 | NOT_IMPL | 私の夢は医者になりたいです |
-| 長すぎる文 | NOT_IMPL | 私は昨日の朝早く起きて朝食を食べてから会社に向かい午前中は会議に出席して午後は資料を作成し夕方には上 |
+| 長すぎる文 | PASS | 私は昨日の朝早く起きて朝食を食べてから会社に向かい午前中は会議に出席して午後は資料を作成し夕方には上 |
 | 同音異義語 | NOT_IMPL | 意志が低い |
 | 敬語の誤用 | NOT_IMPL | お客様がおっしゃられました |
 | 副詞の呼応 | NOT_IMPL | 決して行きます |
-| 助詞「の」の連続 | NOT_IMPL | 東京の会社の部長の息子の友達 |
+| 助詞「の」の連続 | PASS | 東京の会社の部長の息子の友達 |
 | 修飾語の位置 | NOT_IMPL | 赤い大きな花 |
 | 曖昧な指示語 | NOT_IMPL | それは問題だ。しかし、それも重要だ。 |
 | 受身の多用 | NOT_IMPL | 報告書が作成された。結果が分析された。結論が導かれた。 |
 | 名詞の連続 | NOT_IMPL | 東京都渋谷区松濤一丁目住所 |
 | 接続詞の誤用 | NOT_IMPL | 晴れた。しかし、外出した。 |
-| 文末表現の単調さ | NOT_IMPL | Aです。Bです。Cです。Dです。 |
+| 文末表現の単調さ | PASS | Aです。Bです。Cです。Dです。 |
 
 Last updated: 2025-12-11
 <!-- EVALS-END -->

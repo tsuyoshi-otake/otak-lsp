@@ -197,6 +197,60 @@
           "default": "normal",
           "description": "弱い表現の検出レベル（strict: 厳格、normal: 標準、loose: 緩め）",
           "scope": "resource"
+        },
+        "japaneseGrammarAnalyzer.advanced.enableRedundantExpression": {
+          "type": "boolean",
+          "default": true,
+          "description": "冗長表現検出の有効/無効（「馬から落馬する」「一番最初」など）",
+          "scope": "resource"
+        },
+        "japaneseGrammarAnalyzer.advanced.enableTautology": {
+          "type": "boolean",
+          "default": true,
+          "description": "重複表現（同語反復）検出の有効/無効（「頭痛が痛い」「違和感を感じる」など）",
+          "scope": "resource"
+        },
+        "japaneseGrammarAnalyzer.advanced.enableNoParticleChain": {
+          "type": "boolean",
+          "default": true,
+          "description": "助詞「の」連続使用検出の有効/無効",
+          "scope": "resource"
+        },
+        "japaneseGrammarAnalyzer.advanced.enableMonotonousEnding": {
+          "type": "boolean",
+          "default": true,
+          "description": "文末表現の単調さ検出の有効/無効",
+          "scope": "resource"
+        },
+        "japaneseGrammarAnalyzer.advanced.enableLongSentence": {
+          "type": "boolean",
+          "default": true,
+          "description": "長すぎる文の検出の有効/無効",
+          "scope": "resource"
+        },
+        "japaneseGrammarAnalyzer.advanced.noParticleChainThreshold": {
+          "type": "number",
+          "default": 3,
+          "minimum": 2,
+          "maximum": 10,
+          "description": "助詞「の」連続の閾値（この値以上で警告）",
+          "scope": "resource"
+        },
+        "japaneseGrammarAnalyzer.advanced.monotonousEndingThreshold": {
+          "type": "number",
+          "default": 3,
+          "minimum": 2,
+          "maximum": 10,
+          "description": "文末表現の連続の閾値（この値以上で警告）",
+          "scope": "resource"
+        },
+        "japaneseGrammarAnalyzer.advanced.longSentenceThreshold": {
+          "type": "number",
+          "default": 120,
+          "minimum": 50,
+          "maximum": 500,
+          "description": "長文と判定する文字数の閾値",
+          "scope": "resource"
         }
       }
     },

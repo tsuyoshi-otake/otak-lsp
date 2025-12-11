@@ -25,7 +25,13 @@ import {
   WeakExpressionRule,
   CommaCountRule,
   TermNotationRule,
-  KanjiOpeningRule
+  KanjiOpeningRule,
+  // Additional Grammar Rules (Feature: additional-grammar-rules)
+  RedundantExpressionRule,
+  TautologyRule,
+  NoParticleChainRule,
+  MonotonousEndingRule,
+  LongSentenceRule
 } from './rules';
 
 /**
@@ -49,7 +55,13 @@ export class AdvancedRulesManager {
       new WeakExpressionRule(),
       new CommaCountRule(),
       new TermNotationRule(),
-      new KanjiOpeningRule()
+      new KanjiOpeningRule(),
+      // Additional Grammar Rules (Feature: additional-grammar-rules)
+      new RedundantExpressionRule(),
+      new TautologyRule(),
+      new NoParticleChainRule(),
+      new MonotonousEndingRule(),
+      new LongSentenceRule()
     ];
   }
 

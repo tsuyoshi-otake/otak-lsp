@@ -274,13 +274,13 @@ export const NG_EXAMPLE_CATEGORIES: NGExampleCategory[] = [
   // 未実装ルール（16カテゴリ）
   // ==========================================
 
-  // 16. 冗長表現
+  // 16. 冗長表現 (Feature: additional-grammar-rules - IMPLEMENTED)
   {
     id: 'redundant-expression',
     name: '冗長表現',
     description: '重複した意味を持つ表現',
     expectedRule: 'redundant-expression',
-    status: 'NOT_IMPL',
+    status: 'IMPLEMENTED',
     examples: [
       { text: '馬から落馬する', correctText: '落馬する', description: '「馬から」と「落馬」が重複' },
       { text: '後で後悔する', correctText: '後悔する', description: '「後で」と「後悔」が重複' },
@@ -289,13 +289,13 @@ export const NG_EXAMPLE_CATEGORIES: NGExampleCategory[] = [
     ]
   },
 
-  // 17. 重複表現（同語反復）
+  // 17. 重複表現（同語反復） (Feature: additional-grammar-rules - IMPLEMENTED)
   {
     id: 'tautology',
     name: '重複表現（同語反復）',
     description: '同じ意味の言葉を重ねた表現',
     expectedRule: 'tautology',
-    status: 'NOT_IMPL',
+    status: 'IMPLEMENTED',
     examples: [
       { text: '頭痛が痛い', correctText: '頭が痛い / 頭痛がする', description: '「頭」と「痛い」が重複' },
       { text: '違和感を感じる', correctText: '違和感がある', description: '「感」が重複' },
@@ -343,16 +343,16 @@ export const NG_EXAMPLE_CATEGORIES: NGExampleCategory[] = [
     ]
   },
 
-  // 21. 長すぎる文
+  // 21. 長すぎる文 (Feature: additional-grammar-rules - IMPLEMENTED)
   {
     id: 'long-sentence',
     name: '長すぎる文',
     description: '一文が長すぎて読みにくい',
     expectedRule: 'long-sentence',
-    status: 'NOT_IMPL',
+    status: 'IMPLEMENTED',
     examples: [
       {
-        text: '私は昨日の朝早く起きて朝食を食べてから会社に向かい午前中は会議に出席して午後は資料を作成し夕方には上司に報告して帰宅した。',
+        text: '私は昨日の朝早く起きて朝食を食べてから会社に向かい午前中は会議に出席して午後は資料を作成し夕方には上司に報告して帰宅したが、その日の仕事はとても忙しくて大変だったので、帰宅後はすぐに寝てしまい、翌朝目覚めたときには疲れが残っていたのでコーヒーを飲んだ。',
         description: '一文が長すぎる（分割が必要）'
       }
     ]
@@ -399,13 +399,13 @@ export const NG_EXAMPLE_CATEGORIES: NGExampleCategory[] = [
     ]
   },
 
-  // 25. 助詞「の」の連続
+  // 25. 助詞「の」の連続 (Feature: additional-grammar-rules - IMPLEMENTED)
   {
     id: 'no-particle-chain',
     name: '助詞「の」の連続',
     description: '「の」が連続して使用される',
     expectedRule: 'no-particle-chain',
-    status: 'NOT_IMPL',
+    status: 'IMPLEMENTED',
     examples: [
       { text: '東京の会社の部長の息子の友達', description: '「の」が4回連続' },
       { text: '彼の家の庭の花', description: '「の」が3回連続' }
@@ -480,13 +480,13 @@ export const NG_EXAMPLE_CATEGORIES: NGExampleCategory[] = [
     ]
   },
 
-  // 31. 文末表現の単調さ
+  // 31. 文末表現の単調さ (Feature: additional-grammar-rules - IMPLEMENTED)
   {
     id: 'monotonous-ending',
     name: '文末表現の単調さ',
     description: '同じ文末表現が繰り返される',
     expectedRule: 'monotonous-ending',
-    status: 'NOT_IMPL',
+    status: 'IMPLEMENTED',
     examples: [
       {
         text: 'Aです。Bです。Cです。Dです。',

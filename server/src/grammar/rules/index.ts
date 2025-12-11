@@ -14,3 +14,10 @@ export { WeakExpressionRule } from './weakExpressionRule';
 export { CommaCountRule } from './commaCountRule';
 export { TermNotationRule } from './termNotationRule';
 export { KanjiOpeningRule } from './kanjiOpeningRule';
+
+// Additional Grammar Rules (Feature: additional-grammar-rules)
+export { RedundantExpressionRule } from './redundantExpressionRule';
+export { TautologyRule } from './tautologyRule';
+export { NoParticleChainRule } from './noParticleChainRule';
+export { MonotonousEndingRule } from './monotonousEndingRule';
+export { LongSentenceRule } from './longSentenceRule';

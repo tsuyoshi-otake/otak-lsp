@@ -7,9 +7,9 @@ Generated: 2025-12-11
 | Metric | Value |
 |--------|-------|
 | Total Categories | 31 |
-| Implemented Categories | 15 (48%) |
+| Implemented Categories | 20 (65%) |
 | Total Examples | 85 |
-| Detected Examples | 49 |
+| Detected Examples | 62 |
 | Detection Rate | 100% |
 
 ## Category Results
@@ -31,22 +31,22 @@ Generated: 2025-12-11
 | 読点過多 | PASS | 2 | 2 | 100% |
 | 技術用語表記 | PASS | 6 | 6 | 100% |
 | 漢字開き | PASS | 5 | 5 | 100% |
-| 冗長表現 | NOT_IMPL | 0 | 4 | 0% |
-| 重複表現（同語反復） | NOT_IMPL | 0 | 4 | 0% |
+| 冗長表現 | PASS | 4 | 4 | 100% |
+| 重複表現（同語反復） | PASS | 4 | 4 | 100% |
 | サ変動詞 | NOT_IMPL | 0 | 2 | 0% |
 | 主語の欠如 | NOT_IMPL | 0 | 2 | 0% |
 | ねじれ文 | NOT_IMPL | 0 | 2 | 0% |
-| 長すぎる文 | NOT_IMPL | 0 | 1 | 0% |
+| 長すぎる文 | PASS | 1 | 1 | 100% |
 | 同音異義語 | NOT_IMPL | 0 | 2 | 0% |
 | 敬語の誤用 | NOT_IMPL | 0 | 3 | 0% |
 | 副詞の呼応 | NOT_IMPL | 0 | 3 | 0% |
-| 助詞「の」の連続 | NOT_IMPL | 0 | 2 | 0% |
+| 助詞「の」の連続 | PASS | 2 | 2 | 100% |
 | 修飾語の位置 | NOT_IMPL | 0 | 2 | 0% |
 | 曖昧な指示語 | NOT_IMPL | 0 | 2 | 0% |
 | 受身の多用 | NOT_IMPL | 0 | 1 | 0% |
 | 名詞の連続 | NOT_IMPL | 0 | 2 | 0% |
 | 接続詞の誤用 | NOT_IMPL | 0 | 2 | 0% |
-| 文末表現の単調さ | NOT_IMPL | 0 | 2 | 0% |
+| 文末表現の単調さ | PASS | 2 | 2 | 100% |
 
 ## Implemented Categories
 
@@ -125,24 +125,44 @@ Generated: 2025-12-11
 - Status: PASS
 - Detection Rate: 100% (5/5)
 
+### 冗長表現 (redundant-expression)
+
+- Status: PASS
+- Detection Rate: 100% (4/4)
+
+### 重複表現（同語反復） (tautology)
+
+- Status: PASS
+- Detection Rate: 100% (4/4)
+
+### 長すぎる文 (long-sentence)
+
+- Status: PASS
+- Detection Rate: 100% (1/1)
+
+### 助詞「の」の連続 (no-particle-chain)
+
+- Status: PASS
+- Detection Rate: 100% (2/2)
+
+### 文末表現の単調さ (monotonous-ending)
+
+- Status: PASS
+- Detection Rate: 100% (2/2)
+
 ## Not Implemented Categories
 
-- **冗長表現** (redundant-expression): 4 examples
-- **重複表現（同語反復）** (tautology): 4 examples
 - **サ変動詞** (sahen-verb): 2 examples
 - **主語の欠如** (missing-subject): 2 examples
 - **ねじれ文** (twisted-sentence): 2 examples
-- **長すぎる文** (long-sentence): 1 examples
 - **同音異義語** (homophone): 2 examples
 - **敬語の誤用** (honorific-error): 3 examples
 - **副詞の呼応** (adverb-agreement): 3 examples
-- **助詞「の」の連続** (no-particle-chain): 2 examples
 - **修飾語の位置** (modifier-position): 2 examples
 - **曖昧な指示語** (ambiguous-demonstrative): 2 examples
 - **受身の多用** (passive-overuse): 1 examples
 - **名詞の連続** (noun-chain): 2 examples
 - **接続詞の誤用** (conjunction-misuse): 2 examples
-- **文末表現の単調さ** (monotonous-ending): 2 examples
 
 ---
 
