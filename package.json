@@ -86,6 +86,117 @@
           "maximum": 5000,
           "description": "テキスト編集後に解析を開始するまでの遅延時間（ミリ秒）",
           "scope": "resource"
+        },
+        "japaneseGrammarAnalyzer.advanced.enableStyleConsistency": {
+          "type": "boolean",
+          "default": true,
+          "description": "文体の混在検出（敬体/常体）の有効/無効",
+          "scope": "resource"
+        },
+        "japaneseGrammarAnalyzer.advanced.enableRaNukiDetection": {
+          "type": "boolean",
+          "default": true,
+          "description": "ら抜き言葉検出の有効/無効",
+          "scope": "resource"
+        },
+        "japaneseGrammarAnalyzer.advanced.enableDoubleNegation": {
+          "type": "boolean",
+          "default": true,
+          "description": "二重否定検出の有効/無効",
+          "scope": "resource"
+        },
+        "japaneseGrammarAnalyzer.advanced.enableParticleRepetition": {
+          "type": "boolean",
+          "default": false,
+          "description": "同じ助詞の連続使用検出の有効/無効（初期設定で無効）",
+          "scope": "resource"
+        },
+        "japaneseGrammarAnalyzer.advanced.enableConjunctionRepetition": {
+          "type": "boolean",
+          "default": true,
+          "description": "同じ接続詞の連続使用検出の有効/無効",
+          "scope": "resource"
+        },
+        "japaneseGrammarAnalyzer.advanced.enableAdversativeGa": {
+          "type": "boolean",
+          "default": true,
+          "description": "逆接「が」の連続使用検出の有効/無効",
+          "scope": "resource"
+        },
+        "japaneseGrammarAnalyzer.advanced.enableAlphabetWidth": {
+          "type": "boolean",
+          "default": true,
+          "description": "全角/半角アルファベット混在検出の有効/無効",
+          "scope": "resource"
+        },
+        "japaneseGrammarAnalyzer.advanced.enableWeakExpression": {
+          "type": "boolean",
+          "default": true,
+          "description": "弱い表現検出の有効/無効",
+          "scope": "resource"
+        },
+        "japaneseGrammarAnalyzer.advanced.enableCommaCount": {
+          "type": "boolean",
+          "default": true,
+          "description": "読点数チェックの有効/無効",
+          "scope": "resource"
+        },
+        "japaneseGrammarAnalyzer.advanced.enableTermNotation": {
+          "type": "boolean",
+          "default": true,
+          "description": "技術用語表記統一の有効/無効",
+          "scope": "resource"
+        },
+        "japaneseGrammarAnalyzer.advanced.enableKanjiOpening": {
+          "type": "boolean",
+          "default": true,
+          "description": "漢字開き検出の有効/無効",
+          "scope": "resource"
+        },
+        "japaneseGrammarAnalyzer.advanced.enableWebTechDictionary": {
+          "type": "boolean",
+          "default": true,
+          "description": "ウェブ技術用語辞典の有効/無効",
+          "scope": "resource"
+        },
+        "japaneseGrammarAnalyzer.advanced.enableGenerativeAIDictionary": {
+          "type": "boolean",
+          "default": true,
+          "description": "生成AI関連用語辞典の有効/無効",
+          "scope": "resource"
+        },
+        "japaneseGrammarAnalyzer.advanced.enableAWSDictionary": {
+          "type": "boolean",
+          "default": true,
+          "description": "AWS関連用語辞典の有効/無効",
+          "scope": "resource"
+        },
+        "japaneseGrammarAnalyzer.advanced.enableAzureDictionary": {
+          "type": "boolean",
+          "default": true,
+          "description": "Azure関連用語辞典の有効/無効",
+          "scope": "resource"
+        },
+        "japaneseGrammarAnalyzer.advanced.enableOCIDictionary": {
+          "type": "boolean",
+          "default": true,
+          "description": "OCI関連用語辞典の有効/無効",
+          "scope": "resource"
+        },
+        "japaneseGrammarAnalyzer.advanced.commaCountThreshold": {
+          "type": "number",
+          "default": 4,
+          "minimum": 1,
+          "maximum": 20,
+          "description": "1文中の読点数の閾値（この値を超えると警告）",
+          "scope": "resource"
+        },
+        "japaneseGrammarAnalyzer.advanced.weakExpressionLevel": {
+          "type": "string",
+          "enum": ["strict", "normal", "loose"],
+          "default": "normal",
+          "description": "弱い表現の検出レベル（strict: 厳格、normal: 標準、loose: 緩め）",
+          "scope": "resource"
         }
       }
     },
@@ -143,6 +254,8 @@
     "test": "jest --config jest.config.js",
     "test:watch": "jest --config jest.config.js --watch",
     "test:coverage": "jest --config jest.config.js --coverage",
+    "evals": "ts-node server/src/grammar/evals/run-evals.ts",
+    "evals:update-readme": "ts-node server/src/grammar/evals/update-readme.ts",
     "clean": "rimraf ./client/out ./server/out ./shared/out",
     "package": "vsce package",
     "publish": "vsce publish"
@@ -151,6 +264,7 @@
     "@types/jest": "^29.5.0",
     "@types/node": "^18.15.0",
     "@types/kuromoji": "^0.1.3",
+    "ts-node": "^10.9.0",
     "esbuild": "^0.19.0",
     "@types/vscode": "^1.60.0",
     "@typescript-eslint/eslint-plugin": "^6.0.0",

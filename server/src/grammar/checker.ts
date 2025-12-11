@@ -173,11 +173,24 @@ class ParticleSequenceRule implements GrammarRule {
       return null;
     }
 
-    // 両方が助詞の場合
-    if (!current.isParticle() || !next.isParticle()) {
-      return null;
+    // パターン1: 両方が助詞の場合
+    if (current.isParticle() && next.isParticle()) {
+      return this.checkParticleSequence(current, next);
     }
 
+    // パターン2: 副詞の末尾が助詞で、次が助詞の場合
+    // 例: 「本に」(副詞) + 「を」(助詞) → 「にを」の連続
+    if (current.isAdverb() && next.isParticle()) {
+      return this.checkAdverbParticleSequence(current, next);
+    }
+
+    return null;
+  }
+
+  /**
+   * 助詞同士の連続をチェック
+   */
+  private checkParticleSequence(current: Token, next: Token): GrammarError | null {
     // 同じ助詞の連続は DoubleParticleRule で処理
     if (current.surface === next.surface) {
       return null;
@@ -198,6 +211,37 @@ class ParticleSequenceRule implements GrammarRule {
         tokens: [current, next],
         range,
         message: `不適切な助詞連続「${combination}」が検出されました。文の構造を見直してください。`,
+        suggestion: `助詞の使い方を見直す`
+      });
+    }
+
+    return null;
+  }
+
+  /**
+   * 副詞の末尾助詞と次の助詞の連続をチェック
+   * 例: 「本に」(副詞) + 「を」(助詞) → 「にを」
+   */
+  private checkAdverbParticleSequence(adverb: Token, particle: Token): GrammarError | null {
+    // 副詞の末尾が助詞かチェック
+    const lastChar = adverb.surface.slice(-1);
+    const particles = ['に', 'で', 'と', 'へ', 'から', 'まで', 'より'];
+    
+    if (!particles.includes(lastChar)) {
+      return null;
+    }
+
+    const combination = lastChar + particle.surface;
+
+    // 問題のある組み合わせを検出
+    if (PROBLEMATIC_PARTICLE_COMBINATIONS.has(combination)) {
+      // 副詞トークン全体と次の助詞を範囲とする
+      const range = this.createRange(adverb, particle);
+      return new GrammarError({
+        type: 'particle-sequence',
+        tokens: [adverb, particle],
+        range,
+        message: `不適切な助詞連続「${combination}」が検出されました。「${adverb.surface}${particle.surface}」の構造を見直してください。`,
         suggestion: `助詞の使い方を見直す`
       });
     }
@@ -272,10 +316,19 @@ class RedundantCopulaRule implements GrammarRule {
   private checker: GrammarChecker;
 
   // 問題のある組み合わせパターン
-  private static readonly PROBLEMATIC_PATTERNS: Array<{particle: string; auxiliary: string; message: string}> = [
-    { particle: 'で', auxiliary: 'です', message: '「でです」は冗長です。「です」のみにしてください。' },
-    { particle: 'で', auxiliary: 'ます', message: '「でます」は不自然です。文の構造を見直してください。' },
-    { particle: 'に', auxiliary: 'です', message: '「にです」は不自然です。文の構造を見直してください。' },
+  private static readonly PROBLEMATIC_PATTERNS: Array<{
+    firstType: 'particle' | 'auxiliary';
+    first: string;
+    second: string;
+    message: string;
+  }> = [
+    // 助詞 + 助動詞のパターン
+    { firstType: 'particle', first: 'で', second: 'です', message: '「でです」は冗長です。「です」のみにしてください。' },
+    { firstType: 'particle', first: 'で', second: 'ます', message: '「でます」は不自然です。文の構造を見直してください。' },
+    { firstType: 'particle', first: 'に', second: 'です', message: '「にです」は不自然です。文の構造を見直してください。' },
+    // 助動詞 + 助動詞のパターン（「だ」の連用形「で」+ 「です」「ます」）
+    { firstType: 'auxiliary', first: 'で', second: 'です', message: '「でです」は冗長です。「です」のみにしてください。' },
+    { firstType: 'auxiliary', first: 'で', second: 'ます', message: '「でます」は不自然です。文の構造を見直してください。' },
   ];
 
   constructor(checker: GrammarChecker) {
@@ -290,26 +343,46 @@ class RedundantCopulaRule implements GrammarRule {
       return null;
     }
 
-    // 助詞 + 助動詞のパターンをチェック
-    if (!current.isParticle()) {
-      return null;
-    }
-
-    // 助動詞かどうかをチェック（品詞が助動詞）
+    // 次のトークンが助動詞でない場合はスキップ
     if (next.pos !== '助動詞') {
       return null;
     }
 
+    // パターン1: 助詞 + 助動詞
+    if (current.isParticle()) {
+      return this.checkPattern(current, next, 'particle');
+    }
+
+    // パターン2: 助動詞 + 助動詞（「で」+「です」「ます」）
+    if (current.pos === '助動詞' && current.surface === 'で') {
+      return this.checkPattern(current, next, 'auxiliary');
+    }
+
+    return null;
+  }
+
+  /**
+   * パターンをチェック
+   */
+  private checkPattern(
+    current: Token,
+    next: Token,
+    firstType: 'particle' | 'auxiliary'
+  ): GrammarError | null {
     // 問題のあるパターンを検索
     for (const pattern of RedundantCopulaRule.PROBLEMATIC_PATTERNS) {
-      if (current.surface === pattern.particle && next.surface === pattern.auxiliary) {
+      if (
+        pattern.firstType === firstType &&
+        current.surface === pattern.first &&
+        next.surface === pattern.second
+      ) {
         const range = this.createRange(current, next);
         return new GrammarError({
           type: 'particle-sequence' as GrammarErrorType,
           tokens: [current, next],
           range,
           message: pattern.message,
-          suggestion: `「${pattern.particle}」を削除する`
+          suggestion: `「${pattern.first}」を削除する`
         });
       }
     }

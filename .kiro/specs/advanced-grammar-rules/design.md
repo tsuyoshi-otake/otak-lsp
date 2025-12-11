@@ -479,6 +479,11 @@ interface AdvancedRulesConfig {
   enableAzureDictionary: boolean;
   enableOCIDictionary: boolean;
   
+  // Untitledファイルや拡張子なしファイルの処理
+  enableUntitledFiles: boolean;
+  enableContentBasedDetection: boolean;
+  excludedLanguageIds: string[];
+  
   commaCountThreshold: number;
   weakExpressionLevel: 'strict' | 'normal' | 'loose';
   customNotationRules: Map<string, string>;
@@ -503,6 +508,11 @@ const DEFAULT_CONFIG: AdvancedRulesConfig = {
   enableAWSDictionary: true,
   enableAzureDictionary: true,
   enableOCIDictionary: true,
+  
+  // Untitledファイルや拡張子なしファイルも有効
+  enableUntitledFiles: true,
+  enableContentBasedDetection: true,
+  excludedLanguageIds: [],
   
   commaCountThreshold: 4,
   weakExpressionLevel: 'normal',
@@ -699,11 +709,17 @@ class RuleResult {
 
 **検証: 要件 11.5**
 
-### プロパティ 13: 設定変更の即時反映
+### プロパティ 13: Untitledファイルと拡張子なしファイルの処理
+
+*任意の* ファイルに対して、ファイルが保存されていない（Untitled）または拡張子がない場合でも、設定で有効化されていれば、システムは日本語テキストを解析し、診断情報を生成する。除外リストに含まれる言語IDのファイルは解析しない
+
+**検証: 要件 13.1, 13.2, 13.3, 13.4, 13.5**
+
+### プロパティ 14: 設定変更の即時反映
 
 *任意の* 設定項目に対して、値が変更されたとき、システムは新しい設定値に基づいて即座に動作を更新する
 
-**検証: 要件 13.5**
+**検証: 要件 14.5**
 
 ## エラーハンドリング
 
@@ -975,23 +991,271 @@ describe('Property-Based Tests', () => {
 
 ## 実装の考慮事項
 
+### Untitledファイルと拡張子なしファイルの処理
+
+1. **言語ID判定**
+   - `plaintext`、`untitled`、空文字列の言語IDを日本語解析対象とする
+   - ユーザーが明示的に設定した言語IDは尊重する
+
+2. **内容ベースの検出**
+   - ファイル内容に日本語文字（ひらがな、カタカナ、漢字）が含まれるかチェック
+   - 正規表現: `/[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]/`
+
+3. **除外リスト**
+   - バイナリファイル、画像ファイルなどは除外
+   - ユーザーが設定で除外した言語IDは処理しない
+
+4. **パフォーマンス考慮**
+   - 日本語判定のみ最初の1000文字をチェック（判定後は全文を解析）
+   - 日本語が検出されない場合は早期リターン（解析をスキップ）
+
+```typescript
+interface DocumentFilter {
+  shouldAnalyze(document: TextDocument, config: AdvancedRulesConfig): boolean;
+}
+
+class JapaneseDocumentFilter implements DocumentFilter {
+  private readonly JAPANESE_PATTERN = /[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF]/;
+  private readonly UNTITLED_LANGUAGE_IDS = ['plaintext', 'untitled', ''];
+  
+  shouldAnalyze(document: TextDocument, config: AdvancedRulesConfig): boolean {
+    // 除外リストに含まれる言語IDはスキップ
+    if (config.excludedLanguageIds.includes(document.languageId)) {
+      return false;
+    }
+    
+    // Untitledファイルの処理が無効な場合
+    if (!config.enableUntitledFiles && this.isUntitled(document)) {
+      return false;
+    }
+    
+    // 既知の日本語対応言語ID
+    const supportedLanguageIds = ['markdown', 'plaintext', 'untitled', ''];
+    if (supportedLanguageIds.includes(document.languageId)) {
+      return true;
+    }
+    
+    // 内容ベースの検出が有効な場合
+    if (config.enableContentBasedDetection) {
+      return this.containsJapanese(document);
+    }
+    
+    return false;
+  }
+  
+  private isUntitled(document: TextDocument): boolean {
+    return this.UNTITLED_LANGUAGE_IDS.includes(document.languageId) ||
+           document.uri.scheme === 'untitled';
+  }
+  
+  private containsJapanese(document: TextDocument): boolean {
+    // 日本語判定のため最初の1000文字をチェック
+    // （判定後、実際の文法チェックは全文に対して実行される）
+    const text = document.getText().substring(0, 1000);
+    return this.JAPANESE_PATTERN.test(text);
+  }
+}
+```
+
 ### パフォーマンス最適化
 
-1. **ルールの並列実行**
-   - 独立したルールは並列実行
-   - Promise.allを使用して効率化
+#### 1. アルゴリズムレベルの最適化
 
-2. **キャッシング**
-   - 文の分割結果をキャッシュ
-   - 表記統一ルールの検索結果をキャッシュ
+**計算量の削減:**
+- **文字列検索**: Boyer-Moore法やKMP法を使用（O(n+m)）
+- **パターンマッチング**: Aho-Corasick法で複数パターンを一度に検索（O(n+m+z)）
+- **トークン走査**: 単一パスで複数ルールをチェック（O(n)）
+- **重複計算の排除**: 文の分割、読点カウントなどは一度だけ実行
 
-3. **早期リターン**
-   - 設定で無効化されているルールは実行しない
-   - 対象パターンがない場合は早期リターン
+**データ構造の選択:**
+- **表記統一ルール**: Map（O(1)検索）またはTrie（O(m)検索、メモリ効率的）
+- **除外リスト**: Set（O(1)検索）
+- **トークンインデックス**: 位置ベースのマップで高速アクセス
 
-4. **インクリメンタル処理**
-   - 変更された文のみ再チェック
-   - 変更されていない部分はキャッシュを使用
+```typescript
+// 悪い例: O(n*m) - 各ルールで全トークンを走査
+for (const rule of rules) {
+  for (const token of tokens) {
+    rule.check(token);
+  }
+}
+
+// 良い例: O(n) - 一度の走査で全ルールをチェック
+for (let i = 0; i < tokens.length; i++) {
+  for (const rule of rules) {
+    rule.check(tokens, i);
+  }
+}
+```
+
+#### 2. CPU命令レベルの最適化
+
+**分岐予測の最適化:**
+- **頻繁に真になる条件を先に配置**: CPUの分岐予測を活用
+- **switch文の最適化**: 頻度の高いケースを先頭に配置
+- **条件式の短絡評価**: 安価な条件を先に評価
+
+```typescript
+// 分岐予測を考慮した条件順序
+if (config.enableTermNotation && // 最も頻繁に真
+    token.surface.length > 0 &&   // 安価なチェック
+    NOTATION_RULES.has(token.surface)) { // 高価なチェック
+  // 処理
+}
+```
+
+**キャッシュ効率の向上:**
+- **データの局所性**: 関連データを近くに配置（構造体のパッキング）
+- **配列の連続アクセス**: ランダムアクセスを避ける
+- **プリフェッチ**: 次に使うデータを事前にキャッシュに読み込む
+
+```typescript
+// キャッシュフレンドリーな実装
+class Token {
+  // 頻繁にアクセスされるフィールドを先頭に配置
+  surface: string;      // 8 bytes (ポインタ)
+  pos: string;          // 8 bytes
+  start: number;        // 8 bytes
+  end: number;          // 8 bytes
+  // 以下、使用頻度の低いフィールド
+  posDetail1: string;
+  posDetail2: string;
+  // ...
+}
+```
+
+**SIMD命令の活用（将来的な拡張）:**
+- 文字列比較の並列化
+- 複数パターンの同時マッチング
+
+#### 3. メモリ最適化
+
+**メモリアロケーションの削減:**
+- **オブジェクトプール**: 頻繁に生成されるオブジェクトを再利用
+- **文字列の再利用**: 同じ文字列は参照を共有
+- **遅延評価**: 必要になるまでオブジェクトを生成しない
+
+```typescript
+class DiagnosticPool {
+  private pool: AdvancedDiagnostic[] = [];
+  
+  acquire(): AdvancedDiagnostic {
+    return this.pool.pop() || new AdvancedDiagnostic();
+  }
+  
+  release(diagnostic: AdvancedDiagnostic): void {
+    // リセットして再利用
+    this.pool.push(diagnostic);
+  }
+}
+```
+
+**ガベージコレクションの最適化:**
+- **大きなオブジェクトの回避**: 小さなオブジェクトに分割
+- **循環参照の回避**: WeakMapやWeakSetを使用
+- **一時オブジェクトの削減**: 可能な限りプリミティブ型を使用
+
+#### 4. 並列処理とスケーラビリティ
+
+**ルールの並列実行:**
+- 独立したルールはPromise.allで並列実行
+- Web Workersで重い処理をオフロード（将来的な拡張）
+
+**インクリメンタル処理:**
+- 変更された文のみ再チェック
+- 変更されていない部分はキャッシュを使用
+- 差分計算で無駄な処理を削減
+
+```typescript
+class IncrementalAnalyzer {
+  private cache: Map<string, AnalysisResult> = new Map();
+  
+  analyze(document: TextDocument, changes: TextChange[]): Diagnostic[] {
+    const affectedSentences = this.getAffectedSentences(changes);
+    
+    // 影響を受けた文のみ再解析
+    for (const sentence of affectedSentences) {
+      const key = this.getCacheKey(sentence);
+      this.cache.delete(key); // キャッシュを無効化
+    }
+    
+    // 残りはキャッシュから取得
+    return this.getCachedOrAnalyze(document);
+  }
+}
+```
+
+#### 5. 実装レベルの最適化
+
+**早期リターン:**
+- 設定で無効化されているルールは実行しない
+- 対象パターンがない場合は早期リターン
+- 空文字列や空配列のチェック
+
+**キャッシング戦略:**
+- **文の分割結果**: ドキュメントごとにキャッシュ
+- **表記統一ルールの検索**: 結果をメモ化
+- **正規表現**: コンパイル済みの正規表現を再利用
+
+```typescript
+// 正規表現のキャッシング
+class PatternCache {
+  private static readonly cache = new Map<string, RegExp>();
+  
+  static getPattern(pattern: string): RegExp {
+    if (!this.cache.has(pattern)) {
+      this.cache.set(pattern, new RegExp(pattern, 'g'));
+    }
+    return this.cache.get(pattern)!;
+  }
+}
+```
+
+**文字列操作の最適化:**
+- `substring`より`slice`を使用（より高速）
+- 文字列連結は`Array.join()`を使用
+- テンプレートリテラルは適切に使用
+
+#### 6. プロファイリングとベンチマーク
+
+**測定指標:**
+- 各ルールの実行時間
+- メモリ使用量
+- キャッシュヒット率
+- ガベージコレクション頻度
+
+**ベンチマーク基準:**
+- 1000行のファイル: 2秒以内
+- 各ルールの実行時間: 500ms以内
+- メモリ使用量: 追加50MB以下
+- キャッシュヒット率: 80%以上
+
+```typescript
+class PerformanceMonitor {
+  private metrics: Map<string, RuleMetrics> = new Map();
+  
+  measureRule(ruleName: string, fn: () => void): void {
+    const startTime = performance.now();
+    const startMemory = process.memoryUsage().heapUsed;
+    
+    fn();
+    
+    const endTime = performance.now();
+    const endMemory = process.memoryUsage().heapUsed;
+    
+    this.metrics.set(ruleName, {
+      executionTime: endTime - startTime,
+      memoryDelta: endMemory - startMemory
+    });
+  }
+  
+  getSlowRules(threshold: number): string[] {
+    return Array.from(this.metrics.entries())
+      .filter(([_, metrics]) => metrics.executionTime > threshold)
+      .map(([name, _]) => name);
+  }
+}
+```
 
 ### 拡張性
 
