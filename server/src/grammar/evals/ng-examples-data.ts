@@ -3,7 +3,7 @@
  * Feature: advanced-grammar-rules
  * Task: 23. NG例データファイルの作成
  *
- * 全31カテゴリのNG例を構造化データとして定義
+ * 全43カテゴリのNG例を構造化データとして定義
  * 2025-12-10時点の全NG例を含む
  */
 
@@ -271,7 +271,7 @@ export const NG_EXAMPLE_CATEGORIES: NGExampleCategory[] = [
   },
 
   // ==========================================
-  // 未実装ルール（16カテゴリ）
+  // 未実装ルール（16カテゴリ）＋追加8カテゴリ
   // ==========================================
 
   // 16. 冗長表現 (Feature: additional-grammar-rules - IMPLEMENTED)
@@ -496,6 +496,164 @@ export const NG_EXAMPLE_CATEGORIES: NGExampleCategory[] = [
         text: '行きました。食べました。見ました。帰りました。',
         description: '「ました」が連続して単調'
       }
+    ]
+  },
+
+  // 32. 送り仮名の揺れ
+  {
+    id: 'okurigana-variant',
+    name: '送り仮名の揺れ',
+    description: '動詞・形容詞の送り仮名が標準形と異なる',
+    expectedRule: 'okurigana-variant',
+    status: 'IMPLEMENTED',
+    examples: [
+      { text: '愛でる心を表わす', correctText: '愛でる心を表す', description: '「表す」の送り仮名誤り' },
+      { text: '結果を現わす', correctText: '結果を現す', description: '「現す」の送り仮名誤り' },
+      { text: '感じて戴きたい', correctText: '感じていただきたい', description: '補助動詞「いただく」の送り誤り' }
+    ]
+  },
+
+  // 33. 表記ゆれ（異形態統一）
+  {
+    id: 'orthography-variant',
+    name: '表記ゆれ',
+    description: '同一語の漢字/かな/混在が統一されていない',
+    expectedRule: 'orthography-variant',
+    status: 'IMPLEMENTED',
+    examples: [
+      { text: '出来るだけ早く対応します', correctText: 'できるだけ早く対応します' },
+      { text: 'ご対応下さい', correctText: 'ご対応ください' },
+      { text: 'ご連絡致します', correctText: 'ご連絡いたします' }
+    ]
+  },
+
+  // 34. 全角半角数字・記号混在
+  {
+    id: 'number-width-mix',
+    name: '全角半角数字・記号混在',
+    description: '同一文書内で数字・記号の全角半角が混在',
+    expectedRule: 'number-width-mix',
+    status: 'IMPLEMENTED',
+    examples: [
+      { text: '２０２５年に25件の案件を受注', correctText: '2025年に25件の案件を受注' },
+      { text: 'エラーコード：123、対応策は１２３です', correctText: 'エラーコード:123、対応策は123です' }
+    ]
+  },
+
+  // 35. カタカナ長音の欠落/過剰
+  {
+    id: 'katakana-chouon',
+    name: 'カタカナ長音',
+    description: '外来語の長音記号の欠落または過剰',
+    expectedRule: 'katakana-chouon',
+    status: 'IMPLEMENTED',
+    examples: [
+      { text: 'メイルを送る', correctText: 'メールを送る', description: '長音の欠落' },
+      { text: 'デフォルトー値を設定', correctText: 'デフォルト値を設定', description: '長音の過剰' }
+    ]
+  },
+
+  // 36. 半角カナ
+  {
+    id: 'halfwidth-kana',
+    name: '半角カナ',
+    description: '和文中に半角カナが出現',
+    expectedRule: 'halfwidth-kana',
+    status: 'IMPLEMENTED',
+    examples: [
+      { text: 'ﾃｽﾄｱｶｳﾝﾄを作成', correctText: 'テストアカウントを作成' },
+      { text: 'ｼｽﾃﾑを再起動', correctText: 'システムを再起動' }
+    ]
+  },
+
+  // 37. 数字表記の混在
+  {
+    id: 'numeral-style-mix',
+    name: '数字表記の混在',
+    description: '同一文脈で漢数字とアラビア数字が混在',
+    expectedRule: 'numeral-style-mix',
+    status: 'IMPLEMENTED',
+    examples: [
+      { text: '二〇二五年に20件受注', correctText: '2025年に20件受注' },
+      { text: '十五人で5本の飲料を買った', correctText: '15人で5本の飲料を買った' }
+    ]
+  },
+
+  // 38. 不要/欠落スペース（英字・単位前後）
+  {
+    id: 'space-around-unit',
+    name: 'スペースと単位',
+    description: '英字と数字、数字と単位の間のスペースが過不足',
+    expectedRule: 'space-around-unit',
+    status: 'IMPLEMENTED',
+    examples: [
+      { text: 'CPUは3.2GHzで動作', correctText: 'CPUは 3.2 GHz で動作', description: '数字と単位の間にスペース' },
+      { text: 'Version1.2を使用', correctText: 'Version 1.2 を使用', description: '英字と数字の間にスペース' }
+    ]
+  },
+
+  // 39. カッコ・引用符の不一致
+  {
+    id: 'bracket-quote-mismatch',
+    name: '括弧・引用符の不一致',
+    description: '開き括弧/引用符と閉じが対応しない',
+    expectedRule: 'bracket-quote-mismatch',
+    status: 'IMPLEMENTED',
+    examples: [
+      { text: '彼は「すぐ戻ると言った。', correctText: '彼は「すぐ戻る」と言った。' },
+      { text: '（重要なお知らせです。', correctText: '（重要なお知らせです）' }
+    ]
+  },
+
+  // 40. 日付表記ゆれ
+  {
+    id: 'date-format-variant',
+    name: '日付表記ゆれ',
+    description: '西暦/和暦や区切り記号が統一されていない',
+    expectedRule: 'date-format-variant',
+    status: 'IMPLEMENTED',
+    examples: [
+      { text: '2025/12/11のデータと2025年12月10日を比較', correctText: '2025年12月11日と2025年12月10日を比較' },
+      { text: '令和7年と2025-12-11', correctText: '令和7年と令和7年12月11日', description: '和暦と西暦ハイフン形式の混在' }
+    ]
+  },
+
+  // 41. ハイフン/ダッシュ/チルダの不統一
+  {
+    id: 'dash-tilde-normalization',
+    name: 'ハイフン・ダッシュ・チルダ不統一',
+    description: '範囲や接続で記号種が混在',
+    expectedRule: 'dash-tilde-normalization',
+    status: 'IMPLEMENTED',
+    examples: [
+      { text: '受付時間 9:00-18:00', correctText: '受付時間 9:00〜18:00' },
+      { text: 'ページ 10–15 を参照', correctText: 'ページ 10〜15 を参照' }
+    ]
+  },
+
+  // 42. 中黒の過不足
+  {
+    id: 'nakaguro-usage',
+    name: '中黒の過不足',
+    description: '並列表記で中黒「・」の入れ忘れ/入れ過ぎ',
+    expectedRule: 'nakaguro-usage',
+    status: 'IMPLEMENTED',
+    examples: [
+      { text: '設計・・実装・テスト', correctText: '設計・実装・テスト', description: '中黒が連続' },
+      { text: '企画・・・開発', correctText: '企画・開発', description: '中黒が3つ連続' }
+    ]
+  },
+
+  // 43. 全角記号混在（コロン/スラッシュ）
+  {
+    id: 'symbol-width-mix',
+    name: '全角記号混在',
+    description: 'コロン・スラッシュなどが全角と半角で混在',
+    expectedRule: 'symbol-width-mix',
+    status: 'IMPLEMENTED',
+    examples: [
+      { text: '時間：10時/場所:会議室', correctText: '時間:10時/場所:会議室', description: 'コロンの全角半角混在' },
+      { text: 'A/BとC／Dを比較', correctText: 'A/BとC/Dを比較', description: 'スラッシュの全角半角混在' }
     ]
   }
 ];

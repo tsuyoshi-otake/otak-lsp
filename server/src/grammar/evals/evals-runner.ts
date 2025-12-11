@@ -30,7 +30,32 @@ import {
   TautologyRule,
   NoParticleChainRule,
   MonotonousEndingRule,
-  LongSentenceRule
+  LongSentenceRule,
+  // Remaining Grammar Rules (Feature: remaining-grammar-rules)
+  SahenVerbRule,
+  MissingSubjectRule,
+  TwistedSentenceRule,
+  HomophoneRule,
+  HonorificErrorRule,
+  AdverbAgreementRule,
+  ModifierPositionRule,
+  AmbiguousDemonstrativeRule,
+  PassiveOveruseRule,
+  NounChainRule,
+  ConjunctionMisuseRule,
+  // Extended Grammar Rules - Tasks 14-25
+  OkuriganaVariantRule,
+  OrthographyVariantRule,
+  NumberWidthMixRule,
+  KatakanaChouonRule,
+  HalfwidthKanaRule,
+  NumeralStyleMixRule,
+  SpaceAroundUnitRule,
+  BracketQuoteMismatchRule,
+  DateFormatVariantRule,
+  DashTildeNormalizationRule,
+  NakaguroUsageRule,
+  SymbolWidthMixRule
 } from '../rules';
 import { SentenceParser } from '../sentenceParser';
 import {
@@ -193,6 +218,31 @@ export class EvalsRunner {
     this.advancedRules.set('no-particle-chain', new NoParticleChainRule());
     this.advancedRules.set('monotonous-ending', new MonotonousEndingRule());
     this.advancedRules.set('long-sentence', new LongSentenceRule());
+    // Remaining Grammar Rules (Feature: remaining-grammar-rules)
+    this.advancedRules.set('sahen-verb', new SahenVerbRule());
+    this.advancedRules.set('missing-subject', new MissingSubjectRule());
+    this.advancedRules.set('twisted-sentence', new TwistedSentenceRule());
+    this.advancedRules.set('homophone', new HomophoneRule());
+    this.advancedRules.set('honorific-error', new HonorificErrorRule());
+    this.advancedRules.set('adverb-agreement', new AdverbAgreementRule());
+    this.advancedRules.set('modifier-position', new ModifierPositionRule());
+    this.advancedRules.set('ambiguous-demonstrative', new AmbiguousDemonstrativeRule());
+    this.advancedRules.set('passive-overuse', new PassiveOveruseRule());
+    this.advancedRules.set('noun-chain', new NounChainRule());
+    this.advancedRules.set('conjunction-misuse', new ConjunctionMisuseRule());
+    // Extended Grammar Rules - Tasks 14-25
+    this.advancedRules.set('okurigana-variant', new OkuriganaVariantRule());
+    this.advancedRules.set('orthography-variant', new OrthographyVariantRule());
+    this.advancedRules.set('number-width-mix', new NumberWidthMixRule());
+    this.advancedRules.set('katakana-chouon', new KatakanaChouonRule());
+    this.advancedRules.set('halfwidth-kana', new HalfwidthKanaRule());
+    this.advancedRules.set('numeral-style-mix', new NumeralStyleMixRule());
+    this.advancedRules.set('space-around-unit', new SpaceAroundUnitRule());
+    this.advancedRules.set('bracket-quote-mismatch', new BracketQuoteMismatchRule());
+    this.advancedRules.set('date-format-variant', new DateFormatVariantRule());
+    this.advancedRules.set('dash-tilde-normalization', new DashTildeNormalizationRule());
+    this.advancedRules.set('nakaguro-usage', new NakaguroUsageRule());
+    this.advancedRules.set('symbol-width-mix', new SymbolWidthMixRule());
   }
 
   /**
@@ -403,7 +453,32 @@ export class EvalsRunner {
       'tautology': ['tautology'],
       'no-particle-chain': ['no-particle-chain'],
       'monotonous-ending': ['monotonous-ending'],
-      'long-sentence': ['long-sentence']
+      'long-sentence': ['long-sentence'],
+      // Remaining Grammar Rules (Feature: remaining-grammar-rules)
+      'sahen-verb': ['sahen-verb'],
+      'missing-subject': ['missing-subject'],
+      'twisted-sentence': ['twisted-sentence'],
+      'homophone': ['homophone'],
+      'honorific-error': ['honorific-error'],
+      'adverb-agreement': ['adverb-agreement'],
+      'modifier-position': ['modifier-position'],
+      'ambiguous-demonstrative': ['ambiguous-demonstrative'],
+      'passive-overuse': ['passive-overuse'],
+      'noun-chain': ['noun-chain'],
+      'conjunction-misuse': ['conjunction-misuse'],
+      // Extended Grammar Rules - Tasks 14-25
+      'okurigana-variant': ['okurigana-variant'],
+      'orthography-variant': ['orthography-variant'],
+      'number-width-mix': ['number-width-mix'],
+      'katakana-chouon': ['katakana-chouon'],
+      'halfwidth-kana': ['halfwidth-kana'],
+      'numeral-style-mix': ['numeral-style-mix'],
+      'space-around-unit': ['space-around-unit'],
+      'bracket-quote-mismatch': ['bracket-quote-mismatch'],
+      'date-format-variant': ['date-format-variant'],
+      'dash-tilde-normalization': ['dash-tilde-normalization'],
+      'nakaguro-usage': ['nakaguro-usage'],
+      'symbol-width-mix': ['symbol-width-mix']
     };
 
     const expectedRules = ruleAliases[expectedRule] || [expectedRule];

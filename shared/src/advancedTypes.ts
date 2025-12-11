@@ -25,7 +25,32 @@ export type AdvancedGrammarErrorType =
   | 'tautology'
   | 'no-particle-chain'
   | 'monotonous-ending'
-  | 'long-sentence';
+  | 'long-sentence'
+  // Feature: remaining-grammar-rules
+  | 'sahen-verb'
+  | 'missing-subject'
+  | 'twisted-sentence'
+  | 'homophone'
+  | 'honorific-error'
+  | 'adverb-agreement'
+  | 'modifier-position'
+  | 'ambiguous-demonstrative'
+  | 'passive-overuse'
+  | 'noun-chain'
+  | 'conjunction-misuse'
+  // Extended Grammar Rules - Tasks 14-25
+  | 'okurigana-variant'
+  | 'orthography-variant'
+  | 'number-width-mix'
+  | 'katakana-chouon'
+  | 'halfwidth-kana'
+  | 'numeral-style-mix'
+  | 'space-around-unit'
+  | 'bracket-quote-mismatch'
+  | 'date-format-variant'
+  | 'dash-tilde-normalization'
+  | 'nakaguro-usage'
+  | 'symbol-width-mix';
 
 /**
  * 文体タイプ
@@ -260,6 +285,125 @@ export interface LongSentence {
   splitSuggestions: string[];
 }
 
+// ==========================================
+// Feature: remaining-grammar-rules
+// ==========================================
+
+/**
+ * サ変動詞の誤用情報
+ */
+export interface SahenVerbError {
+  pattern: string;
+  unnecessaryParticle: string;
+  suggestion: string;
+  range: Range;
+}
+
+/**
+ * 主語欠如の情報
+ */
+export interface MissingSubject {
+  sentence: Sentence;
+  verbToken: Token;
+  range: Range;
+  suggestion: string;
+}
+
+/**
+ * ねじれ文の情報
+ */
+export interface TwistedSentence {
+  sentence: Sentence;
+  subjectPart: string;
+  predicatePart: string;
+  range: Range;
+  suggestions: string[];
+}
+
+/**
+ * 同音異義語の誤用情報
+ */
+export interface HomophoneError {
+  used: string;
+  expected: string[];
+  reading: string;
+  range: Range;
+  context: string;
+}
+
+/**
+ * 敬語の誤用情報
+ */
+export interface HonorificError {
+  expression: string;
+  errorType: 'double-honorific' | 'misuse' | 'inconsistent';
+  correction: string;
+  range: Range;
+}
+
+/**
+ * 副詞の呼応エラー情報
+ */
+export interface AdverbAgreementError {
+  adverb: string;
+  expectedEnding: string;
+  actualEnding: string;
+  range: Range;
+  suggestion: string;
+}
+
+/**
+ * 修飾語位置の問題情報
+ */
+export interface ModifierPositionError {
+  modifier: string;
+  modified: string;
+  suggestedOrder: string;
+  range: Range;
+}
+
+/**
+ * 曖昧な指示語の情報
+ */
+export interface AmbiguousDemonstrative {
+  demonstrative: string;
+  possibleReferents: string[];
+  range: Range;
+  suggestion: string;
+}
+
+/**
+ * 受身表現多用の情報
+ */
+export interface PassiveOveruse {
+  passiveExpressions: string[];
+  count: number;
+  threshold: number;
+  range: Range;
+  suggestions: string[];
+}
+
+/**
+ * 名詞連続の情報
+ */
+export interface NounChain {
+  nouns: Token[];
+  chainLength: number;
+  range: Range;
+  suggestion: string;
+}
+
+/**
+ * 接続詞誤用の情報
+ */
+export interface ConjunctionMisuse {
+  conjunction: string;
+  expectedType: 'adversative' | 'additive' | 'causal' | 'sequential';
+  actualRelation: string;
+  range: Range;
+  suggestion: string;
+}
+
 /**
  * 高度な文法ルール設定
  */
@@ -285,6 +429,20 @@ export interface AdvancedRulesConfig {
   enableMonotonousEnding: boolean;
   enableLongSentence: boolean;
 
+  // 残り文法ルールの有効/無効
+  // Feature: remaining-grammar-rules
+  enableSahenVerb: boolean;
+  enableMissingSubject: boolean;
+  enableTwistedSentence: boolean;
+  enableHomophone: boolean;
+  enableHonorificError: boolean;
+  enableAdverbAgreement: boolean;
+  enableModifierPosition: boolean;
+  enableAmbiguousDemonstrative: boolean;
+  enablePassiveOveruse: boolean;
+  enableNounChain: boolean;
+  enableConjunctionMisuse: boolean;
+
   // 技術用語辞典の有効/無効
   enableWebTechDictionary: boolean;
   enableGenerativeAIDictionary: boolean;
@@ -307,6 +465,11 @@ export interface AdvancedRulesConfig {
   noParticleChainThreshold: number;
   monotonousEndingThreshold: number;
   longSentenceThreshold: number;
+
+  // 残り文法ルールの設定
+  // Feature: remaining-grammar-rules
+  nounChainThreshold: number;
+  passiveOveruseThreshold: number;
 }
 
 /**
@@ -332,6 +495,19 @@ export const DEFAULT_ADVANCED_RULES_CONFIG: AdvancedRulesConfig = {
   enableMonotonousEnding: true,
   enableLongSentence: true,
 
+  // 残り文法ルール（Feature: remaining-grammar-rules）
+  enableSahenVerb: true,
+  enableMissingSubject: true,
+  enableTwistedSentence: true,
+  enableHomophone: true,
+  enableHonorificError: true,
+  enableAdverbAgreement: true,
+  enableModifierPosition: true,
+  enableAmbiguousDemonstrative: true,
+  enablePassiveOveruse: true,
+  enableNounChain: true,
+  enableConjunctionMisuse: true,
+
   // 技術用語辞典はすべて有効
   enableWebTechDictionary: true,
   enableGenerativeAIDictionary: true,
@@ -351,7 +527,11 @@ export const DEFAULT_ADVANCED_RULES_CONFIG: AdvancedRulesConfig = {
   // 追加文法ルールの閾値設定（Feature: additional-grammar-rules）
   noParticleChainThreshold: 3,
   monotonousEndingThreshold: 3,
-  longSentenceThreshold: 120
+  longSentenceThreshold: 120,
+
+  // 残り文法ルールの閾値設定（Feature: remaining-grammar-rules）
+  nounChainThreshold: 5,
+  passiveOveruseThreshold: 3
 };
 
 /**

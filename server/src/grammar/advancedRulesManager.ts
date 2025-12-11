@@ -31,7 +31,19 @@ import {
   TautologyRule,
   NoParticleChainRule,
   MonotonousEndingRule,
-  LongSentenceRule
+  LongSentenceRule,
+  // Remaining Grammar Rules (Feature: remaining-grammar-rules)
+  SahenVerbRule,
+  MissingSubjectRule,
+  TwistedSentenceRule,
+  HomophoneRule,
+  HonorificErrorRule,
+  AdverbAgreementRule,
+  ModifierPositionRule,
+  AmbiguousDemonstrativeRule,
+  PassiveOveruseRule,
+  NounChainRule,
+  ConjunctionMisuseRule
 } from './rules';
 
 /**
@@ -61,7 +73,19 @@ export class AdvancedRulesManager {
       new TautologyRule(),
       new NoParticleChainRule(),
       new MonotonousEndingRule(),
-      new LongSentenceRule()
+      new LongSentenceRule(),
+      // Remaining Grammar Rules (Feature: remaining-grammar-rules)
+      new SahenVerbRule(),
+      new MissingSubjectRule(),
+      new TwistedSentenceRule(),
+      new HomophoneRule(),
+      new HonorificErrorRule(),
+      new AdverbAgreementRule(),
+      new ModifierPositionRule(),
+      new AmbiguousDemonstrativeRule(),
+      new PassiveOveruseRule(),
+      new NounChainRule(),
+      new ConjunctionMisuseRule()
     ];
   }
 

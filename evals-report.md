@@ -6,10 +6,10 @@ Generated: 2025-12-11
 
 | Metric | Value |
 |--------|-------|
-| Total Categories | 31 |
-| Implemented Categories | 20 (65%) |
-| Total Examples | 85 |
-| Detected Examples | 62 |
+| Total Categories | 43 |
+| Implemented Categories | 32 (74%) |
+| Total Examples | 111 |
+| Detected Examples | 88 |
 | Detection Rate | 100% |
 
 ## Category Results
@@ -47,6 +47,18 @@ Generated: 2025-12-11
 | 名詞の連続 | NOT_IMPL | 0 | 2 | 0% |
 | 接続詞の誤用 | NOT_IMPL | 0 | 2 | 0% |
 | 文末表現の単調さ | PASS | 2 | 2 | 100% |
+| 送り仮名の揺れ | PASS | 3 | 3 | 100% |
+| 表記ゆれ | PASS | 3 | 3 | 100% |
+| 全角半角数字・記号混在 | PASS | 2 | 2 | 100% |
+| カタカナ長音 | PASS | 2 | 2 | 100% |
+| 半角カナ | PASS | 2 | 2 | 100% |
+| 数字表記の混在 | PASS | 2 | 2 | 100% |
+| スペースと単位 | PASS | 2 | 2 | 100% |
+| 括弧・引用符の不一致 | PASS | 2 | 2 | 100% |
+| 日付表記ゆれ | PASS | 2 | 2 | 100% |
+| ハイフン・ダッシュ・チルダ不統一 | PASS | 2 | 2 | 100% |
+| 中黒の過不足 | PASS | 2 | 2 | 100% |
+| 全角記号混在 | PASS | 2 | 2 | 100% |
 
 ## Implemented Categories
 
@@ -146,6 +158,66 @@ Generated: 2025-12-11
 - Detection Rate: 100% (2/2)
 
 ### 文末表現の単調さ (monotonous-ending)
+
+- Status: PASS
+- Detection Rate: 100% (2/2)
+
+### 送り仮名の揺れ (okurigana-variant)
+
+- Status: PASS
+- Detection Rate: 100% (3/3)
+
+### 表記ゆれ (orthography-variant)
+
+- Status: PASS
+- Detection Rate: 100% (3/3)
+
+### 全角半角数字・記号混在 (number-width-mix)
+
+- Status: PASS
+- Detection Rate: 100% (2/2)
+
+### カタカナ長音 (katakana-chouon)
+
+- Status: PASS
+- Detection Rate: 100% (2/2)
+
+### 半角カナ (halfwidth-kana)
+
+- Status: PASS
+- Detection Rate: 100% (2/2)
+
+### 数字表記の混在 (numeral-style-mix)
+
+- Status: PASS
+- Detection Rate: 100% (2/2)
+
+### スペースと単位 (space-around-unit)
+
+- Status: PASS
+- Detection Rate: 100% (2/2)
+
+### 括弧・引用符の不一致 (bracket-quote-mismatch)
+
+- Status: PASS
+- Detection Rate: 100% (2/2)
+
+### 日付表記ゆれ (date-format-variant)
+
+- Status: PASS
+- Detection Rate: 100% (2/2)
+
+### ハイフン・ダッシュ・チルダ不統一 (dash-tilde-normalization)
+
+- Status: PASS
+- Detection Rate: 100% (2/2)
+
+### 中黒の過不足 (nakaguro-usage)
+
+- Status: PASS
+- Detection Rate: 100% (2/2)
+
+### 全角記号混在 (symbol-width-mix)
 
 - Status: PASS
 - Detection Rate: 100% (2/2)
