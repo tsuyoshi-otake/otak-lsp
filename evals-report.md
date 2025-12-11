@@ -7,9 +7,9 @@ Generated: 2025-12-11
 | Metric | Value |
 |--------|-------|
 | Total Categories | 43 |
-| Implemented Categories | 32 (74%) |
+| Implemented Categories | 43 (100%) |
 | Total Examples | 111 |
-| Detected Examples | 88 |
+| Detected Examples | 111 |
 | Detection Rate | 100% |
 
 ## Category Results
@@ -33,19 +33,19 @@ Generated: 2025-12-11
 | 漢字開き | PASS | 5 | 5 | 100% |
 | 冗長表現 | PASS | 4 | 4 | 100% |
 | 重複表現（同語反復） | PASS | 4 | 4 | 100% |
-| サ変動詞 | NOT_IMPL | 0 | 2 | 0% |
-| 主語の欠如 | NOT_IMPL | 0 | 2 | 0% |
-| ねじれ文 | NOT_IMPL | 0 | 2 | 0% |
+| サ変動詞 | PASS | 2 | 2 | 100% |
+| 主語の欠如 | PASS | 2 | 2 | 100% |
+| ねじれ文 | PASS | 2 | 2 | 100% |
 | 長すぎる文 | PASS | 1 | 1 | 100% |
-| 同音異義語 | NOT_IMPL | 0 | 2 | 0% |
-| 敬語の誤用 | NOT_IMPL | 0 | 3 | 0% |
-| 副詞の呼応 | NOT_IMPL | 0 | 3 | 0% |
+| 同音異義語 | PASS | 2 | 2 | 100% |
+| 敬語の誤用 | PASS | 3 | 3 | 100% |
+| 副詞の呼応 | PASS | 3 | 3 | 100% |
 | 助詞「の」の連続 | PASS | 2 | 2 | 100% |
-| 修飾語の位置 | NOT_IMPL | 0 | 2 | 0% |
-| 曖昧な指示語 | NOT_IMPL | 0 | 2 | 0% |
-| 受身の多用 | NOT_IMPL | 0 | 1 | 0% |
-| 名詞の連続 | NOT_IMPL | 0 | 2 | 0% |
-| 接続詞の誤用 | NOT_IMPL | 0 | 2 | 0% |
+| 修飾語の位置 | PASS | 2 | 2 | 100% |
+| 曖昧な指示語 | PASS | 2 | 2 | 100% |
+| 受身の多用 | PASS | 1 | 1 | 100% |
+| 名詞の連続 | PASS | 2 | 2 | 100% |
+| 接続詞の誤用 | PASS | 2 | 2 | 100% |
 | 文末表現の単調さ | PASS | 2 | 2 | 100% |
 | 送り仮名の揺れ | PASS | 3 | 3 | 100% |
 | 表記ゆれ | PASS | 3 | 3 | 100% |
@@ -147,12 +147,67 @@ Generated: 2025-12-11
 - Status: PASS
 - Detection Rate: 100% (4/4)
 
+### サ変動詞 (sahen-verb)
+
+- Status: PASS
+- Detection Rate: 100% (2/2)
+
+### 主語の欠如 (missing-subject)
+
+- Status: PASS
+- Detection Rate: 100% (2/2)
+
+### ねじれ文 (twisted-sentence)
+
+- Status: PASS
+- Detection Rate: 100% (2/2)
+
 ### 長すぎる文 (long-sentence)
 
 - Status: PASS
 - Detection Rate: 100% (1/1)
 
+### 同音異義語 (homophone)
+
+- Status: PASS
+- Detection Rate: 100% (2/2)
+
+### 敬語の誤用 (honorific-error)
+
+- Status: PASS
+- Detection Rate: 100% (3/3)
+
+### 副詞の呼応 (adverb-agreement)
+
+- Status: PASS
+- Detection Rate: 100% (3/3)
+
 ### 助詞「の」の連続 (no-particle-chain)
+
+- Status: PASS
+- Detection Rate: 100% (2/2)
+
+### 修飾語の位置 (modifier-position)
+
+- Status: PASS
+- Detection Rate: 100% (2/2)
+
+### 曖昧な指示語 (ambiguous-demonstrative)
+
+- Status: PASS
+- Detection Rate: 100% (2/2)
+
+### 受身の多用 (passive-overuse)
+
+- Status: PASS
+- Detection Rate: 100% (1/1)
+
+### 名詞の連続 (noun-chain)
+
+- Status: PASS
+- Detection Rate: 100% (2/2)
+
+### 接続詞の誤用 (conjunction-misuse)
 
 - Status: PASS
 - Detection Rate: 100% (2/2)
@@ -224,17 +279,6 @@ Generated: 2025-12-11
 
 ## Not Implemented Categories
 
-- **サ変動詞** (sahen-verb): 2 examples
-- **主語の欠如** (missing-subject): 2 examples
-- **ねじれ文** (twisted-sentence): 2 examples
-- **同音異義語** (homophone): 2 examples
-- **敬語の誤用** (honorific-error): 3 examples
-- **副詞の呼応** (adverb-agreement): 3 examples
-- **修飾語の位置** (modifier-position): 2 examples
-- **曖昧な指示語** (ambiguous-demonstrative): 2 examples
-- **受身の多用** (passive-overuse): 1 examples
-- **名詞の連続** (noun-chain): 2 examples
-- **接続詞の誤用** (conjunction-misuse): 2 examples
 
 ---
 

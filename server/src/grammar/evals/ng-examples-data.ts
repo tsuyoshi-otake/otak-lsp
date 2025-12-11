@@ -304,39 +304,39 @@ export const NG_EXAMPLE_CATEGORIES: NGExampleCategory[] = [
     ]
   },
 
-  // 18. サ変動詞の誤用
+  // 18. サ変動詞の誤用 (Feature: remaining-grammar-rules - IMPLEMENTED)
   {
     id: 'sahen-verb',
     name: 'サ変動詞',
     description: 'サ変動詞の使い方の問題',
     expectedRule: 'sahen-verb',
-    status: 'NOT_IMPL',
+    status: 'IMPLEMENTED',
     examples: [
       { text: '勉強をする', correctText: '勉強する', description: '「を」は不要（場合による）' },
       { text: '料理をする', correctText: '料理する', description: '「を」は不要（場合による）' }
     ]
   },
 
-  // 19. 主語の欠如
+  // 19. 主語の欠如 (Feature: remaining-grammar-rules - IMPLEMENTED)
   {
     id: 'missing-subject',
     name: '主語の欠如',
     description: '文の主語が不明確',
     expectedRule: 'missing-subject',
-    status: 'NOT_IMPL',
+    status: 'IMPLEMENTED',
     examples: [
       { text: '昨日、買いました。', description: '何を買ったか不明' },
       { text: 'とても嬉しかったです。', description: '何が嬉しかったか不明（文脈による）' }
     ]
   },
 
-  // 20. ねじれ文
+  // 20. ねじれ文 (Feature: remaining-grammar-rules - IMPLEMENTED)
   {
     id: 'twisted-sentence',
     name: 'ねじれ文',
     description: '主語と述語が対応していない文',
     expectedRule: 'twisted-sentence',
-    status: 'NOT_IMPL',
+    status: 'IMPLEMENTED',
     examples: [
       { text: '私の夢は医者になりたいです', correctText: '私の夢は医者になることです', description: '主語「夢は」と述語「なりたい」が不対応' },
       { text: '彼の特技は絵を上手です', correctText: '彼の特技は絵を描くことです', description: '主語と述語のねじれ' }
@@ -358,26 +358,26 @@ export const NG_EXAMPLE_CATEGORIES: NGExampleCategory[] = [
     ]
   },
 
-  // 22. 同音異義語
+  // 22. 同音異義語 (Feature: remaining-grammar-rules - IMPLEMENTED)
   {
     id: 'homophone',
     name: '同音異義語',
     description: '同じ読みで異なる意味の言葉の誤用',
     expectedRule: 'homophone',
-    status: 'NOT_IMPL',
+    status: 'IMPLEMENTED',
     examples: [
       { text: '意志が低い', correctText: '意識が低い / 志が低い', description: '「意志」と「意識」の混同' },
       { text: '移動の制約', correctText: '異動の制約', description: '会社の異動の場合' }
     ]
   },
 
-  // 23. 敬語の誤用
+  // 23. 敬語の誤用 (Feature: remaining-grammar-rules - IMPLEMENTED)
   {
     id: 'honorific-error',
     name: '敬語の誤用',
     description: '敬語の使い方の誤り',
     expectedRule: 'honorific-error',
-    status: 'NOT_IMPL',
+    status: 'IMPLEMENTED',
     examples: [
       { text: 'お客様がおっしゃられました', correctText: 'お客様がおっしゃいました', description: '二重敬語' },
       { text: 'ご覧になられる', correctText: 'ご覧になる', description: '二重敬語' },
@@ -385,13 +385,13 @@ export const NG_EXAMPLE_CATEGORIES: NGExampleCategory[] = [
     ]
   },
 
-  // 24. 副詞の呼応
+  // 24. 副詞の呼応 (Feature: remaining-grammar-rules - IMPLEMENTED)
   {
     id: 'adverb-agreement',
     name: '副詞の呼応',
     description: '副詞と述語の呼応の誤り',
     expectedRule: 'adverb-agreement',
-    status: 'NOT_IMPL',
+    status: 'IMPLEMENTED',
     examples: [
       { text: '決して行きます', correctText: '決して行きません', description: '「決して」は否定文と呼応' },
       { text: 'たぶん行きません', correctText: 'たぶん行くでしょう', description: '「たぶん」は肯定推量と呼応' },
@@ -412,39 +412,39 @@ export const NG_EXAMPLE_CATEGORIES: NGExampleCategory[] = [
     ]
   },
 
-  // 26. 修飾語の位置
+  // 26. 修飾語の位置 (Feature: remaining-grammar-rules - IMPLEMENTED)
   {
     id: 'modifier-position',
     name: '修飾語の位置',
     description: '修飾語の配置が不適切',
     expectedRule: 'modifier-position',
-    status: 'NOT_IMPL',
+    status: 'IMPLEMENTED',
     examples: [
       { text: '赤い大きな花', correctText: '大きな赤い花', description: '大きさの修飾語は色より前' },
       { text: '古い素敵な本', correctText: '素敵な古い本', description: '主観的修飾語は前' }
     ]
   },
 
-  // 27. 曖昧な指示語
+  // 27. 曖昧な指示語 (Feature: remaining-grammar-rules - IMPLEMENTED)
   {
     id: 'ambiguous-demonstrative',
     name: '曖昧な指示語',
     description: '指示語の参照先が不明確',
     expectedRule: 'ambiguous-demonstrative',
-    status: 'NOT_IMPL',
+    status: 'IMPLEMENTED',
     examples: [
       { text: 'それは問題だ。しかし、それも重要だ。', description: '「それ」が何を指すか不明' },
       { text: 'これについては、あれを参照してください。', description: '「これ」「あれ」が不明確' }
     ]
   },
 
-  // 28. 受身の多用
+  // 28. 受身の多用 (Feature: remaining-grammar-rules - IMPLEMENTED)
   {
     id: 'passive-overuse',
     name: '受身の多用',
     description: '受身表現の使いすぎ',
     expectedRule: 'passive-overuse',
-    status: 'NOT_IMPL',
+    status: 'IMPLEMENTED',
     examples: [
       {
         text: '報告書が作成された。結果が分析された。結論が導かれた。',
@@ -454,26 +454,26 @@ export const NG_EXAMPLE_CATEGORIES: NGExampleCategory[] = [
     ]
   },
 
-  // 29. 名詞の連続
+  // 29. 名詞の連続 (Feature: remaining-grammar-rules - IMPLEMENTED)
   {
     id: 'noun-chain',
     name: '名詞の連続',
     description: '名詞が連続して読みにくい',
     expectedRule: 'noun-chain',
-    status: 'NOT_IMPL',
+    status: 'IMPLEMENTED',
     examples: [
       { text: '東京都渋谷区松濤一丁目住所', description: '名詞が連続' },
       { text: '品質管理体制強化計画書', description: '名詞が連続で読みにくい' }
     ]
   },
 
-  // 30. 接続詞の誤用
+  // 30. 接続詞の誤用 (Feature: remaining-grammar-rules - IMPLEMENTED)
   {
     id: 'conjunction-misuse',
     name: '接続詞の誤用',
     description: '接続詞の使い方が文脈に合わない',
     expectedRule: 'conjunction-misuse',
-    status: 'NOT_IMPL',
+    status: 'IMPLEMENTED',
     examples: [
       { text: '晴れた。しかし、外出した。', correctText: '晴れた。そこで、外出した。', description: '逆接の接続詞が不適切' },
       { text: '忙しい。だから、暇だ。', description: '順接の接続詞が不適切' }
