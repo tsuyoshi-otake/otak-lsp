@@ -1,7 +1,8 @@
 /**
  * Language Server Entry Point
- * Japanese Grammar Analyzer - MeCabを使用した日本語形態素解析
- * Feature: japanese-grammar-analyzer
+ * otak-lcp - Japanese Grammar Analyzer
+ * kuromoji.jsを使用した日本語形態素解析
+ * Feature: package-name-refactoring
  */
 
 import {
@@ -62,7 +63,7 @@ const debounceTimers: Map<string, NodeJS.Timeout> = new Map();
  * Initialize server
  */
 connection.onInitialize((params: InitializeParams): InitializeResult => {
-  connection.console.log('Japanese Grammar Analyzer Language Server initializing...');
+  connection.console.log('otak-lcp Language Server initializing...');
 
   // Initialize components (kuromoji.js - no external dependencies)
   mecabAnalyzer = new MeCabAnalyzer();
@@ -91,7 +92,7 @@ connection.onInitialize((params: InitializeParams): InitializeResult => {
  * Server initialized
  */
 connection.onInitialized(() => {
-  connection.console.log('Japanese Grammar Analyzer Language Server initialized');
+  connection.console.log('otak-lcp Language Server initialized');
 
   // Register for configuration changes
   connection.client.register(DidChangeConfigurationNotification.type, undefined);
@@ -101,8 +102,8 @@ connection.onInitialized(() => {
  * Configuration changed
  */
 connection.onDidChangeConfiguration((change) => {
-  if (change.settings?.japaneseGrammarAnalyzer) {
-    const newConfig = change.settings.japaneseGrammarAnalyzer as Partial<Configuration>;
+  if (change.settings?.otakLcp) {
+    const newConfig = change.settings.otakLcp as Partial<Configuration>;
     const wasGrammarEnabled = configuration.enableGrammarCheck;
     const wasSemanticEnabled = configuration.enableSemanticHighlight;
 
@@ -218,7 +219,7 @@ async function analyzeDocument(document: TextDocument): Promise<void> {
             end: { line: diag.range.end.line, character: diag.range.end.character },
           },
           message: diag.message,
-          source: 'japanese-grammar-analyzer',
+          source: 'otak-lcp',
           code: diag.code,
         });
       }
@@ -364,4 +365,4 @@ documents.listen(connection);
 // Start server
 connection.listen();
 
-connection.console.log('Japanese Grammar Analyzer Language Server started');
+connection.console.log('otak-lcp Language Server started');

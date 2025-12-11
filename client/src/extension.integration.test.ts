@@ -1,6 +1,6 @@
 /**
  * Integration Tests for Extension Client
- * Feature: japanese-grammar-analyzer
+ * Feature: package-name-refactoring
  * 要件: 1.1
  *
  * These tests verify the integration between extension components.
@@ -15,7 +15,7 @@ const mockOutputChannel = {
   dispose: jest.fn(),
   show: jest.fn(),
   hide: jest.fn(),
-  name: 'Japanese Grammar Analyzer',
+  name: 'otak-lcp',
   replace: jest.fn(),
 };
 
@@ -24,7 +24,6 @@ const mockDisposable = {
 };
 
 let mockConfigValues: Record<string, unknown> = {
-  mecabPath: 'mecab',
   enableGrammarCheck: true,
   enableSemanticHighlight: true,
   targetLanguages: ['markdown', 'javascript', 'typescript', 'python', 'c', 'cpp', 'java', 'rust'],
@@ -73,7 +72,6 @@ describe('Extension Integration Tests', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockConfigValues = {
-      mecabPath: 'mecab',
       enableGrammarCheck: true,
       enableSemanticHighlight: true,
       targetLanguages: ['markdown', 'javascript', 'typescript', 'python', 'c', 'cpp', 'java', 'rust'],
@@ -129,7 +127,7 @@ describe('Extension Integration Tests', () => {
       const options = createLanguageClientOptions(['markdown'], mockOutputChannel as unknown as import('vscode').OutputChannel);
 
       expect(options.synchronize).toBeDefined();
-      expect(options.synchronize?.configurationSection).toBe('japaneseGrammarAnalyzer');
+      expect(options.synchronize?.configurationSection).toBe('otakLcp');
     });
 
     it('should include output channel for logging', () => {
@@ -144,7 +142,6 @@ describe('Extension Integration Tests', () => {
       const client = new ExtensionClient();
       const config = client.getConfiguration();
 
-      expect(config.mecabPath).toBe('mecab');
       expect(config.enableGrammarCheck).toBe(true);
       expect(config.enableSemanticHighlight).toBe(true);
       expect(config.targetLanguages).toHaveLength(8);
@@ -173,7 +170,6 @@ describe('Extension Integration Tests', () => {
     it('should provide access to all configuration values', () => {
       const client = new ExtensionClient();
 
-      expect(client.getMeCabPath()).toBe('mecab');
       expect(client.isGrammarCheckEnabled()).toBe(true);
       expect(client.isSemanticHighlightEnabled()).toBe(true);
       expect(client.getTargetLanguages()).toEqual(
@@ -187,7 +183,6 @@ describe('Extension Integration Tests', () => {
 
       // Modify mock to return different values
       mockConfigValues = {
-        mecabPath: '/custom/mecab',
         enableGrammarCheck: false,
         enableSemanticHighlight: false,
         targetLanguages: ['markdown'],
@@ -197,7 +192,6 @@ describe('Extension Integration Tests', () => {
       client.loadConfiguration();
       const config = client.getConfiguration();
 
-      expect(config.mecabPath).toBe('/custom/mecab');
       expect(config.enableGrammarCheck).toBe(false);
       expect(config.enableSemanticHighlight).toBe(false);
       expect(config.targetLanguages).toEqual(['markdown']);
@@ -237,7 +231,6 @@ describe('Extension Integration Tests', () => {
 
       // Simulate configuration change
       mockConfigValues = {
-        mecabPath: 'mecab',
         enableGrammarCheck: false,
         enableSemanticHighlight: true,
         targetLanguages: ['markdown', 'javascript', 'typescript', 'python', 'c', 'cpp', 'java', 'rust'],
@@ -260,7 +253,6 @@ describe('Extension Lifecycle Integration', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockConfigValues = {
-      mecabPath: 'mecab',
       enableGrammarCheck: true,
       enableSemanticHighlight: true,
       targetLanguages: ['markdown', 'javascript', 'typescript', 'python', 'c', 'cpp', 'java', 'rust'],
@@ -292,7 +284,7 @@ describe('Extension Lifecycle Integration', () => {
 
       // Verify synchronization is configured
       expect(options.synchronize).toBeDefined();
-      expect(options.synchronize?.configurationSection).toBe('japaneseGrammarAnalyzer');
+      expect(options.synchronize?.configurationSection).toBe('otakLcp');
     });
   });
 });

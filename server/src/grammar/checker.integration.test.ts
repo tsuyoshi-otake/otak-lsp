@@ -169,7 +169,7 @@ describe('Grammar Checker Integration Tests', () => {
       // 各診断にsourceが設定されていることを確認
       diagnostics.forEach(d => {
         expect(d.source).toBeDefined();
-        expect(['japanese-grammar-analyzer', 'japanese-grammar-advanced']).toContain(d.source);
+        expect(['otak-lcp', 'otak-lcp-advanced']).toContain(d.source);
       });
     });
 
@@ -374,11 +374,11 @@ describe('Grammar Checker Integration Tests', () => {
       const diagnostics = checker.check(tokens, text);
 
       // 高度なルールのエラーのみ
-      const advancedErrors = diagnostics.filter(d => d.source === 'japanese-grammar-advanced');
+      const advancedErrors = diagnostics.filter(d => d.source === 'otak-lcp-advanced');
       expect(advancedErrors.length).toBeGreaterThan(0);
 
       // 基本ルールのエラーはない（トークンが空なので）
-      const basicErrors = diagnostics.filter(d => d.source === 'japanese-grammar-analyzer');
+      const basicErrors = diagnostics.filter(d => d.source === 'otak-lcp');
       expect(basicErrors).toHaveLength(0);
     });
   });

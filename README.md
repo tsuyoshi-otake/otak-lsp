@@ -1,4 +1,4 @@
-# Japanese Grammar Analyzer
+# otak-lcp - otak-lcp
 
 日本語形態素解析VSCode拡張機能です。**外部依存なし**で、文法チェック、セマンティックハイライト、ホバー情報表示などの機能を提供します。
 
@@ -298,7 +298,7 @@
 
 1. VSCodeを開く
 2. 拡張機能ビュー (Ctrl+Shift+X) を開く
-3. "Japanese Grammar Analyzer" を検索
+3. "otak-lcp" を検索
 4. 「インストール」をクリック
 
 ### .vsix ファイルから
@@ -317,71 +317,71 @@
 
 | 設定項目 | 説明 | デフォルト値 |
 |---------|------|-------------|
-| `japaneseGrammarAnalyzer.enableGrammarCheck` | 文法チェックの有効/無効 | `true` |
-| `japaneseGrammarAnalyzer.enableSemanticHighlight` | セマンティックハイライトの有効/無効 | `true` |
-| `japaneseGrammarAnalyzer.targetLanguages` | 解析対象のファイルタイプ | `["markdown", "javascript", ...]` |
-| `japaneseGrammarAnalyzer.debounceDelay` | 解析のデバウンス遅延（ミリ秒） | `500` |
+| `otakLcp.enableGrammarCheck` | 文法チェックの有効/無効 | `true` |
+| `otakLcp.enableSemanticHighlight` | セマンティックハイライトの有効/無効 | `true` |
+| `otakLcp.targetLanguages` | 解析対象のファイルタイプ | `["markdown", "javascript", ...]` |
+| `otakLcp.debounceDelay` | 解析のデバウンス遅延（ミリ秒） | `500` |
 
 ### 高度な文法ルール設定
 
 | 設定項目 | 説明 | デフォルト値 |
 |---------|------|-------------|
-| `japaneseGrammarAnalyzer.advanced.enableStyleConsistency` | 文体混在チェック | `true` |
-| `japaneseGrammarAnalyzer.advanced.enableRaNukiDetection` | ら抜き言葉チェック | `true` |
-| `japaneseGrammarAnalyzer.advanced.enableDoubleNegation` | 二重否定チェック | `true` |
-| `japaneseGrammarAnalyzer.advanced.enableParticleRepetition` | 助詞連続使用チェック | `false` |
-| `japaneseGrammarAnalyzer.advanced.enableConjunctionRepetition` | 接続詞連続使用チェック | `true` |
-| `japaneseGrammarAnalyzer.advanced.enableAdversativeGa` | 逆接「が」連続使用チェック | `true` |
-| `japaneseGrammarAnalyzer.advanced.enableAlphabetWidth` | 全角/半角混在チェック | `true` |
-| `japaneseGrammarAnalyzer.advanced.enableWeakExpression` | 弱い表現チェック | `true` |
-| `japaneseGrammarAnalyzer.advanced.enableCommaCount` | 読点数チェック | `true` |
-| `japaneseGrammarAnalyzer.advanced.enableTermNotation` | 技術用語表記チェック | `true` |
-| `japaneseGrammarAnalyzer.advanced.enableKanjiOpening` | 漢字開きチェック | `true` |
-| `japaneseGrammarAnalyzer.advanced.enableRedundantExpression` | 冗長表現チェック | `true` |
-| `japaneseGrammarAnalyzer.advanced.enableTautology` | 重複表現（同語反復）チェック | `true` |
-| `japaneseGrammarAnalyzer.advanced.enableNoParticleChain` | 助詞「の」連続チェック | `true` |
-| `japaneseGrammarAnalyzer.advanced.enableMonotonousEnding` | 文末単調さチェック | `true` |
-| `japaneseGrammarAnalyzer.advanced.enableLongSentence` | 長文チェック | `true` |
+| `otakLcp.advanced.enableStyleConsistency` | 文体混在チェック | `true` |
+| `otakLcp.advanced.enableRaNukiDetection` | ら抜き言葉チェック | `true` |
+| `otakLcp.advanced.enableDoubleNegation` | 二重否定チェック | `true` |
+| `otakLcp.advanced.enableParticleRepetition` | 助詞連続使用チェック | `false` |
+| `otakLcp.advanced.enableConjunctionRepetition` | 接続詞連続使用チェック | `true` |
+| `otakLcp.advanced.enableAdversativeGa` | 逆接「が」連続使用チェック | `true` |
+| `otakLcp.advanced.enableAlphabetWidth` | 全角/半角混在チェック | `true` |
+| `otakLcp.advanced.enableWeakExpression` | 弱い表現チェック | `true` |
+| `otakLcp.advanced.enableCommaCount` | 読点数チェック | `true` |
+| `otakLcp.advanced.enableTermNotation` | 技術用語表記チェック | `true` |
+| `otakLcp.advanced.enableKanjiOpening` | 漢字開きチェック | `true` |
+| `otakLcp.advanced.enableRedundantExpression` | 冗長表現チェック | `true` |
+| `otakLcp.advanced.enableTautology` | 重複表現（同語反復）チェック | `true` |
+| `otakLcp.advanced.enableNoParticleChain` | 助詞「の」連続チェック | `true` |
+| `otakLcp.advanced.enableMonotonousEnding` | 文末単調さチェック | `true` |
+| `otakLcp.advanced.enableLongSentence` | 長文チェック | `true` |
 
 ### 技術用語辞典設定
 
 | 設定項目 | 説明 | デフォルト値 |
 |---------|------|-------------|
-| `japaneseGrammarAnalyzer.advanced.enableWebTechDictionary` | ウェブ技術用語辞典 | `true` |
-| `japaneseGrammarAnalyzer.advanced.enableGenerativeAIDictionary` | 生成AI用語辞典 | `true` |
-| `japaneseGrammarAnalyzer.advanced.enableAWSDictionary` | AWS用語辞典 | `true` |
-| `japaneseGrammarAnalyzer.advanced.enableAzureDictionary` | Azure用語辞典 | `true` |
-| `japaneseGrammarAnalyzer.advanced.enableOCIDictionary` | OCI用語辞典 | `true` |
+| `otakLcp.advanced.enableWebTechDictionary` | ウェブ技術用語辞典 | `true` |
+| `otakLcp.advanced.enableGenerativeAIDictionary` | 生成AI用語辞典 | `true` |
+| `otakLcp.advanced.enableAWSDictionary` | AWS用語辞典 | `true` |
+| `otakLcp.advanced.enableAzureDictionary` | Azure用語辞典 | `true` |
+| `otakLcp.advanced.enableOCIDictionary` | OCI用語辞典 | `true` |
 
 ### その他の設定
 
 | 設定項目 | 説明 | デフォルト値 |
 |---------|------|-------------|
-| `japaneseGrammarAnalyzer.advanced.commaCountThreshold` | 読点の警告閾値 | `4` |
-| `japaneseGrammarAnalyzer.advanced.weakExpressionLevel` | 弱い表現の検出レベル（strict/normal/loose） | `normal` |
-| `japaneseGrammarAnalyzer.advanced.noParticleChainThreshold` | 助詞「の」連続の閾値 | `3` |
-| `japaneseGrammarAnalyzer.advanced.monotonousEndingThreshold` | 文末表現連続の閾値 | `3` |
-| `japaneseGrammarAnalyzer.advanced.longSentenceThreshold` | 長文と判定する文字数 | `120` |
+| `otakLcp.advanced.commaCountThreshold` | 読点の警告閾値 | `4` |
+| `otakLcp.advanced.weakExpressionLevel` | 弱い表現の検出レベル（strict/normal/loose） | `normal` |
+| `otakLcp.advanced.noParticleChainThreshold` | 助詞「の」連続の閾値 | `3` |
+| `otakLcp.advanced.monotonousEndingThreshold` | 文末表現連続の閾値 | `3` |
+| `otakLcp.advanced.longSentenceThreshold` | 長文と判定する文字数 | `120` |
 
 ### 設定例
 
 ```json
 {
-  "japaneseGrammarAnalyzer.enableGrammarCheck": true,
-  "japaneseGrammarAnalyzer.enableSemanticHighlight": true,
-  "japaneseGrammarAnalyzer.targetLanguages": [
+  "otakLcp.enableGrammarCheck": true,
+  "otakLcp.enableSemanticHighlight": true,
+  "otakLcp.targetLanguages": [
     "markdown",
     "javascript",
     "typescript"
   ],
-  "japaneseGrammarAnalyzer.debounceDelay": 300,
-  "japaneseGrammarAnalyzer.advanced.enableStyleConsistency": true,
-  "japaneseGrammarAnalyzer.advanced.enableRaNukiDetection": true,
-  "japaneseGrammarAnalyzer.advanced.enableParticleRepetition": false,
-  "japaneseGrammarAnalyzer.advanced.enableTermNotation": true,
-  "japaneseGrammarAnalyzer.advanced.enableGenerativeAIDictionary": true,
-  "japaneseGrammarAnalyzer.advanced.enableAWSDictionary": true,
-  "japaneseGrammarAnalyzer.advanced.commaCountThreshold": 5
+  "otakLcp.debounceDelay": 300,
+  "otakLcp.advanced.enableStyleConsistency": true,
+  "otakLcp.advanced.enableRaNukiDetection": true,
+  "otakLcp.advanced.enableParticleRepetition": false,
+  "otakLcp.advanced.enableTermNotation": true,
+  "otakLcp.advanced.enableGenerativeAIDictionary": true,
+  "otakLcp.advanced.enableAWSDictionary": true,
+  "otakLcp.advanced.commaCountThreshold": 5
 }
 ```
 
@@ -433,12 +433,12 @@ chatgptで文章を生成します。     <- 「ChatGPT」に修正
 
 1. `enableGrammarCheck` が `true` になっているか確認
 2. ファイルタイプが `targetLanguages` に含まれているか確認
-3. 出力パネル（表示 > 出力 > Japanese Grammar Analyzer）でエラーを確認
+3. 出力パネル（表示 > 出力 > otak-lcp）でエラーを確認
 
 ### 特定のルールを無効にしたい
 
 設定画面で対応するルールの設定を `false` に変更してください。
-例: 技術用語チェックを無効にする場合は `japaneseGrammarAnalyzer.advanced.enableTermNotation` を `false` に設定
+例: 技術用語チェックを無効にする場合は `otakLcp.advanced.enableTermNotation` を `false` に設定
 
 ### 初回起動時に時間がかかる
 

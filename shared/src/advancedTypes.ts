@@ -563,7 +563,7 @@ export class AdvancedDiagnostic {
     this.severity = params.severity ?? DiagnosticSeverity.Warning;
     this.message = params.message;
     this.code = params.code;
-    this.source = 'japanese-grammar-advanced';
+    this.source = 'otak-lcp-advanced';
     this.ruleName = params.ruleName;
     this.suggestions = params.suggestions ?? [];
   }

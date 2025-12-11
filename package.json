@@ -1,6 +1,6 @@
 {
-  "name": "japanese-grammar-analyzer",
-  "displayName": "Japanese Grammar Analyzer",
+  "name": "otak-lcp",
+  "displayName": "otak-lcp - Japanese Grammar Analyzer",
   "description": "日本語形態素解析VSCode拡張機能（外部依存なし）。文法チェック、セマンティックハイライト、ホバー情報を提供します。kuromoji.js内蔵でMeCab不要。",
   "version": "0.1.0",
   "publisher": "otak-lsp",
@@ -41,35 +41,35 @@
   "contributes": {
     "commands": [
       {
-        "command": "japaneseGrammarAnalyzer.toggle",
-        "title": "Japanese Grammar Analyzer: ON/OFF切り替え"
+        "command": "otakLcp.toggle",
+        "title": "otak-lcp: ON/OFF切り替え"
       },
       {
-        "command": "japaneseGrammarAnalyzer.showStatus",
-        "title": "Japanese Grammar Analyzer: ステータス表示"
+        "command": "otakLcp.showStatus",
+        "title": "otak-lcp: ステータス表示"
       },
       {
-        "command": "japaneseGrammarAnalyzer.analyzeCurrentFile",
-        "title": "Japanese Grammar Analyzer: 現在のファイルを解析"
+        "command": "otakLcp.analyzeCurrentFile",
+        "title": "otak-lcp: 現在のファイルを解析"
       }
     ],
     "configuration": {
       "type": "object",
-      "title": "Japanese Grammar Analyzer",
+      "title": "otak-lcp",
       "properties": {
-        "japaneseGrammarAnalyzer.enableGrammarCheck": {
+        "otakLcp.enableGrammarCheck": {
           "type": "boolean",
           "default": true,
           "description": "文法チェック機能の有効/無効。二重助詞、助詞連続、動詞-助詞不整合を検出します。",
           "scope": "resource"
         },
-        "japaneseGrammarAnalyzer.enableSemanticHighlight": {
+        "otakLcp.enableSemanticHighlight": {
           "type": "boolean",
           "default": true,
           "description": "品詞ベースのセマンティックハイライト機能の有効/無効",
           "scope": "resource"
         },
-        "japaneseGrammarAnalyzer.targetLanguages": {
+        "otakLcp.targetLanguages": {
           "type": "array",
           "items": {
             "type": "string",
@@ -79,7 +79,7 @@
           "description": "解析対象のファイルタイプ。プログラミング言語ではコメント内の日本語を解析します。",
           "scope": "resource"
         },
-        "japaneseGrammarAnalyzer.debounceDelay": {
+        "otakLcp.debounceDelay": {
           "type": "number",
           "default": 500,
           "minimum": 100,
@@ -87,103 +87,103 @@
           "description": "テキスト編集後に解析を開始するまでの遅延時間（ミリ秒）",
           "scope": "resource"
         },
-        "japaneseGrammarAnalyzer.advanced.enableStyleConsistency": {
+        "otakLcp.advanced.enableStyleConsistency": {
           "type": "boolean",
           "default": true,
           "description": "文体の混在検出（敬体/常体）の有効/無効",
           "scope": "resource"
         },
-        "japaneseGrammarAnalyzer.advanced.enableRaNukiDetection": {
+        "otakLcp.advanced.enableRaNukiDetection": {
           "type": "boolean",
           "default": true,
           "description": "ら抜き言葉検出の有効/無効",
           "scope": "resource"
         },
-        "japaneseGrammarAnalyzer.advanced.enableDoubleNegation": {
+        "otakLcp.advanced.enableDoubleNegation": {
           "type": "boolean",
           "default": true,
           "description": "二重否定検出の有効/無効",
           "scope": "resource"
         },
-        "japaneseGrammarAnalyzer.advanced.enableParticleRepetition": {
+        "otakLcp.advanced.enableParticleRepetition": {
           "type": "boolean",
           "default": false,
           "description": "同じ助詞の連続使用検出の有効/無効（初期設定で無効）",
           "scope": "resource"
         },
-        "japaneseGrammarAnalyzer.advanced.enableConjunctionRepetition": {
+        "otakLcp.advanced.enableConjunctionRepetition": {
           "type": "boolean",
           "default": true,
           "description": "同じ接続詞の連続使用検出の有効/無効",
           "scope": "resource"
         },
-        "japaneseGrammarAnalyzer.advanced.enableAdversativeGa": {
+        "otakLcp.advanced.enableAdversativeGa": {
           "type": "boolean",
           "default": true,
           "description": "逆接「が」の連続使用検出の有効/無効",
           "scope": "resource"
         },
-        "japaneseGrammarAnalyzer.advanced.enableAlphabetWidth": {
+        "otakLcp.advanced.enableAlphabetWidth": {
           "type": "boolean",
           "default": true,
           "description": "全角/半角アルファベット混在検出の有効/無効",
           "scope": "resource"
         },
-        "japaneseGrammarAnalyzer.advanced.enableWeakExpression": {
+        "otakLcp.advanced.enableWeakExpression": {
           "type": "boolean",
           "default": true,
           "description": "弱い表現検出の有効/無効",
           "scope": "resource"
         },
-        "japaneseGrammarAnalyzer.advanced.enableCommaCount": {
+        "otakLcp.advanced.enableCommaCount": {
           "type": "boolean",
           "default": true,
           "description": "読点数チェックの有効/無効",
           "scope": "resource"
         },
-        "japaneseGrammarAnalyzer.advanced.enableTermNotation": {
+        "otakLcp.advanced.enableTermNotation": {
           "type": "boolean",
           "default": true,
           "description": "技術用語表記統一の有効/無効",
           "scope": "resource"
         },
-        "japaneseGrammarAnalyzer.advanced.enableKanjiOpening": {
+        "otakLcp.advanced.enableKanjiOpening": {
           "type": "boolean",
           "default": true,
           "description": "漢字開き検出の有効/無効",
           "scope": "resource"
         },
-        "japaneseGrammarAnalyzer.advanced.enableWebTechDictionary": {
+        "otakLcp.advanced.enableWebTechDictionary": {
           "type": "boolean",
           "default": true,
           "description": "ウェブ技術用語辞典の有効/無効",
           "scope": "resource"
         },
-        "japaneseGrammarAnalyzer.advanced.enableGenerativeAIDictionary": {
+        "otakLcp.advanced.enableGenerativeAIDictionary": {
           "type": "boolean",
           "default": true,
           "description": "生成AI関連用語辞典の有効/無効",
           "scope": "resource"
         },
-        "japaneseGrammarAnalyzer.advanced.enableAWSDictionary": {
+        "otakLcp.advanced.enableAWSDictionary": {
           "type": "boolean",
           "default": true,
           "description": "AWS関連用語辞典の有効/無効",
           "scope": "resource"
         },
-        "japaneseGrammarAnalyzer.advanced.enableAzureDictionary": {
+        "otakLcp.advanced.enableAzureDictionary": {
           "type": "boolean",
           "default": true,
           "description": "Azure関連用語辞典の有効/無効",
           "scope": "resource"
         },
-        "japaneseGrammarAnalyzer.advanced.enableOCIDictionary": {
+        "otakLcp.advanced.enableOCIDictionary": {
           "type": "boolean",
           "default": true,
           "description": "OCI関連用語辞典の有効/無効",
           "scope": "resource"
         },
-        "japaneseGrammarAnalyzer.advanced.commaCountThreshold": {
+        "otakLcp.advanced.commaCountThreshold": {
           "type": "number",
           "default": 4,
           "minimum": 1,
@@ -191,44 +191,44 @@
           "description": "1文中の読点数の閾値（この値を超えると警告）",
           "scope": "resource"
         },
-        "japaneseGrammarAnalyzer.advanced.weakExpressionLevel": {
+        "otakLcp.advanced.weakExpressionLevel": {
           "type": "string",
           "enum": ["strict", "normal", "loose"],
           "default": "normal",
           "description": "弱い表現の検出レベル（strict: 厳格、normal: 標準、loose: 緩め）",
           "scope": "resource"
         },
-        "japaneseGrammarAnalyzer.advanced.enableRedundantExpression": {
+        "otakLcp.advanced.enableRedundantExpression": {
           "type": "boolean",
           "default": true,
           "description": "冗長表現検出の有効/無効（「馬から落馬する」「一番最初」など）",
           "scope": "resource"
         },
-        "japaneseGrammarAnalyzer.advanced.enableTautology": {
+        "otakLcp.advanced.enableTautology": {
           "type": "boolean",
           "default": true,
           "description": "重複表現（同語反復）検出の有効/無効（「頭痛が痛い」「違和感を感じる」など）",
           "scope": "resource"
         },
-        "japaneseGrammarAnalyzer.advanced.enableNoParticleChain": {
+        "otakLcp.advanced.enableNoParticleChain": {
           "type": "boolean",
           "default": true,
           "description": "助詞「の」連続使用検出の有効/無効",
           "scope": "resource"
         },
-        "japaneseGrammarAnalyzer.advanced.enableMonotonousEnding": {
+        "otakLcp.advanced.enableMonotonousEnding": {
           "type": "boolean",
           "default": true,
           "description": "文末表現の単調さ検出の有効/無効",
           "scope": "resource"
         },
-        "japaneseGrammarAnalyzer.advanced.enableLongSentence": {
+        "otakLcp.advanced.enableLongSentence": {
           "type": "boolean",
           "default": true,
           "description": "長すぎる文の検出の有効/無効",
           "scope": "resource"
         },
-        "japaneseGrammarAnalyzer.advanced.noParticleChainThreshold": {
+        "otakLcp.advanced.noParticleChainThreshold": {
           "type": "number",
           "default": 3,
           "minimum": 2,
@@ -236,7 +236,7 @@
           "description": "助詞「の」連続の閾値（この値以上で警告）",
           "scope": "resource"
         },
-        "japaneseGrammarAnalyzer.advanced.monotonousEndingThreshold": {
+        "otakLcp.advanced.monotonousEndingThreshold": {
           "type": "number",
           "default": 3,
           "minimum": 2,
@@ -244,7 +244,7 @@
           "description": "文末表現の連続の閾値（この値以上で警告）",
           "scope": "resource"
         },
-        "japaneseGrammarAnalyzer.advanced.longSentenceThreshold": {
+        "otakLcp.advanced.longSentenceThreshold": {
           "type": "number",
           "default": 120,
           "minimum": 50,

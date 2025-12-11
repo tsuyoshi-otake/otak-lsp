@@ -258,7 +258,7 @@ export class GrammarError {
       severity: DiagnosticSeverity.Warning,
       message: this.message,
       code: this.type,
-      source: 'japanese-grammar-analyzer'
+      source: 'otak-lcp'
     };
   }
 }

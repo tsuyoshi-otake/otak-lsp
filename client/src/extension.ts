@@ -1,7 +1,8 @@
 /**
  * VSCode Extension Client
- * Japanese Grammar Analyzer - kuromoji.jsを使用した日本語形態素解析
- * Feature: japanese-grammar-analyzer
+ * otak-lcp - Japanese Grammar Analyzer
+ * kuromoji.jsを使用した日本語形態素解析
+ * Feature: package-name-refactoring
  * 要件: 1.1, 2.1, 2.2, 2.3, 2.4, 2.5
  */
 
@@ -92,7 +93,7 @@ export function createLanguageClientOptions(
     documentSelector: createDocumentSelector(languages),
     outputChannel: channel,
     synchronize: {
-      configurationSection: 'japaneseGrammarAnalyzer',
+      configurationSection: 'otakLcp',
     },
   };
 }
@@ -125,7 +126,7 @@ export class ExtensionClient {
    * VSCode設定から設定を読み込む
    */
   loadConfiguration(): void {
-    const config = vscode.workspace.getConfiguration('japaneseGrammarAnalyzer');
+    const config = vscode.workspace.getConfiguration('otakLcp');
 
     this.configuration = {
       enableGrammarCheck: config.get<boolean>('enableGrammarCheck') ?? this.configuration.enableGrammarCheck,
@@ -191,12 +192,12 @@ function updateStatusBar(enabled: boolean): void {
   isEnabled = enabled;
 
   if (enabled) {
-    statusBarItem.text = '$(check) 日本語文法: ON';
-    statusBarItem.tooltip = 'Japanese Grammar Analyzer\n文法チェック・ハイライト有効\nクリックで無効化';
+    statusBarItem.text = '$(check) otak-lcp: ON';
+    statusBarItem.tooltip = 'otak-lcp - Japanese Grammar Analyzer\n文法チェック・ハイライト有効\nクリックで無効化';
     statusBarItem.backgroundColor = undefined;
   } else {
-    statusBarItem.text = '$(circle-slash) 日本語文法: OFF';
-    statusBarItem.tooltip = 'Japanese Grammar Analyzer\n文法チェック・ハイライト無効\nクリックで有効化';
+    statusBarItem.text = '$(circle-slash) otak-lcp: OFF';
+    statusBarItem.tooltip = 'otak-lcp - Japanese Grammar Analyzer\n文法チェック・ハイライト無効\nクリックで有効化';
     statusBarItem.backgroundColor = new vscode.ThemeColor('statusBarItem.warningBackground');
   }
 }
@@ -207,17 +208,17 @@ function updateStatusBar(enabled: boolean): void {
  */
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
   // Output Channelを作成
-  outputChannel = vscode.window.createOutputChannel('Japanese Grammar Analyzer');
+  outputChannel = vscode.window.createOutputChannel('otak-lcp');
   context.subscriptions.push(outputChannel);
 
-  outputChannel.appendLine('Japanese Grammar Analyzer is starting...');
+  outputChannel.appendLine('otak-lcp is starting...');
   outputChannel.appendLine('Using kuromoji.js (no external dependencies required)');
 
   // ステータスバーを作成
   statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
-  statusBarItem.text = '$(loading~spin) 日本語文法';
-  statusBarItem.tooltip = 'Japanese Grammar Analyzer\n起動中...';
-  statusBarItem.command = 'japaneseGrammarAnalyzer.toggle';
+  statusBarItem.text = '$(loading~spin) otak-lcp';
+  statusBarItem.tooltip = 'otak-lcp - Japanese Grammar Analyzer\n起動中...';
+  statusBarItem.command = 'otakLcp.toggle';
   statusBarItem.show();
   context.subscriptions.push(statusBarItem);
 
@@ -252,15 +253,15 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 
   // Language Clientを作成
   client = new LanguageClient(
-    'japaneseGrammarAnalyzer',
-    'Japanese Grammar Analyzer',
+    'otakLcp',
+    'otak-lcp - Japanese Grammar Analyzer',
     serverOptions,
     clientOptions
   );
 
   // 設定変更の監視
   const configDisposable = vscode.workspace.onDidChangeConfiguration((event) => {
-    if (event.affectsConfiguration('japaneseGrammarAnalyzer')) {
+    if (event.affectsConfiguration('otakLcp')) {
       extensionClient.loadConfiguration();
       outputChannel?.appendLine('Configuration changed');
 
@@ -284,20 +285,20 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   } catch (error) {
     outputChannel.appendLine(`Failed to start Language Server: ${error}`);
     vscode.window.showErrorMessage(
-      'Japanese Grammar Analyzer: Language Serverの起動に失敗しました'
+      'otak-lcp: Language Serverの起動に失敗しました'
     );
 
     // ステータスバーを更新（失敗）
     if (statusBarItem) {
-      statusBarItem.text = '$(error) 日本語文法: エラー';
-      statusBarItem.tooltip = 'Japanese Grammar Analyzer\n起動に失敗しました\nクリックで再試行';
+      statusBarItem.text = '$(error) otak-lcp: エラー';
+      statusBarItem.tooltip = 'otak-lcp - Japanese Grammar Analyzer\n起動に失敗しました\nクリックで再試行';
       statusBarItem.backgroundColor = new vscode.ThemeColor('statusBarItem.errorBackground');
     }
   }
 
   // コマンド: ON/OFF切り替え
   const toggleCommand = vscode.commands.registerCommand(
-    'japaneseGrammarAnalyzer.toggle',
+    'otakLcp.toggle',
     () => {
       const newState = !isEnabled;
       updateStatusBar(newState);
@@ -309,7 +310,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
       if (client) {
         client.sendNotification('workspace/didChangeConfiguration', {
           settings: {
-            japaneseGrammarAnalyzer: {
+            otakLcp: {
               enableGrammarCheck: newState,
               enableSemanticHighlight: newState,
             },
@@ -325,7 +326,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 
   // コマンド: ステータス表示
   const showStatusCommand = vscode.commands.registerCommand(
-    'japaneseGrammarAnalyzer.showStatus',
+    'otakLcp.showStatus',
     () => {
       outputChannel?.show();
       outputChannel?.appendLine('--- Status ---');
@@ -342,14 +343,14 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         outputChannel?.appendLine('No active editor');
       }
 
-      vscode.window.showInformationMessage('Japanese Grammar Analyzer: ステータスを出力パネルに表示しました');
+      vscode.window.showInformationMessage('otak-lcp: ステータスを出力パネルに表示しました');
     }
   );
   context.subscriptions.push(showStatusCommand);
 
   // コマンド: 手動解析
   const analyzeCommand = vscode.commands.registerCommand(
-    'japaneseGrammarAnalyzer.analyzeCurrentFile',
+    'otakLcp.analyzeCurrentFile',
     async () => {
       const editor = vscode.window.activeTextEditor;
       if (!editor) {
@@ -366,7 +367,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         outputChannel?.appendLine(`Document length: ${text.length} characters`);
         outputChannel?.appendLine(`First 100 chars: ${text.substring(0, 100)}`);
 
-        vscode.window.showInformationMessage('Japanese Grammar Analyzer: 解析をリクエストしました。出力パネルを確認してください。');
+        vscode.window.showInformationMessage('otak-lcp: 解析をリクエストしました。出力パネルを確認してください。');
       }
     }
   );
@@ -380,8 +381,8 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     },
   });
 
-  outputChannel.appendLine('Japanese Grammar Analyzer is now active');
-  outputChannel.appendLine('Commands available: japaneseGrammarAnalyzer.showStatus, japaneseGrammarAnalyzer.analyzeCurrentFile');
+  outputChannel.appendLine('otak-lcp is now active');
+  outputChannel.appendLine('Commands available: otakLcp.showStatus, otakLcp.analyzeCurrentFile');
 }
 
 /**
@@ -389,7 +390,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
  */
 export function deactivate(): Thenable<void> | undefined {
   if (outputChannel) {
-    outputChannel.appendLine('Japanese Grammar Analyzer is deactivating...');
+    outputChannel.appendLine('otak-lcp is deactivating...');
   }
 
   if (!client) {

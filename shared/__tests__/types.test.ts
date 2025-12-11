@@ -392,7 +392,7 @@ describe('GrammarError', () => {
       expect(diagnostic.severity).toBe(1); // DiagnosticSeverity.Warning
       expect(diagnostic.message).toBe('二重助詞「がが」が検出されました');
       expect(diagnostic.code).toBe('double-particle');
-      expect(diagnostic.source).toBe('japanese-grammar-analyzer');
+      expect(diagnostic.source).toBe('otak-lcp');
     });
   });
 });
