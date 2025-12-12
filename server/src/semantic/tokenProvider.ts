@@ -40,8 +40,20 @@ export const tokenModifiers: string[] = [];
 const POS_TO_TOKEN_TYPE: Record<string, TokenType> = {
   '名詞': TokenType.Noun,
   '動詞': TokenType.Verb,
+  // 補助動詞も動詞系として扱う
+  '助動詞': TokenType.Verb,
   '形容詞': TokenType.Adjective,
+  // 連体詞（この/その/あの等）は形容詞系として扱う
+  '連体詞': TokenType.Adjective,
   '助詞': TokenType.Particle,
+  // 接続詞（そして/しかし等）は機能語として助詞系に寄せる
+  '接続詞': TokenType.Particle,
+  // 接頭詞（お/ご/超等）は名詞系に寄せる
+  '接頭詞': TokenType.Noun,
+  // 感動詞（こんにちは/やった等）は内容語として名詞系に寄せる
+  '感動詞': TokenType.Noun,
+  // フィラー（えーと/あのー等）は話者の挿入語として副詞系に寄せる
+  'フィラー': TokenType.Adverb,
   '副詞': TokenType.Adverb
 };
 
@@ -53,7 +65,11 @@ export class SemanticTokenProvider {
    * 品詞からTokenTypeへのマッピング
    */
   mapPosToTokenType(pos: string): TokenType {
-    return POS_TO_TOKEN_TYPE[pos] ?? TokenType.Other;
+    // 記号はハイライト対象外としてotherに固定し、それ以外の未知品詞は名詞系として扱う
+    if (pos === '記号') {
+      return TokenType.Other;
+    }
+    return POS_TO_TOKEN_TYPE[pos] ?? TokenType.Noun;
   }
 
   /**

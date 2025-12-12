@@ -24,12 +24,16 @@ import {
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { MeCabAnalyzer } from './mecab/analyzer';
 import { CommentExtractor } from './parser/commentExtractor';
+import { MarkdownFilter } from './parser/markdownFilter';
+import { PositionMapper } from './parser/positionMapper';
 import { GrammarChecker } from './grammar/checker';
 import { AdvancedRulesManager } from './grammar/advancedRulesManager';
 import { SemanticTokenProvider, tokenTypes, tokenModifiers } from './semantic/tokenProvider';
+import { TokenFilter } from './semantic/tokenFilter';
 import { HoverProvider } from './hover/provider';
 import { WikipediaClient } from './wikipedia/client';
 import { Configuration, Token, SupportedLanguage } from '../../shared/src/types';
+import { ExcludedRange } from '../../shared/src/markdownFilterTypes';
 
 // Create connection
 const connection = createConnection(ProposedFeatures.all);
@@ -40,6 +44,8 @@ const documents: TextDocuments<TextDocument> = new TextDocuments(TextDocument);
 // Components
 let mecabAnalyzer: MeCabAnalyzer;
 let commentExtractor: CommentExtractor;
+let markdownFilter: MarkdownFilter;
+let tokenFilter: TokenFilter;
 let grammarChecker: GrammarChecker;
 let advancedRulesManager: AdvancedRulesManager;
 let semanticTokenProvider: SemanticTokenProvider;
@@ -49,6 +55,8 @@ let wikipediaClient: WikipediaClient;
 // Document analysis cache
 const documentTokens: Map<string, Token[]> = new Map();
 const documentTexts: Map<string, string> = new Map();
+const positionMappers: Map<string, PositionMapper> = new Map();
+const documentExcludedRanges: Map<string, ExcludedRange[]> = new Map();
 
 // Configuration
 let configuration: Configuration = {
@@ -70,6 +78,8 @@ connection.onInitialize((params: InitializeParams): InitializeResult => {
   // Initialize components (kuromoji.js - no external dependencies)
   mecabAnalyzer = new MeCabAnalyzer();
   commentExtractor = new CommentExtractor();
+  markdownFilter = new MarkdownFilter();
+  tokenFilter = new TokenFilter();
   grammarChecker = new GrammarChecker();
   advancedRulesManager = new AdvancedRulesManager();
   semanticTokenProvider = new SemanticTokenProvider();
@@ -130,6 +140,8 @@ connection.onDidChangeConfiguration((change) => {
       connection.console.log('Semantic highlight disabled, clearing tokens');
       documentTokens.clear();
       documentTexts.clear();
+      positionMappers.clear();
+      documentExcludedRanges.clear();
       connection.sendRequest('workspace/semanticTokens/refresh').catch(() => {});
     }
 
@@ -184,11 +196,22 @@ async function analyzeDocument(document: TextDocument): Promise<void> {
   try {
     // Extract text to analyze (comments for code, full text for markdown/plaintext)
     let textToAnalyze = text;
+    let positionMapper: PositionMapper | null = null;
+    let excludedRanges: ExcludedRange[] = [];
 
     if (languageId !== 'markdown' && languageId !== 'plaintext') {
       const comments = commentExtractor.extract(text, languageId);
       textToAnalyze = comments.map((c) => c.text).join('\n');
       connection.console.log(`[DEBUG] Extracted ${comments.length} comments`);
+    } else if (languageId === 'markdown') {
+      // Apply markdown filtering to exclude code blocks, tables, URLs, etc.
+      const filterResult = markdownFilter.filter(textToAnalyze);
+      textToAnalyze = filterResult.filteredText;
+      excludedRanges = filterResult.excludedRanges;
+      positionMapper = new PositionMapper(text, textToAnalyze, excludedRanges);
+      positionMappers.set(uri, positionMapper);
+      documentExcludedRanges.set(uri, excludedRanges);
+      connection.console.log(`[DEBUG] Markdown filtered: ${excludedRanges.length} ranges excluded`);
     }
 
     // Skip if no text to analyze
@@ -203,10 +226,20 @@ async function analyzeDocument(document: TextDocument): Promise<void> {
 
     // Analyze with kuromoji
     connection.console.log(`[DEBUG] Starting morphological analysis...`);
-    const tokens = await mecabAnalyzer.analyze(textToAnalyze);
+    let tokens = await mecabAnalyzer.analyze(textToAnalyze);
     connection.console.log(`[DEBUG] Analysis complete, ${tokens.length} tokens found`);
+
+    // Filter tokens that fall within excluded ranges (for Markdown files)
+    if (languageId === 'markdown' && excludedRanges.length > 0) {
+      const originalTokenCount = tokens.length;
+      tokens = tokenFilter.filterTokens(tokens, excludedRanges);
+      connection.console.log(`[DEBUG] Token filtering: ${originalTokenCount} -> ${tokens.length} tokens (${originalTokenCount - tokens.length} filtered out)`);
+    }
+
     documentTokens.set(uri, tokens);
-    documentTexts.set(uri, textToAnalyze);
+    // Store the original text for semantic token generation
+    // (MarkdownFilter uses space replacement, so positions are preserved)
+    documentTexts.set(uri, text);
 
     // Grammar check
     const diagnostics: Diagnostic[] = [];
@@ -216,12 +249,25 @@ async function analyzeDocument(document: TextDocument): Promise<void> {
       const grammarDiagnostics = grammarChecker.check(tokens, textToAnalyze);
       connection.console.log(`[DEBUG] Basic grammar check found ${grammarDiagnostics.length} issues`);
       for (const diag of grammarDiagnostics) {
+        let range = {
+          start: { line: diag.range.start.line, character: diag.range.start.character },
+          end: { line: diag.range.end.line, character: diag.range.end.character },
+        };
+
+        // Markdownの場合は位置マッピングを適用
+        if (positionMapper && languageId === 'markdown') {
+          const startOffset = getOffsetFromPosition(textToAnalyze, diag.range.start.line, diag.range.start.character);
+          const endOffset = getOffsetFromPosition(textToAnalyze, diag.range.end.line, diag.range.end.character);
+          
+          const mappedRange = positionMapper.mapRangeToOriginal(startOffset, endOffset);
+          if (mappedRange) {
+            range = mappedRange;
+          }
+        }
+
         diagnostics.push({
           severity: convertSeverity(diag.severity),
-          range: {
-            start: { line: diag.range.start.line, character: diag.range.start.character },
-            end: { line: diag.range.end.line, character: diag.range.end.character },
-          },
+          range,
           message: diag.message,
           source: 'otak-lcp',
           code: diag.code,
@@ -233,12 +279,25 @@ async function analyzeDocument(document: TextDocument): Promise<void> {
       const advancedDiagnostics = advancedRulesManager.checkText(textToAnalyze, tokens);
       connection.console.log(`[DEBUG] Advanced grammar check found ${advancedDiagnostics.length} issues`);
       for (const diag of advancedDiagnostics) {
+        let range = {
+          start: { line: diag.range.start.line, character: diag.range.start.character },
+          end: { line: diag.range.end.line, character: diag.range.end.character },
+        };
+
+        // Markdownの場合は位置マッピングを適用
+        if (positionMapper && languageId === 'markdown') {
+          const startOffset = getOffsetFromPosition(textToAnalyze, diag.range.start.line, diag.range.start.character);
+          const endOffset = getOffsetFromPosition(textToAnalyze, diag.range.end.line, diag.range.end.character);
+          
+          const mappedRange = positionMapper.mapRangeToOriginal(startOffset, endOffset);
+          if (mappedRange) {
+            range = mappedRange;
+          }
+        }
+
         diagnostics.push({
           severity: convertSeverity(diag.severity),
-          range: {
-            start: { line: diag.range.start.line, character: diag.range.start.character },
-            end: { line: diag.range.end.line, character: diag.range.end.character },
-          },
+          range,
           message: diag.message,
           source: 'otak-lcp',
           code: diag.code,
@@ -260,6 +319,8 @@ async function analyzeDocument(document: TextDocument): Promise<void> {
   } catch (error) {
     connection.console.error(`[ERROR] Analysis failed for ${uri}: ${error}`);
     documentTokens.delete(uri);
+    documentTexts.delete(uri);
+    positionMappers.delete(uri);
     connection.sendDiagnostics({ uri, diagnostics: [] });
   }
 }
@@ -280,6 +341,20 @@ function convertSeverity(severity: number): LSPDiagnosticSeverity {
     default:
       return LSPDiagnosticSeverity.Warning;
   }
+}
+
+/**
+ * Get character offset from line and character position
+ */
+function getOffsetFromPosition(text: string, line: number, character: number): number {
+  const lines = text.split('\n');
+  let offset = 0;
+  
+  for (let i = 0; i < line && i < lines.length; i++) {
+    offset += lines[i].length + 1; // +1 for newline
+  }
+  
+  return offset + character;
 }
 
 /**
@@ -314,6 +389,8 @@ documents.onDidClose((event) => {
   // Clear cache
   documentTokens.delete(uri);
   documentTexts.delete(uri);
+  positionMappers.delete(uri);
+  documentExcludedRanges.delete(uri);
 
   // Clear diagnostics
   connection.sendDiagnostics({ uri, diagnostics: [] });

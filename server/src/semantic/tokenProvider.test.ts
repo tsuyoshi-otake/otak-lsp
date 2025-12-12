@@ -50,14 +50,44 @@ describe('Semantic Token Provider', () => {
       expect(tokenType).toBe(TokenType.Verb);
     });
 
+    it('should map 助動詞 to Verb', () => {
+      const tokenType = provider.mapPosToTokenType('助動詞');
+      expect(tokenType).toBe(TokenType.Verb);
+    });
+
     it('should map 形容詞 to Adjective', () => {
       const tokenType = provider.mapPosToTokenType('形容詞');
+      expect(tokenType).toBe(TokenType.Adjective);
+    });
+
+    it('should map 連体詞 to Adjective', () => {
+      const tokenType = provider.mapPosToTokenType('連体詞');
       expect(tokenType).toBe(TokenType.Adjective);
     });
 
     it('should map 助詞 to Particle', () => {
       const tokenType = provider.mapPosToTokenType('助詞');
       expect(tokenType).toBe(TokenType.Particle);
+    });
+
+    it('should map 接続詞 to Particle', () => {
+      const tokenType = provider.mapPosToTokenType('接続詞');
+      expect(tokenType).toBe(TokenType.Particle);
+    });
+
+    it('should map 接頭詞 to Noun', () => {
+      const tokenType = provider.mapPosToTokenType('接頭詞');
+      expect(tokenType).toBe(TokenType.Noun);
+    });
+
+    it('should map 感動詞 to Noun', () => {
+      const tokenType = provider.mapPosToTokenType('感動詞');
+      expect(tokenType).toBe(TokenType.Noun);
+    });
+
+    it('should map フィラー to Adverb', () => {
+      const tokenType = provider.mapPosToTokenType('フィラー');
+      expect(tokenType).toBe(TokenType.Adverb);
     });
 
     it('should map 副詞 to Adverb', () => {
@@ -68,6 +98,11 @@ describe('Semantic Token Provider', () => {
     it('should map unknown POS to Other', () => {
       const tokenType = provider.mapPosToTokenType('記号');
       expect(tokenType).toBe(TokenType.Other);
+    });
+
+    it('should map unknown non-symbol POS to Noun', () => {
+      const tokenType = provider.mapPosToTokenType('その他');
+      expect(tokenType).toBe(TokenType.Noun);
     });
   });
 

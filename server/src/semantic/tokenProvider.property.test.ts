@@ -217,9 +217,9 @@ describe('Property-Based Tests: Semantic Token Provider', () => {
     });
 
     it('should always include valid token type values', () => {
-      fc.assert(
+          fc.assert(
         fc.property(
-          fc.constantFrom('名詞', '動詞', '形容詞', '助詞', '副詞', '記号', '接続詞', '感動詞'),
+          fc.constantFrom('名詞', '動詞', '形容詞', '助詞', '副詞', '記号', '接続詞', '感動詞', 'フィラー'),
           (pos) => {
             const tokens = [createToken('あ', pos, 0)];
             const result = provider.provideSemanticTokens(tokens, 'あ');
@@ -230,6 +230,207 @@ describe('Property-Based Tests: Semantic Token Provider', () => {
           }
         ),
         { numRuns: 100 }
+      );
+    });
+  });
+
+  /**
+   * Feature: semantic-highlight-fix, Property 2: セマンティックトークンの位置正確性
+   * すべてのセマンティックトークンに対して、その位置情報は
+   * 元のドキュメント内の対応するテキストの位置と一致しなければならない
+   *
+   * 検証: 要件 1.2, 1.3
+   */
+  describe('Property 2: セマンティックトークンの位置正確性', () => {
+    /**
+     * セマンティックトークンのデータから絶対位置を復元する
+     */
+    const decodeSemanticTokens = (data: number[]): Array<{ line: number; char: number; length: number; type: number }> => {
+      const decoded: Array<{ line: number; char: number; length: number; type: number }> = [];
+      let currentLine = 0;
+      let currentChar = 0;
+
+      for (let i = 0; i < data.length; i += 5) {
+        const deltaLine = data[i];
+        const deltaChar = data[i + 1];
+        const length = data[i + 2];
+        const type = data[i + 3];
+
+        currentLine += deltaLine;
+        currentChar = deltaLine === 0 ? currentChar + deltaChar : deltaChar;
+
+        decoded.push({ line: currentLine, char: currentChar, length, type });
+      }
+
+      return decoded;
+    };
+
+    it('単一行のテキストで位置情報が正しいこと', () => {
+      fc.assert(
+        fc.property(
+          fc.array(
+            fc.stringOf(fc.constantFrom(...'あいうえお日本語テスト'), { minLength: 1, maxLength: 3 }),
+            { minLength: 1, maxLength: 10 }
+          ),
+          (surfaces) => {
+            let currentPosition = 0;
+            const tokens = surfaces.map(surface => {
+              const token = createToken(surface, '名詞', currentPosition);
+              currentPosition += surface.length;
+              return token;
+            });
+            const text = surfaces.join('');
+
+            const result = provider.provideSemanticTokens(tokens, text);
+            const decoded = decodeSemanticTokens(result.data);
+
+            // 各トークンの位置が正しいことを確認
+            let expectedChar = 0;
+            for (let i = 0; i < tokens.length; i++) {
+              expect(decoded[i].line).toBe(0);
+              expect(decoded[i].char).toBe(expectedChar);
+              expect(decoded[i].length).toBe(tokens[i].surface.length);
+              expectedChar += tokens[i].surface.length;
+            }
+          }
+        ),
+        { numRuns: 30 }
+      );
+    });
+
+    it('複数行のテキストで位置情報が正しいこと', () => {
+      fc.assert(
+        fc.property(
+          fc.array(
+            fc.record({
+              surface: fc.stringOf(fc.constantFrom(...'あいうえお'), { minLength: 1, maxLength: 2 }),
+              newlineAfter: fc.boolean()
+            }),
+            { minLength: 2, maxLength: 8 }
+          ),
+          (specs) => {
+            // テキストを構築
+            let text = '';
+            let currentPosition = 0;
+            const tokens: Token[] = [];
+
+            for (const spec of specs) {
+              tokens.push(createToken(spec.surface, '名詞', currentPosition));
+              text += spec.surface;
+              currentPosition += spec.surface.length;
+              if (spec.newlineAfter) {
+                text += '\n';
+                currentPosition += 1;
+              }
+            }
+
+            const result = provider.provideSemanticTokens(tokens, text);
+            const decoded = decodeSemanticTokens(result.data);
+
+            // すべてのトークンがセマンティックトークンとして生成されている
+            expect(decoded.length).toBe(tokens.length);
+
+            // 各トークンの長さが正しいことを確認
+            for (let i = 0; i < tokens.length; i++) {
+              expect(decoded[i].length).toBe(tokens[i].surface.length);
+            }
+          }
+        ),
+        { numRuns: 30 }
+      );
+    });
+
+    it('トークンの長さが常にsurface.lengthと一致すること', () => {
+      fc.assert(
+        fc.property(
+          fc.array(
+            fc.stringOf(fc.constantFrom(...'あいうえおかきくけこ'), { minLength: 1, maxLength: 5 }),
+            { minLength: 1, maxLength: 15 }
+          ),
+          (surfaces) => {
+            let currentPosition = 0;
+            const tokens = surfaces.map(surface => {
+              const token = createToken(surface, '名詞', currentPosition);
+              currentPosition += surface.length;
+              return token;
+            });
+            const text = surfaces.join('');
+
+            const result = provider.provideSemanticTokens(tokens, text);
+            const decoded = decodeSemanticTokens(result.data);
+
+            for (let i = 0; i < tokens.length; i++) {
+              expect(decoded[i].length).toBe(tokens[i].surface.length);
+            }
+          }
+        ),
+        { numRuns: 30 }
+      );
+    });
+  });
+
+  /**
+   * Feature: semantic-highlight-fix, Property 3: セマンティックトークンの完全性
+   * すべてのフィルタリング後のトークンに対して、
+   * 対応するセマンティックトークンが生成されなければならない
+   *
+   * 検証: 要件 1.1, 1.4
+   */
+  describe('Property 3: セマンティックトークンの完全性', () => {
+    it('すべてのトークンに対応するセマンティックトークンが生成されること', () => {
+      fc.assert(
+        fc.property(
+          fc.array(
+            fc.record({
+              surface: fc.stringOf(fc.constantFrom(...'あいうえお日本'), { minLength: 1, maxLength: 3 }),
+              pos: fc.constantFrom('名詞', '動詞', '形容詞', '助詞', '副詞')
+            }),
+            { minLength: 0, maxLength: 20 }
+          ),
+          (tokenSpecs) => {
+            let currentPosition = 0;
+            const tokens = tokenSpecs.map(spec => {
+              const token = createToken(spec.surface, spec.pos, currentPosition);
+              currentPosition += spec.surface.length;
+              return token;
+            });
+            const text = tokenSpecs.map(spec => spec.surface).join('');
+
+            const result = provider.provideSemanticTokens(tokens, text);
+
+            // セマンティックトークンの数がトークンの数と一致
+            const semanticTokenCount = result.data.length / 5;
+            expect(semanticTokenCount).toBe(tokens.length);
+          }
+        ),
+        { numRuns: 30 }
+      );
+    });
+
+    it('空のトークンリストに対して空のセマンティックトークンが返されること', () => {
+      const result = provider.provideSemanticTokens([], '');
+      expect(result.data).toHaveLength(0);
+    });
+
+    it('1つのトークンに対して正確に5要素のデータが生成されること', () => {
+      fc.assert(
+        fc.property(
+          fc.stringOf(fc.constantFrom(...'あいうえお'), { minLength: 1, maxLength: 5 }),
+          fc.constantFrom('名詞', '動詞', '形容詞', '助詞', '副詞'),
+          (surface, pos) => {
+            const tokens = [createToken(surface, pos, 0)];
+            const result = provider.provideSemanticTokens(tokens, surface);
+
+            expect(result.data.length).toBe(5);
+            // [deltaLine, deltaChar, length, tokenType, tokenModifiers]
+            expect(result.data[0]).toBe(0); // deltaLine
+            expect(result.data[1]).toBe(0); // deltaChar (first token starts at 0)
+            expect(result.data[2]).toBe(surface.length); // length
+            expect(result.data[3]).toBe(provider.mapPosToTokenType(pos)); // tokenType
+            expect(result.data[4]).toBe(0); // tokenModifiers
+          }
+        ),
+        { numRuns: 30 }
       );
     });
   });

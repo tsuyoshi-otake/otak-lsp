@@ -13,6 +13,11 @@ import { Sentence } from '../../../shared/src/advancedTypes';
 const SENTENCE_TERMINATORS = /[。！？!?]/;
 
 /**
+ * 段落区切り（空行）を検出
+ */
+const PARAGRAPH_BREAK = /\n\s*\n/;
+
+/**
  * 文解析ユーティリティクラス
  * テキストを文単位に分割し、各文にトークンを割り当てる
  */
@@ -30,9 +35,9 @@ export class SentenceParser {
 
     const sentences: Sentence[] = [];
     let currentStart = 0;
-    let lastSentenceEnd = 0;
 
     for (let i = 0; i < text.length; i++) {
+      // 文の終端記号をチェック
       if (SENTENCE_TERMINATORS.test(text[i])) {
         // 連続する終端記号をスキップ
         while (i + 1 < text.length && SENTENCE_TERMINATORS.test(text[i + 1])) {
@@ -58,7 +63,46 @@ export class SentenceParser {
         }
 
         currentStart = i + 1;
-        lastSentenceEnd = i + 1;
+      }
+      // 段落区切り（空行）をチェック
+      else if (text[i] === '\n') {
+        // 空行かどうかをチェック（次の非空白文字までに改行があるか）
+        let j = i + 1;
+        let hasEmptyLine = false;
+        while (j < text.length && (text[j] === ' ' || text[j] === '\t' || text[j] === '\n')) {
+          if (text[j] === '\n') {
+            hasEmptyLine = true;
+            break;
+          }
+          j++;
+        }
+
+        if (hasEmptyLine) {
+          const sentenceText = text.substring(currentStart, i);
+
+          // 空白のみの文はスキップ
+          if (sentenceText.trim().length > 0) {
+            const sentenceTokens = SentenceParser.getTokensInRange(
+              tokens,
+              currentStart,
+              i
+            );
+
+            sentences.push(new Sentence({
+              text: sentenceText,
+              tokens: sentenceTokens,
+              start: currentStart,
+              end: i
+            }));
+          }
+
+          // 空行をスキップ
+          while (j < text.length && (text[j] === ' ' || text[j] === '\t' || text[j] === '\n')) {
+            j++;
+          }
+          i = j - 1;
+          currentStart = j;
+        }
       }
     }
 
