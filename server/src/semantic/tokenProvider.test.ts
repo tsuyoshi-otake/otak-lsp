@@ -21,14 +21,17 @@ describe('Semantic Token Provider', () => {
     surface: string,
     pos: string,
     start: number,
-    line: number = 0
+    line: number = 0,
+    posDetail1: string = '*',
+    posDetail2: string = '*',
+    posDetail3: string = '*'
   ): Token => {
     return new Token({
       surface,
       pos,
-      posDetail1: '*',
-      posDetail2: '*',
-      posDetail3: '*',
+      posDetail1,
+      posDetail2,
+      posDetail3,
       conjugation: '*',
       conjugationForm: '*',
       baseForm: surface,
@@ -177,6 +180,34 @@ describe('Semantic Token Provider', () => {
       expect(result.data[23]).toBe(TokenType.Noun);    // 花
       expect(result.data[28]).toBe(TokenType.Particle); // を
       expect(result.data[33]).toBe(TokenType.Verb);    // 見る
+    });
+
+    it('should treat na-adjective stems as Adjective', () => {
+      const text = '静か';
+      const tokens = [createToken('静か', '名詞', 0, 0, '形容動詞語幹')];
+      const result = provider.provideSemanticTokens(tokens, text);
+      expect(result.data[3]).toBe(TokenType.Adjective);
+    });
+
+    it('should treat adverbial nouns as Adverb', () => {
+      const text = '今日';
+      const tokens = [createToken('今日', '名詞', 0, 0, '副詞可能')];
+      const result = provider.provideSemanticTokens(tokens, text);
+      expect(result.data[3]).toBe(TokenType.Adverb);
+    });
+
+    it('should map number nouns to Other', () => {
+      const text = '3';
+      const tokens = [createToken('3', '名詞', 0, 0, '数')];
+      const result = provider.provideSemanticTokens(tokens, text);
+      expect(result.data[3]).toBe(TokenType.Other);
+    });
+
+    it('should map ASCII tokens to Other even if POS is 名詞', () => {
+      const text = 'Code';
+      const tokens = [createToken('Code', '名詞', 0)];
+      const result = provider.provideSemanticTokens(tokens, text);
+      expect(result.data[3]).toBe(TokenType.Other);
     });
   });
 

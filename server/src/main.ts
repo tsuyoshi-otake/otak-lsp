@@ -276,7 +276,9 @@ async function analyzeDocument(document: TextDocument): Promise<void> {
 
       // Advanced grammar rules
       connection.console.log(`[DEBUG] Running advanced grammar check...`);
-      const advancedDiagnostics = advancedRulesManager.checkText(textToAnalyze, tokens);
+      const advancedDiagnostics = languageId === 'markdown'
+        ? advancedRulesManager.checkText(textToAnalyze, tokens, excludedRanges)
+        : advancedRulesManager.checkText(textToAnalyze, tokens);
       connection.console.log(`[DEBUG] Advanced grammar check found ${advancedDiagnostics.length} issues`);
       for (const diag of advancedDiagnostics) {
         let range = {

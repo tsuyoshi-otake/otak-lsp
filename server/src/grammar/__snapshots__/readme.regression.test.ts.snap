@@ -1,0 +1,776 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`README Regression Snapshot should match README diagnostics snapshot 1`] = `
+[
+  {
+    "code": "comma-count",
+    "message": "1文中に読点が8個使用されています（閾値: 4個）。文を分割することを検討してください。",
+    "range": {
+      "end": {
+        "character": 1,
+        "line": 128,
+      },
+      "start": {
+        "character": 0,
+        "line": 114,
+      },
+    },
+  },
+  {
+    "code": "double-negation",
+    "message": "二重否定「ないわけではない」が検出されました。わかりにくい表現になる可能性があります。",
+    "range": {
+      "end": {
+        "character": 4,
+        "line": 66,
+      },
+      "start": {
+        "character": 42,
+        "line": 64,
+      },
+    },
+  },
+  {
+    "code": "double-negation",
+    "message": "二重否定「ないことはない」が検出されました。わかりにくい表現になる可能性があります。",
+    "range": {
+      "end": {
+        "character": 13,
+        "line": 66,
+      },
+      "start": {
+        "character": 6,
+        "line": 66,
+      },
+    },
+  },
+  {
+    "code": "double-particle",
+    "message": "二重助詞「がが」が検出されました。「が」を1つにしてください。",
+    "range": {
+      "end": {
+        "character": 9,
+        "line": 18,
+      },
+      "start": {
+        "character": 7,
+        "line": 18,
+      },
+    },
+  },
+  {
+    "code": "kanji-opening",
+    "message": "漢字「時」はひらがな「とき」で表記することが推奨されます。",
+    "range": {
+      "end": {
+        "character": 9,
+        "line": 230,
+      },
+      "start": {
+        "character": 8,
+        "line": 230,
+      },
+    },
+  },
+  {
+    "code": "kanji-opening",
+    "message": "漢字「時」はひらがな「とき」で表記することが推奨されます。",
+    "range": {
+      "end": {
+        "character": 11,
+        "line": 230,
+      },
+      "start": {
+        "character": 10,
+        "line": 230,
+      },
+    },
+  },
+  {
+    "code": "kanji-opening",
+    "message": "漢字「時」はひらがな「とき」で表記することが推奨されます。",
+    "range": {
+      "end": {
+        "character": 5,
+        "line": 232,
+      },
+      "start": {
+        "character": 4,
+        "line": 232,
+      },
+    },
+  },
+  {
+    "code": "kanji-opening",
+    "message": "漢字「様」はひらがな「よう」で表記することが推奨されます。",
+    "range": {
+      "end": {
+        "character": 7,
+        "line": 261,
+      },
+      "start": {
+        "character": 6,
+        "line": 261,
+      },
+    },
+  },
+  {
+    "code": "long-sentence",
+    "message": "文が長すぎます（164文字、閾値: 120文字）。文の分割を検討してください。",
+    "range": {
+      "end": {
+        "character": 9,
+        "line": 13,
+      },
+      "start": {
+        "character": 6,
+        "line": 6,
+      },
+    },
+  },
+  {
+    "code": "long-sentence",
+    "message": "文が長すぎます（280文字、閾値: 120文字）。文の分割を検討してください。",
+    "range": {
+      "end": {
+        "character": 51,
+        "line": 162,
+      },
+      "start": {
+        "character": 0,
+        "line": 156,
+      },
+    },
+  },
+  {
+    "code": "long-sentence",
+    "message": "文が長すぎます（216文字、閾値: 120文字）。文の分割を検討してください。",
+    "range": {
+      "end": {
+        "character": 27,
+        "line": 179,
+      },
+      "start": {
+        "character": 0,
+        "line": 174,
+      },
+    },
+  },
+  {
+    "code": "long-sentence",
+    "message": "文が長すぎます（129文字、閾値: 120文字）。文の分割を検討してください。",
+    "range": {
+      "end": {
+        "character": 29,
+        "line": 265,
+      },
+      "start": {
+        "character": 0,
+        "line": 262,
+      },
+    },
+  },
+  {
+    "code": "long-sentence",
+    "message": "文が長すぎます（177文字、閾値: 120文字）。文の分割を検討してください。",
+    "range": {
+      "end": {
+        "character": 98,
+        "line": 274,
+      },
+      "start": {
+        "character": 0,
+        "line": 272,
+      },
+    },
+  },
+  {
+    "code": "long-sentence",
+    "message": "文が長すぎます（150文字、閾値: 120文字）。文の分割を検討してください。",
+    "range": {
+      "end": {
+        "character": 0,
+        "line": 280,
+      },
+      "start": {
+        "character": 0,
+        "line": 277,
+      },
+    },
+  },
+  {
+    "code": "no-particle-chain",
+    "message": "助詞「の」が3回連続しています（閾値: 3回）。文の書き換えを検討してください。",
+    "range": {
+      "end": {
+        "character": 8,
+        "line": 17,
+      },
+      "start": {
+        "character": 29,
+        "line": 15,
+      },
+    },
+  },
+  {
+    "code": "noun-chain",
+    "message": "名詞が連続して読みにくくなっています。名詞の間に助詞を挿入して読みやすくしてください",
+    "range": {
+      "end": {
+        "character": 20,
+        "line": 2,
+      },
+      "start": {
+        "character": 2,
+        "line": 2,
+      },
+    },
+  },
+  {
+    "code": "noun-chain",
+    "message": "名詞が連続して読みにくくなっています。名詞の間に助詞を挿入して読みやすくしてください",
+    "range": {
+      "end": {
+        "character": 23,
+        "line": 7,
+      },
+      "start": {
+        "character": 11,
+        "line": 7,
+      },
+    },
+  },
+  {
+    "code": "noun-chain",
+    "message": "名詞が連続して読みにくくなっています。名詞の間に助詞を挿入して読みやすくしてください",
+    "range": {
+      "end": {
+        "character": 4,
+        "line": 18,
+      },
+      "start": {
+        "character": 24,
+        "line": 17,
+      },
+    },
+  },
+  {
+    "code": "noun-chain",
+    "message": "名詞が連続して読みにくくなっています。名詞の間に助詞を挿入して読みやすくしてください",
+    "range": {
+      "end": {
+        "character": 4,
+        "line": 19,
+      },
+      "start": {
+        "character": 21,
+        "line": 18,
+      },
+    },
+  },
+  {
+    "code": "noun-chain",
+    "message": "名詞が連続して読みにくくなっています。名詞の間に助詞を挿入して読みやすくしてください",
+    "range": {
+      "end": {
+        "character": 35,
+        "line": 19,
+      },
+      "start": {
+        "character": 23,
+        "line": 19,
+      },
+    },
+  },
+  {
+    "code": "noun-chain",
+    "message": "名詞が連続して読みにくくなっています。名詞の間に助詞を挿入して読みやすくしてください",
+    "range": {
+      "end": {
+        "character": 8,
+        "line": 101,
+      },
+      "start": {
+        "character": 0,
+        "line": 86,
+      },
+    },
+  },
+  {
+    "code": "noun-chain",
+    "message": "名詞が連続して読みにくくなっています。名詞の間に助詞を挿入して読みやすくしてください",
+    "range": {
+      "end": {
+        "character": 4,
+        "line": 151,
+      },
+      "start": {
+        "character": 2,
+        "line": 149,
+      },
+    },
+  },
+  {
+    "code": "noun-chain",
+    "message": "名詞が連続して読みにくくなっています。名詞の間に助詞を挿入して読みやすくしてください",
+    "range": {
+      "end": {
+        "character": 14,
+        "line": 157,
+      },
+      "start": {
+        "character": 4,
+        "line": 155,
+      },
+    },
+  },
+  {
+    "code": "noun-chain",
+    "message": "名詞が連続して読みにくくなっています。名詞の間に助詞を挿入して読みやすくしてください",
+    "range": {
+      "end": {
+        "character": 27,
+        "line": 158,
+      },
+      "start": {
+        "character": 29,
+        "line": 157,
+      },
+    },
+  },
+  {
+    "code": "noun-chain",
+    "message": "名詞が連続して読みにくくなっています。名詞の間に助詞を挿入して読みやすくしてください",
+    "range": {
+      "end": {
+        "character": 11,
+        "line": 160,
+      },
+      "start": {
+        "character": 46,
+        "line": 159,
+      },
+    },
+  },
+  {
+    "code": "noun-chain",
+    "message": "名詞が連続して読みにくくなっています。名詞の間に助詞を挿入して読みやすくしてください",
+    "range": {
+      "end": {
+        "character": 25,
+        "line": 169,
+      },
+      "start": {
+        "character": 11,
+        "line": 169,
+      },
+    },
+  },
+  {
+    "code": "noun-chain",
+    "message": "名詞が連続して読みにくくなっています。名詞の間に助詞を挿入して読みやすくしてください",
+    "range": {
+      "end": {
+        "character": 13,
+        "line": 170,
+      },
+      "start": {
+        "character": 3,
+        "line": 170,
+      },
+    },
+  },
+  {
+    "code": "noun-chain",
+    "message": "名詞が連続して読みにくくなっています。名詞の間に助詞を挿入して読みやすくしてください",
+    "range": {
+      "end": {
+        "character": 79,
+        "line": 175,
+      },
+      "start": {
+        "character": 3,
+        "line": 175,
+      },
+    },
+  },
+  {
+    "code": "noun-chain",
+    "message": "名詞が連続して読みにくくなっています。名詞の間に助詞を挿入して読みやすくしてください",
+    "range": {
+      "end": {
+        "character": 26,
+        "line": 177,
+      },
+      "start": {
+        "character": 12,
+        "line": 177,
+      },
+    },
+  },
+  {
+    "code": "noun-chain",
+    "message": "名詞が連続して読みにくくなっています。名詞の間に助詞を挿入して読みやすくしてください",
+    "range": {
+      "end": {
+        "character": 7,
+        "line": 194,
+      },
+      "start": {
+        "character": 7,
+        "line": 188,
+      },
+    },
+  },
+  {
+    "code": "noun-chain",
+    "message": "名詞が連続して読みにくくなっています。名詞の間に助詞を挿入して読みやすくしてください",
+    "range": {
+      "end": {
+        "character": 7,
+        "line": 203,
+      },
+      "start": {
+        "character": 8,
+        "line": 194,
+      },
+    },
+  },
+  {
+    "code": "noun-chain",
+    "message": "名詞が連続して読みにくくなっています。名詞の間に助詞を挿入して読みやすくしてください",
+    "range": {
+      "end": {
+        "character": 10,
+        "line": 219,
+      },
+      "start": {
+        "character": 8,
+        "line": 213,
+      },
+    },
+  },
+  {
+    "code": "noun-chain",
+    "message": "名詞が連続して読みにくくなっています。名詞の間に助詞を挿入して読みやすくしてください",
+    "range": {
+      "end": {
+        "character": 9,
+        "line": 244,
+      },
+      "start": {
+        "character": 3,
+        "line": 234,
+      },
+    },
+  },
+  {
+    "code": "noun-chain",
+    "message": "名詞が連続して読みにくくなっています。名詞の間に助詞を挿入して読みやすくしてください",
+    "range": {
+      "end": {
+        "character": 4,
+        "line": 258,
+      },
+      "start": {
+        "character": 0,
+        "line": 255,
+      },
+    },
+  },
+  {
+    "code": "noun-chain",
+    "message": "名詞が連続して読みにくくなっています。名詞の間に助詞を挿入して読みやすくしてください",
+    "range": {
+      "end": {
+        "character": 24,
+        "line": 258,
+      },
+      "start": {
+        "character": 14,
+        "line": 258,
+      },
+    },
+  },
+  {
+    "code": "noun-chain",
+    "message": "名詞が連続して読みにくくなっています。名詞の間に助詞を挿入して読みやすくしてください",
+    "range": {
+      "end": {
+        "character": 12,
+        "line": 263,
+      },
+      "start": {
+        "character": 15,
+        "line": 259,
+      },
+    },
+  },
+  {
+    "code": "noun-chain",
+    "message": "名詞が連続して読みにくくなっています。名詞の間に助詞を挿入して読みやすくしてください",
+    "range": {
+      "end": {
+        "character": 30,
+        "line": 263,
+      },
+      "start": {
+        "character": 25,
+        "line": 263,
+      },
+    },
+  },
+  {
+    "code": "noun-chain",
+    "message": "名詞が連続して読みにくくなっています。名詞の間に助詞を挿入して読みやすくしてください",
+    "range": {
+      "end": {
+        "character": 12,
+        "line": 264,
+      },
+      "start": {
+        "character": 31,
+        "line": 263,
+      },
+    },
+  },
+  {
+    "code": "noun-chain",
+    "message": "名詞が連続して読みにくくなっています。名詞の間に助詞を挿入して読みやすくしてください",
+    "range": {
+      "end": {
+        "character": 20,
+        "line": 265,
+      },
+      "start": {
+        "character": 54,
+        "line": 264,
+      },
+    },
+  },
+  {
+    "code": "noun-chain",
+    "message": "名詞が連続して読みにくくなっています。名詞の間に助詞を挿入して読みやすくしてください",
+    "range": {
+      "end": {
+        "character": 8,
+        "line": 267,
+      },
+      "start": {
+        "character": 21,
+        "line": 265,
+      },
+    },
+  },
+  {
+    "code": "noun-chain",
+    "message": "名詞が連続して読みにくくなっています。名詞の間に助詞を挿入して読みやすくしてください",
+    "range": {
+      "end": {
+        "character": 55,
+        "line": 273,
+      },
+      "start": {
+        "character": 4,
+        "line": 269,
+      },
+    },
+  },
+  {
+    "code": "noun-chain",
+    "message": "名詞が連続して読みにくくなっています。名詞の間に助詞を挿入して読みやすくしてください",
+    "range": {
+      "end": {
+        "character": 9,
+        "line": 274,
+      },
+      "start": {
+        "character": 58,
+        "line": 273,
+      },
+    },
+  },
+  {
+    "code": "noun-chain",
+    "message": "名詞が連続して読みにくくなっています。名詞の間に助詞を挿入して読みやすくしてください",
+    "range": {
+      "end": {
+        "character": 9,
+        "line": 278,
+      },
+      "start": {
+        "character": 93,
+        "line": 274,
+      },
+    },
+  },
+  {
+    "code": "noun-chain",
+    "message": "名詞が連続して読みにくくなっています。名詞の間に助詞を挿入して読みやすくしてください",
+    "range": {
+      "end": {
+        "character": 73,
+        "line": 279,
+      },
+      "start": {
+        "character": 10,
+        "line": 278,
+      },
+    },
+  },
+  {
+    "code": "particle-sequence",
+    "message": "不適切な助詞連続「がを」が検出されました。文の構造を見直してください。",
+    "range": {
+      "end": {
+        "character": 9,
+        "line": 19,
+      },
+      "start": {
+        "character": 7,
+        "line": 19,
+      },
+    },
+  },
+  {
+    "code": "particle-sequence",
+    "message": "不適切な助詞連続「がに」が検出されました。文の構造を見直してください。",
+    "range": {
+      "end": {
+        "character": 31,
+        "line": 222,
+      },
+      "start": {
+        "character": 10,
+        "line": 222,
+      },
+    },
+  },
+  {
+    "code": "particle-sequence",
+    "message": "不適切な助詞連続「をに」が検出されました。文の構造を見直してください。",
+    "range": {
+      "end": {
+        "character": 26,
+        "line": 227,
+      },
+      "start": {
+        "character": 15,
+        "line": 227,
+      },
+    },
+  },
+  {
+    "code": "particle-sequence",
+    "message": "不適切な助詞連続「をに」が検出されました。文の構造を見直してください。",
+    "range": {
+      "end": {
+        "character": 70,
+        "line": 228,
+      },
+      "start": {
+        "character": 59,
+        "line": 228,
+      },
+    },
+  },
+  {
+    "code": "ra-nuki",
+    "message": "ら抜き言葉「食べれる」が検出されました。正しくは「食べられる」です。",
+    "range": {
+      "end": {
+        "character": 25,
+        "line": 54,
+      },
+      "start": {
+        "character": 21,
+        "line": 54,
+      },
+    },
+  },
+  {
+    "code": "ra-nuki",
+    "message": "ら抜き言葉「見れる」が検出されました。正しくは「見られる」です。",
+    "range": {
+      "end": {
+        "character": 30,
+        "line": 54,
+      },
+      "start": {
+        "character": 27,
+        "line": 54,
+      },
+    },
+  },
+  {
+    "code": "redundant-expression",
+    "message": "冗長表現「馬から落馬」が検出されました。「落馬」に簡潔化できます。",
+    "range": {
+      "end": {
+        "character": 6,
+        "line": 108,
+      },
+      "start": {
+        "character": 1,
+        "line": 108,
+      },
+    },
+  },
+  {
+    "code": "redundant-expression",
+    "message": "冗長表現「後で後悔」が検出されました。「後悔」に簡潔化できます。",
+    "range": {
+      "end": {
+        "character": 14,
+        "line": 108,
+      },
+      "start": {
+        "character": 10,
+        "line": 108,
+      },
+    },
+  },
+  {
+    "code": "tautology",
+    "message": "重複表現「頭痛が痛い」が検出されました。「頭」と「痛い」が重複しています。",
+    "range": {
+      "end": {
+        "character": 6,
+        "line": 113,
+      },
+      "start": {
+        "character": 1,
+        "line": 113,
+      },
+    },
+  },
+  {
+    "code": "tautology",
+    "message": "重複表現「違和感を感じる」が検出されました。「感」が重複しています。",
+    "range": {
+      "end": {
+        "character": 15,
+        "line": 113,
+      },
+      "start": {
+        "character": 8,
+        "line": 113,
+      },
+    },
+  },
+  {
+    "code": "term-notation",
+    "message": "技術用語の表記「vscode」は「VS Code」に統一してください。",
+    "range": {
+      "end": {
+        "character": 38,
+        "line": 264,
+      },
+      "start": {
+        "character": 32,
+        "line": 264,
+      },
+    },
+  },
+]
+`;

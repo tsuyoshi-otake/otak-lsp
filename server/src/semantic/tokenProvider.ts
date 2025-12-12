@@ -73,6 +73,44 @@ export class SemanticTokenProvider {
   }
 
   /**
+   * トークン情報（品詞細分類や表層）を含めてTokenTypeを決定
+   * Markdown/コメント内での自然な色分けを優先する。
+   */
+  private mapTokenToTokenType(token: Token): TokenType {
+    const pos = token.pos;
+
+    // 記号は常にOther
+    if (pos === '記号') {
+      return TokenType.Other;
+    }
+
+    // 名詞の細分類による補正
+    if (pos === '名詞') {
+      // 形容動詞語幹（「静か」「便利」など）は形容詞系として扱う
+      if (token.posDetail1 === '形容動詞語幹') {
+        return TokenType.Adjective;
+      }
+
+      // 副詞可能名詞（「今日」「明日」など）は副詞系として扱う
+      if (token.posDetail1 === '副詞可能') {
+        return TokenType.Adverb;
+      }
+
+      // 数（数字トークン）は内容語としての名詞よりノイズになりやすいのでOtherへ
+      if (token.posDetail1 === '数') {
+        return TokenType.Other;
+      }
+    }
+
+    // ASCIIのみのトークンは日本語品詞としての色分けがノイズになりやすい
+    if (/^[\x00-\x7F]+$/.test(token.surface)) {
+      return TokenType.Other;
+    }
+
+    return this.mapPosToTokenType(pos);
+  }
+
+  /**
    * トークンリストからセマンティックトークンを生成
    * 形式: [line, startChar, length, tokenType, tokenModifiers]
    * 位置情報は相対位置で表現される
@@ -120,7 +158,7 @@ export class SemanticTokenProvider {
         deltaLine,                           // 相対行
         deltaChar,                           // 相対文字位置
         token.surface.length,                // トークンの長さ
-        this.mapPosToTokenType(token.pos),   // トークンタイプ
+        this.mapTokenToTokenType(token),     // トークンタイプ
         0                                    // トークン修飾子（現在は未使用）
       );
 

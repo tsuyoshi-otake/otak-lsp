@@ -30,13 +30,14 @@ async function analyzeMarkdown(text: string): Promise<Diagnostic[]> {
   // 1. Markdown filtering
   const filterResult = markdownFilter.filter(text);
   const textToAnalyze = filterResult.filteredText;
+  const excludedRanges = filterResult.excludedRanges;
 
   // 2. Morphological analysis with kuromoji
   const tokens = await mecabAnalyzer.analyze(textToAnalyze);
 
   // 3. Grammar check (basic + advanced)
   const basicDiagnostics = grammarChecker.check(tokens, textToAnalyze);
-  const advancedDiagnostics = advancedRulesManager.checkText(textToAnalyze, tokens);
+  const advancedDiagnostics = advancedRulesManager.checkText(textToAnalyze, tokens, excludedRanges);
 
   return [...basicDiagnostics, ...advancedDiagnostics];
 }

@@ -6,6 +6,7 @@
 
 import { SentenceParser } from './sentenceParser';
 import { Token } from '../../../shared/src/types';
+import { MarkdownFilter } from '../parser/markdownFilter';
 
 describe('SentenceParser', () => {
   /**
@@ -115,6 +116,51 @@ describe('SentenceParser', () => {
       expect(sentences).toHaveLength(2);
       expect(sentences[0].tokens).toHaveLength(4);
       expect(sentences[1].tokens).toHaveLength(4);
+    });
+
+    describe('markdown specific splitting', () => {
+      const markdownFilter = new MarkdownFilter();
+
+      it('should split after heading line even without terminator', () => {
+        const markdown = `#### 見出し
+本文です。`;
+        const { filteredText, excludedRanges } = markdownFilter.filter(markdown);
+        const sentences = SentenceParser.parseSentences(filteredText, [], excludedRanges);
+
+        expect(sentences.map(s => s.text.trim())).toEqual(['見出し', '本文です。']);
+      });
+
+      it('should split after colon-ended line and separate list items', () => {
+        const markdown = `導入:
+- 項目Aです。
+- 項目Bです。`;
+        const { filteredText, excludedRanges } = markdownFilter.filter(markdown);
+        const sentences = SentenceParser.parseSentences(filteredText, [], excludedRanges);
+
+        expect(sentences.map(s => s.text.trim())).toEqual(['導入:', '項目Aです。', '項目Bです。']);
+      });
+
+      it('should treat bold-only line as independent sentence', () => {
+        const markdown = `前文です
+**重要**
+次文です。`;
+        const { filteredText, excludedRanges } = markdownFilter.filter(markdown);
+        const sentences = SentenceParser.parseSentences(filteredText, [], excludedRanges);
+
+        expect(sentences.map(s => s.text.trim())).toEqual(['前文です', '**重要**', '次文です。']);
+      });
+
+      it('should split around tables without requiring empty lines', () => {
+        const markdown = `前文です
+| A | B |
+|---|---|
+| 1 | 2 |
+後文です。`;
+        const { filteredText, excludedRanges } = markdownFilter.filter(markdown);
+        const sentences = SentenceParser.parseSentences(filteredText, [], excludedRanges);
+
+        expect(sentences.map(s => s.text.trim())).toEqual(['前文です', '後文です。']);
+      });
     });
   });
 

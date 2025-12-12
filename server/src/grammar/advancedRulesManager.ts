@@ -13,6 +13,7 @@ import {
   AdvancedDiagnostic,
   Sentence
 } from '../../../shared/src/advancedTypes';
+import { ExcludedRange } from '../../../shared/src/markdownFilterTypes';
 import { SentenceParser } from './sentenceParser';
 import {
   StyleConsistencyRule,
@@ -174,11 +175,11 @@ export class AdvancedRulesManager {
   /**
    * テキストをチェック
    */
-  checkText(text: string, tokens: Token[]): Diagnostic[] {
+  checkText(text: string, tokens: Token[], excludedRanges?: ExcludedRange[]): Diagnostic[] {
     // 行開始位置を計算
     this.calculateLineStarts(text);
 
-    const sentences = SentenceParser.parseSentences(text, tokens);
+    const sentences = SentenceParser.parseSentences(text, tokens, excludedRanges);
     const context: RuleContext = {
       documentText: text,
       sentences,
@@ -204,11 +205,11 @@ export class AdvancedRulesManager {
   /**
    * 特定のルールのみでチェック
    */
-  checkWithRules(text: string, tokens: Token[], ruleNames: string[]): Diagnostic[] {
+  checkWithRules(text: string, tokens: Token[], ruleNames: string[], excludedRanges?: ExcludedRange[]): Diagnostic[] {
     // 行開始位置を計算
     this.calculateLineStarts(text);
 
-    const sentences = SentenceParser.parseSentences(text, tokens);
+    const sentences = SentenceParser.parseSentences(text, tokens, excludedRanges);
     const context: RuleContext = {
       documentText: text,
       sentences,
