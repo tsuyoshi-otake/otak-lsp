@@ -289,6 +289,8 @@ export class MarkdownFilter implements IMarkdownFilter {
     let position = 0;
     let tableStart = -1;
     let inTable = false;
+    const tableDelimiters: ExcludedRange[] = [];
+    const tableSeparators: ExcludedRange[] = [];
 
     // コードブロック範囲のみをチェック対象とする（テーブル内にURL等があっても検出可能にする）
     const codeBlockRanges = existingRanges.filter((r) => r.type === 'code-block');
@@ -309,7 +311,7 @@ export class MarkdownFilter implements IMarkdownFilter {
       if (inTable && (isTableRow || isSeparator)) {
         if (isSeparator) {
           // セパレーター行全体を除外
-          ranges.push({
+          tableSeparators.push({
             start: lineStart,
             end: lineStart + line.length,
             type: 'table-separator',
@@ -321,7 +323,7 @@ export class MarkdownFilter implements IMarkdownFilter {
           for (let j = 0; j < line.length; j++) {
             if (line[j] === '|') {
               const absPos = lineStart + j;
-              ranges.push({
+              tableDelimiters.push({
                 start: absPos,
                 end: absPos + 1,
                 type: 'table-delimiter',
@@ -344,9 +346,14 @@ export class MarkdownFilter implements IMarkdownFilter {
             content: tableContent,
             reason: 'マークダウンテーブル検出'
           });
+          // テーブル構造要素を追加
+          ranges.push(...tableDelimiters);
+          ranges.push(...tableSeparators);
         }
         inTable = false;
         tableStart = -1;
+        tableDelimiters.length = 0;
+        tableSeparators.length = 0;
       }
 
       position += line.length + 1; // +1 for newline
@@ -363,6 +370,9 @@ export class MarkdownFilter implements IMarkdownFilter {
           content: tableContent,
           reason: 'マークダウンテーブル検出'
         });
+        // テーブル構造要素を追加
+        ranges.push(...tableDelimiters);
+        ranges.push(...tableSeparators);
       }
     }
 
@@ -482,9 +492,16 @@ export class MarkdownFilter implements IMarkdownFilter {
       if (range.type === 'table') {
         continue;
       }
-      // 除外範囲をスペースで置換（位置情報を保持）
-      const spaces = ' '.repeat(range.end - range.start);
-      result = result.substring(0, range.start) + spaces + result.substring(range.end);
+      
+      // リストマーカーは改行に置換（各項目を独立した文として扱う）
+      if (range.type === 'list-marker') {
+        const replacement = '\n' + ' '.repeat(range.end - range.start - 1);
+        result = result.substring(0, range.start) + replacement + result.substring(range.end);
+      } else {
+        // その他の除外範囲はスペースで置換（位置情報を保持）
+        const spaces = ' '.repeat(range.end - range.start);
+        result = result.substring(0, range.start) + spaces + result.substring(range.end);
+      }
     }
 
     return result;

@@ -2,7 +2,7 @@
   "name": "otak-lcp",
   "displayName": "otak-lcp - Japanese Grammar Analyzer",
   "description": "日本語形態素解析VSCode拡張機能（外部依存なし）。文法チェック、セマンティックハイライト、ホバー情報を提供します。kuromoji.js内蔵でMeCab不要。",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "publisher": "otak-lsp",
   "license": "MIT",
   "repository": {

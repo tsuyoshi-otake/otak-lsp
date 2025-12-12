@@ -243,7 +243,7 @@ async function analyzeDocument(document: TextDocument): Promise<void> {
     const allTokens = await mecabAnalyzer.analyze(textToAnalyze);
     let semanticTokensList = allTokens;
     let grammarTokensList = allTokens;
-    connection.console.log(`[DEBUG] Analysis complete, ${tokens.length} tokens found`);
+    connection.console.log(`[DEBUG] Analysis complete, ${allTokens.length} tokens found`);
 
     // Filter tokens that fall within excluded ranges (for Markdown files)
     if (languageId === 'markdown') {
