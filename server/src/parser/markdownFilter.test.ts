@@ -72,6 +72,8 @@ describe('Core Interfaces and Data Models', () => {
         'code-block',
         'inline-code',
         'table',
+        'table-delimiter',
+        'table-separator',
         'url',
         'config-key',
         'custom'
@@ -338,6 +340,8 @@ describe('Table Structure Processing (Task 4.2)', () => {
       const result = filter.filter(text);
 
       expect(result.excludedRanges.some((r) => r.type === 'table')).toBe(true);
+      expect(result.excludedRanges.some((r) => r.type === 'table-delimiter')).toBe(true);
+      expect(result.excludedRanges.some((r) => r.type === 'table-separator')).toBe(true);
     });
 
     it('should detect table with multiple rows', () => {
@@ -350,6 +354,8 @@ describe('Table Structure Processing (Task 4.2)', () => {
 
       const tableRanges = result.excludedRanges.filter((r) => r.type === 'table');
       expect(tableRanges).toHaveLength(1);
+      expect(result.excludedRanges.some((r) => r.type === 'table-delimiter')).toBe(true);
+      expect(result.excludedRanges.some((r) => r.type === 'table-separator')).toBe(true);
     });
 
     it('should detect table with alignment', () => {
@@ -359,6 +365,8 @@ describe('Table Structure Processing (Task 4.2)', () => {
       const result = filter.filter(text);
 
       expect(result.excludedRanges.some((r) => r.type === 'table')).toBe(true);
+      expect(result.excludedRanges.some((r) => r.type === 'table-delimiter')).toBe(true);
+      expect(result.excludedRanges.some((r) => r.type === 'table-separator')).toBe(true);
     });
   });
 

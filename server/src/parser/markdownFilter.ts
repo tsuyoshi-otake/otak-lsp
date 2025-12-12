@@ -276,11 +276,17 @@ export class MarkdownFilter implements IMarkdownFilter {
   /**
    * テーブルを検出
    * 注: テーブルは他の除外要素（設定キー、URL等）を含むことがあるため、
-   * コードブロックとのみ重複チェックを行う
+   * コードブロックとのみ重複チェックを行う。
+   *
+   * 変更点:
+   * - テーブル全体（type: 'table'）に加えて、構造要素のみを除外範囲として返す
+   *   * 区切り文字（|）: table-delimiter
+   *   * セパレーター行（|---|---| 等）: table-separator
    */
   private findTables(text: string, existingRanges: ExcludedRange[]): ExcludedRange[] {
     const ranges: ExcludedRange[] = [];
     const lines = text.split('\n');
+    let position = 0;
     let tableStart = -1;
     let inTable = false;
 
@@ -289,16 +295,46 @@ export class MarkdownFilter implements IMarkdownFilter {
 
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i];
-      const isTableRow = /^\|.*\|$/.test(line.trim());
-      const isSeparator = /^\|[-:|]+\|$/.test(line.trim());
+      const lineStart = position;
+      const trimmed = line.trim();
+      const compact = trimmed.replace(/\s+/g, '');
+      const isTableRow = /^\|.*\|$/.test(trimmed);
+      const isSeparator = /^\|[-:|]+\|$/.test(compact);
 
       if ((isTableRow || isSeparator) && !inTable) {
-        // テーブル開始
         inTable = true;
-        tableStart = this.getLineStart(text, i);
-      } else if (!isTableRow && !isSeparator && inTable) {
-        // テーブル終了
-        const tableEnd = this.getLineStart(text, i);
+        tableStart = lineStart;
+      }
+
+      if (inTable && (isTableRow || isSeparator)) {
+        if (isSeparator) {
+          // セパレーター行全体を除外
+          ranges.push({
+            start: lineStart,
+            end: lineStart + line.length,
+            type: 'table-separator',
+            content: line,
+            reason: 'マークダウンテーブルセパレーター行検出'
+          });
+        } else {
+          // 区切り文字（|）のみを除外
+          for (let j = 0; j < line.length; j++) {
+            if (line[j] === '|') {
+              const absPos = lineStart + j;
+              ranges.push({
+                start: absPos,
+                end: absPos + 1,
+                type: 'table-delimiter',
+                content: '|',
+                reason: 'マークダウンテーブル区切り文字検出'
+              });
+            }
+          }
+        }
+      }
+
+      if (inTable && !isTableRow && !isSeparator) {
+        const tableEnd = lineStart;
         if (!this.isOverlapping(tableStart, tableEnd, codeBlockRanges)) {
           const tableContent = text.substring(tableStart, tableEnd);
           ranges.push({
@@ -312,6 +348,8 @@ export class MarkdownFilter implements IMarkdownFilter {
         inTable = false;
         tableStart = -1;
       }
+
+      position += line.length + 1; // +1 for newline
     }
 
     // 最後まで続くテーブルの処理
@@ -439,6 +477,11 @@ export class MarkdownFilter implements IMarkdownFilter {
     let result = text;
 
     for (const range of sortedRanges) {
+      // table 全体は文法チェック用の除外情報として保持しつつ、
+      // セマンティックハイライトのために内容は残す
+      if (range.type === 'table') {
+        continue;
+      }
       // 除外範囲をスペースで置換（位置情報を保持）
       const spaces = ' '.repeat(range.end - range.start);
       result = result.substring(0, range.start) + spaces + result.substring(range.end);

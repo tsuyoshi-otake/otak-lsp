@@ -56,6 +56,7 @@ async function analyzeMarkdown(text: string): Promise<Diagnostic[]> {
   const filterResult = markdownFilter.filter(text);
   const filteredText = filterResult.filteredText;
   const excludedRanges = filterResult.excludedRanges;
+  const semanticExcludedRanges = excludedRanges.filter((r) => r.type !== 'table');
 
   let tokens = await mecabAnalyzer.analyze(filteredText);
   tokens = tokenFilter.filterTokens(tokens, excludedRanges);
@@ -63,7 +64,7 @@ async function analyzeMarkdown(text: string): Promise<Diagnostic[]> {
   const basicDiagnostics = grammarChecker.check(tokens, filteredText);
   const advancedDiagnostics = advancedRulesManager.checkText(filteredText, tokens, excludedRanges);
 
-  const positionMapper = new PositionMapper(text, filteredText, excludedRanges);
+  const positionMapper = new PositionMapper(text, filteredText, semanticExcludedRanges);
   const mappedDiagnostics = [...basicDiagnostics, ...advancedDiagnostics].map((diag) => {
     const startOffset = getOffsetFromPosition(filteredText, diag.range.start.line, diag.range.start.character);
     const endOffset = getOffsetFromPosition(filteredText, diag.range.end.line, diag.range.end.character);
@@ -98,4 +99,3 @@ main().catch((error) => {
   console.error(error);
   process.exit(1);
 });
-

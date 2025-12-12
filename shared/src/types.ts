@@ -285,6 +285,8 @@ export interface Configuration {
   enableGrammarCheck: boolean;
   /** セマンティックハイライトの有効/無効 */
   enableSemanticHighlight: boolean;
+  /** テーブル内のセマンティックハイライト（旧動作に戻す場合はfalse） */
+  excludeTableDelimiters: boolean;
   /** 解析対象の言語 */
   targetLanguages: SupportedLanguage[];
   /** デバウンス遅延（ミリ秒） */

@@ -26,6 +26,7 @@ const mockDisposable = {
 let mockConfigValues: Record<string, unknown> = {
   enableGrammarCheck: true,
   enableSemanticHighlight: true,
+  excludeTableDelimiters: true,
   targetLanguages: ['markdown', 'javascript', 'typescript', 'python', 'c', 'cpp', 'java', 'rust'],
   debounceDelay: 500,
 };
@@ -74,6 +75,7 @@ describe('Extension Integration Tests', () => {
     mockConfigValues = {
       enableGrammarCheck: true,
       enableSemanticHighlight: true,
+      excludeTableDelimiters: true,
       targetLanguages: ['markdown', 'javascript', 'typescript', 'python', 'c', 'cpp', 'java', 'rust'],
       debounceDelay: 500,
     };
@@ -185,6 +187,7 @@ describe('Extension Integration Tests', () => {
       mockConfigValues = {
         enableGrammarCheck: false,
         enableSemanticHighlight: false,
+        excludeTableDelimiters: true,
         targetLanguages: ['markdown'],
         debounceDelay: 1000,
       };
@@ -233,6 +236,7 @@ describe('Extension Integration Tests', () => {
       mockConfigValues = {
         enableGrammarCheck: false,
         enableSemanticHighlight: true,
+        excludeTableDelimiters: true,
         targetLanguages: ['markdown', 'javascript', 'typescript', 'python', 'c', 'cpp', 'java', 'rust'],
         debounceDelay: 500,
       };
@@ -255,6 +259,7 @@ describe('Extension Lifecycle Integration', () => {
     mockConfigValues = {
       enableGrammarCheck: true,
       enableSemanticHighlight: true,
+      excludeTableDelimiters: true,
       targetLanguages: ['markdown', 'javascript', 'typescript', 'python', 'c', 'cpp', 'java', 'rust'],
       debounceDelay: 500,
     };

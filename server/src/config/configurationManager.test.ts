@@ -19,6 +19,7 @@ describe('Configuration Manager', () => {
 
       expect(config.enableGrammarCheck).toBe(true);
       expect(config.enableSemanticHighlight).toBe(true);
+      expect(config.excludeTableDelimiters).toBe(true);
       expect(config.targetLanguages).toContain('markdown');
       expect(config.debounceDelay).toBe(500);
     });
@@ -47,6 +48,13 @@ describe('Configuration Manager', () => {
 
       const config = manager.getConfiguration();
       expect(config.enableSemanticHighlight).toBe(false);
+    });
+
+    it('should update excludeTableDelimiters', () => {
+      manager.updateConfiguration({ excludeTableDelimiters: false });
+
+      const config = manager.getConfiguration();
+      expect(config.excludeTableDelimiters).toBe(false);
     });
 
     it('should update targetLanguages', () => {

@@ -11,6 +11,8 @@ export type ExcludeType =
   | 'code-block'
   | 'inline-code'
   | 'table'
+  | 'table-delimiter'
+  | 'table-separator'
   | 'url'
   | 'config-key'
   | 'heading'

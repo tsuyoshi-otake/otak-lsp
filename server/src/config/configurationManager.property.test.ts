@@ -49,6 +49,22 @@ describe('Property-Based Tests: Configuration Manager', () => {
       );
     });
 
+    it('should always reflect excludeTableDelimiters changes', () => {
+      fc.assert(
+        fc.property(
+          fc.boolean(),
+          (enabled) => {
+            const manager = new ConfigurationManager();
+            manager.updateConfiguration({ excludeTableDelimiters: enabled });
+
+            expect(manager.getValue('excludeTableDelimiters')).toBe(enabled);
+            expect(manager.getConfiguration().excludeTableDelimiters).toBe(enabled);
+          }
+        ),
+        { numRuns: 100 }
+      );
+    });
+
     it('should always reflect debounceDelay changes', () => {
       fc.assert(
         fc.property(
@@ -96,6 +112,7 @@ describe('Property-Based Tests: Configuration Manager', () => {
           fc.record({
             enableGrammarCheck: fc.option(fc.boolean()),
             enableSemanticHighlight: fc.option(fc.boolean()),
+            excludeTableDelimiters: fc.option(fc.boolean()),
             debounceDelay: fc.option(fc.integer({ min: 100, max: 2000 }))
           }),
           (changes) => {
@@ -114,6 +131,10 @@ describe('Property-Based Tests: Configuration Manager', () => {
             }
             if (changes.enableSemanticHighlight !== null) {
               updateObj.enableSemanticHighlight = changes.enableSemanticHighlight;
+              hasChanges = true;
+            }
+            if (changes.excludeTableDelimiters !== null) {
+              updateObj.excludeTableDelimiters = changes.excludeTableDelimiters;
               hasChanges = true;
             }
             if (changes.debounceDelay !== null) {
@@ -163,7 +184,7 @@ describe('Property-Based Tests: Configuration Manager', () => {
     it('should provide accurate affected keys in change events', () => {
       fc.assert(
         fc.property(
-          fc.subarray(['enableGrammarCheck', 'enableSemanticHighlight', 'debounceDelay'] as const, { minLength: 1 }),
+          fc.subarray(['enableGrammarCheck', 'enableSemanticHighlight', 'excludeTableDelimiters', 'debounceDelay'] as const, { minLength: 1 }),
           (keysToChange) => {
             const manager = new ConfigurationManager();
             const listener = jest.fn();
@@ -174,6 +195,9 @@ describe('Property-Based Tests: Configuration Manager', () => {
               switch (key) {
                 case 'enableGrammarCheck':
                 case 'enableSemanticHighlight':
+                  updateObj[key] = false;
+                  break;
+                case 'excludeTableDelimiters':
                   updateObj[key] = false;
                   break;
                 case 'debounceDelay':

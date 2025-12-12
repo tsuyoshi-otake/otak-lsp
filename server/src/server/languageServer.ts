@@ -126,7 +126,8 @@ export class LanguageServer {
       enableGrammarCheck: true,
       enableSemanticHighlight: true,
       targetLanguages: ['markdown', 'javascript', 'typescript', 'python', 'c', 'cpp', 'java', 'rust'],
-      debounceDelay: 500
+      debounceDelay: 500,
+      excludeTableDelimiters: true
     };
   }
 

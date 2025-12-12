@@ -62,6 +62,7 @@ const documentExcludedRanges: Map<string, ExcludedRange[]> = new Map();
 let configuration: Configuration = {
   enableGrammarCheck: true,
   enableSemanticHighlight: true,
+  excludeTableDelimiters: true,
   targetLanguages: ['markdown', 'javascript', 'typescript', 'python', 'c', 'cpp', 'java', 'rust', 'plaintext'] as SupportedLanguage[],
   debounceDelay: 500,
 };
@@ -198,17 +199,30 @@ async function analyzeDocument(document: TextDocument): Promise<void> {
     let textToAnalyze = text;
     let positionMapper: PositionMapper | null = null;
     let excludedRanges: ExcludedRange[] = [];
+    let semanticExcludedRanges: ExcludedRange[] = [];
+    let grammarExcludedRanges: ExcludedRange[] = [];
 
     if (languageId !== 'markdown' && languageId !== 'plaintext') {
       const comments = commentExtractor.extract(text, languageId);
       textToAnalyze = comments.map((c) => c.text).join('\n');
       connection.console.log(`[DEBUG] Extracted ${comments.length} comments`);
     } else if (languageId === 'markdown') {
-      // Apply markdown filtering to exclude code blocks, tables, URLs, etc.
+      // Apply markdown filtering to exclude code blocks, URLs, table delimiters, etc.
       const filterResult = markdownFilter.filter(textToAnalyze);
       textToAnalyze = filterResult.filteredText;
       excludedRanges = filterResult.excludedRanges;
-      positionMapper = new PositionMapper(text, textToAnalyze, excludedRanges);
+
+      // セマンティックハイライト用: table 範囲を除外せずにセル内テキストを残す（デフォルト）
+      const baseSemanticRanges = excludedRanges.filter((r) => r.type !== 'table');
+      semanticExcludedRanges = configuration.excludeTableDelimiters === false
+        ? excludedRanges
+        : baseSemanticRanges;
+
+      // 文法チェック用: すべての除外範囲を使用（table 全体も含む）
+      grammarExcludedRanges = excludedRanges;
+
+      // PositionMapper は実際にスペース置換された範囲のみを使用
+      positionMapper = new PositionMapper(text, textToAnalyze, baseSemanticRanges);
       positionMappers.set(uri, positionMapper);
       documentExcludedRanges.set(uri, excludedRanges);
       connection.console.log(`[DEBUG] Markdown filtered: ${excludedRanges.length} ranges excluded`);
@@ -226,17 +240,29 @@ async function analyzeDocument(document: TextDocument): Promise<void> {
 
     // Analyze with kuromoji
     connection.console.log(`[DEBUG] Starting morphological analysis...`);
-    let tokens = await mecabAnalyzer.analyze(textToAnalyze);
+    const allTokens = await mecabAnalyzer.analyze(textToAnalyze);
+    let semanticTokensList = allTokens;
+    let grammarTokensList = allTokens;
     connection.console.log(`[DEBUG] Analysis complete, ${tokens.length} tokens found`);
 
     // Filter tokens that fall within excluded ranges (for Markdown files)
-    if (languageId === 'markdown' && excludedRanges.length > 0) {
-      const originalTokenCount = tokens.length;
-      tokens = tokenFilter.filterTokens(tokens, excludedRanges);
-      connection.console.log(`[DEBUG] Token filtering: ${originalTokenCount} -> ${tokens.length} tokens (${originalTokenCount - tokens.length} filtered out)`);
-    }
+    if (languageId === 'markdown') {
+      if (semanticExcludedRanges.length > 0) {
+        semanticTokensList = tokenFilter.filterTokens(allTokens, semanticExcludedRanges);
+      }
+      if (grammarExcludedRanges.length > 0) {
+        grammarTokensList = tokenFilter.filterTokens(allTokens, grammarExcludedRanges);
+      }
 
-    documentTokens.set(uri, tokens);
+      connection.console.log(`[DEBUG] Token filtering (semantic): ${allTokens.length} -> ${semanticTokensList.length} tokens (${allTokens.length - semanticTokensList.length} filtered out)`);
+      connection.console.log(`[DEBUG] Token filtering (grammar): ${allTokens.length} -> ${grammarTokensList.length} tokens (${allTokens.length - grammarTokensList.length} filtered out)`);
+
+      documentTokens.set(uri, semanticTokensList);
+    } else {
+      documentTokens.set(uri, allTokens);
+      semanticTokensList = allTokens;
+      grammarTokensList = allTokens;
+    }
     // Store the original text for semantic token generation
     // (MarkdownFilter uses space replacement, so positions are preserved)
     documentTexts.set(uri, text);
@@ -246,7 +272,7 @@ async function analyzeDocument(document: TextDocument): Promise<void> {
     if (configuration.enableGrammarCheck) {
       // Basic grammar rules
       connection.console.log(`[DEBUG] Running basic grammar check...`);
-      const grammarDiagnostics = grammarChecker.check(tokens, textToAnalyze);
+      const grammarDiagnostics = grammarChecker.check(grammarTokensList, textToAnalyze);
       connection.console.log(`[DEBUG] Basic grammar check found ${grammarDiagnostics.length} issues`);
       for (const diag of grammarDiagnostics) {
         let range = {
@@ -277,8 +303,8 @@ async function analyzeDocument(document: TextDocument): Promise<void> {
       // Advanced grammar rules
       connection.console.log(`[DEBUG] Running advanced grammar check...`);
       const advancedDiagnostics = languageId === 'markdown'
-        ? advancedRulesManager.checkText(textToAnalyze, tokens, excludedRanges)
-        : advancedRulesManager.checkText(textToAnalyze, tokens);
+        ? advancedRulesManager.checkText(textToAnalyze, grammarTokensList, excludedRanges)
+        : advancedRulesManager.checkText(textToAnalyze, grammarTokensList);
       connection.console.log(`[DEBUG] Advanced grammar check found ${advancedDiagnostics.length} issues`);
       for (const diag of advancedDiagnostics) {
         let range = {

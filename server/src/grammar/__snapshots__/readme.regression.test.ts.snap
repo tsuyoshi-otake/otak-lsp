@@ -7,12 +7,12 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "message": "1文中に読点が8個使用されています（閾値: 4個）。文を分割することを検討してください。",
     "range": {
       "end": {
-        "character": 1,
-        "line": 128,
+        "character": 16,
+        "line": 112,
       },
       "start": {
-        "character": 0,
-        "line": 114,
+        "character": 1,
+        "line": 105,
       },
     },
   },
@@ -64,11 +64,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 9,
-        "line": 230,
+        "line": 362,
       },
       "start": {
         "character": 8,
-        "line": 230,
+        "line": 362,
       },
     },
   },
@@ -78,11 +78,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 11,
-        "line": 230,
+        "line": 362,
       },
       "start": {
         "character": 10,
-        "line": 230,
+        "line": 362,
       },
     },
   },
@@ -92,11 +92,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 5,
-        "line": 232,
+        "line": 364,
       },
       "start": {
         "character": 4,
-        "line": 232,
+        "line": 364,
       },
     },
   },
@@ -106,11 +106,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 7,
-        "line": 261,
+        "line": 438,
       },
       "start": {
         "character": 6,
-        "line": 261,
+        "line": 438,
       },
     },
   },
@@ -133,26 +133,12 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "message": "文が長すぎます（280文字、閾値: 120文字）。文の分割を検討してください。",
     "range": {
       "end": {
-        "character": 51,
-        "line": 162,
+        "character": 17,
+        "line": 474,
       },
       "start": {
-        "character": 0,
-        "line": 156,
-      },
-    },
-  },
-  {
-    "code": "long-sentence",
-    "message": "文が長すぎます（216文字、閾値: 120文字）。文の分割を検討してください。",
-    "range": {
-      "end": {
-        "character": 27,
-        "line": 179,
-      },
-      "start": {
-        "character": 0,
-        "line": 174,
+        "character": 7,
+        "line": 434,
       },
     },
   },
@@ -162,11 +148,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 29,
-        "line": 265,
+        "line": 442,
       },
       "start": {
         "character": 0,
-        "line": 262,
+        "line": 439,
       },
     },
   },
@@ -176,11 +162,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 98,
-        "line": 274,
+        "line": 451,
       },
       "start": {
         "character": 0,
-        "line": 272,
+        "line": 449,
       },
     },
   },
@@ -190,11 +176,25 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 0,
-        "line": 280,
+        "line": 457,
       },
       "start": {
         "character": 0,
-        "line": 277,
+        "line": 454,
+      },
+    },
+  },
+  {
+    "code": "long-sentence",
+    "message": "文が長すぎます（216文字、閾値: 120文字）。文の分割を検討してください。",
+    "range": {
+      "end": {
+        "character": 12,
+        "line": 491,
+      },
+      "start": {
+        "character": 15,
+        "line": 484,
       },
     },
   },
@@ -287,124 +287,12 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "message": "名詞が連続して読みにくくなっています。名詞の間に助詞を挿入して読みやすくしてください",
     "range": {
       "end": {
-        "character": 8,
-        "line": 101,
+        "character": 6,
+        "line": 261,
       },
       "start": {
-        "character": 0,
-        "line": 86,
-      },
-    },
-  },
-  {
-    "code": "noun-chain",
-    "message": "名詞が連続して読みにくくなっています。名詞の間に助詞を挿入して読みやすくしてください",
-    "range": {
-      "end": {
-        "character": 4,
-        "line": 151,
-      },
-      "start": {
-        "character": 2,
-        "line": 149,
-      },
-    },
-  },
-  {
-    "code": "noun-chain",
-    "message": "名詞が連続して読みにくくなっています。名詞の間に助詞を挿入して読みやすくしてください",
-    "range": {
-      "end": {
-        "character": 14,
-        "line": 157,
-      },
-      "start": {
-        "character": 4,
-        "line": 155,
-      },
-    },
-  },
-  {
-    "code": "noun-chain",
-    "message": "名詞が連続して読みにくくなっています。名詞の間に助詞を挿入して読みやすくしてください",
-    "range": {
-      "end": {
-        "character": 27,
-        "line": 158,
-      },
-      "start": {
-        "character": 29,
-        "line": 157,
-      },
-    },
-  },
-  {
-    "code": "noun-chain",
-    "message": "名詞が連続して読みにくくなっています。名詞の間に助詞を挿入して読みやすくしてください",
-    "range": {
-      "end": {
-        "character": 11,
-        "line": 160,
-      },
-      "start": {
-        "character": 46,
-        "line": 159,
-      },
-    },
-  },
-  {
-    "code": "noun-chain",
-    "message": "名詞が連続して読みにくくなっています。名詞の間に助詞を挿入して読みやすくしてください",
-    "range": {
-      "end": {
-        "character": 25,
-        "line": 169,
-      },
-      "start": {
-        "character": 11,
-        "line": 169,
-      },
-    },
-  },
-  {
-    "code": "noun-chain",
-    "message": "名詞が連続して読みにくくなっています。名詞の間に助詞を挿入して読みやすくしてください",
-    "range": {
-      "end": {
-        "character": 13,
-        "line": 170,
-      },
-      "start": {
-        "character": 3,
-        "line": 170,
-      },
-    },
-  },
-  {
-    "code": "noun-chain",
-    "message": "名詞が連続して読みにくくなっています。名詞の間に助詞を挿入して読みやすくしてください",
-    "range": {
-      "end": {
-        "character": 79,
-        "line": 175,
-      },
-      "start": {
-        "character": 3,
-        "line": 175,
-      },
-    },
-  },
-  {
-    "code": "noun-chain",
-    "message": "名詞が連続して読みにくくなっています。名詞の間に助詞を挿入して読みやすくしてください",
-    "range": {
-      "end": {
-        "character": 26,
-        "line": 177,
-      },
-      "start": {
-        "character": 12,
-        "line": 177,
+        "character": 7,
+        "line": 144,
       },
     },
   },
@@ -414,11 +302,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 7,
-        "line": 194,
+        "line": 319,
       },
       "start": {
         "character": 7,
-        "line": 188,
+        "line": 288,
       },
     },
   },
@@ -428,11 +316,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 7,
-        "line": 203,
+        "line": 335,
       },
       "start": {
         "character": 8,
-        "line": 194,
+        "line": 319,
       },
     },
   },
@@ -442,11 +330,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 10,
-        "line": 219,
+        "line": 351,
       },
       "start": {
         "character": 8,
-        "line": 213,
+        "line": 345,
       },
     },
   },
@@ -456,11 +344,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 9,
-        "line": 244,
+        "line": 376,
       },
       "start": {
         "character": 3,
-        "line": 234,
+        "line": 366,
       },
     },
   },
@@ -470,11 +358,39 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 4,
-        "line": 258,
+        "line": 435,
       },
       "start": {
         "character": 0,
-        "line": 255,
+        "line": 387,
+      },
+    },
+  },
+  {
+    "code": "noun-chain",
+    "message": "名詞が連続して読みにくくなっています。名詞の間に助詞を挿入して読みやすくしてください",
+    "range": {
+      "end": {
+        "character": 5,
+        "line": 429,
+      },
+      "start": {
+        "character": 0,
+        "line": 396,
+      },
+    },
+  },
+  {
+    "code": "noun-chain",
+    "message": "名詞が連続して読みにくくなっています。名詞の間に助詞を挿入して読みやすくしてください",
+    "range": {
+      "end": {
+        "character": 39,
+        "line": 434,
+      },
+      "start": {
+        "character": 38,
+        "line": 433,
       },
     },
   },
@@ -484,11 +400,25 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 24,
-        "line": 258,
+        "line": 435,
       },
       "start": {
         "character": 14,
-        "line": 258,
+        "line": 435,
+      },
+    },
+  },
+  {
+    "code": "noun-chain",
+    "message": "名詞が連続して読みにくくなっています。名詞の間に助詞を挿入して読みやすくしてください",
+    "range": {
+      "end": {
+        "character": 13,
+        "line": 437,
+      },
+      "start": {
+        "character": 16,
+        "line": 435,
       },
     },
   },
@@ -498,11 +428,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 12,
-        "line": 263,
+        "line": 440,
       },
       "start": {
         "character": 15,
-        "line": 259,
+        "line": 436,
       },
     },
   },
@@ -512,11 +442,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 30,
-        "line": 263,
+        "line": 440,
       },
       "start": {
         "character": 25,
-        "line": 263,
+        "line": 440,
       },
     },
   },
@@ -526,11 +456,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 12,
-        "line": 264,
+        "line": 441,
       },
       "start": {
         "character": 31,
-        "line": 263,
+        "line": 440,
       },
     },
   },
@@ -540,11 +470,25 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 20,
-        "line": 265,
+        "line": 442,
       },
       "start": {
         "character": 54,
-        "line": 264,
+        "line": 441,
+      },
+    },
+  },
+  {
+    "code": "noun-chain",
+    "message": "名詞が連続して読みにくくなっています。名詞の間に助詞を挿入して読みやすくしてください",
+    "range": {
+      "end": {
+        "character": 7,
+        "line": 444,
+      },
+      "start": {
+        "character": 11,
+        "line": 442,
       },
     },
   },
@@ -554,11 +498,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 8,
-        "line": 267,
+        "line": 444,
       },
       "start": {
         "character": 21,
-        "line": 265,
+        "line": 442,
       },
     },
   },
@@ -568,11 +512,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 55,
-        "line": 273,
+        "line": 450,
       },
       "start": {
         "character": 4,
-        "line": 269,
+        "line": 446,
       },
     },
   },
@@ -582,11 +526,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 9,
-        "line": 274,
+        "line": 451,
       },
       "start": {
         "character": 58,
-        "line": 273,
+        "line": 450,
       },
     },
   },
@@ -596,11 +540,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 9,
-        "line": 278,
+        "line": 455,
       },
       "start": {
         "character": 93,
-        "line": 274,
+        "line": 451,
       },
     },
   },
@@ -610,11 +554,67 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 73,
-        "line": 279,
+        "line": 456,
       },
       "start": {
         "character": 10,
-        "line": 278,
+        "line": 455,
+      },
+    },
+  },
+  {
+    "code": "noun-chain",
+    "message": "名詞が連続して読みにくくなっています。名詞の間に助詞を挿入して読みやすくしてください",
+    "range": {
+      "end": {
+        "character": 1,
+        "line": 482,
+      },
+      "start": {
+        "character": 8,
+        "line": 481,
+      },
+    },
+  },
+  {
+    "code": "noun-chain",
+    "message": "名詞が連続して読みにくくなっています。名詞の間に助詞を挿入して読みやすくしてください",
+    "range": {
+      "end": {
+        "character": 21,
+        "line": 482,
+      },
+      "start": {
+        "character": 9,
+        "line": 482,
+      },
+    },
+  },
+  {
+    "code": "noun-chain",
+    "message": "名詞が連続して読みにくくなっています。名詞の間に助詞を挿入して読みやすくしてください",
+    "range": {
+      "end": {
+        "character": 17,
+        "line": 487,
+      },
+      "start": {
+        "character": 19,
+        "line": 484,
+      },
+    },
+  },
+  {
+    "code": "noun-chain",
+    "message": "名詞が連続して読みにくくなっています。名詞の間に助詞を挿入して読みやすくしてください",
+    "range": {
+      "end": {
+        "character": 17,
+        "line": 489,
+      },
+      "start": {
+        "character": 2,
+        "line": 489,
       },
     },
   },
@@ -638,11 +638,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 31,
-        "line": 222,
+        "line": 354,
       },
       "start": {
         "character": 10,
-        "line": 222,
+        "line": 354,
       },
     },
   },
@@ -652,11 +652,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 26,
-        "line": 227,
+        "line": 359,
       },
       "start": {
         "character": 15,
-        "line": 227,
+        "line": 359,
       },
     },
   },
@@ -666,11 +666,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 70,
-        "line": 228,
+        "line": 360,
       },
       "start": {
         "character": 59,
-        "line": 228,
+        "line": 360,
       },
     },
   },
@@ -707,12 +707,12 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "message": "冗長表現「馬から落馬」が検出されました。「落馬」に簡潔化できます。",
     "range": {
       "end": {
-        "character": 6,
-        "line": 108,
+        "character": 46,
+        "line": 288,
       },
       "start": {
-        "character": 1,
-        "line": 108,
+        "character": 41,
+        "line": 288,
       },
     },
   },
@@ -721,12 +721,12 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "message": "冗長表現「後で後悔」が検出されました。「後悔」に簡潔化できます。",
     "range": {
       "end": {
-        "character": 14,
-        "line": 108,
+        "character": 3,
+        "line": 289,
       },
       "start": {
-        "character": 10,
-        "line": 108,
+        "character": 50,
+        "line": 288,
       },
     },
   },
@@ -735,12 +735,12 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "message": "重複表現「頭痛が痛い」が検出されました。「頭」と「痛い」が重複しています。",
     "range": {
       "end": {
-        "character": 6,
-        "line": 113,
+        "character": 22,
+        "line": 299,
       },
       "start": {
-        "character": 1,
-        "line": 113,
+        "character": 17,
+        "line": 299,
       },
     },
   },
@@ -749,12 +749,12 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "message": "重複表現「違和感を感じる」が検出されました。「感」が重複しています。",
     "range": {
       "end": {
-        "character": 15,
-        "line": 113,
+        "character": 4,
+        "line": 300,
       },
       "start": {
-        "character": 8,
-        "line": 113,
+        "character": 24,
+        "line": 299,
       },
     },
   },
@@ -764,11 +764,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 38,
-        "line": 264,
+        "line": 441,
       },
       "start": {
         "character": 32,
-        "line": 264,
+        "line": 441,
       },
     },
   },

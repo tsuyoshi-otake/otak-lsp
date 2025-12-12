@@ -46,6 +46,7 @@ export class ConfigurationManager {
     return {
       enableGrammarCheck: true,
       enableSemanticHighlight: true,
+      excludeTableDelimiters: true,
       targetLanguages: ['c', 'cpp', 'java', 'python', 'javascript', 'typescript', 'rust', 'markdown'],
       debounceDelay: 500
     };
@@ -116,6 +117,7 @@ export class ConfigurationManager {
     const allKeys: (keyof Configuration)[] = [
       'enableGrammarCheck',
       'enableSemanticHighlight',
+      'excludeTableDelimiters',
       'targetLanguages',
       'debounceDelay'
     ];

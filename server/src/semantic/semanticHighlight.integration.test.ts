@@ -69,13 +69,14 @@ describe('Semantic Highlight Integration Tests', () => {
   }> => {
     // 1. Markdownフィルタリング
     const filterResult = markdownFilter.filter(text);
-    const excludedRanges = filterResult.excludedRanges;
+    const allExcludedRanges = filterResult.excludedRanges;
+    const semanticExcludedRanges = allExcludedRanges.filter((r) => r.type !== 'table');
 
     // 2. 形態素解析
     const allTokens = await mecabAnalyzer.analyze(filterResult.filteredText);
 
     // 3. トークンフィルタリング（除外範囲内のトークンを除外）
-    const tokens = tokenFilter.filterTokens(allTokens, excludedRanges);
+    const tokens = tokenFilter.filterTokens(allTokens, semanticExcludedRanges);
 
     // 4. セマンティックトークン生成（元のテキストを使用）
     const semanticTokens = semanticTokenProvider.provideSemanticTokens(tokens, text);
@@ -83,7 +84,7 @@ describe('Semantic Highlight Integration Tests', () => {
     return {
       tokens,
       semanticTokens,
-      excludedRangesCount: excludedRanges.length
+      excludedRangesCount: semanticExcludedRanges.length
     };
   };
 
@@ -197,8 +198,8 @@ const 日本語変数 = "これはコード内の日本語";
     });
   });
 
-  describe('テーブルの除外', () => {
-    it('テーブル内のテキストがセマンティックハイライトされないこと', async () => {
+  describe('テーブル内のセマンティックハイライト', () => {
+    it('テーブル内の日本語テキストがセマンティックハイライトされること', async () => {
       const markdown = `これはテーブルの説明です。
 
 | 項目 | 値 |
@@ -213,10 +214,9 @@ const 日本語変数 = "これはコード内の日本語";
       // 除外範囲が検出されている
       expect(result.excludedRangesCount).toBeGreaterThan(0);
 
-      // テーブル内の日本語がトークンに含まれていない
       const surfaces = result.tokens.map(t => t.surface);
-      expect(surfaces.join('')).not.toContain('項目');
-      expect(surfaces.join('')).not.toContain('太郎');
+      expect(surfaces.join('')).toContain('項目');
+      expect(surfaces.join('')).toContain('太郎');
 
       // 説明テキストはハイライトされている
       expect(surfaces.join('')).toContain('テーブル');

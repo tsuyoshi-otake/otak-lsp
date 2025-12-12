@@ -247,6 +247,8 @@ describe('Property-Based Tests: Markdown Filter', () => {
             const result = filter.filter(table);
 
             expect(result.excludedRanges.some((r) => r.type === 'table')).toBe(true);
+            expect(result.excludedRanges.some((r) => r.type === 'table-delimiter')).toBe(true);
+            expect(result.excludedRanges.some((r) => r.type === 'table-separator')).toBe(true);
           }
         ),
         { numRuns: 30 }
@@ -296,7 +298,7 @@ describe('Property-Based Tests: Markdown Filter', () => {
       );
     });
 
-    it('should not count pipe characters as commas', () => {
+    it('should exclude pipe characters as table delimiters', () => {
       fc.assert(
         fc.property(
           fc.integer({ min: 2, max: 10 }),
@@ -305,9 +307,8 @@ describe('Property-Based Tests: Markdown Filter', () => {
             const text = `| ${cells} |`;
             const result = filter.filter(text);
 
-            // パイプ文字は読点としてカウントされないため、除外範囲には含まれない
-            // （テーブルとして認識されない場合）
-            expect(result.originalText).toBe(text);
+            const delimiterRanges = result.excludedRanges.filter((r) => r.type === 'table-delimiter');
+            expect(delimiterRanges).toHaveLength(cellCount + 1);
           }
         ),
         { numRuns: 30 }

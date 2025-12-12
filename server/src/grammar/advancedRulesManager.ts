@@ -69,6 +69,49 @@ export class AdvancedRulesManager {
   }
 
   /**
+   * テーブル範囲に重なる文を除外
+   * （Markdownの文法チェックではテーブル全体を対象外にする）
+   */
+  private filterOutTableSentences(sentences: Sentence[], excludedRanges: ExcludedRange[]): Sentence[] {
+    const tableRanges = excludedRanges.filter((r) => r.type === 'table');
+    if (tableRanges.length === 0) {
+      return sentences;
+    }
+
+    return sentences.filter((sentence) =>
+      !tableRanges.some((table) =>
+        sentence.start < table.end && sentence.end > table.start
+      )
+    );
+  }
+
+  /**
+   * テーブル内のテキストをスペースでマスクする
+   * - 文法チェックからテーブル内容を除外するため
+   * - 改行は保持して行位置を崩さない
+   */
+  private maskTableContent(text: string, excludedRanges: ExcludedRange[]): string {
+    const tableRanges = excludedRanges.filter((r) => r.type === 'table');
+    if (tableRanges.length === 0) {
+      return text;
+    }
+
+    const chars = text.split('');
+    for (const range of tableRanges) {
+      const start = Math.max(0, Math.min(range.start, chars.length));
+      const end = Math.max(start, Math.min(range.end, chars.length));
+      for (let i = start; i < end; i++) {
+        const ch = chars[i];
+        if (ch !== '\n' && ch !== '\r') {
+          chars[i] = ' ';
+        }
+      }
+    }
+
+    return chars.join('');
+  }
+
+  /**
    * オフセットから行と文字位置を取得
    */
   private offsetToPosition(offset: number): Position {
@@ -176,12 +219,19 @@ export class AdvancedRulesManager {
    * テキストをチェック
    */
   checkText(text: string, tokens: Token[], excludedRanges?: ExcludedRange[]): Diagnostic[] {
-    // 行開始位置を計算
-    this.calculateLineStarts(text);
+    const effectiveText = excludedRanges
+      ? this.maskTableContent(text, excludedRanges)
+      : text;
 
-    const sentences = SentenceParser.parseSentences(text, tokens, excludedRanges);
+    // 行開始位置を計算
+    this.calculateLineStarts(effectiveText);
+
+    const parsedSentences = SentenceParser.parseSentences(effectiveText, tokens, excludedRanges);
+    const sentences = excludedRanges
+      ? this.filterOutTableSentences(parsedSentences, excludedRanges)
+      : parsedSentences;
     const context: RuleContext = {
-      documentText: text,
+      documentText: effectiveText,
       sentences,
       config: this.config
     };
@@ -206,12 +256,19 @@ export class AdvancedRulesManager {
    * 特定のルールのみでチェック
    */
   checkWithRules(text: string, tokens: Token[], ruleNames: string[], excludedRanges?: ExcludedRange[]): Diagnostic[] {
-    // 行開始位置を計算
-    this.calculateLineStarts(text);
+    const effectiveText = excludedRanges
+      ? this.maskTableContent(text, excludedRanges)
+      : text;
 
-    const sentences = SentenceParser.parseSentences(text, tokens, excludedRanges);
+    // 行開始位置を計算
+    this.calculateLineStarts(effectiveText);
+
+    const parsedSentences = SentenceParser.parseSentences(effectiveText, tokens, excludedRanges);
+    const sentences = excludedRanges
+      ? this.filterOutTableSentences(parsedSentences, excludedRanges)
+      : parsedSentences;
     const context: RuleContext = {
-      documentText: text,
+      documentText: effectiveText,
       sentences,
       config: this.config
     };

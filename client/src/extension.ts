@@ -26,6 +26,7 @@ type SupportedLanguage = 'markdown' | 'javascript' | 'typescript' | 'python' | '
 interface Configuration {
   enableGrammarCheck: boolean;
   enableSemanticHighlight: boolean;
+  excludeTableDelimiters: boolean;
   targetLanguages: SupportedLanguage[];
   debounceDelay: number;
 }
@@ -117,6 +118,7 @@ export class ExtensionClient {
     return {
       enableGrammarCheck: true,
       enableSemanticHighlight: true,
+      excludeTableDelimiters: true,
       targetLanguages: ['markdown', 'javascript', 'typescript', 'python', 'c', 'cpp', 'java', 'rust', 'plaintext'] as SupportedLanguage[],
       debounceDelay: 500,
     };
@@ -131,6 +133,7 @@ export class ExtensionClient {
     this.configuration = {
       enableGrammarCheck: config.get<boolean>('enableGrammarCheck') ?? this.configuration.enableGrammarCheck,
       enableSemanticHighlight: config.get<boolean>('enableSemanticHighlight') ?? this.configuration.enableSemanticHighlight,
+      excludeTableDelimiters: config.get<boolean>('excludeTableDelimiters') ?? this.configuration.excludeTableDelimiters,
       targetLanguages: config.get<SupportedLanguage[]>('targetLanguages') ?? this.configuration.targetLanguages,
       debounceDelay: config.get<number>('debounceDelay') ?? this.configuration.debounceDelay,
     };
@@ -268,7 +271,9 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
       // クライアントに設定変更を通知
       if (client) {
         client.sendNotification('workspace/didChangeConfiguration', {
-          settings: extensionClient.getConfiguration(),
+          settings: {
+            otakLcp: extensionClient.getConfiguration(),
+          },
         });
       }
     }

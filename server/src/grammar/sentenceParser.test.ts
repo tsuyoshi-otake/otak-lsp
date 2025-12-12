@@ -159,7 +159,11 @@ describe('SentenceParser', () => {
         const { filteredText, excludedRanges } = markdownFilter.filter(markdown);
         const sentences = SentenceParser.parseSentences(filteredText, [], excludedRanges);
 
-        expect(sentences.map(s => s.text.trim())).toEqual(['前文です', '後文です。']);
+        expect(sentences).toHaveLength(4);
+        expect(sentences[0].text.trim()).toBe('前文です');
+        expect(sentences[1].text).toContain('A');
+        expect(sentences[2].text).toContain('1');
+        expect(sentences[3].text.trim()).toBe('後文です。');
       });
     });
   });
