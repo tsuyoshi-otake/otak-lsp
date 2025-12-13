@@ -16,6 +16,7 @@ import {
   AdvancedGrammarErrorType
 } from '../../../../shared/src/advancedTypes';
 import { MixDetectionRule, PatternInfo } from './mixDetectionRule';
+import { stripMarkdownBlockquotePrefix } from '../../../../shared/src/markdownSyntax';
 
 /**
  * Bullet Style Mix Detection Rule
@@ -39,16 +40,18 @@ export class BulletStyleMixRule extends MixDetectionRule {
 
     let offset = 0;
     for (const line of lines) {
-      const trimmed = line.trimStart();
-      const leadingSpaces = line.length - trimmed.length;
+      const { strippedLine, strippedLength } = stripMarkdownBlockquotePrefix(line);
+      const trimmed = strippedLine.trimStart();
+      const leadingSpaces = strippedLine.length - trimmed.length;
+      const markerOffset = offset + strippedLength + leadingSpaces;
 
       // Check for bullet at line start (after optional whitespace)
       if (trimmed.startsWith('・')) {
-        nakaguroPositions.push(offset + leadingSpaces);
+        nakaguroPositions.push(markerOffset);
       } else if (trimmed.startsWith('- ') || trimmed === '-') {
-        hyphenPositions.push(offset + leadingSpaces);
+        hyphenPositions.push(markerOffset);
       } else if (trimmed.startsWith('* ') || trimmed === '*') {
-        asteriskPositions.push(offset + leadingSpaces);
+        asteriskPositions.push(markerOffset);
       }
 
       offset += line.length + 1; // +1 for newline

@@ -37,6 +37,13 @@ describe('BulletStyleMixRule', () => {
       expect(diagnostics[0].code).toBe('bullet-style-mix');
     });
 
+    it('should detect mix in blockquote bullet list', () => {
+      context.documentText = '> ・項目1\n> - 項目2';
+      const diagnostics = rule.check(emptyTokens, context);
+      expect(diagnostics.length).toBe(1);
+      expect(diagnostics[0].code).toBe('bullet-style-mix');
+    });
+
     it('should detect mix of asterisk and hyphen', () => {
       context.documentText = '* タスク1\n- タスク2';
       const diagnostics = rule.check(emptyTokens, context);

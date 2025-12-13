@@ -10,13 +10,15 @@ Markdown 解析（除外・文法チェック・セマンティックハイラ�
   - `server/src/parser/markdownFilter.ts` のフェンス検出を深いインデントでも扱えるよう修正
 - [x] C. 複数バッククォートの code span（``like this``）を正しく扱えない可能性
   - `server/src/parser/markdownFilter.ts` のインラインコード検出を複数バッククォートに対応
-- [~] D. テーブル検出ロジックの不一致（Filter とルール側で判定が違う）
-  - `server/src/parser/markdownFilter.ts` のテーブル行判定を `startsWith('|')` ベースに寄せ、`TableColumnMismatchRule` と整合させた
-  - ※ ルール側との完全一致（許容表記の明文化）は継続検討
-- [ ] E. URL/リンク除外の取りこぼしが起きやすい
-- [~] F. Markdown構造ルール側でも「引用/インデント」を前提にしていない箇所がある
-  - `server/src/grammar/rules/codeBlockLanguageRule.ts` / `server/src/grammar/rules/headingLevelSkipRule.ts` / `server/src/grammar/rules/tableColumnMismatchRule.ts` を blockquote/indent に対応
-  - ※ 他の Markdown 構造系ルールの追従は必要に応じて実施
+- [x] D. テーブル検出ロジックの不一致（Filter とルール側で判定が違う）
+  - `shared/src/markdownSyntax.ts` に table / blockquote の共通判定を集約し、`MarkdownFilter` と `TableColumnMismatchRule` で共有
+  - 末尾 `|` 省略（`| A` / `|---` など）や blockquote（`>`）を含む行も同一ロジックで扱う
+- [x] E. URL/リンク除外の取りこぼしが起きやすい
+  - `server/src/parser/markdownFilter.ts` の URL 検出を見直し、括弧を含む URL や Markdown リンク（`[text](...)`）の取りこぼしを低減
+  - プレーンURLの末尾句読点（`.`/`。` 等）をトリムして過剰除外を抑制
+- [x] F. Markdown構造ルール側でも「引用/インデント」を前提にしていない箇所がある
+  - `server/src/grammar/rules/bulletStyleMixRule.ts` を blockquote に対応（`> -` / `> ・` なども検出対象に含める）
+  - 既存対応（`codeBlockLanguageRule` / `headingLevelSkipRule` / `tableColumnMismatchRule`）と合わせて、主要な Markdown 構造系ルールで blockquote/indent を扱える状態にした
 
 ## 影響（ユーザー体験）
 - 引用（`>`）内のコードブロック/テーブル/見出し/箇条書きが除外されず、本文と同じ扱いで文法警告・ハイライトが出る可能性がある
@@ -85,6 +87,4 @@ Markdown 解析（除外・文法チェック・セマンティックハイラ�
   - `server/src/grammar/rules/codeBlockLanguageRule.ts` / `server/src/grammar/rules/headingLevelSkipRule.ts` / `server/src/grammar/rules/tableColumnMismatchRule.ts`
 
 ## 次アクション案（残）
-- URL/リンク除外の取りこぼし対策（括弧を含むURLなど）
-- 他の Markdown 構造ルールの blockquote/indent 対応（必要に応じて）
-- テーブル判定のサポート表記を明文化（Filter/Rules 間の完全整合）
+- （必要に応じて）Markdown構造系ルールの追加追従

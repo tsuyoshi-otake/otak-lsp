@@ -89,6 +89,12 @@ describe('TableColumnMismatchRule', () => {
       const diagnostics = rule.check(emptyTokens, context);
       expect(diagnostics.length).toBe(0);
     });
+
+    it('should handle 1-column table without trailing pipes', () => {
+      context.documentText = '| Header\n|---\n| Cell';
+      const diagnostics = rule.check(emptyTokens, context);
+      expect(diagnostics.length).toBe(0);
+    });
   });
 
   describe('configuration', () => {

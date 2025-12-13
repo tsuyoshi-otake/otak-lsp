@@ -13,6 +13,11 @@ import {
   RuleContext,
   AdvancedDiagnostic
 } from '../../../../shared/src/advancedTypes';
+import {
+  findMarkdownPipeTables,
+  isMarkdownPipeTableSeparatorLine,
+  stripMarkdownBlockquotePrefix
+} from '../../../../shared/src/markdownSyntax';
 
 /**
  * Table information
@@ -30,10 +35,6 @@ interface TableInfo {
 export class TableColumnMismatchRule implements AdvancedGrammarRule {
   name = 'table-column-mismatch';
   description = 'Markdownテーブルの列数不一致を検出します';
-
-  private stripBlockquotePrefix(line: string): string {
-    return line.replace(/^\s*(?:>\s*)*/, '');
-  }
 
   /**
    * Check for table column mismatches
@@ -55,37 +56,16 @@ export class TableColumnMismatchRule implements AdvancedGrammarRule {
    */
   private findTables(text: string): TableInfo[] {
     const tables: TableInfo[] = [];
-    const lines = text.split('\n');
+    const blocks = findMarkdownPipeTables(text);
 
-    let currentTable: TableInfo | null = null;
-
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i];
-      const normalizedLine = this.stripBlockquotePrefix(line);
-      const isTableRow = normalizedLine.trim().startsWith('|');
-
-      if (isTableRow) {
-        if (!currentTable) {
-          currentTable = {
-            startLine: i,
-            lines: [line],
-            headerColumns: this.countColumns(normalizedLine)
-          };
-        } else {
-          currentTable.lines.push(line);
-        }
-      } else if (currentTable) {
-        // End of table
-        if (currentTable.lines.length >= 2) {
-          tables.push(currentTable);
-        }
-        currentTable = null;
-      }
-    }
-
-    // Handle table at end of document
-    if (currentTable && currentTable.lines.length >= 2) {
-      tables.push(currentTable);
+    for (const block of blocks) {
+      const headerLine = block.lines[0] ?? '';
+      const { strippedLine: normalizedHeader } = stripMarkdownBlockquotePrefix(headerLine);
+      tables.push({
+        startLine: block.startLine,
+        lines: block.lines,
+        headerColumns: this.countColumns(normalizedHeader)
+      });
     }
 
     return tables;
@@ -140,11 +120,11 @@ export class TableColumnMismatchRule implements AdvancedGrammarRule {
 
     for (let i = 0; i < table.lines.length; i++) {
       const line = table.lines[i];
-      const normalizedLine = this.stripBlockquotePrefix(line);
+      const { strippedLine: normalizedLine } = stripMarkdownBlockquotePrefix(line);
       const lineIndex = table.startLine + i;
 
       // Skip separator row check for now (it uses different counting)
-      const isSeparator = /^\|[\s\-:|]+\|?$/.test(normalizedLine.trim());
+      const isSeparator = isMarkdownPipeTableSeparatorLine(line);
       const actualColumns = this.countColumns(normalizedLine);
 
       if (!isSeparator && actualColumns !== expectedColumns) {

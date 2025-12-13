@@ -15,6 +15,11 @@ import {
   ExcludeType,
   FilterError
 } from '../../../shared/src/markdownFilterTypes';
+import {
+  findMarkdownPipeTables,
+  isMarkdownPipeTableSeparatorLine,
+  stripMarkdownBlockquotePrefix as stripMarkdownBlockquotePrefixShared
+} from '../../../shared/src/markdownSyntax';
 
 /**
  * マークダウンフィルタークラス
@@ -32,31 +37,7 @@ export class MarkdownFilter implements IMarkdownFilter {
     line: string,
     maxDepth: number = Number.POSITIVE_INFINITY
   ): { strippedLine: string; depth: number; strippedLength: number } {
-    let index = 0;
-    let depth = 0;
-
-    while (depth < maxDepth) {
-      const whitespaceStart = index;
-      while (index < line.length && (line[index] === ' ' || line[index] === '\t')) {
-        index++;
-      }
-
-      if (index < line.length && line[index] === '>') {
-        depth++;
-        index++;
-        // CommonMark: ">" の直後の 1 空白は無視される
-        if (index < line.length && line[index] === ' ') {
-          index++;
-        }
-        continue;
-      }
-
-      // '>' が続かない場合、この空白は本文のインデントなので戻す
-      index = whitespaceStart;
-      break;
-    }
-
-    return { strippedLine: line.substring(index), depth, strippedLength: index };
+    return stripMarkdownBlockquotePrefixShared(line, maxDepth);
   }
 
   /**
@@ -305,50 +286,193 @@ export class MarkdownFilter implements IMarkdownFilter {
   private findUrls(text: string, existingRanges: ExcludedRange[]): ExcludedRange[] {
     const ranges: ExcludedRange[] = [];
 
-    // プレーンテキストURL
-    const plainUrlPattern = /https?:\/\/[^\s<>\[\]()]+/g;
-    let match;
+    const isOverlappingAny = (start: number, end: number): boolean => {
+      return this.isOverlapping(start, end, [...existingRanges, ...ranges]);
+    };
 
-    while ((match = plainUrlPattern.exec(text)) !== null) {
-      if (!this.isOverlapping(match.index, match.index + match[0].length, existingRanges)) {
-        ranges.push({
-          start: match.index,
-          end: match.index + match[0].length,
-          type: 'url',
-          content: match[0],
-          reason: 'URL検出'
-        });
+    const addUrlRange = (start: number, end: number, reason: string): void => {
+      if (start >= end) {
+        return;
       }
-    }
+      if (isOverlappingAny(start, end)) {
+        return;
+      }
+      ranges.push({
+        start,
+        end,
+        type: 'url',
+        content: text.substring(start, end),
+        reason
+      });
+    };
 
-    // マークダウンリンクのURL部分 [text](url)
-    const mdLinkPattern = /\[([^\]]*)\]\(([^)]+)\)/g;
-    while ((match = mdLinkPattern.exec(text)) !== null) {
-      const urlStart = match.index + match[1].length + 3; // [text](の後
-      const urlEnd = match.index + match[0].length - 1; // )の前
-      if (!this.isOverlapping(urlStart, urlEnd, existingRanges)) {
-        ranges.push({
-          start: urlStart,
-          end: urlEnd,
-          type: 'url',
-          content: match[2],
-          reason: 'マークダウンリンクURL検出'
-        });
+    const trimPlainUrlEnd = (start: number, endExclusive: number): number => {
+      let openParens = 0;
+      let closeParens = 0;
+      let openBrackets = 0;
+      let closeBrackets = 0;
+      let openBraces = 0;
+      let closeBraces = 0;
+
+      for (let i = start; i < endExclusive; i++) {
+        const ch = text[i];
+        if (ch === '(') {
+          openParens++;
+        } else if (ch === ')') {
+          closeParens++;
+        } else if (ch === '[') {
+          openBrackets++;
+        } else if (ch === ']') {
+          closeBrackets++;
+        } else if (ch === '{') {
+          openBraces++;
+        } else if (ch === '}') {
+          closeBraces++;
+        }
       }
+
+      let end = endExclusive;
+      while (end > start) {
+        const ch = text[end - 1];
+
+        // 括弧などの「余計な閉じ」を優先して落とす
+        if (ch === ')' && closeParens > openParens) {
+          closeParens--;
+          end--;
+          continue;
+        }
+        if (ch === ']' && closeBrackets > openBrackets) {
+          closeBrackets--;
+          end--;
+          continue;
+        }
+        if (ch === '}' && closeBraces > openBraces) {
+          closeBraces--;
+          end--;
+          continue;
+        }
+
+        // URL末尾に付与されがちな句読点・引用符などは除外
+        if (/[.,;:!?]/.test(ch)) {
+          end--;
+          continue;
+        }
+        if (ch === '"' || ch === '\'' || ch === '`') {
+          end--;
+          continue;
+        }
+        if (ch === '。' || ch === '、' || ch === '，' || ch === '．') {
+          end--;
+          continue;
+        }
+        if (ch === '」' || ch === '』' || ch === '】' || ch === '）') {
+          end--;
+          continue;
+        }
+
+        break;
+      }
+
+      return end;
+    };
+
+    const findClosingParenForMarkdownLink = (contentStart: number): number => {
+      let depth = 0;
+      let escaped = false;
+      let inAngle = false;
+      let inSingleQuote = false;
+      let inDoubleQuote = false;
+
+      for (let i = contentStart; i < text.length; i++) {
+        const ch = text[i];
+
+        if (escaped) {
+          escaped = false;
+          continue;
+        }
+        if (ch === '\\') {
+          escaped = true;
+          continue;
+        }
+
+        if (inAngle) {
+          if (ch === '>') {
+            inAngle = false;
+          }
+          continue;
+        }
+        if (inSingleQuote) {
+          if (ch === '\'') {
+            inSingleQuote = false;
+          }
+          continue;
+        }
+        if (inDoubleQuote) {
+          if (ch === '"') {
+            inDoubleQuote = false;
+          }
+          continue;
+        }
+
+        if (ch === '<') {
+          inAngle = true;
+          continue;
+        }
+        if (ch === '\'') {
+          inSingleQuote = true;
+          continue;
+        }
+        if (ch === '"') {
+          inDoubleQuote = true;
+          continue;
+        }
+
+        if (ch === '(') {
+          depth++;
+          continue;
+        }
+        if (ch === ')') {
+          if (depth === 0) {
+            return i;
+          }
+          depth--;
+          continue;
+        }
+      }
+
+      return -1;
+    };
+
+    // マークダウンリンクのURL/タイトル部分 [text](...)/![alt](...)
+    for (let i = 0; i < text.length - 1; i++) {
+      if (text[i] !== ']' || text[i + 1] !== '(') {
+        continue;
+      }
+
+      const contentStart = i + 2;
+      const closingParen = findClosingParenForMarkdownLink(contentStart);
+      if (closingParen === -1) {
+        continue;
+      }
+
+      addUrlRange(contentStart, closingParen, 'マークダウンリンクURL検出');
+      i = closingParen;
     }
 
     // 自動リンク <url>
     const autoLinkPattern = /<(https?:\/\/[^>]+)>/g;
+    let match;
     while ((match = autoLinkPattern.exec(text)) !== null) {
-      if (!this.isOverlapping(match.index, match.index + match[0].length, existingRanges)) {
-        ranges.push({
-          start: match.index,
-          end: match.index + match[0].length,
-          type: 'url',
-          content: match[0],
-          reason: '自動リンク検出'
-        });
-      }
+      addUrlRange(match.index, match.index + match[0].length, '自動リンク検出');
+    }
+
+    // プレーンテキストURL
+    // NOTE: `()` などを含むURLを取りこぼさないようにしつつ、末尾の句読点はトリムする
+    const plainUrlPattern = /https?:\/\/[^\s<>]+/g;
+    while ((match = plainUrlPattern.exec(text)) !== null) {
+      const start = match.index;
+      const trimmedEnd = trimPlainUrlEnd(start, match.index + match[0].length);
+      addUrlRange(start, trimmedEnd, 'URL検出');
     }
 
     return ranges;
@@ -424,11 +548,14 @@ export class MarkdownFilter implements IMarkdownFilter {
   private findTables(text: string, existingRanges: ExcludedRange[]): ExcludedRange[] {
     const ranges: ExcludedRange[] = [];
     const lines = text.split('\n');
+
+    // 行開始オフセットを構築（テーブル範囲算出に使用）
+    const lineStartOffsets: number[] = [];
     let position = 0;
-    let tableStart = -1;
-    let inTable = false;
-    const tableDelimiters: ExcludedRange[] = [];
-    const tableSeparators: ExcludedRange[] = [];
+    for (const line of lines) {
+      lineStartOffsets.push(position);
+      position += line.length + 1; // +1 for newline
+    }
 
     // コードブロック範囲のみをチェック対象とする（テーブル内にURL等があっても検出可能にする）
     // ただし単一行の ```code``` はフェンスドブロックではなく、
@@ -437,85 +564,53 @@ export class MarkdownFilter implements IMarkdownFilter {
       (r) => r.type === 'code-block' && (r.content.includes('\n') || r.content.includes('\r'))
     );
 
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i];
-      const lineStart = position;
-      const { strippedLine } = this.stripBlockquotePrefix(line);
-      const trimmed = strippedLine.trim();
-      const compact = trimmed.replace(/\s+/g, '');
-      const isTableRow = trimmed.startsWith('|') && trimmed.indexOf('|', 1) !== -1;
-      const isSeparator = /^\|[-:|]+\|?$/.test(compact);
+    const tables = findMarkdownPipeTables(text);
+    for (const table of tables) {
+      const tableStart = lineStartOffsets[table.startLine] ?? 0;
+      const tableEnd =
+        table.endLineExclusive < lineStartOffsets.length
+          ? lineStartOffsets[table.endLineExclusive]
+          : text.length;
 
-      if ((isTableRow || isSeparator) && !inTable) {
-        inTable = true;
-        tableStart = lineStart;
+      if (this.isOverlapping(tableStart, tableEnd, codeBlockRanges)) {
+        continue;
       }
 
-      if (inTable && (isTableRow || isSeparator)) {
-        if (isSeparator) {
-          // セパレーター行全体を除外
-          tableSeparators.push({
+      ranges.push({
+        start: tableStart,
+        end: tableEnd,
+        type: 'table',
+        content: text.substring(tableStart, tableEnd),
+        reason: 'マークダウンテーブル検出'
+      });
+
+      for (let lineIndex = table.startLine; lineIndex < table.endLineExclusive; lineIndex++) {
+        const line = lines[lineIndex] ?? '';
+        const lineStart = lineStartOffsets[lineIndex] ?? 0;
+
+        if (isMarkdownPipeTableSeparatorLine(line)) {
+          ranges.push({
             start: lineStart,
             end: lineStart + line.length,
             type: 'table-separator',
             content: line,
             reason: 'マークダウンテーブルセパレーター行検出'
           });
-        } else {
-          // 区切り文字（|）のみを除外
-          for (let j = 0; j < line.length; j++) {
-            if (line[j] === '|') {
-              const absPos = lineStart + j;
-              tableDelimiters.push({
-                start: absPos,
-                end: absPos + 1,
-                type: 'table-delimiter',
-                content: '|',
-                reason: 'マークダウンテーブル区切り文字検出'
-              });
-            }
+          continue;
+        }
+
+        for (let j = 0; j < line.length; j++) {
+          if (line[j] === '|') {
+            const absPos = lineStart + j;
+            ranges.push({
+              start: absPos,
+              end: absPos + 1,
+              type: 'table-delimiter',
+              content: '|',
+              reason: 'マークダウンテーブル区切り文字検出'
+            });
           }
         }
-      }
-
-      if (inTable && !isTableRow && !isSeparator) {
-        const tableEnd = lineStart;
-        if (!this.isOverlapping(tableStart, tableEnd, codeBlockRanges)) {
-          const tableContent = text.substring(tableStart, tableEnd);
-          ranges.push({
-            start: tableStart,
-            end: tableEnd,
-            type: 'table',
-            content: tableContent,
-            reason: 'マークダウンテーブル検出'
-          });
-          // テーブル構造要素を追加
-          ranges.push(...tableDelimiters);
-          ranges.push(...tableSeparators);
-        }
-        inTable = false;
-        tableStart = -1;
-        tableDelimiters.length = 0;
-        tableSeparators.length = 0;
-      }
-
-      position += line.length + 1; // +1 for newline
-    }
-
-    // 最後まで続くテーブルの処理
-    if (inTable && tableStart >= 0) {
-      if (!this.isOverlapping(tableStart, text.length, codeBlockRanges)) {
-        const tableContent = text.substring(tableStart);
-        ranges.push({
-          start: tableStart,
-          end: text.length,
-          type: 'table',
-          content: tableContent,
-          reason: 'マークダウンテーブル検出'
-        });
-        // テーブル構造要素を追加
-        ranges.push(...tableDelimiters);
-        ranges.push(...tableSeparators);
       }
     }
 

@@ -363,8 +363,19 @@ describe('Table Structure Processing (Task 4.2)', () => {
   describe('markdown table detection', () => {
     it('should detect simple table', () => {
       const text = `| Header 1 | Header 2 |
-|----------|----------|
-| Cell 1   | Cell 2   |`;
+ |----------|----------|
+ | Cell 1   | Cell 2   |`;
+      const result = filter.filter(text);
+
+      expect(result.excludedRanges.some((r) => r.type === 'table')).toBe(true);
+      expect(result.excludedRanges.some((r) => r.type === 'table-delimiter')).toBe(true);
+      expect(result.excludedRanges.some((r) => r.type === 'table-separator')).toBe(true);
+    });
+
+    it('should detect 1-column table without trailing pipes', () => {
+      const text = `| Header
+|---
+| Cell`;
       const result = filter.filter(text);
 
       expect(result.excludedRanges.some((r) => r.type === 'table')).toBe(true);
@@ -374,8 +385,8 @@ describe('Table Structure Processing (Task 4.2)', () => {
 
     it('should detect table in blockquote', () => {
       const text = `> | A | B |
-> |---|---|
-> | 1 | 2 |`;
+ > |---|---|
+ > | 1 | 2 |`;
       const result = filter.filter(text);
 
       expect(result.excludedRanges.some((r) => r.type === 'table')).toBe(true);
@@ -528,6 +539,25 @@ describe('URL Exclusion (Task 5.2)', () => {
       expect(urlRanges[0].content).toContain('query=value');
     });
 
+    it('should exclude URL with parentheses', () => {
+      const text = 'See https://example.com/foo(bar)/baz for more';
+      const result = filter.filter(text);
+
+      const urlRanges = result.excludedRanges.filter((r) => r.type === 'url');
+      expect(urlRanges).toHaveLength(1);
+      expect(urlRanges[0].content).toContain('foo(bar)/baz');
+    });
+
+    it('should trim trailing punctuation from plain URLs', () => {
+      const text = 'See https://example.com/foo(bar).';
+      const result = filter.filter(text);
+
+      const urlRanges = result.excludedRanges.filter((r) => r.type === 'url');
+      expect(urlRanges).toHaveLength(1);
+      expect(urlRanges[0].content).toBe('https://example.com/foo(bar)');
+      expect(result.filteredText.endsWith('.')).toBe(true);
+    });
+
     it('should exclude multiple URLs', () => {
       const text = 'Visit https://example1.com and https://example2.com';
       const result = filter.filter(text);
@@ -543,6 +573,15 @@ describe('URL Exclusion (Task 5.2)', () => {
       const result = filter.filter(text);
 
       expect(result.excludedRanges.some((r) => r.type === 'url')).toBe(true);
+    });
+
+    it('should handle markdown link URL with parentheses', () => {
+      const text = 'Click [here](https://example.com/foo(bar)) for more';
+      const result = filter.filter(text);
+
+      const urlRanges = result.excludedRanges.filter((r) => r.type === 'url');
+      expect(urlRanges.length).toBeGreaterThanOrEqual(1);
+      expect(urlRanges.some((r) => r.content.includes('foo(bar)'))).toBe(true);
     });
 
     it('should preserve link text in markdown link', () => {
