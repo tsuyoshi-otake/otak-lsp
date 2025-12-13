@@ -3,16 +3,86 @@
 exports[`README Regression Snapshot should match README diagnostics snapshot 1`] = `
 [
   {
+    "code": "adversative-ga",
+    "message": "逆接の「が」が連続する文で使用されています。文の分割や接続詞の変更を検討してください。",
+    "range": {
+      "end": {
+        "character": 36,
+        "line": 443,
+      },
+      "start": {
+        "character": 35,
+        "line": 443,
+      },
+    },
+  },
+  {
+    "code": "alphabet-width",
+    "message": "全角と半角アルファベットが混在しています。「ＡＢＣ」を半角に統一してください。",
+    "range": {
+      "end": {
+        "character": 31,
+        "line": 444,
+      },
+      "start": {
+        "character": 28,
+        "line": 444,
+      },
+    },
+  },
+  {
+    "code": "ambiguous-demonstrative",
+    "message": "曖昧な指示語が検出されました。複数の「それ」が異なる対象を指している可能性があります",
+    "range": {
+      "end": {
+        "character": 32,
+        "line": 460,
+      },
+      "start": {
+        "character": 18,
+        "line": 460,
+      },
+    },
+  },
+  {
     "code": "comma-count",
     "message": "1文中に読点が8個使用されています（閾値: 4個）。文を分割することを検討してください。",
     "range": {
       "end": {
         "character": 16,
-        "line": 112,
+        "line": 111,
       },
       "start": {
         "character": 1,
-        "line": 105,
+        "line": 104,
+      },
+    },
+  },
+  {
+    "code": "comma-count",
+    "message": "1文中に読点が6個使用されています（閾値: 4個）。文を分割することを検討してください。",
+    "range": {
+      "end": {
+        "character": 38,
+        "line": 446,
+      },
+      "start": {
+        "character": 0,
+        "line": 446,
+      },
+    },
+  },
+  {
+    "code": "conjunction-misuse",
+    "message": "接続詞「しかし」の使い方が文脈に合わない可能性があります。「しかし」は逆接の接続詞です。天気と外出は順接の関係では「そこで」「だから」が適切です",
+    "range": {
+      "end": {
+        "character": 30,
+        "line": 463,
+      },
+      "start": {
+        "character": 18,
+        "line": 463,
       },
     },
   },
@@ -22,11 +92,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 4,
-        "line": 66,
+        "line": 65,
       },
       "start": {
         "character": 42,
-        "line": 64,
+        "line": 63,
       },
     },
   },
@@ -36,11 +106,25 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 13,
-        "line": 66,
+        "line": 65,
       },
       "start": {
         "character": 6,
-        "line": 66,
+        "line": 65,
+      },
+    },
+  },
+  {
+    "code": "double-negation",
+    "message": "二重否定「ないわけではない」が検出されました。わかりにくい表現になる可能性があります。",
+    "range": {
+      "end": {
+        "character": 26,
+        "line": 440,
+      },
+      "start": {
+        "character": 18,
+        "line": 440,
       },
     },
   },
@@ -50,11 +134,165 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 9,
-        "line": 18,
+        "line": 17,
       },
       "start": {
         "character": 7,
-        "line": 18,
+        "line": 17,
+      },
+    },
+  },
+  {
+    "code": "double-particle",
+    "message": "二重助詞「がが」が検出されました。「が」を1つにしてください。",
+    "range": {
+      "end": {
+        "character": 19,
+        "line": 434,
+      },
+      "start": {
+        "character": 17,
+        "line": 434,
+      },
+    },
+  },
+  {
+    "code": "emphasis-style-mix",
+    "message": "強調記号のスタイルが混在しています。**（25箇所）と__（1箇所）が使用されています。どちらかに統一してください。",
+    "range": {
+      "end": {
+        "character": 0,
+        "line": 518,
+      },
+      "start": {
+        "character": 0,
+        "line": 0,
+      },
+    },
+  },
+  {
+    "code": "english-case-mix",
+    "message": "英語表記「api」の大文字小文字が統一されていません。API、apiが混在しています。",
+    "range": {
+      "end": {
+        "character": 0,
+        "line": 518,
+      },
+      "start": {
+        "character": 0,
+        "line": 0,
+      },
+    },
+  },
+  {
+    "code": "english-case-mix",
+    "message": "英語表記「install」の大文字小文字が統一されていません。install、Installが混在しています。",
+    "range": {
+      "end": {
+        "character": 0,
+        "line": 518,
+      },
+      "start": {
+        "character": 0,
+        "line": 0,
+      },
+    },
+  },
+  {
+    "code": "english-case-mix",
+    "message": "英語表記「java」の大文字小文字が統一されていません。Java、javaが混在しています。",
+    "range": {
+      "end": {
+        "character": 0,
+        "line": 518,
+      },
+      "start": {
+        "character": 0,
+        "line": 0,
+      },
+    },
+  },
+  {
+    "code": "english-case-mix",
+    "message": "英語表記「javascript」の大文字小文字が統一されていません。JavaScript、Javascriptが混在しています。",
+    "range": {
+      "end": {
+        "character": 0,
+        "line": 518,
+      },
+      "start": {
+        "character": 0,
+        "line": 0,
+      },
+    },
+  },
+  {
+    "code": "english-case-mix",
+    "message": "英語表記「vscode」の大文字小文字が統一されていません。VSCode、vscodeが混在しています。",
+    "range": {
+      "end": {
+        "character": 0,
+        "line": 518,
+      },
+      "start": {
+        "character": 0,
+        "line": 0,
+      },
+    },
+  },
+  {
+    "code": "english-case-mix",
+    "message": "英語表記「vsix」の大文字小文字が統一されていません。vsix、VSIXが混在しています。",
+    "range": {
+      "end": {
+        "character": 0,
+        "line": 518,
+      },
+      "start": {
+        "character": 0,
+        "line": 0,
+      },
+    },
+  },
+  {
+    "code": "homophone",
+    "message": "同音異義語「意志が低い」の使い方を確認してください。「意志」は決意や意図、「意識」は認識や自覚を意味します",
+    "range": {
+      "end": {
+        "character": 22,
+        "line": 455,
+      },
+      "start": {
+        "character": 17,
+        "line": 455,
+      },
+    },
+  },
+  {
+    "code": "honorific-error",
+    "message": "二重敬語「お客様がおっしゃられました」が検出されました。「お客様がおっしゃいました」が正しい形式です。",
+    "range": {
+      "end": {
+        "character": 30,
+        "line": 456,
+      },
+      "start": {
+        "character": 17,
+        "line": 456,
+      },
+    },
+  },
+  {
+    "code": "honorific-error",
+    "message": "二重敬語「おっしゃられ」が検出されました。「おっしゃい」が正しい形式です。",
+    "range": {
+      "end": {
+        "character": 27,
+        "line": 456,
+      },
+      "start": {
+        "character": 21,
+        "line": 456,
       },
     },
   },
@@ -64,11 +302,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 9,
-        "line": 362,
+        "line": 405,
       },
       "start": {
         "character": 8,
-        "line": 362,
+        "line": 405,
       },
     },
   },
@@ -78,11 +316,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 11,
-        "line": 362,
+        "line": 405,
       },
       "start": {
         "character": 10,
-        "line": 362,
+        "line": 405,
       },
     },
   },
@@ -92,11 +330,137 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 5,
-        "line": 364,
+        "line": 407,
       },
       "start": {
         "character": 4,
-        "line": 364,
+        "line": 407,
+      },
+    },
+  },
+  {
+    "code": "kanji-opening",
+    "message": "漢字「事」はひらがな「こと」で表記することが推奨されます。",
+    "range": {
+      "end": {
+        "character": 32,
+        "line": 446,
+      },
+      "start": {
+        "character": 31,
+        "line": 446,
+      },
+    },
+  },
+  {
+    "code": "kanji-opening",
+    "message": "漢字「下さい」はひらがな「ください」で表記することが推奨されます。",
+    "range": {
+      "end": {
+        "character": 23,
+        "line": 448,
+      },
+      "start": {
+        "character": 20,
+        "line": 448,
+      },
+    },
+  },
+  {
+    "code": "kanji-opening",
+    "message": "漢字「様」はひらがな「よう」で表記することが推奨されます。",
+    "range": {
+      "end": {
+        "character": 20,
+        "line": 456,
+      },
+      "start": {
+        "character": 19,
+        "line": 456,
+      },
+    },
+  },
+  {
+    "code": "kanji-opening",
+    "message": "漢字「所」はひらがな「ところ」で表記することが推奨されます。",
+    "range": {
+      "end": {
+        "character": 30,
+        "line": 462,
+      },
+      "start": {
+        "character": 29,
+        "line": 462,
+      },
+    },
+  },
+  {
+    "code": "kanji-opening",
+    "message": "漢字「出来る」はひらがな「できる」で表記することが推奨されます。",
+    "range": {
+      "end": {
+        "character": 19,
+        "line": 466,
+      },
+      "start": {
+        "character": 16,
+        "line": 466,
+      },
+    },
+  },
+  {
+    "code": "kanji-opening",
+    "message": "漢字「時」はひらがな「とき」で表記することが推奨されます。",
+    "range": {
+      "end": {
+        "character": 31,
+        "line": 474,
+      },
+      "start": {
+        "character": 30,
+        "line": 474,
+      },
+    },
+  },
+  {
+    "code": "kanji-opening",
+    "message": "漢字「時」はひらがな「とき」で表記することが推奨されます。",
+    "range": {
+      "end": {
+        "character": 19,
+        "line": 476,
+      },
+      "start": {
+        "character": 18,
+        "line": 476,
+      },
+    },
+  },
+  {
+    "code": "kanji-opening",
+    "message": "漢字「時」はひらがな「とき」で表記することが推奨されます。",
+    "range": {
+      "end": {
+        "character": 24,
+        "line": 476,
+      },
+      "start": {
+        "character": 23,
+        "line": 476,
+      },
+    },
+  },
+  {
+    "code": "kanji-opening",
+    "message": "漢字「所」はひらがな「ところ」で表記することが推奨されます。",
+    "range": {
+      "end": {
+        "character": 27,
+        "line": 476,
+      },
+      "start": {
+        "character": 26,
+        "line": 476,
       },
     },
   },
@@ -106,95 +470,109 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 7,
-        "line": 438,
+        "line": 492,
       },
       "start": {
         "character": 6,
-        "line": 438,
+        "line": 492,
       },
     },
   },
   {
-    "code": "long-sentence",
-    "message": "文が長すぎます（164文字、閾値: 120文字）。文の分割を検討してください。",
+    "code": "missing-subject",
+    "message": "主語が明示されていない可能性があります。主語を明示することを検討してください",
     "range": {
       "end": {
-        "character": 9,
-        "line": 13,
-      },
-      "start": {
-        "character": 6,
-        "line": 6,
-      },
-    },
-  },
-  {
-    "code": "long-sentence",
-    "message": "文が長すぎます（280文字、閾値: 120文字）。文の分割を検討してください。",
-    "range": {
-      "end": {
-        "character": 17,
-        "line": 474,
-      },
-      "start": {
-        "character": 7,
-        "line": 434,
-      },
-    },
-  },
-  {
-    "code": "long-sentence",
-    "message": "文が長すぎます（129文字、閾値: 120文字）。文の分割を検討してください。",
-    "range": {
-      "end": {
-        "character": 29,
+        "character": 35,
         "line": 442,
       },
       "start": {
-        "character": 0,
-        "line": 439,
+        "character": 27,
+        "line": 442,
       },
     },
   },
   {
-    "code": "long-sentence",
-    "message": "文が長すぎます（177文字、閾値: 120文字）。文の分割を検討してください。",
+    "code": "missing-subject",
+    "message": "主語が明示されていない可能性があります。主語を明示することを検討してください",
     "range": {
       "end": {
-        "character": 98,
-        "line": 451,
+        "character": 35,
+        "line": 442,
       },
       "start": {
-        "character": 0,
-        "line": 449,
+        "character": 31,
+        "line": 442,
       },
     },
   },
   {
-    "code": "long-sentence",
-    "message": "文が長すぎます（150文字、閾値: 120文字）。文の分割を検討してください。",
+    "code": "missing-subject",
+    "message": "主語が明示されていない可能性があります。主語を明示することを検討してください",
     "range": {
       "end": {
-        "character": 0,
-        "line": 457,
+        "character": 32,
+        "line": 464,
       },
       "start": {
-        "character": 0,
-        "line": 454,
+        "character": 28,
+        "line": 464,
       },
     },
   },
   {
-    "code": "long-sentence",
-    "message": "文が長すぎます（216文字、閾値: 120文字）。文の分割を検討してください。",
+    "code": "missing-subject",
+    "message": "主語が明示されていない可能性があります。主語を明示することを検討してください",
     "range": {
       "end": {
-        "character": 12,
-        "line": 491,
+        "character": 36,
+        "line": 464,
       },
       "start": {
-        "character": 15,
-        "line": 484,
+        "character": 32,
+        "line": 464,
+      },
+    },
+  },
+  {
+    "code": "modifier-position",
+    "message": "修飾語の位置に問題がある可能性があります。大きな赤い",
+    "range": {
+      "end": {
+        "character": 23,
+        "line": 459,
+      },
+      "start": {
+        "character": 18,
+        "line": 459,
+      },
+    },
+  },
+  {
+    "code": "monotonous-ending",
+    "message": "文末「た」が3回連続しています（閾値: 3回）。表現を多様化してください。",
+    "range": {
+      "end": {
+        "character": 44,
+        "line": 461,
+      },
+      "start": {
+        "character": 0,
+        "line": 461,
+      },
+    },
+  },
+  {
+    "code": "monotonous-ending",
+    "message": "文末「です」が4回連続しています（閾値: 3回）。表現を多様化してください。",
+    "range": {
+      "end": {
+        "character": 36,
+        "line": 464,
+      },
+      "start": {
+        "character": 0,
+        "line": 464,
       },
     },
   },
@@ -203,12 +581,26 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "message": "助詞「の」が3回連続しています（閾値: 3回）。文の書き換えを検討してください。",
     "range": {
       "end": {
-        "character": 8,
-        "line": 17,
+        "character": 56,
+        "line": 379,
       },
       "start": {
-        "character": 29,
-        "line": 15,
+        "character": 57,
+        "line": 378,
+      },
+    },
+  },
+  {
+    "code": "no-particle-chain",
+    "message": "助詞「の」が6回連続しています（閾値: 3回）。文の書き換えを検討してください。",
+    "range": {
+      "end": {
+        "character": 32,
+        "line": 458,
+      },
+      "start": {
+        "character": 5,
+        "line": 458,
       },
     },
   },
@@ -232,11 +624,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 23,
-        "line": 7,
+        "line": 6,
       },
       "start": {
         "character": 11,
-        "line": 7,
+        "line": 6,
       },
     },
   },
@@ -246,11 +638,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 4,
-        "line": 18,
+        "line": 17,
       },
       "start": {
         "character": 24,
-        "line": 17,
+        "line": 16,
       },
     },
   },
@@ -260,11 +652,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 4,
-        "line": 19,
+        "line": 18,
       },
       "start": {
         "character": 21,
-        "line": 18,
+        "line": 17,
       },
     },
   },
@@ -274,11 +666,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 35,
-        "line": 19,
+        "line": 18,
       },
       "start": {
         "character": 23,
-        "line": 19,
+        "line": 18,
       },
     },
   },
@@ -288,11 +680,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 6,
-        "line": 261,
+        "line": 260,
       },
       "start": {
         "character": 7,
-        "line": 144,
+        "line": 143,
       },
     },
   },
@@ -302,11 +694,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 7,
-        "line": 319,
+        "line": 356,
       },
       "start": {
         "character": 7,
-        "line": 288,
+        "line": 324,
       },
     },
   },
@@ -315,12 +707,12 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "message": "名詞が連続して読みにくくなっています。名詞の間に助詞を挿入して読みやすくしてください",
     "range": {
       "end": {
-        "character": 7,
-        "line": 335,
+        "character": 6,
+        "line": 373,
       },
       "start": {
         "character": 8,
-        "line": 319,
+        "line": 356,
       },
     },
   },
@@ -330,11 +722,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 10,
-        "line": 351,
+        "line": 391,
       },
       "start": {
         "character": 8,
-        "line": 345,
+        "line": 385,
       },
     },
   },
@@ -344,11 +736,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 9,
-        "line": 376,
+        "line": 419,
       },
       "start": {
         "character": 3,
-        "line": 366,
+        "line": 409,
       },
     },
   },
@@ -357,12 +749,26 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "message": "名詞が連続して読みにくくなっています。名詞の間に助詞を挿入して読みやすくしてください",
     "range": {
       "end": {
+        "character": 0,
+        "line": 455,
+      },
+      "start": {
+        "character": 0,
+        "line": 453,
+      },
+    },
+  },
+  {
+    "code": "noun-chain",
+    "message": "名詞が連続して読みにくくなっています。名詞の間に助詞を挿入して読みやすくしてください",
+    "range": {
+      "end": {
+        "character": 72,
+        "line": 457,
+      },
+      "start": {
         "character": 4,
-        "line": 435,
-      },
-      "start": {
-        "character": 0,
-        "line": 387,
+        "line": 457,
       },
     },
   },
@@ -371,12 +777,26 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "message": "名詞が連続して読みにくくなっています。名詞の間に助詞を挿入して読みやすくしてください",
     "range": {
       "end": {
-        "character": 5,
-        "line": 429,
+        "character": 29,
+        "line": 461,
       },
       "start": {
         "character": 0,
-        "line": 396,
+        "line": 460,
+      },
+    },
+  },
+  {
+    "code": "noun-chain",
+    "message": "名詞が連続して読みにくくなっています。「東京都渋谷区松濤一丁目の住所」のように助詞を挿入",
+    "range": {
+      "end": {
+        "character": 30,
+        "line": 462,
+      },
+      "start": {
+        "character": 17,
+        "line": 462,
       },
     },
   },
@@ -385,12 +805,12 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "message": "名詞が連続して読みにくくなっています。名詞の間に助詞を挿入して読みやすくしてください",
     "range": {
       "end": {
-        "character": 39,
-        "line": 434,
+        "character": 28,
+        "line": 467,
       },
       "start": {
-        "character": 38,
-        "line": 433,
+        "character": 23,
+        "line": 467,
       },
     },
   },
@@ -400,206 +820,80 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 24,
-        "line": 435,
-      },
-      "start": {
-        "character": 14,
-        "line": 435,
-      },
-    },
-  },
-  {
-    "code": "noun-chain",
-    "message": "名詞が連続して読みにくくなっています。名詞の間に助詞を挿入して読みやすくしてください",
-    "range": {
-      "end": {
-        "character": 13,
-        "line": 437,
-      },
-      "start": {
-        "character": 16,
-        "line": 435,
-      },
-    },
-  },
-  {
-    "code": "noun-chain",
-    "message": "名詞が連続して読みにくくなっています。名詞の間に助詞を挿入して読みやすくしてください",
-    "range": {
-      "end": {
-        "character": 12,
-        "line": 440,
-      },
-      "start": {
-        "character": 15,
-        "line": 436,
-      },
-    },
-  },
-  {
-    "code": "noun-chain",
-    "message": "名詞が連続して読みにくくなっています。名詞の間に助詞を挿入して読みやすくしてください",
-    "range": {
-      "end": {
-        "character": 30,
-        "line": 440,
-      },
-      "start": {
-        "character": 25,
-        "line": 440,
-      },
-    },
-  },
-  {
-    "code": "noun-chain",
-    "message": "名詞が連続して読みにくくなっています。名詞の間に助詞を挿入して読みやすくしてください",
-    "range": {
-      "end": {
-        "character": 12,
-        "line": 441,
-      },
-      "start": {
-        "character": 31,
-        "line": 440,
-      },
-    },
-  },
-  {
-    "code": "noun-chain",
-    "message": "名詞が連続して読みにくくなっています。名詞の間に助詞を挿入して読みやすくしてください",
-    "range": {
-      "end": {
-        "character": 20,
-        "line": 442,
-      },
-      "start": {
-        "character": 54,
-        "line": 441,
-      },
-    },
-  },
-  {
-    "code": "noun-chain",
-    "message": "名詞が連続して読みにくくなっています。名詞の間に助詞を挿入して読みやすくしてください",
-    "range": {
-      "end": {
-        "character": 7,
-        "line": 444,
-      },
-      "start": {
-        "character": 11,
-        "line": 442,
-      },
-    },
-  },
-  {
-    "code": "noun-chain",
-    "message": "名詞が連続して読みにくくなっています。名詞の間に助詞を挿入して読みやすくしてください",
-    "range": {
-      "end": {
-        "character": 8,
-        "line": 444,
-      },
-      "start": {
-        "character": 21,
-        "line": 442,
-      },
-    },
-  },
-  {
-    "code": "noun-chain",
-    "message": "名詞が連続して読みにくくなっています。名詞の間に助詞を挿入して読みやすくしてください",
-    "range": {
-      "end": {
-        "character": 55,
-        "line": 450,
-      },
-      "start": {
-        "character": 4,
-        "line": 446,
-      },
-    },
-  },
-  {
-    "code": "noun-chain",
-    "message": "名詞が連続して読みにくくなっています。名詞の間に助詞を挿入して読みやすくしてください",
-    "range": {
-      "end": {
-        "character": 9,
-        "line": 451,
-      },
-      "start": {
-        "character": 58,
-        "line": 450,
-      },
-    },
-  },
-  {
-    "code": "noun-chain",
-    "message": "名詞が連続して読みにくくなっています。名詞の間に助詞を挿入して読みやすくしてください",
-    "range": {
-      "end": {
-        "character": 9,
-        "line": 455,
-      },
-      "start": {
-        "character": 93,
-        "line": 451,
-      },
-    },
-  },
-  {
-    "code": "noun-chain",
-    "message": "名詞が連続して読みにくくなっています。名詞の間に助詞を挿入して読みやすくしてください",
-    "range": {
-      "end": {
-        "character": 73,
-        "line": 456,
-      },
-      "start": {
-        "character": 10,
-        "line": 455,
-      },
-    },
-  },
-  {
-    "code": "noun-chain",
-    "message": "名詞が連続して読みにくくなっています。名詞の間に助詞を挿入して読みやすくしてください",
-    "range": {
-      "end": {
-        "character": 1,
-        "line": 482,
-      },
-      "start": {
-        "character": 8,
-        "line": 481,
-      },
-    },
-  },
-  {
-    "code": "noun-chain",
-    "message": "名詞が連続して読みにくくなっています。名詞の間に助詞を挿入して読みやすくしてください",
-    "range": {
-      "end": {
-        "character": 21,
-        "line": 482,
-      },
-      "start": {
-        "character": 9,
-        "line": 482,
-      },
-    },
-  },
-  {
-    "code": "noun-chain",
-    "message": "名詞が連続して読みにくくなっています。名詞の間に助詞を挿入して読みやすくしてください",
-    "range": {
-      "end": {
-        "character": 17,
-        "line": 487,
+        "line": 470,
       },
       "start": {
         "character": 19,
+        "line": 470,
+      },
+    },
+  },
+  {
+    "code": "noun-chain",
+    "message": "名詞が連続して読みにくくなっています。名詞の間に助詞を挿入して読みやすくしてください",
+    "range": {
+      "end": {
+        "character": 28,
+        "line": 473,
+      },
+      "start": {
+        "character": 18,
+        "line": 473,
+      },
+    },
+  },
+  {
+    "code": "noun-chain",
+    "message": "名詞が連続して読みにくくなっています。名詞の間に助詞を挿入して読みやすくしてください",
+    "range": {
+      "end": {
+        "character": 44,
+        "line": 473,
+      },
+      "start": {
+        "character": 33,
+        "line": 473,
+      },
+    },
+  },
+  {
+    "code": "noun-chain",
+    "message": "名詞が連続して読みにくくなっています。名詞の間に助詞を挿入して読みやすくしてください",
+    "range": {
+      "end": {
+        "character": 43,
+        "line": 474,
+      },
+      "start": {
+        "character": 33,
+        "line": 474,
+      },
+    },
+  },
+  {
+    "code": "noun-chain",
+    "message": "名詞が連続して読みにくくなっています。名詞の間に助詞を挿入して読みやすくしてください",
+    "range": {
+      "end": {
+        "character": 31,
+        "line": 476,
+      },
+      "start": {
+        "character": 21,
+        "line": 476,
+      },
+    },
+  },
+  {
+    "code": "noun-chain",
+    "message": "名詞が連続して読みにくくなっています。名詞の間に助詞を挿入して読みやすくしてください",
+    "range": {
+      "end": {
+        "character": 9,
+        "line": 490,
+      },
+      "start": {
+        "character": 10,
         "line": 484,
       },
     },
@@ -609,12 +903,194 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "message": "名詞が連続して読みにくくなっています。名詞の間に助詞を挿入して読みやすくしてください",
     "range": {
       "end": {
-        "character": 17,
+        "character": 24,
         "line": 489,
       },
       "start": {
-        "character": 2,
+        "character": 14,
         "line": 489,
+      },
+    },
+  },
+  {
+    "code": "noun-chain",
+    "message": "名詞が連続して読みにくくなっています。名詞の間に助詞を挿入して読みやすくしてください",
+    "range": {
+      "end": {
+        "character": 11,
+        "line": 495,
+      },
+      "start": {
+        "character": 15,
+        "line": 490,
+      },
+    },
+  },
+  {
+    "code": "noun-chain",
+    "message": "名詞が連続して読みにくくなっています。名詞の間に助詞を挿入して読みやすくしてください",
+    "range": {
+      "end": {
+        "character": 29,
+        "line": 495,
+      },
+      "start": {
+        "character": 24,
+        "line": 495,
+      },
+    },
+  },
+  {
+    "code": "noun-chain",
+    "message": "名詞が連続して読みにくくなっています。名詞の間に助詞を挿入して読みやすくしてください",
+    "range": {
+      "end": {
+        "character": 11,
+        "line": 497,
+      },
+      "start": {
+        "character": 30,
+        "line": 495,
+      },
+    },
+  },
+  {
+    "code": "noun-chain",
+    "message": "名詞が連続して読みにくくなっています。名詞の間に助詞を挿入して読みやすくしてください",
+    "range": {
+      "end": {
+        "character": 19,
+        "line": 499,
+      },
+      "start": {
+        "character": 53,
+        "line": 497,
+      },
+    },
+  },
+  {
+    "code": "noun-chain",
+    "message": "名詞が連続して読みにくくなっています。名詞の間に助詞を挿入して読みやすくしてください",
+    "range": {
+      "end": {
+        "character": 8,
+        "line": 501,
+      },
+      "start": {
+        "character": 20,
+        "line": 499,
+      },
+    },
+  },
+  {
+    "code": "noun-chain",
+    "message": "名詞が連続して読みにくくなっています。名詞の間に助詞を挿入して読みやすくしてください",
+    "range": {
+      "end": {
+        "character": 11,
+        "line": 501,
+      },
+      "start": {
+        "character": 23,
+        "line": 500,
+      },
+    },
+  },
+  {
+    "code": "noun-chain",
+    "message": "名詞が連続して読みにくくなっています。名詞の間に助詞を挿入して読みやすくしてください",
+    "range": {
+      "end": {
+        "character": 29,
+        "line": 501,
+      },
+      "start": {
+        "character": 19,
+        "line": 501,
+      },
+    },
+  },
+  {
+    "code": "noun-chain",
+    "message": "名詞が連続して読みにくくなっています。名詞の間に助詞を挿入して読みやすくしてください",
+    "range": {
+      "end": {
+        "character": 54,
+        "line": 508,
+      },
+      "start": {
+        "character": 4,
+        "line": 503,
+      },
+    },
+  },
+  {
+    "code": "noun-chain",
+    "message": "名詞が連続して読みにくくなっています。名詞の間に助詞を挿入して読みやすくしてください",
+    "range": {
+      "end": {
+        "character": 28,
+        "line": 505,
+      },
+      "start": {
+        "character": 13,
+        "line": 503,
+      },
+    },
+  },
+  {
+    "code": "noun-chain",
+    "message": "名詞が連続して読みにくくなっています。名詞の間に助詞を挿入して読みやすくしてください",
+    "range": {
+      "end": {
+        "character": 8,
+        "line": 507,
+      },
+      "start": {
+        "character": 38,
+        "line": 506,
+      },
+    },
+  },
+  {
+    "code": "noun-chain",
+    "message": "名詞が連続して読みにくくなっています。名詞の間に助詞を挿入して読みやすくしてください",
+    "range": {
+      "end": {
+        "character": 8,
+        "line": 510,
+      },
+      "start": {
+        "character": 57,
+        "line": 508,
+      },
+    },
+  },
+  {
+    "code": "noun-chain",
+    "message": "名詞が連続して読みにくくなっています。名詞の間に助詞を挿入して読みやすくしてください",
+    "range": {
+      "end": {
+        "character": 8,
+        "line": 515,
+      },
+      "start": {
+        "character": 92,
+        "line": 510,
+      },
+    },
+  },
+  {
+    "code": "noun-chain",
+    "message": "名詞が連続して読みにくくなっています。名詞の間に助詞を挿入して読みやすくしてください",
+    "range": {
+      "end": {
+        "character": 72,
+        "line": 517,
+      },
+      "start": {
+        "character": 9,
+        "line": 515,
       },
     },
   },
@@ -624,11 +1100,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 9,
-        "line": 19,
+        "line": 18,
       },
       "start": {
         "character": 7,
-        "line": 19,
+        "line": 18,
       },
     },
   },
@@ -637,12 +1113,12 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "message": "不適切な助詞連続「がに」が検出されました。文の構造を見直してください。",
     "range": {
       "end": {
-        "character": 31,
-        "line": 354,
+        "character": 30,
+        "line": 396,
       },
       "start": {
-        "character": 10,
-        "line": 354,
+        "character": 9,
+        "line": 396,
       },
     },
   },
@@ -652,11 +1128,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 26,
-        "line": 359,
+        "line": 402,
       },
       "start": {
         "character": 15,
-        "line": 359,
+        "line": 402,
       },
     },
   },
@@ -666,11 +1142,95 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 70,
-        "line": 360,
+        "line": 403,
       },
       "start": {
         "character": 59,
-        "line": 360,
+        "line": 403,
+      },
+    },
+  },
+  {
+    "code": "particle-sequence",
+    "message": "不適切な助詞連続「がを」が検出されました。文の構造を見直してください。",
+    "range": {
+      "end": {
+        "character": 19,
+        "line": 435,
+      },
+      "start": {
+        "character": 17,
+        "line": 435,
+      },
+    },
+  },
+  {
+    "code": "particle-sequence",
+    "message": "「でです」は冗長です。「です」のみにしてください。",
+    "range": {
+      "end": {
+        "character": 23,
+        "line": 437,
+      },
+      "start": {
+        "character": 20,
+        "line": 437,
+      },
+    },
+  },
+  {
+    "code": "passive-overuse",
+    "message": "受身表現が6回使用されています（閾値: 3回）。能動態への書き換えを検討してください。",
+    "range": {
+      "end": {
+        "character": 0,
+        "line": 518,
+      },
+      "start": {
+        "character": 0,
+        "line": 0,
+      },
+    },
+  },
+  {
+    "code": "pronoun-mix",
+    "message": "人称代名詞が混在しています。私（6箇所）と僕（1箇所）が使用されています。どれかに統一してください。",
+    "range": {
+      "end": {
+        "character": 0,
+        "line": 518,
+      },
+      "start": {
+        "character": 0,
+        "line": 0,
+      },
+    },
+  },
+  {
+    "code": "punctuation-style-mix",
+    "message": "句読点のスタイルが混在しています。日本語スタイル（、。）が102箇所、欧文スタイル（，．）が1箇所あります。どちらかに統一してください。",
+    "range": {
+      "end": {
+        "character": 0,
+        "line": 518,
+      },
+      "start": {
+        "character": 0,
+        "line": 0,
+      },
+    },
+  },
+  {
+    "code": "quotation-style-mix",
+    "message": "引用符のスタイルが混在しています。「」（49箇所）と""（6箇所）が使用されています。どれかに統一してください。",
+    "range": {
+      "end": {
+        "character": 0,
+        "line": 518,
+      },
+      "start": {
+        "character": 0,
+        "line": 0,
       },
     },
   },
@@ -680,11 +1240,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 25,
-        "line": 54,
+        "line": 53,
       },
       "start": {
         "character": 21,
-        "line": 54,
+        "line": 53,
       },
     },
   },
@@ -694,11 +1254,25 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 30,
-        "line": 54,
+        "line": 53,
       },
       "start": {
         "character": 27,
-        "line": 54,
+        "line": 53,
+      },
+    },
+  },
+  {
+    "code": "ra-nuki",
+    "message": "ら抜き言葉「食べれる」が検出されました。正しくは「食べられる」です。",
+    "range": {
+      "end": {
+        "character": 21,
+        "line": 439,
+      },
+      "start": {
+        "character": 17,
+        "line": 439,
       },
     },
   },
@@ -707,12 +1281,12 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "message": "冗長表現「馬から落馬」が検出されました。「落馬」に簡潔化できます。",
     "range": {
       "end": {
-        "character": 46,
-        "line": 288,
+        "character": 0,
+        "line": 293,
       },
       "start": {
-        "character": 41,
-        "line": 288,
+        "character": 6,
+        "line": 291,
       },
     },
   },
@@ -721,12 +1295,264 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "message": "冗長表現「後で後悔」が検出されました。「後悔」に簡潔化できます。",
     "range": {
       "end": {
-        "character": 3,
-        "line": 289,
+        "character": 8,
+        "line": 293,
       },
       "start": {
-        "character": 50,
-        "line": 288,
+        "character": 4,
+        "line": 293,
+      },
+    },
+  },
+  {
+    "code": "redundant-expression",
+    "message": "冗長表現「馬から落馬」が検出されました。「落馬」に簡潔化できます。",
+    "range": {
+      "end": {
+        "character": 21,
+        "line": 449,
+      },
+      "start": {
+        "character": 16,
+        "line": 449,
+      },
+    },
+  },
+  {
+    "code": "sahen-verb",
+    "message": "サ変動詞「勉強をする」の「を」は省略できます。「勉強する」への簡潔化を検討してください。",
+    "range": {
+      "end": {
+        "character": 21,
+        "line": 451,
+      },
+      "start": {
+        "character": 16,
+        "line": 451,
+      },
+    },
+  },
+  {
+    "code": "sentence-ending-colon",
+    "message": "文末にコロン（：）が使用されています。句点（。）に変更するか、文を続けてください。",
+    "range": {
+      "end": {
+        "character": 20,
+        "line": 16,
+      },
+      "start": {
+        "character": 19,
+        "line": 16,
+      },
+    },
+  },
+  {
+    "code": "sentence-ending-colon",
+    "message": "文末にコロン（：）が使用されています。句点（。）に変更するか、文を続けてください。",
+    "range": {
+      "end": {
+        "character": 20,
+        "line": 408,
+      },
+      "start": {
+        "character": 19,
+        "line": 408,
+      },
+    },
+  },
+  {
+    "code": "sentence-ending-colon",
+    "message": "文末にコロン（：）が使用されています。句点（。）に変更するか、文を続けてください。",
+    "range": {
+      "end": {
+        "character": 32,
+        "line": 452,
+      },
+      "start": {
+        "character": 31,
+        "line": 452,
+      },
+    },
+  },
+  {
+    "code": "sentence-ending-colon",
+    "message": "文末にコロン（：）が使用されています。句点（。）に変更するか、文を続けてください。",
+    "range": {
+      "end": {
+        "character": 13,
+        "line": 510,
+      },
+      "start": {
+        "character": 12,
+        "line": 510,
+      },
+    },
+  },
+  {
+    "code": "style-inconsistency",
+    "message": "文体の混在が検出されました。この文は常体ですが、文書全体は敬体が主に使用されています。",
+    "range": {
+      "end": {
+        "character": 33,
+        "line": 438,
+      },
+      "start": {
+        "character": 24,
+        "line": 438,
+      },
+    },
+  },
+  {
+    "code": "style-inconsistency",
+    "message": "文体の混在が検出されました。この文は常体ですが、文書全体は敬体が主に使用されています。",
+    "range": {
+      "end": {
+        "character": 25,
+        "line": 460,
+      },
+      "start": {
+        "character": 0,
+        "line": 460,
+      },
+    },
+  },
+  {
+    "code": "style-inconsistency",
+    "message": "文体の混在が検出されました。この文は常体ですが、文書全体は敬体が主に使用されています。",
+    "range": {
+      "end": {
+        "character": 36,
+        "line": 460,
+      },
+      "start": {
+        "character": 25,
+        "line": 460,
+      },
+    },
+  },
+  {
+    "code": "style-inconsistency",
+    "message": "文体の混在が検出されました。この文は常体ですが、文書全体は敬体が主に使用されています。",
+    "range": {
+      "end": {
+        "character": 27,
+        "line": 461,
+      },
+      "start": {
+        "character": 0,
+        "line": 461,
+      },
+    },
+  },
+  {
+    "code": "style-inconsistency",
+    "message": "文体の混在が検出されました。この文は常体ですが、文書全体は敬体が主に使用されています。",
+    "range": {
+      "end": {
+        "character": 36,
+        "line": 461,
+      },
+      "start": {
+        "character": 27,
+        "line": 461,
+      },
+    },
+  },
+  {
+    "code": "style-inconsistency",
+    "message": "文体の混在が検出されました。この文は常体ですが、文書全体は敬体が主に使用されています。",
+    "range": {
+      "end": {
+        "character": 44,
+        "line": 461,
+      },
+      "start": {
+        "character": 36,
+        "line": 461,
+      },
+    },
+  },
+  {
+    "code": "style-inconsistency",
+    "message": "文体の混在が検出されました。この文は常体ですが、文書全体は敬体が主に使用されています。",
+    "range": {
+      "end": {
+        "character": 22,
+        "line": 463,
+      },
+      "start": {
+        "character": 0,
+        "line": 463,
+      },
+    },
+  },
+  {
+    "code": "style-inconsistency",
+    "message": "文体の混在が検出されました。この文は常体ですが、文書全体は敬体が主に使用されています。",
+    "range": {
+      "end": {
+        "character": 34,
+        "line": 472,
+      },
+      "start": {
+        "character": 0,
+        "line": 472,
+      },
+    },
+  },
+  {
+    "code": "style-inconsistency",
+    "message": "文体の混在が検出されました。この文は常体ですが、文書全体は敬体が主に使用されています。",
+    "range": {
+      "end": {
+        "character": 44,
+        "line": 478,
+      },
+      "start": {
+        "character": 30,
+        "line": 478,
+      },
+    },
+  },
+  {
+    "code": "style-inconsistency",
+    "message": "文体の混在が検出されました。この文は常体ですが、文書全体は敬体が主に使用されています。",
+    "range": {
+      "end": {
+        "character": 36,
+        "line": 479,
+      },
+      "start": {
+        "character": 0,
+        "line": 479,
+      },
+    },
+  },
+  {
+    "code": "style-inconsistency",
+    "message": "文体の混在が検出されました。この文は常体ですが、文書全体は敬体が主に使用されています。",
+    "range": {
+      "end": {
+        "character": 51,
+        "line": 479,
+      },
+      "start": {
+        "character": 36,
+        "line": 479,
+      },
+    },
+  },
+  {
+    "code": "table-column-mismatch",
+    "message": "テーブルの列数が一致しません。ヘッダーは3列ですが、この行は14列です。",
+    "range": {
+      "end": {
+        "character": 72,
+        "line": 486,
+      },
+      "start": {
+        "character": 0,
+        "line": 486,
       },
     },
   },
@@ -735,12 +1561,12 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "message": "重複表現「頭痛が痛い」が検出されました。「頭」と「痛い」が重複しています。",
     "range": {
       "end": {
-        "character": 22,
-        "line": 299,
+        "character": 34,
+        "line": 306,
       },
       "start": {
-        "character": 17,
-        "line": 299,
+        "character": 25,
+        "line": 306,
       },
     },
   },
@@ -749,12 +1575,40 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "message": "重複表現「違和感を感じる」が検出されました。「感」が重複しています。",
     "range": {
       "end": {
-        "character": 4,
-        "line": 300,
+        "character": 50,
+        "line": 306,
       },
       "start": {
-        "character": 24,
-        "line": 299,
+        "character": 43,
+        "line": 306,
+      },
+    },
+  },
+  {
+    "code": "tautology",
+    "message": "重複表現「頭痛が痛い」が検出されました。「頭」と「痛い」が重複しています。",
+    "range": {
+      "end": {
+        "character": 27,
+        "line": 450,
+      },
+      "start": {
+        "character": 22,
+        "line": 450,
+      },
+    },
+  },
+  {
+    "code": "term-notation",
+    "message": "技術用語の表記「Javascript」は「JavaScript」に統一してください。",
+    "range": {
+      "end": {
+        "character": 28,
+        "line": 447,
+      },
+      "start": {
+        "character": 18,
+        "line": 447,
       },
     },
   },
@@ -763,12 +1617,68 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "message": "技術用語の表記「vscode」は「VS Code」に統一してください。",
     "range": {
       "end": {
-        "character": 38,
-        "line": 441,
+        "character": 37,
+        "line": 497,
       },
       "start": {
-        "character": 32,
-        "line": 441,
+        "character": 31,
+        "line": 497,
+      },
+    },
+  },
+  {
+    "code": "twisted-sentence",
+    "message": "ねじれ文が検出されました。主語と述語の対応を確認してください。",
+    "range": {
+      "end": {
+        "character": 29,
+        "line": 453,
+      },
+      "start": {
+        "character": 16,
+        "line": 453,
+      },
+    },
+  },
+  {
+    "code": "unit-notation-mix",
+    "message": "単位表記が混在しています。記号表記（100km）とカタカナ表記（キロメートル）が使用されています。",
+    "range": {
+      "end": {
+        "character": 0,
+        "line": 518,
+      },
+      "start": {
+        "character": 0,
+        "line": 0,
+      },
+    },
+  },
+  {
+    "code": "verb-particle-mismatch",
+    "message": "動詞「行く」は自動詞のため、助詞「を」との組み合わせが不自然です。「に」や「へ」を使用してください。",
+    "range": {
+      "end": {
+        "character": 25,
+        "line": 436,
+      },
+      "start": {
+        "character": 22,
+        "line": 436,
+      },
+    },
+  },
+  {
+    "code": "weak-expression",
+    "message": "弱い表現「かもしれない」が使用されています。より断定的な表現を検討してください。",
+    "range": {
+      "end": {
+        "character": 28,
+        "line": 445,
+      },
+      "start": {
+        "character": 22,
+        "line": 445,
       },
     },
   },

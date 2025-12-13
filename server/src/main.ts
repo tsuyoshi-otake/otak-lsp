@@ -117,16 +117,32 @@ connection.onInitialized(() => {
  */
 connection.onDidChangeConfiguration((change) => {
   if (change.settings?.otakLcp) {
-    const newConfig = change.settings.otakLcp as Partial<Configuration>;
+    const newConfig = change.settings.otakLcp as any;
     const wasGrammarEnabled = configuration.enableGrammarCheck;
     const wasSemanticEnabled = configuration.enableSemanticHighlight;
 
+    // 基本設定を更新
     configuration = {
       ...configuration,
-      ...newConfig,
+      enableGrammarCheck: newConfig.enableGrammarCheck ?? configuration.enableGrammarCheck,
+      enableSemanticHighlight: newConfig.enableSemanticHighlight ?? configuration.enableSemanticHighlight,
+      excludeTableDelimiters: newConfig.excludeTableDelimiters ?? configuration.excludeTableDelimiters,
+      targetLanguages: newConfig.targetLanguages ?? configuration.targetLanguages,
+      debounceDelay: newConfig.debounceDelay ?? configuration.debounceDelay,
     };
 
-    connection.console.log(`Configuration updated: grammarCheck=${configuration.enableGrammarCheck}, semanticHighlight=${configuration.enableSemanticHighlight}`);
+    // 高度なルール設定を更新
+    const advancedConfig = {
+      ...advancedRulesManager.getConfig(),
+      sentenceSplitMode: newConfig.sentenceSplitMode ?? advancedRulesManager.getConfig().sentenceSplitMode,
+      // 他の高度な設定も必要に応じて更新
+      enableStyleConsistency: newConfig.advanced?.enableStyleConsistency ?? advancedRulesManager.getConfig().enableStyleConsistency,
+      enableRaNukiDetection: newConfig.advanced?.enableRaNukiDetection ?? advancedRulesManager.getConfig().enableRaNukiDetection,
+      // ... 他の設定も同様に
+    };
+    advancedRulesManager.updateConfig(advancedConfig);
+
+    connection.console.log(`Configuration updated: grammarCheck=${configuration.enableGrammarCheck}, semanticHighlight=${configuration.enableSemanticHighlight}, sentenceSplitMode=${advancedConfig.sentenceSplitMode}`);
 
     // 文法チェックが無効になった場合、診断をクリア
     if (wasGrammarEnabled && !configuration.enableGrammarCheck) {

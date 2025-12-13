@@ -249,11 +249,101 @@ describe('SentenceParser', () => {
       expect(sentences).toHaveLength(2);
     });
 
+    it('should split on single newline in strict mode', () => {
+      const text = 'これはテストです\nこれもテストです';
+      const sentences = SentenceParser.parseSentences(text, [], undefined, 'strict');
+
+      expect(sentences).toHaveLength(2);
+      expect(sentences[0].text).toBe('これはテストです');
+      expect(sentences[1].text).toBe('これもテストです');
+    });
+
+    it('should not split on single newline in loose mode', () => {
+      const text = 'これはテストです\nこれもテストです';
+      const sentences = SentenceParser.parseSentences(text, [], undefined, 'loose');
+
+      expect(sentences).toHaveLength(1);
+      expect(sentences[0].text).toBe('これはテストです\nこれもテストです');
+    });
+
+    it('should split markdown list items in normal mode', () => {
+      const text = '- 項目Aです\n- 項目Bです\n- 項目Cです';
+      const sentences = SentenceParser.parseSentences(text, [], undefined, 'normal');
+
+      expect(sentences).toHaveLength(3);
+      expect(sentences[0].text).toBe('- 項目Aです');
+      expect(sentences[1].text).toBe('- 項目Bです');
+      expect(sentences[2].text).toBe('- 項目Cです');
+    });
+
+    it('should merge lines ending with particle in normal mode', () => {
+      const text = 'これは\nテストです。';
+      const sentences = SentenceParser.parseSentences(text, [], undefined, 'normal');
+
+      // 「これは」で終わる行は次の行と結合される
+      expect(sentences).toHaveLength(1);
+      expect(sentences[0].text).toBe('これは\nテストです。');
+    });
+
+    it('should split lines ending with period in normal mode', () => {
+      const text = 'これはテストです。\nこれもテストです。';
+      const sentences = SentenceParser.parseSentences(text, [], undefined, 'normal');
+
+      expect(sentences).toHaveLength(2);
+      expect(sentences[0].text).toBe('これはテストです。');
+      expect(sentences[1].text).toBe('これもテストです。');
+    });
+
+    it('should split lines ending with colon in normal mode', () => {
+      const text = '以下の項目:\n- 項目A';
+      const sentences = SentenceParser.parseSentences(text, [], undefined, 'normal');
+
+      expect(sentences).toHaveLength(2);
+      expect(sentences[0].text).toBe('以下の項目:');
+      expect(sentences[1].text).toBe('- 項目A');
+    });
+
     it('should handle mixed punctuation', () => {
       const text = 'これは何？！そうです。';
       const sentences = SentenceParser.parseSentences(text, []);
 
       expect(sentences.length).toBeGreaterThanOrEqual(2);
+    });
+
+    it('should handle CRLF line endings in strict mode', () => {
+      const text = 'これはテストです\r\nこれもテストです';
+      const sentences = SentenceParser.parseSentences(text, [], undefined, 'strict');
+
+      expect(sentences).toHaveLength(2);
+      expect(sentences[0].text).toBe('これはテストです');
+      expect(sentences[1].text).toBe('これもテストです');
+    });
+
+    it('should handle CRLF line endings in normal mode', () => {
+      const text = 'これはテストです。\r\nこれもテストです。';
+      const sentences = SentenceParser.parseSentences(text, [], undefined, 'normal');
+
+      expect(sentences).toHaveLength(2);
+      expect(sentences[0].text).toBe('これはテストです。');
+      expect(sentences[1].text).toBe('これもテストです。');
+    });
+
+    it('should merge lines with CRLF when ending with particle in normal mode', () => {
+      const text = 'これは\r\nテストです。';
+      const sentences = SentenceParser.parseSentences(text, [], undefined, 'normal');
+
+      expect(sentences).toHaveLength(1);
+      expect(sentences[0].text).toBe('これは\r\nテストです。');
+    });
+
+    it('should handle mixed LF and CRLF line endings', () => {
+      const text = 'これはテストです。\nこれもテストです。\r\nさらにテストです。';
+      const sentences = SentenceParser.parseSentences(text, [], undefined, 'normal');
+
+      expect(sentences).toHaveLength(3);
+      expect(sentences[0].text).toBe('これはテストです。');
+      expect(sentences[1].text).toBe('これもテストです。');
+      expect(sentences[2].text).toBe('さらにテストです。');
     });
   });
 });

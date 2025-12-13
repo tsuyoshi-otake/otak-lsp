@@ -25,7 +25,7 @@ describe('EvalsRunner', () => {
     it('should return total counts', async () => {
       const results = await runner.runEvals();
 
-      expect(results.totalCategories).toBe(43);
+      expect(results.totalCategories).toBe(54); // 44 + 10 new categories (evals-ng-pattern-expansion)
       expect(results.totalExamples).toBeGreaterThan(0);
     }, 60000);
 
@@ -108,5 +108,114 @@ describe('EvalsRunner', () => {
       },
       30000
     );
+  });
+
+  // Task 17.1: EvalsRunnerの統合テスト (Feature: evals-ng-pattern-expansion)
+  describe('evals-ng-pattern-expansion integration tests', () => {
+    // プロパティ 3: 検出率の計算正確性
+    it('should calculate detection rate correctly (0-100 range)', async () => {
+      const results = await runner.runEvals();
+
+      // 検出率は0から100の範囲内
+      expect(results.detectionRate).toBeGreaterThanOrEqual(0);
+      expect(results.detectionRate).toBeLessThanOrEqual(100);
+
+      // 各カテゴリの検出率も0-100の範囲内
+      results.categories.forEach(category => {
+        expect(category.detectionRate).toBeGreaterThanOrEqual(0);
+        expect(category.detectionRate).toBeLessThanOrEqual(100);
+      });
+    }, 60000);
+
+    // 検出率が (検出数 / 例文数) * 100 で計算されていることを確認
+    it('should calculate detection rate as (detected / total) * 100', async () => {
+      const results = await runner.runEvals();
+
+      results.categories
+        .filter(c => c.status !== 'NOT_IMPL')
+        .forEach(category => {
+          const expectedRate = category.total > 0
+            ? Math.round((category.detected / category.total) * 100)
+            : 0;
+          expect(category.detectionRate).toBe(expectedRate);
+        });
+    }, 60000);
+
+    // 新しいカテゴリ (evals-ng-pattern-expansion) の評価テスト
+    describe('new pattern categories', () => {
+      it('should evaluate punctuation-style-mix category', async () => {
+        const category = NG_EXAMPLE_CATEGORIES.find(c => c.id === 'punctuation-style-mix');
+        expect(category).toBeDefined();
+
+        const result = await runner.evaluateCategory(category!);
+        expect(result.categoryId).toBe('punctuation-style-mix');
+        expect(result.status).not.toBe('NOT_IMPL');
+      }, 30000);
+
+      it('should evaluate quotation-style-mix category', async () => {
+        const category = NG_EXAMPLE_CATEGORIES.find(c => c.id === 'quotation-style-mix');
+        expect(category).toBeDefined();
+
+        const result = await runner.evaluateCategory(category!);
+        expect(result.categoryId).toBe('quotation-style-mix');
+        expect(result.status).not.toBe('NOT_IMPL');
+      }, 30000);
+
+      it('should evaluate bullet-style-mix category', async () => {
+        const category = NG_EXAMPLE_CATEGORIES.find(c => c.id === 'bullet-style-mix');
+        expect(category).toBeDefined();
+
+        const result = await runner.evaluateCategory(category!);
+        expect(result.categoryId).toBe('bullet-style-mix');
+        expect(result.status).not.toBe('NOT_IMPL');
+      }, 30000);
+
+      it('should evaluate english-case-mix category', async () => {
+        const category = NG_EXAMPLE_CATEGORIES.find(c => c.id === 'english-case-mix');
+        expect(category).toBeDefined();
+
+        const result = await runner.evaluateCategory(category!);
+        expect(result.categoryId).toBe('english-case-mix');
+        expect(result.status).not.toBe('NOT_IMPL');
+      }, 30000);
+
+      it('should evaluate heading-level-skip category', async () => {
+        const category = NG_EXAMPLE_CATEGORIES.find(c => c.id === 'heading-level-skip');
+        expect(category).toBeDefined();
+
+        const result = await runner.evaluateCategory(category!);
+        expect(result.categoryId).toBe('heading-level-skip');
+        expect(result.status).not.toBe('NOT_IMPL');
+      }, 30000);
+
+      it('should evaluate table-column-mismatch category', async () => {
+        const category = NG_EXAMPLE_CATEGORIES.find(c => c.id === 'table-column-mismatch');
+        expect(category).toBeDefined();
+
+        const result = await runner.evaluateCategory(category!);
+        expect(result.categoryId).toBe('table-column-mismatch');
+        expect(result.status).not.toBe('NOT_IMPL');
+      }, 30000);
+
+      it('should evaluate code-block-language category', async () => {
+        const category = NG_EXAMPLE_CATEGORIES.find(c => c.id === 'code-block-language');
+        expect(category).toBeDefined();
+
+        const result = await runner.evaluateCategory(category!);
+        expect(result.categoryId).toBe('code-block-language');
+        expect(result.status).not.toBe('NOT_IMPL');
+      }, 30000);
+    });
+
+    // 新しいカテゴリの総数が54であることを確認
+    it('should have 54 total categories (44 existing + 10 new)', async () => {
+      expect(NG_EXAMPLE_CATEGORIES.length).toBe(54);
+    });
+
+    // 全カテゴリが実装済み（IMPLEMENTED）であることを確認
+    it('should have all categories implemented', async () => {
+      const notImplemented = NG_EXAMPLE_CATEGORIES.filter(c => c.status === 'NOT_IMPL');
+      expect(notImplemented.length).toBe(0);
+    });
   });
 });

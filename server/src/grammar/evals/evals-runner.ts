@@ -55,7 +55,20 @@ import {
   DateFormatVariantRule,
   DashTildeNormalizationRule,
   NakaguroUsageRule,
-  SymbolWidthMixRule
+  SymbolWidthMixRule,
+  // Sentence Ending Colon Detection (Feature: sentence-ending-colon-detection)
+  SentenceEndingColonRule,
+  // Evals NG Pattern Expansion (Feature: evals-ng-pattern-expansion)
+  PunctuationStyleMixRule,
+  QuotationStyleMixRule,
+  BulletStyleMixRule,
+  EmphasisStyleMixRule,
+  EnglishCaseMixRule,
+  UnitNotationMixRule,
+  PronounMixRule,
+  HeadingLevelSkipRule,
+  TableColumnMismatchRule,
+  CodeBlockLanguageRule
 } from '../rules';
 import { SentenceParser } from '../sentenceParser';
 import {
@@ -243,6 +256,19 @@ export class EvalsRunner {
     this.advancedRules.set('dash-tilde-normalization', new DashTildeNormalizationRule());
     this.advancedRules.set('nakaguro-usage', new NakaguroUsageRule());
     this.advancedRules.set('symbol-width-mix', new SymbolWidthMixRule());
+    // Sentence Ending Colon Detection (Feature: sentence-ending-colon-detection)
+    this.advancedRules.set('sentence-ending-colon', new SentenceEndingColonRule());
+    // Evals NG Pattern Expansion (Feature: evals-ng-pattern-expansion)
+    this.advancedRules.set('punctuation-style-mix', new PunctuationStyleMixRule());
+    this.advancedRules.set('quotation-style-mix', new QuotationStyleMixRule());
+    this.advancedRules.set('bullet-style-mix', new BulletStyleMixRule());
+    this.advancedRules.set('emphasis-style-mix', new EmphasisStyleMixRule());
+    this.advancedRules.set('english-case-mix', new EnglishCaseMixRule());
+    this.advancedRules.set('unit-notation-mix', new UnitNotationMixRule());
+    this.advancedRules.set('pronoun-mix', new PronounMixRule());
+    this.advancedRules.set('heading-level-skip', new HeadingLevelSkipRule());
+    this.advancedRules.set('table-column-mismatch', new TableColumnMismatchRule());
+    this.advancedRules.set('code-block-language', new CodeBlockLanguageRule());
   }
 
   /**
@@ -478,7 +504,20 @@ export class EvalsRunner {
       'date-format-variant': ['date-format-variant'],
       'dash-tilde-normalization': ['dash-tilde-normalization'],
       'nakaguro-usage': ['nakaguro-usage'],
-      'symbol-width-mix': ['symbol-width-mix']
+      'symbol-width-mix': ['symbol-width-mix'],
+      // Sentence Ending Colon Detection (Feature: sentence-ending-colon-detection)
+      'sentence-ending-colon': ['sentence-ending-colon'],
+      // Evals NG Pattern Expansion (Feature: evals-ng-pattern-expansion)
+      'punctuation-style-mix': ['punctuation-style-mix'],
+      'quotation-style-mix': ['quotation-style-mix'],
+      'bullet-style-mix': ['bullet-style-mix'],
+      'emphasis-style-mix': ['emphasis-style-mix'],
+      'english-case-mix': ['english-case-mix'],
+      'unit-notation-mix': ['unit-notation-mix'],
+      'pronoun-mix': ['pronoun-mix'],
+      'heading-level-skip': ['heading-level-skip'],
+      'table-column-mismatch': ['table-column-mismatch'],
+      'code-block-language': ['code-block-language']
     };
 
     const expectedRules = ruleAliases[expectedRule] || [expectedRule];

@@ -28,12 +28,12 @@ describe('Japanese Grammar Evals', () => {
       expect(result.detectionRate).toBeGreaterThanOrEqual(DETECTION_RATE_THRESHOLD);
     });
 
-    it('should have 43 total categories', () => {
-      expect(result.totalCategories).toBe(43);
+    it('should have 54 total categories (44 original + 10 new from evals-ng-pattern-expansion)', () => {
+      expect(result.totalCategories).toBe(54);
     });
 
-    it('should have at least 15 implemented categories', () => {
-      expect(result.implementedCategories).toBeGreaterThanOrEqual(15);
+    it('should have all 54 categories implemented', () => {
+      expect(result.implementedCategories).toBe(54);
     });
   });
 
@@ -113,12 +113,120 @@ describe('Japanese Grammar Evals', () => {
   describe('Summary Output', () => {
     it('should generate summary without errors', () => {
       expect(result.timestamp).toBeDefined();
-      expect(result.categories.length).toBe(43);
+      expect(result.categories.length).toBe(54);
     });
 
     it('should have valid detection counts', () => {
       expect(result.detectedExamples).toBeGreaterThanOrEqual(0);
       expect(result.detectedExamples).toBeLessThanOrEqual(result.totalExamples);
+    });
+  });
+
+  // Task 22: 統合テスト - 実際の文書での検出確認 (Feature: evals-ng-pattern-expansion)
+  describe('evals-ng-pattern-expansion Document Detection', () => {
+    // 新しいルールの検出テスト（実際の文書例）
+    const newPatternExamples = [
+      // 句読点スタイルの混在
+      {
+        text: 'これは例文です。しかし，これは混在している。',
+        ruleId: 'punctuation-style-mix',
+        description: '句読点スタイルの混在'
+      },
+      // 引用符スタイルの混在
+      {
+        text: '彼は「こんにちは」と言った。彼女は"さようなら"と答えた。',
+        ruleId: 'quotation-style-mix',
+        description: '引用符スタイルの混在'
+      },
+      // 箇条書き記号の混在
+      {
+        text: '・項目1\n- 項目2\n* 項目3',
+        ruleId: 'bullet-style-mix',
+        description: '箇条書き記号の混在'
+      },
+      // 強調記号の混在
+      {
+        text: '**太字**と__下線強調__の混在。',
+        ruleId: 'emphasis-style-mix',
+        description: '強調記号の混在'
+      },
+      // 英語表記の大文字小文字混在
+      {
+        text: 'APIを使用します。apiの設計は重要です。',
+        ruleId: 'english-case-mix',
+        description: '英語表記の大文字小文字混在'
+      },
+      // 単位表記の混在
+      {
+        text: '速度は100km/hで、距離は50キロメートルです。',
+        ruleId: 'unit-notation-mix',
+        description: '単位表記の混在'
+      },
+      // 人称代名詞の混在
+      {
+        text: '私は開発者です。僕はプログラミングが好きです。',
+        ruleId: 'pronoun-mix',
+        description: '人称代名詞の混在'
+      },
+      // 見出しレベルの飛び
+      {
+        text: '# タイトル\n### サブセクション',
+        ruleId: 'heading-level-skip',
+        description: '見出しレベルの飛び'
+      },
+      // テーブル列数の不一致
+      {
+        text: '| A | B | C |\n|---|---|\n| 1 | 2 | 3 |',
+        ruleId: 'table-column-mismatch',
+        description: 'テーブル列数の不一致'
+      },
+      // コードブロック言語指定の欠落
+      {
+        text: '```\nconst x = 1;\n```',
+        ruleId: 'code-block-language',
+        description: 'コードブロック言語指定の欠落'
+      }
+    ];
+
+    it.each(newPatternExamples)(
+      'should detect $description: $text',
+      async ({ text, ruleId }) => {
+        const evalResult = await runner.evaluateExample(text, ruleId);
+        expect(evalResult.detected).toBe(true);
+      }
+    );
+
+    // 複合文書での検出テスト
+    describe('Combined Document Detection', () => {
+      it('should detect multiple issues in a complex document', async () => {
+        const complexDocument = `# 概要
+
+私は開発者です。
+
+## 技術スタック
+
+APIを使用します。apiの設計は重要です。
+
+### 詳細
+
+- 項目1
+* 項目2
+・項目3
+
+これは例文です。しかし，混在している。`;
+
+        // API/apiの混在
+        const caseMixResult = await runner.evaluateExample(complexDocument, 'english-case-mix');
+        expect(caseMixResult.detected).toBe(true);
+
+        // 箇条書き記号の混在
+        const bulletResult = await runner.evaluateExample(complexDocument, 'bullet-style-mix');
+        expect(bulletResult.detected).toBe(true);
+
+        // 句読点の混在
+        const punctuationResult = await runner.evaluateExample(complexDocument, 'punctuation-style-mix');
+        expect(punctuationResult.detected).toBe(true);
+      });
     });
   });
 });

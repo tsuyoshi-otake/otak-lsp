@@ -2,7 +2,7 @@
   "name": "otak-lcp",
   "displayName": "otak-lcp - Japanese Grammar Analyzer",
   "description": "日本語形態素解析VSCode拡張機能（外部依存なし）。文法チェック、セマンティックハイライト、ホバー情報を提供します。kuromoji.js内蔵でMeCab不要。",
-  "version": "0.1.5",
+  "version": "0.1.9",
   "publisher": "otak-lsp",
   "license": "MIT",
   "repository": {
@@ -78,9 +78,29 @@
           "type": "array",
           "items": {
             "type": "string",
-            "enum": ["markdown", "javascript", "typescript", "python", "c", "cpp", "java", "rust", "plaintext"]
+            "enum": [
+              "markdown",
+              "javascript",
+              "typescript",
+              "python",
+              "c",
+              "cpp",
+              "java",
+              "rust",
+              "plaintext"
+            ]
           },
-          "default": ["markdown", "javascript", "typescript", "python", "c", "cpp", "java", "rust", "plaintext"],
+          "default": [
+            "markdown",
+            "javascript",
+            "typescript",
+            "python",
+            "c",
+            "cpp",
+            "java",
+            "rust",
+            "plaintext"
+          ],
           "description": "解析対象のファイルタイプ。プログラミング言語ではコメント内の日本語を解析します。",
           "scope": "resource"
         },
@@ -90,6 +110,13 @@
           "minimum": 100,
           "maximum": 5000,
           "description": "テキスト編集後に解析を開始するまでの遅延時間（ミリ秒）",
+          "scope": "resource"
+        },
+        "otakLcp.sentenceSplitMode": {
+          "type": "string",
+          "enum": ["strict", "normal", "loose"],
+          "default": "normal",
+          "description": "文分割モード。strict: 改行を常に文の区切りとして扱う、normal: 文脈を考慮して判断（推奨）、loose: 段落区切り（空行）のみを文の区切りとして扱う",
           "scope": "resource"
         },
         "otakLcp.advanced.enableStyleConsistency": {
@@ -198,7 +225,11 @@
         },
         "otakLcp.advanced.weakExpressionLevel": {
           "type": "string",
-          "enum": ["strict", "normal", "loose"],
+          "enum": [
+            "strict",
+            "normal",
+            "loose"
+          ],
           "default": "normal",
           "description": "弱い表現の検出レベル（strict: 厳格、normal: 標準、loose: 緩め）",
           "scope": "resource"
@@ -256,26 +287,128 @@
           "maximum": 500,
           "description": "長文と判定する文字数の閾値",
           "scope": "resource"
+        },
+        "otakLcp.advanced.enableSentenceEndingColon": {
+          "type": "boolean",
+          "default": true,
+          "description": "文末コロン検出の有効/無効（日本語文の末尾に全角コロンが使用されている場合に警告）",
+          "scope": "resource"
+        },
+        "otakLcp.advanced.enablePunctuationStyleMix": {
+          "type": "boolean",
+          "default": true,
+          "description": "句読点スタイル混在検出の有効/無効（、。と，．の混在を検出）",
+          "scope": "resource"
+        },
+        "otakLcp.advanced.enableQuotationStyleMix": {
+          "type": "boolean",
+          "default": true,
+          "description": "引用符スタイル混在検出の有効/無効（「」と\"\"と''の混在を検出）",
+          "scope": "resource"
+        },
+        "otakLcp.advanced.enableBulletStyleMix": {
+          "type": "boolean",
+          "default": true,
+          "description": "箇条書き記号混在検出の有効/無効（・と-と*の混在を検出）",
+          "scope": "resource"
+        },
+        "otakLcp.advanced.enableEmphasisStyleMix": {
+          "type": "boolean",
+          "default": true,
+          "description": "強調記号混在検出の有効/無効（**と__の混在を検出）",
+          "scope": "resource"
+        },
+        "otakLcp.advanced.enableEnglishCaseMix": {
+          "type": "boolean",
+          "default": true,
+          "description": "英語表記大文字小文字混在検出の有効/無効（api/API/Apiなどの混在を検出）",
+          "scope": "resource"
+        },
+        "otakLcp.advanced.enableUnitNotationMix": {
+          "type": "boolean",
+          "default": true,
+          "description": "単位表記混在検出の有効/無効（km/hとキロメートルの混在を検出）",
+          "scope": "resource"
+        },
+        "otakLcp.advanced.enablePronounMix": {
+          "type": "boolean",
+          "default": true,
+          "description": "人称代名詞混在検出の有効/無効（私/僕/自分/当方の混在を検出）",
+          "scope": "resource"
+        },
+        "otakLcp.advanced.enableHeadingLevelSkip": {
+          "type": "boolean",
+          "default": true,
+          "description": "見出しレベル飛び検出の有効/無効（h1の次にh3などの飛びを検出）",
+          "scope": "resource"
+        },
+        "otakLcp.advanced.enableTableColumnMismatch": {
+          "type": "boolean",
+          "default": true,
+          "description": "テーブル列数不一致検出の有効/無効（Markdownテーブルの列数不一致を検出）",
+          "scope": "resource"
+        },
+        "otakLcp.advanced.enableCodeBlockLanguage": {
+          "type": "boolean",
+          "default": true,
+          "description": "コードブロック言語指定欠落検出の有効/無効（言語指定のないコードブロックを検出）",
+          "scope": "resource"
         }
       }
     },
     "semanticTokenTypes": [
-      { "id": "noun", "description": "名詞", "superType": "variable" },
-      { "id": "verb", "description": "動詞", "superType": "function" },
-      { "id": "adjective", "description": "形容詞", "superType": "property" },
-      { "id": "particle", "description": "助詞", "superType": "keyword" },
-      { "id": "adverb", "description": "副詞", "superType": "parameter" },
-      { "id": "other", "description": "その他", "superType": "string" }
+      {
+        "id": "noun",
+        "description": "名詞",
+        "superType": "variable"
+      },
+      {
+        "id": "verb",
+        "description": "動詞",
+        "superType": "function"
+      },
+      {
+        "id": "adjective",
+        "description": "形容詞",
+        "superType": "property"
+      },
+      {
+        "id": "particle",
+        "description": "助詞",
+        "superType": "keyword"
+      },
+      {
+        "id": "adverb",
+        "description": "副詞",
+        "superType": "parameter"
+      },
+      {
+        "id": "other",
+        "description": "その他",
+        "superType": "string"
+      }
     ],
     "semanticTokenScopes": [
       {
         "scopes": {
-          "noun": ["entity.name.variable.japanese"],
-          "verb": ["entity.name.function.japanese"],
-          "adjective": ["entity.name.property.japanese"],
-          "particle": ["keyword.other.japanese"],
-          "adverb": ["support.variable.japanese"],
-          "other": ["string.japanese"]
+          "noun": [
+            "entity.name.variable.japanese"
+          ],
+          "verb": [
+            "entity.name.function.japanese"
+          ],
+          "adjective": [
+            "entity.name.property.japanese"
+          ],
+          "particle": [
+            "keyword.other.japanese"
+          ],
+          "adverb": [
+            "support.variable.japanese"
+          ],
+          "other": [
+            "string.japanese"
+          ]
         }
       }
     ],

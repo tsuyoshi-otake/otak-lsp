@@ -44,7 +44,20 @@ import {
   AmbiguousDemonstrativeRule,
   PassiveOveruseRule,
   NounChainRule,
-  ConjunctionMisuseRule
+  ConjunctionMisuseRule,
+  // Sentence Ending Colon Detection (Feature: sentence-ending-colon-detection)
+  SentenceEndingColonRule,
+  // Evals NG Pattern Expansion (Feature: evals-ng-pattern-expansion)
+  PunctuationStyleMixRule,
+  QuotationStyleMixRule,
+  BulletStyleMixRule,
+  EmphasisStyleMixRule,
+  EnglishCaseMixRule,
+  UnitNotationMixRule,
+  PronounMixRule,
+  HeadingLevelSkipRule,
+  TableColumnMismatchRule,
+  CodeBlockLanguageRule
 } from './rules';
 
 /**
@@ -55,17 +68,74 @@ export class AdvancedRulesManager {
   private rules: AdvancedGrammarRule[];
   private config: AdvancedRulesConfig;
   private lineStarts: number[] = [];
+  private firstLineLength: number = 0;
 
   /**
    * テキストから行開始位置を計算
+   * (Feature: diagnostic-range-fix)
    */
   private calculateLineStarts(text: string): void {
     this.lineStarts = [0];
+    let firstNewlineIndex = text.indexOf('\n');
+    this.firstLineLength = firstNewlineIndex === -1 ? text.length : firstNewlineIndex;
+
     for (let i = 0; i < text.length; i++) {
       if (text[i] === '\n') {
         this.lineStarts.push(i + 1);
       }
     }
+  }
+
+  /**
+   * オフセットから行と文字位置を取得
+   * (Feature: diagnostic-range-fix)
+   */
+  private offsetToPosition(offset: number): Position {
+    let line = 0;
+    for (let i = 1; i < this.lineStarts.length; i++) {
+      if (offset < this.lineStarts[i]) {
+        break;
+      }
+      line = i;
+    }
+    return { line, character: offset - this.lineStarts[line] };
+  }
+
+  /**
+   * 診断のrangeがオフセットベースかどうかを判定して必要に応じて変換
+   * (Feature: diagnostic-range-fix)
+   *
+   * 判定ロジック:
+   * - line: 0 かつ character が最初の行の長さを超えている場合はオフセットベースと判断
+   * - それ以外は正しい行/文字ベースと判断してそのまま返す
+   *
+   * 要件 1.2: 既に正しい範囲を持っている場合は変更しない
+   * 要件 1.3: オフセットベースの場合は行/文字ベースに変換する
+   */
+  private fixDiagnosticRange(diagnostic: Diagnostic): Diagnostic {
+    const { start, end } = diagnostic.range;
+
+    // 行番号が0でない場合、または両方の行番号が異なる場合は
+    // 既に正しい行/文字ベースの位置を持っていると判断
+    if (start.line !== 0 || end.line !== 0 || start.line !== end.line) {
+      return diagnostic;
+    }
+
+    // line: 0 の場合、character が最初の行の長さを超えているかチェック
+    // 超えている場合はオフセットベースと判断して変換
+    const maxChar = Math.max(start.character, end.character);
+    if (maxChar > this.firstLineLength) {
+      // オフセットベースの範囲を行/文字ベースに変換
+      const newStart = this.offsetToPosition(start.character);
+      const newEnd = this.offsetToPosition(end.character);
+      return {
+        ...diagnostic,
+        range: { start: newStart, end: newEnd }
+      };
+    }
+
+    // 最初の行の範囲内なので、正しい行/文字ベースと判断
+    return diagnostic;
   }
 
   /**
@@ -111,40 +181,6 @@ export class AdvancedRulesManager {
     return chars.join('');
   }
 
-  /**
-   * オフセットから行と文字位置を取得
-   */
-  private offsetToPosition(offset: number): Position {
-    let line = 0;
-    for (let i = 1; i < this.lineStarts.length; i++) {
-      if (offset < this.lineStarts[i]) {
-        break;
-      }
-      line = i;
-    }
-    return { line, character: offset - this.lineStarts[line] };
-  }
-
-  /**
-   * 診断のrangeを修正（offsetベースからline/charベースへ）
-   */
-  private fixDiagnosticRange(diagnostic: Diagnostic): Diagnostic {
-    // rangeのstart/endがoffsetとして使われている場合を修正
-    const startOffset = diagnostic.range.start.character;
-    const endOffset = diagnostic.range.end.character;
-
-    // line: 0 が使われている場合はoffsetベースと判断
-    if (diagnostic.range.start.line === 0 && diagnostic.range.end.line === 0) {
-      const start = this.offsetToPosition(startOffset);
-      const end = this.offsetToPosition(endOffset);
-      return {
-        ...diagnostic,
-        range: { start, end }
-      };
-    }
-    return diagnostic;
-  }
-
   constructor(config?: Partial<AdvancedRulesConfig>) {
     this.config = { ...DEFAULT_ADVANCED_RULES_CONFIG, ...config };
     this.rules = [
@@ -176,7 +212,20 @@ export class AdvancedRulesManager {
       new AmbiguousDemonstrativeRule(),
       new PassiveOveruseRule(),
       new NounChainRule(),
-      new ConjunctionMisuseRule()
+      new ConjunctionMisuseRule(),
+      // Sentence Ending Colon Detection (Feature: sentence-ending-colon-detection)
+      new SentenceEndingColonRule(),
+      // Evals NG Pattern Expansion (Feature: evals-ng-pattern-expansion)
+      new PunctuationStyleMixRule(),
+      new QuotationStyleMixRule(),
+      new BulletStyleMixRule(),
+      new EmphasisStyleMixRule(),
+      new EnglishCaseMixRule(),
+      new UnitNotationMixRule(),
+      new PronounMixRule(),
+      new HeadingLevelSkipRule(),
+      new TableColumnMismatchRule(),
+      new CodeBlockLanguageRule()
     ];
   }
 
@@ -217,16 +266,18 @@ export class AdvancedRulesManager {
 
   /**
    * テキストをチェック
+   * 診断の範囲はオフセットベースの場合のみ行/文字ベースに変換する
+   * (Feature: diagnostic-range-fix)
    */
   checkText(text: string, tokens: Token[], excludedRanges?: ExcludedRange[]): Diagnostic[] {
     const effectiveText = excludedRanges
       ? this.maskTableContent(text, excludedRanges)
       : text;
 
-    // 行開始位置を計算
+    // 行開始位置を計算（オフセットベース範囲の変換に使用）
     this.calculateLineStarts(effectiveText);
 
-    const parsedSentences = SentenceParser.parseSentences(effectiveText, tokens, excludedRanges);
+    const parsedSentences = SentenceParser.parseSentences(effectiveText, tokens, excludedRanges, this.config.sentenceSplitMode);
     const sentences = excludedRanges
       ? this.filterOutTableSentences(parsedSentences, excludedRanges)
       : parsedSentences;
@@ -248,22 +299,24 @@ export class AdvancedRulesManager {
       }
     }
 
-    // offsetベースのrangeをline/charベースに変換
+    // オフセットベースの範囲のみ行/文字ベースに変換（要件 1.2, 1.3）
     return diagnostics.map(d => this.fixDiagnosticRange(d.toDiagnostic()));
   }
 
   /**
    * 特定のルールのみでチェック
+   * 診断の範囲はオフセットベースの場合のみ行/文字ベースに変換する
+   * (Feature: diagnostic-range-fix)
    */
   checkWithRules(text: string, tokens: Token[], ruleNames: string[], excludedRanges?: ExcludedRange[]): Diagnostic[] {
     const effectiveText = excludedRanges
       ? this.maskTableContent(text, excludedRanges)
       : text;
 
-    // 行開始位置を計算
+    // 行開始位置を計算（オフセットベース範囲の変換に使用）
     this.calculateLineStarts(effectiveText);
 
-    const parsedSentences = SentenceParser.parseSentences(effectiveText, tokens, excludedRanges);
+    const parsedSentences = SentenceParser.parseSentences(effectiveText, tokens, excludedRanges, this.config.sentenceSplitMode);
     const sentences = excludedRanges
       ? this.filterOutTableSentences(parsedSentences, excludedRanges)
       : parsedSentences;
@@ -285,7 +338,7 @@ export class AdvancedRulesManager {
       }
     }
 
-    // offsetベースのrangeをline/charベースに変換
+    // オフセットベースの範囲のみ行/文字ベースに変換（要件 1.2, 1.3）
     return diagnostics.map(d => this.fixDiagnosticRange(d.toDiagnostic()));
   }
 }

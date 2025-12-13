@@ -48,3 +48,21 @@ export { DateFormatVariantRule } from './dateFormatVariantRule';
 export { DashTildeNormalizationRule } from './dashTildeNormalizationRule';
 export { NakaguroUsageRule } from './nakaguroUsageRule';
 export { SymbolWidthMixRule } from './symbolWidthMixRule';
+
+// Sentence Ending Colon Detection (Feature: sentence-ending-colon-detection)
+export { SentenceEndingColonRule } from './sentenceEndingColonRule';
+
+// Evals NG Pattern Expansion (Feature: evals-ng-pattern-expansion)
+// Mix Detection Rules
+export { MixDetectionRule, PatternInfo } from './mixDetectionRule';
+export { PunctuationStyleMixRule } from './punctuationStyleMixRule';
+export { QuotationStyleMixRule } from './quotationStyleMixRule';
+export { BulletStyleMixRule } from './bulletStyleMixRule';
+export { EmphasisStyleMixRule } from './emphasisStyleMixRule';
+export { EnglishCaseMixRule } from './englishCaseMixRule';
+export { UnitNotationMixRule } from './unitNotationMixRule';
+export { PronounMixRule } from './pronounMixRule';
+// Markdown Structure Rules
+export { HeadingLevelSkipRule } from './headingLevelSkipRule';
+export { TableColumnMismatchRule } from './tableColumnMismatchRule';
+export { CodeBlockLanguageRule } from './codeBlockLanguageRule';

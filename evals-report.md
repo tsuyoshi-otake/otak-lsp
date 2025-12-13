@@ -1,15 +1,15 @@
 # Japanese Grammar Evals Report
 
-Generated: 2025-12-11
+Generated: 2025-12-12
 
 ## Summary
 
 | Metric | Value |
 |--------|-------|
-| Total Categories | 43 |
-| Implemented Categories | 43 (100%) |
-| Total Examples | 111 |
-| Detected Examples | 111 |
+| Total Categories | 54 |
+| Implemented Categories | 54 (100%) |
+| Total Examples | 143 |
+| Detected Examples | 143 |
 | Detection Rate | 100% |
 
 ## Category Results
@@ -59,6 +59,17 @@ Generated: 2025-12-11
 | ハイフン・ダッシュ・チルダ不統一 | PASS | 2 | 2 | 100% |
 | 中黒の過不足 | PASS | 2 | 2 | 100% |
 | 全角記号混在 | PASS | 2 | 2 | 100% |
+| 文末コロン | PASS | 3 | 3 | 100% |
+| 句読点スタイルの混在 | PASS | 3 | 3 | 100% |
+| 引用符スタイルの混在 | PASS | 3 | 3 | 100% |
+| 箇条書き記号の混在 | PASS | 3 | 3 | 100% |
+| 強調記号の混在 | PASS | 2 | 2 | 100% |
+| 英語表記の大文字小文字混在 | PASS | 3 | 3 | 100% |
+| 単位表記の混在 | PASS | 3 | 3 | 100% |
+| 人称代名詞の混在 | PASS | 3 | 3 | 100% |
+| 見出しレベルの飛び | PASS | 3 | 3 | 100% |
+| テーブル列数の不一致 | PASS | 3 | 3 | 100% |
+| コードブロック言語指定の欠落 | PASS | 3 | 3 | 100% |
 
 ## Implemented Categories
 
@@ -276,6 +287,61 @@ Generated: 2025-12-11
 
 - Status: PASS
 - Detection Rate: 100% (2/2)
+
+### 文末コロン (sentence-ending-colon)
+
+- Status: PASS
+- Detection Rate: 100% (3/3)
+
+### 句読点スタイルの混在 (punctuation-style-mix)
+
+- Status: PASS
+- Detection Rate: 100% (3/3)
+
+### 引用符スタイルの混在 (quotation-style-mix)
+
+- Status: PASS
+- Detection Rate: 100% (3/3)
+
+### 箇条書き記号の混在 (bullet-style-mix)
+
+- Status: PASS
+- Detection Rate: 100% (3/3)
+
+### 強調記号の混在 (emphasis-style-mix)
+
+- Status: PASS
+- Detection Rate: 100% (2/2)
+
+### 英語表記の大文字小文字混在 (english-case-mix)
+
+- Status: PASS
+- Detection Rate: 100% (3/3)
+
+### 単位表記の混在 (unit-notation-mix)
+
+- Status: PASS
+- Detection Rate: 100% (3/3)
+
+### 人称代名詞の混在 (pronoun-mix)
+
+- Status: PASS
+- Detection Rate: 100% (3/3)
+
+### 見出しレベルの飛び (heading-level-skip)
+
+- Status: PASS
+- Detection Rate: 100% (3/3)
+
+### テーブル列数の不一致 (table-column-mismatch)
+
+- Status: PASS
+- Detection Rate: 100% (3/3)
+
+### コードブロック言語指定の欠落 (code-block-language)
+
+- Status: PASS
+- Detection Rate: 100% (3/3)
 
 ## Not Implemented Categories
 

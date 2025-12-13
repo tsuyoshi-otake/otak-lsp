@@ -50,7 +50,20 @@ export type AdvancedGrammarErrorType =
   | 'date-format-variant'
   | 'dash-tilde-normalization'
   | 'nakaguro-usage'
-  | 'symbol-width-mix';
+  | 'symbol-width-mix'
+  // Feature: sentence-ending-colon-detection
+  | 'sentence-ending-colon'
+  // Feature: evals-ng-pattern-expansion
+  | 'punctuation-style-mix'
+  | 'quotation-style-mix'
+  | 'bullet-style-mix'
+  | 'emphasis-style-mix'
+  | 'english-case-mix'
+  | 'unit-notation-mix'
+  | 'pronoun-mix'
+  | 'heading-level-skip'
+  | 'table-column-mismatch'
+  | 'code-block-language';
 
 /**
  * 文体タイプ
@@ -61,6 +74,14 @@ export type StyleType = 'keigo' | 'joutai' | 'neutral';
  * 弱い表現の検出レベル
  */
 export type WeakExpressionLevel = 'strict' | 'normal' | 'loose';
+
+/**
+ * 文分割モード
+ * - strict: 改行を常に文の区切りとして扱う（Markdownリスト向け）
+ * - normal: 文脈を考慮して判断（推奨）
+ * - loose: 段落区切り（空行）のみを文の区切りとして扱う
+ */
+export type SentenceSplitMode = 'strict' | 'normal' | 'loose';
 
 /**
  * 文（Sentence）パラメータ
@@ -405,6 +426,16 @@ export interface ConjunctionMisuse {
 }
 
 /**
+ * 文末コロンの情報
+ * Feature: sentence-ending-colon-detection
+ */
+export interface SentenceEndingColon {
+  sentence: Sentence;
+  colonPosition: number;
+  range: Range;
+}
+
+/**
  * 高度な文法ルール設定
  */
 export interface AdvancedRulesConfig {
@@ -443,6 +474,22 @@ export interface AdvancedRulesConfig {
   enableNounChain: boolean;
   enableConjunctionMisuse: boolean;
 
+  // 文末コロン検出（Feature: sentence-ending-colon-detection）
+  enableSentenceEndingColon: boolean;
+
+  // 混在検出ルール（Feature: evals-ng-pattern-expansion）
+  enablePunctuationStyleMix: boolean;
+  enableQuotationStyleMix: boolean;
+  enableBulletStyleMix: boolean;
+  enableEmphasisStyleMix: boolean;
+  enableEnglishCaseMix: boolean;
+  enableUnitNotationMix: boolean;
+  enablePronounMix: boolean;
+  // Markdown構造ルール（Feature: evals-ng-pattern-expansion）
+  enableHeadingLevelSkip: boolean;
+  enableTableColumnMismatch: boolean;
+  enableCodeBlockLanguage: boolean;
+
   // 技術用語辞典の有効/無効
   enableWebTechDictionary: boolean;
   enableGenerativeAIDictionary: boolean;
@@ -459,6 +506,7 @@ export interface AdvancedRulesConfig {
   commaCountThreshold: number;
   weakExpressionLevel: WeakExpressionLevel;
   customNotationRules: Map<string, string>;
+  sentenceSplitMode: SentenceSplitMode;
 
   // 追加文法ルールの設定
   // Feature: additional-grammar-rules
@@ -508,6 +556,22 @@ export const DEFAULT_ADVANCED_RULES_CONFIG: AdvancedRulesConfig = {
   enableNounChain: true,
   enableConjunctionMisuse: true,
 
+  // 文末コロン検出（Feature: sentence-ending-colon-detection）
+  enableSentenceEndingColon: true,
+
+  // 混在検出ルール（Feature: evals-ng-pattern-expansion）
+  enablePunctuationStyleMix: true,
+  enableQuotationStyleMix: true,
+  enableBulletStyleMix: true,
+  enableEmphasisStyleMix: true,
+  enableEnglishCaseMix: true,
+  enableUnitNotationMix: true,
+  enablePronounMix: true,
+  // Markdown構造ルール（Feature: evals-ng-pattern-expansion）
+  enableHeadingLevelSkip: true,
+  enableTableColumnMismatch: true,
+  enableCodeBlockLanguage: true,
+
   // 技術用語辞典はすべて有効
   enableWebTechDictionary: true,
   enableGenerativeAIDictionary: true,
@@ -523,6 +587,7 @@ export const DEFAULT_ADVANCED_RULES_CONFIG: AdvancedRulesConfig = {
   commaCountThreshold: 4,
   weakExpressionLevel: 'normal',
   customNotationRules: new Map(),
+  sentenceSplitMode: 'normal',
 
   // 追加文法ルールの閾値設定（Feature: additional-grammar-rules）
   noParticleChainThreshold: 3,

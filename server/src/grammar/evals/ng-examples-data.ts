@@ -655,6 +655,164 @@ export const NG_EXAMPLE_CATEGORIES: NGExampleCategory[] = [
       { text: '時間：10時/場所:会議室', correctText: '時間:10時/場所:会議室', description: 'コロンの全角半角混在' },
       { text: 'A/BとC／Dを比較', correctText: 'A/BとC/Dを比較', description: 'スラッシュの全角半角混在' }
     ]
+  },
+
+  // 44. 文末コロン（Feature: sentence-ending-colon-detection）
+  {
+    id: 'sentence-ending-colon',
+    name: '文末コロン',
+    description: '日本語文の末尾に全角コロンが使用されている',
+    expectedRule: 'sentence-ending-colon',
+    status: 'IMPLEMENTED',
+    examples: [
+      { text: 'これはテストです：', correctText: 'これはテストです。', description: '基本的な文末コロン' },
+      { text: '今日の予定：', correctText: '今日の予定は以下の通りです。', description: '文末コロン（箇条書きなし）' },
+      { text: '結論は次の通り：', correctText: '結論は次の通りです。', description: '文末コロン（続きなし）' }
+    ]
+  },
+
+  // ==========================================
+  // Feature: evals-ng-pattern-expansion
+  // 混在検出とMarkdown構造ルール
+  // ==========================================
+
+  // 45. 句読点スタイルの混在
+  {
+    id: 'punctuation-style-mix',
+    name: '句読点スタイルの混在',
+    description: '、。と，．が混在している',
+    expectedRule: 'punctuation-style-mix',
+    status: 'IMPLEMENTED',
+    examples: [
+      { text: 'これは例文です。しかし，これは混在している。', correctText: 'これは例文です。しかし、これは混在しています。', description: '。と，の混在' },
+      { text: '私は行きます，彼も来ます。', correctText: '私は行きます、彼も来ます。', description: '，と。の混在' },
+      { text: '明日は晴れです．でも、風は強い。', correctText: '明日は晴れです。でも、風は強い。', description: '．と、と。の混在' }
+    ]
+  },
+
+  // 46. 引用符スタイルの混在
+  {
+    id: 'quotation-style-mix',
+    name: '引用符スタイルの混在',
+    description: '「」と""と\'\'が混在している',
+    expectedRule: 'quotation-style-mix',
+    status: 'IMPLEMENTED',
+    examples: [
+      { text: '彼は「こんにちは」と言った。彼女は"さようなら"と答えた。', correctText: '彼は「こんにちは」と言った。彼女は「さようなら」と答えた。', description: '「」と""の混在' },
+      { text: '"Hello"と「世界」を組み合わせる。', correctText: '「Hello」と「世界」を組み合わせる。', description: '"と「」の混在' },
+      { text: '\'単一引用符\'と「括弧」の混在。', correctText: '「単一引用符」と「括弧」の混在。', description: '\'\'と「」の混在' }
+    ]
+  },
+
+  // 47. 箇条書き記号の混在
+  {
+    id: 'bullet-style-mix',
+    name: '箇条書き記号の混在',
+    description: '・と-と*が混在している',
+    expectedRule: 'bullet-style-mix',
+    status: 'IMPLEMENTED',
+    examples: [
+      { text: '・項目1\n- 項目2\n* 項目3', correctText: '・項目1\n・項目2\n・項目3', description: '・と-と*の混在' },
+      { text: '- 最初の項目\n・次の項目', correctText: '- 最初の項目\n- 次の項目', description: '-と・の混在' },
+      { text: '* タスク1\n- タスク2', correctText: '* タスク1\n* タスク2', description: '*と-の混在' }
+    ]
+  },
+
+  // 48. 強調記号の混在
+  {
+    id: 'emphasis-style-mix',
+    name: '強調記号の混在',
+    description: '**と__が混在している',
+    expectedRule: 'emphasis-style-mix',
+    status: 'IMPLEMENTED',
+    examples: [
+      { text: '**太字**と__下線強調__の混在。', correctText: '**太字**と**下線強調**の混在。', description: '**と__の混在' },
+      { text: 'これは__重要__で、**緊急**です。', correctText: 'これは**重要**で、**緊急**です。', description: '__と**の混在' }
+    ]
+  },
+
+  // 49. 英語表記の大文字小文字混在
+  {
+    id: 'english-case-mix',
+    name: '英語表記の大文字小文字混在',
+    description: '同じ英単語が異なる大文字小文字で表記されている',
+    expectedRule: 'english-case-mix',
+    status: 'IMPLEMENTED',
+    examples: [
+      { text: 'APIを使用します。apiの設計は重要です。', correctText: 'APIを使用します。APIの設計は重要です。', description: 'API/apiの混在' },
+      { text: 'Jsonデータを解析する。JSONのフォーマットを確認。', correctText: 'JSONデータを解析する。JSONのフォーマットを確認。', description: 'Json/JSONの混在' },
+      { text: 'htmlを書く。HTMLの基礎。Htmlタグ。', correctText: 'HTMLを書く。HTMLの基礎。HTMLタグ。', description: 'html/HTML/Htmlの混在' }
+    ]
+  },
+
+  // 50. 単位表記の混在
+  {
+    id: 'unit-notation-mix',
+    name: '単位表記の混在',
+    description: '記号表記とカタカナ表記が混在している',
+    expectedRule: 'unit-notation-mix',
+    status: 'IMPLEMENTED',
+    examples: [
+      { text: '速度は100km/hで、距離は50キロメートルです。', correctText: '速度は100km/hで、距離は50kmです。', description: 'km/hとキロメートルの混在' },
+      { text: '重さは5kgで、体重は60キログラムです。', correctText: '重さは5kgで、体重は60kgです。', description: 'kgとキログラムの混在' },
+      { text: '10cmの長さと20センチメートルの幅。', correctText: '10cmの長さと20cmの幅。', description: 'cmとセンチメートルの混在' }
+    ]
+  },
+
+  // 51. 人称代名詞の混在
+  {
+    id: 'pronoun-mix',
+    name: '人称代名詞の混在',
+    description: '私/僕/自分/当方などが混在している',
+    expectedRule: 'pronoun-mix',
+    status: 'IMPLEMENTED',
+    examples: [
+      { text: '私は開発者です。僕はプログラミングが好きです。', correctText: '私は開発者です。私はプログラミングが好きです。', description: '私と僕の混在' },
+      { text: '当方は担当者です。私が対応します。', correctText: '当方は担当者です。当方が対応します。', description: '当方と私の混在' },
+      { text: '自分は学生です。私は日本人です。', correctText: '私は学生です。私は日本人です。', description: '自分と私の混在' }
+    ]
+  },
+
+  // 52. 見出しレベルの飛び
+  {
+    id: 'heading-level-skip',
+    name: '見出しレベルの飛び',
+    description: '見出しレベルが連続していない（h1の次にh3など）',
+    expectedRule: 'heading-level-skip',
+    status: 'IMPLEMENTED',
+    examples: [
+      { text: '# タイトル\n### サブセクション', correctText: '# タイトル\n## サブセクション', description: 'h1からh3への飛び' },
+      { text: '## セクション\n#### 詳細', correctText: '## セクション\n### 詳細', description: 'h2からh4への飛び' },
+      { text: '# 章\n#### 小節', correctText: '# 章\n## 節\n### 小節', description: 'h1からh4への飛び' }
+    ]
+  },
+
+  // 53. テーブル列数の不一致
+  {
+    id: 'table-column-mismatch',
+    name: 'テーブル列数の不一致',
+    description: 'Markdownテーブルの列数が行ごとに異なる',
+    expectedRule: 'table-column-mismatch',
+    status: 'IMPLEMENTED',
+    examples: [
+      { text: '| A | B | C |\n|---|---|\n| 1 | 2 | 3 |', correctText: '| A | B | C |\n|---|---|---|\n| 1 | 2 | 3 |', description: 'ヘッダー行と区切り行の列数不一致' },
+      { text: '| A | B |\n|---|---|\n| 1 | 2 | 3 |', correctText: '| A | B | C |\n|---|---|---|\n| 1 | 2 | 3 |', description: 'データ行の列数が多い' },
+      { text: '| A | B | C |\n|---|---|---|\n| 1 | 2 |', correctText: '| A | B | C |\n|---|---|---|\n| 1 | 2 | - |', description: 'データ行の列数が少ない' }
+    ]
+  },
+
+  // 54. コードブロック言語指定の欠落
+  {
+    id: 'code-block-language',
+    name: 'コードブロック言語指定の欠落',
+    description: 'コードブロックに言語指定がない',
+    expectedRule: 'code-block-language',
+    status: 'IMPLEMENTED',
+    examples: [
+      { text: '```\nconst x = 1;\n```', correctText: '```javascript\nconst x = 1;\n```', description: '言語指定のないコードブロック' },
+      { text: '```\ndef hello():\n    pass\n```', correctText: '```python\ndef hello():\n    pass\n```', description: 'Pythonコードの言語指定欠落' },
+      { text: '```\nSELECT * FROM users;\n```', correctText: '```sql\nSELECT * FROM users;\n```', description: 'SQLコードの言語指定欠落' }
+    ]
   }
 ];
 
