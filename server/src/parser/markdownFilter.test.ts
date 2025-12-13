@@ -76,6 +76,8 @@ describe('Core Interfaces and Data Models', () => {
         'table-separator',
         'url',
         'config-key',
+        'heading',
+        'list-marker',
         'custom'
       ];
 
@@ -237,6 +239,23 @@ describe('Code Block Exclusion (Task 3.1)', () => {
       expect(result.excludedRanges[0].type).toBe('code-block');
     });
 
+    it('should exclude code block in blockquote', () => {
+      const text = '> ```js\n> const x = 1;\n> ```';
+      const result = filter.filter(text);
+
+      const codeBlocks = result.excludedRanges.filter((r) => r.type === 'code-block');
+      expect(codeBlocks).toHaveLength(1);
+      expect(result.filteredText).not.toContain('const x');
+    });
+
+    it('should exclude indented code block (nested structures)', () => {
+      const text = '    ```\n    const x = 1;\n    ```';
+      const result = filter.filter(text);
+
+      expect(result.excludedRanges.some((r) => r.type === 'code-block')).toBe(true);
+      expect(result.filteredText).not.toContain('const x');
+    });
+
     it('should exclude multiple code blocks', () => {
       const text = '```\ncode1\n```\ntext\n```\ncode2\n```';
       const result = filter.filter(text);
@@ -275,6 +294,15 @@ describe('Code Block Exclusion (Task 3.1)', () => {
 
       const inlineCodes = result.excludedRanges.filter((r) => r.type === 'inline-code');
       expect(inlineCodes).toHaveLength(2);
+    });
+
+    it('should exclude inline code with multiple backticks', () => {
+      const text = 'Use ``const`` keyword';
+      const result = filter.filter(text);
+
+      const inlineCodes = result.excludedRanges.filter((r) => r.type === 'inline-code');
+      expect(inlineCodes).toHaveLength(1);
+      expect(inlineCodes[0].content).toBe('``const``');
     });
 
     it('should not treat backticks in code block as inline code', () => {
@@ -344,6 +372,17 @@ describe('Table Structure Processing (Task 4.2)', () => {
       expect(result.excludedRanges.some((r) => r.type === 'table-separator')).toBe(true);
     });
 
+    it('should detect table in blockquote', () => {
+      const text = `> | A | B |
+> |---|---|
+> | 1 | 2 |`;
+      const result = filter.filter(text);
+
+      expect(result.excludedRanges.some((r) => r.type === 'table')).toBe(true);
+      expect(result.excludedRanges.some((r) => r.type === 'table-delimiter')).toBe(true);
+      expect(result.excludedRanges.some((r) => r.type === 'table-separator')).toBe(true);
+    });
+
     it('should detect table with multiple rows', () => {
       const text = `| Name | Value |
 |------|-------|
@@ -401,6 +440,14 @@ describe('Table Structure Processing (Task 4.2)', () => {
       expect(result.excludedRanges.some((r) => r.type === 'table')).toBe(true);
     });
 
+    it('should detect table even when it contains inline triple backticks', () => {
+      const text = '| A | B |\n|---|---|\n| code | ``` const x = 1; ``` |';
+      const result = filter.filter(text);
+
+      expect(result.excludedRanges.some((r) => r.type === 'table')).toBe(true);
+      expect(result.excludedRanges.some((r) => r.type === 'code-block')).toBe(true);
+    });
+
     it('should not treat pipe character in text as table', () => {
       const text = 'Use command | grep pattern';
       const result = filter.filter(text);
@@ -421,6 +468,28 @@ describe('Table Structure Processing (Task 4.2)', () => {
       expect(result.filteredText).toContain('これは日本語です');
       expect(result.filteredText).toContain('これも日本語です');
     });
+  });
+});
+
+describe('Markdown Structure Markers', () => {
+  let filter: MarkdownFilter;
+
+  beforeEach(() => {
+    filter = new MarkdownFilter();
+  });
+
+  it('should detect heading marker in blockquote', () => {
+    const text = '> ### 見出し';
+    const result = filter.filter(text);
+
+    expect(result.excludedRanges.some((r) => r.type === 'heading')).toBe(true);
+  });
+
+  it('should detect list marker in blockquote', () => {
+    const text = '> - 項目';
+    const result = filter.filter(text);
+
+    expect(result.excludedRanges.some((r) => r.type === 'list-marker')).toBe(true);
   });
 });
 

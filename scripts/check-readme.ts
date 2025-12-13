@@ -11,17 +11,7 @@ import { MeCabAnalyzer } from '../server/src/mecab/analyzer';
 import { GrammarChecker } from '../server/src/grammar/checker';
 import { AdvancedRulesManager } from '../server/src/grammar/advancedRulesManager';
 import { TokenFilter } from '../server/src/semantic/tokenFilter';
-import { PositionMapper } from '../server/src/parser/positionMapper';
 import { Diagnostic } from '../shared/src/types';
-
-function getOffsetFromPosition(text: string, line: number, character: number): number {
-  const lines = text.split('\n');
-  let offset = 0;
-  for (let i = 0; i < line && i < lines.length; i++) {
-    offset += lines[i].length + 1;
-  }
-  return offset + character;
-}
 
 function sortDiagnostics(diagnostics: Diagnostic[]): Diagnostic[] {
   return diagnostics.sort((a, b) => {
@@ -56,7 +46,6 @@ async function analyzeMarkdown(text: string): Promise<Diagnostic[]> {
   const filterResult = markdownFilter.filter(text);
   const filteredText = filterResult.filteredText;
   const excludedRanges = filterResult.excludedRanges;
-  const semanticExcludedRanges = excludedRanges.filter((r) => r.type !== 'table');
 
   let tokens = await mecabAnalyzer.analyze(filteredText);
   tokens = tokenFilter.filterTokens(tokens, excludedRanges);
@@ -64,15 +53,7 @@ async function analyzeMarkdown(text: string): Promise<Diagnostic[]> {
   const basicDiagnostics = grammarChecker.check(tokens, filteredText);
   const advancedDiagnostics = advancedRulesManager.checkText(filteredText, tokens, excludedRanges);
 
-  const positionMapper = new PositionMapper(text, filteredText, semanticExcludedRanges);
-  const mappedDiagnostics = [...basicDiagnostics, ...advancedDiagnostics].map((diag) => {
-    const startOffset = getOffsetFromPosition(filteredText, diag.range.start.line, diag.range.start.character);
-    const endOffset = getOffsetFromPosition(filteredText, diag.range.end.line, diag.range.end.character);
-    const mappedRange = positionMapper.mapRangeToOriginal(startOffset, endOffset);
-    return mappedRange ? { ...diag, range: mappedRange } : diag;
-  });
-
-  return sortDiagnostics(mappedDiagnostics);
+  return sortDiagnostics([...basicDiagnostics, ...advancedDiagnostics]);
 }
 
 async function main(): Promise<void> {

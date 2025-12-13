@@ -22,6 +22,10 @@ export class HeadingLevelSkipRule implements AdvancedGrammarRule {
   name = 'heading-level-skip';
   description = '見出しレベルの飛び（h1の次にh3など）を検出します';
 
+  private countBlockquoteDepth(prefix: string): number {
+    return (prefix.match(/>/g) || []).length;
+  }
+
   /**
    * Check for heading level skips
    */
@@ -31,16 +35,39 @@ export class HeadingLevelSkipRule implements AdvancedGrammarRule {
 
     // Track if we're inside a code block
     let inCodeBlock = false;
+    let codeBlockFenceChar = '';
+    let codeBlockFenceLength = 0;
+    let codeBlockBlockquoteDepth = 0;
     let previousLevel = 0;
     let previousLineIndex = -1;
 
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i];
 
-      // Toggle code block state
-      if (line.trim().startsWith('```')) {
-        inCodeBlock = !inCodeBlock;
-        continue;
+      // Toggle code block state (supports indentation / blockquote / ~~~)
+      if (!inCodeBlock) {
+        const startMatch = line.match(/^(\s*(?:>\s*)*)(`{3,}|~{3,})(.*)$/);
+        if (startMatch) {
+          const prefix = startMatch[1];
+          const fence = startMatch[2];
+          inCodeBlock = true;
+          codeBlockFenceChar = fence.charAt(0);
+          codeBlockFenceLength = fence.length;
+          codeBlockBlockquoteDepth = this.countBlockquoteDepth(prefix);
+          continue;
+        }
+      } else {
+        const endPattern =
+          codeBlockBlockquoteDepth > 0
+            ? new RegExp(`^\\s*(?:>\\s*){${codeBlockBlockquoteDepth}}\\s*${codeBlockFenceChar}{${codeBlockFenceLength},}\\s*$`)
+            : new RegExp(`^\\s*${codeBlockFenceChar}{${codeBlockFenceLength},}\\s*$`);
+        if (endPattern.test(line)) {
+          inCodeBlock = false;
+          codeBlockFenceChar = '';
+          codeBlockFenceLength = 0;
+          codeBlockBlockquoteDepth = 0;
+          continue;
+        }
       }
 
       // Skip if inside code block
@@ -49,7 +76,8 @@ export class HeadingLevelSkipRule implements AdvancedGrammarRule {
       }
 
       // Check for heading (ATX style only: #, ##, ###, etc.)
-      const match = line.match(/^(#{1,6})\s+/);
+      const strippedLine = line.replace(/^\s*(?:>\s*)*/, '');
+      const match = strippedLine.match(/^(#{1,6})\s+/);
       if (match) {
         const currentLevel = match[1].length;
 

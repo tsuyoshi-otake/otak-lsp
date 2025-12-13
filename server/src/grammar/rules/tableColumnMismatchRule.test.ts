@@ -37,6 +37,13 @@ describe('TableColumnMismatchRule', () => {
       expect(diagnostics[0].code).toBe('table-column-mismatch');
     });
 
+    it('should detect column mismatch in blockquote table', () => {
+      context.documentText = '> | A | B |\n> |---|---|\n> | 1 | 2 | 3 |';
+      const diagnostics = rule.check(emptyTokens, context);
+      expect(diagnostics.length).toBe(1);
+      expect(diagnostics[0].code).toBe('table-column-mismatch');
+    });
+
     it('should detect column mismatch when data row has more columns', () => {
       context.documentText = '| A | B |\n|---|---|\n| 1 | 2 | 3 |';
       const diagnostics = rule.check(emptyTokens, context);

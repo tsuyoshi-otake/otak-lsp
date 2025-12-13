@@ -140,6 +140,18 @@ describe('SentenceParser', () => {
         expect(sentences.map(s => s.text.trim())).toEqual(['導入:', '項目Aです。', '項目Bです。']);
       });
 
+      it('should split list items even in loose mode', () => {
+        const markdown = `- **外部依存なし**: kuromoji.jsを内蔵しており、MeCabのインストールは不要です
+- **IPA辞書内蔵**: npm installだけですぐに使えます`;
+        const { filteredText, excludedRanges } = markdownFilter.filter(markdown);
+        const sentences = SentenceParser.parseSentences(filteredText, [], excludedRanges, 'loose');
+
+        expect(sentences.map(s => s.text.trim())).toEqual([
+          '**外部依存なし**: kuromoji.jsを内蔵しており、MeCabのインストールは不要です',
+          '**IPA辞書内蔵**: npm installだけですぐに使えます'
+        ]);
+      });
+
       it('should treat bold-only line as independent sentence', () => {
         const markdown = `前文です
 **重要**

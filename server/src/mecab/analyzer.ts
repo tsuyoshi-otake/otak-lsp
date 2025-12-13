@@ -28,9 +28,9 @@ interface KuromojiToken {
  * Kuromoji形態素解析器（MeCab互換API）
  */
 export class MeCabAnalyzer {
-  private tokenizer: kuromoji.Tokenizer<KuromojiToken> | null = null;
-  private initPromise: Promise<void> | null = null;
-  private initialized: boolean = false;
+  // NOTE: kuromoji 初期化は重いので、プロセス内で共有して多重初期化を避ける
+  private static tokenizer: kuromoji.Tokenizer<KuromojiToken> | null = null;
+  private static initPromise: Promise<void> | null = null;
 
   constructor(_mecabPath?: string) {
     // mecabPath引数は互換性のために残すが、使用しない
@@ -40,15 +40,15 @@ export class MeCabAnalyzer {
    * トークナイザーを初期化
    */
   private async initialize(): Promise<void> {
-    if (this.initialized && this.tokenizer) {
+    if (MeCabAnalyzer.tokenizer) {
       return;
     }
 
-    if (this.initPromise) {
-      return this.initPromise;
+    if (MeCabAnalyzer.initPromise) {
+      return MeCabAnalyzer.initPromise;
     }
 
-    this.initPromise = new Promise((resolve, reject) => {
+    MeCabAnalyzer.initPromise = new Promise((resolve, reject) => {
       // kuromoji の辞書パスを設定
       // require.resolve でkuromojiモジュールの場所を特定
       let dicPath: string;
@@ -60,19 +60,23 @@ export class MeCabAnalyzer {
         dicPath = path.join(__dirname, '..', '..', 'node_modules', 'kuromoji', 'dict');
       }
 
-      kuromoji.builder({ dicPath }).build((err, tokenizer) => {
-        if (err) {
-          this.initPromise = null;
-          reject(new Error(`辞書の読み込みに失敗しました: ${err.message}`));
-          return;
-        }
-        this.tokenizer = tokenizer as kuromoji.Tokenizer<KuromojiToken>;
-        this.initialized = true;
-        resolve();
-      });
+      try {
+        kuromoji.builder({ dicPath }).build((err, tokenizer) => {
+          if (err) {
+            MeCabAnalyzer.initPromise = null;
+            reject(new Error(`辞書の読み込みに失敗しました: ${err.message}`));
+            return;
+          }
+          MeCabAnalyzer.tokenizer = tokenizer as kuromoji.Tokenizer<KuromojiToken>;
+          resolve();
+        });
+      } catch (err) {
+        MeCabAnalyzer.initPromise = null;
+        reject(err instanceof Error ? err : new Error(String(err)));
+      }
     });
 
-    return this.initPromise;
+    return MeCabAnalyzer.initPromise;
   }
 
   /**
@@ -104,11 +108,11 @@ export class MeCabAnalyzer {
 
     await this.initialize();
 
-    if (!this.tokenizer) {
+    if (!MeCabAnalyzer.tokenizer) {
       throw new Error('トークナイザーの初期化に失敗しました');
     }
 
-    const kuromojiTokens = this.tokenizer.tokenize(text);
+    const kuromojiTokens = MeCabAnalyzer.tokenizer.tokenize(text);
     return this.convertToTokens(kuromojiTokens);
   }
 

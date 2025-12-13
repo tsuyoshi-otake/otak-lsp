@@ -100,6 +100,26 @@ describe('CodeBlockLanguageRule', () => {
       const diagnostics = rule.check(emptyTokens, context);
       expect(diagnostics.length).toBe(0);
     });
+
+    it('should detect code block without language in blockquote', () => {
+      context.documentText = '> ```\n> code\n> ```';
+      const diagnostics = rule.check(emptyTokens, context);
+      expect(diagnostics.length).toBe(1);
+      expect(diagnostics[0].code).toBe('code-block-language');
+    });
+
+    it('should not detect code block with language in blockquote', () => {
+      context.documentText = '> ```js\n> code\n> ```';
+      const diagnostics = rule.check(emptyTokens, context);
+      expect(diagnostics.length).toBe(0);
+    });
+
+    it('should detect indented code block without language', () => {
+      context.documentText = '    ```\n    code\n    ```';
+      const diagnostics = rule.check(emptyTokens, context);
+      expect(diagnostics.length).toBe(1);
+      expect(diagnostics[0].code).toBe('code-block-language');
+    });
   });
 
   describe('configuration', () => {

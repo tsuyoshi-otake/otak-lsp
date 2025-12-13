@@ -48,8 +48,18 @@ export class SentenceParser {
     for (let i = 0; i < text.length; i++) {
       // Markdown特有の境界で強制分割
       if (markdownBreaks && markdownBreaks.has(i)) {
-        SentenceParser.pushSentence(sentences, text, tokens, currentStart, i);
-        currentStart = text[i] === '\n' ? i + 1 : i;
+        SentenceParser.pushSentence(sentences, text, tokens, currentStart, i, excludedRanges);
+        if (text[i] === '\n') {
+          currentStart = i + 1;
+        } else if (text[i] === '\r') {
+          // CRLF (\r\n) の場合は両方をスキップ
+          currentStart = i + 1;
+          if (i + 1 < text.length && text[i + 1] === '\n') {
+            currentStart++;
+          }
+        } else {
+          currentStart = i;
+        }
         continue;
       }
 
@@ -60,7 +70,7 @@ export class SentenceParser {
           i++;
         }
 
-        SentenceParser.pushSentence(sentences, text, tokens, currentStart, i + 1);
+        SentenceParser.pushSentence(sentences, text, tokens, currentStart, i + 1, excludedRanges);
 
         currentStart = i + 1;
       }
@@ -82,7 +92,7 @@ export class SentenceParser {
         }
 
         if (hasEmptyLine) {
-          SentenceParser.pushSentence(sentences, text, tokens, currentStart, newlineStart);
+          SentenceParser.pushSentence(sentences, text, tokens, currentStart, newlineStart, excludedRanges);
 
           // 空行をスキップ
           while (j < text.length && (text[j] === ' ' || text[j] === '\t' || text[j] === '\r' || text[j] === '\n')) {
@@ -96,7 +106,7 @@ export class SentenceParser {
           // strict: 常に分割
           // normal: 文脈を考慮して判断
           if (splitMode === 'strict' || SentenceParser.shouldSplitOnNewline(text, newlineStart, tokens)) {
-            SentenceParser.pushSentence(sentences, text, tokens, currentStart, newlineStart);
+            SentenceParser.pushSentence(sentences, text, tokens, currentStart, newlineStart, excludedRanges);
             currentStart = i + 1;
           }
         }
@@ -105,7 +115,7 @@ export class SentenceParser {
 
     // 最後の文（終端記号なし）
     if (currentStart < text.length) {
-      SentenceParser.pushSentence(sentences, text, tokens, currentStart, text.length);
+      SentenceParser.pushSentence(sentences, text, tokens, currentStart, text.length, excludedRanges);
     }
 
     return sentences;
@@ -132,6 +142,15 @@ export class SentenceParser {
         const lineEnd = text.indexOf('\n', range.start);
         if (lineEnd !== -1) {
           breaks.add(lineEnd);
+        }
+      }
+
+      // 箇条書きは、次の項目開始（=次行のlist-marker）直前の改行で分割する
+      // - loose モードでもリスト項目同士が1文に連結されないようにする
+      if (range.type === 'list-marker') {
+        const newlineStart = SentenceParser.getNewlineStartBefore(text, range.start);
+        if (newlineStart !== null) {
+          breaks.add(newlineStart);
         }
       }
     }
@@ -174,6 +193,25 @@ export class SentenceParser {
     return breaks;
   }
 
+  private static getNewlineStartBefore(text: string, position: number): number | null {
+    if (position <= 0) {
+      return null;
+    }
+
+    const prev = position - 1;
+    if (text[prev] === '\n') {
+      if (prev - 1 >= 0 && text[prev - 1] === '\r') {
+        return prev - 1;
+      }
+      return prev;
+    }
+    if (text[prev] === '\r') {
+      return prev;
+    }
+
+    return null;
+  }
+
   /**
    * 文を追加（空白のみの文はスキップ）
    */
@@ -182,24 +220,59 @@ export class SentenceParser {
     text: string,
     tokens: Token[],
     start: number,
-    end: number
+    end: number,
+    excludedRanges?: ExcludedRange[]
   ): void {
     if (end <= start) {
       return;
     }
 
-    const sentenceText = text.substring(start, end);
+    let effectiveStart = start;
+    if (excludedRanges) {
+      const prefixRange = excludedRanges.find(
+        (r) =>
+          (r.type === 'heading' || r.type === 'list-marker') &&
+          r.start === start &&
+          r.end <= end
+      );
+      if (prefixRange) {
+        effectiveStart = prefixRange.end;
+      }
+    }
+
+    if (end <= effectiveStart) {
+      return;
+    }
+
+    const sentenceText = text.substring(effectiveStart, end);
     if (sentenceText.trim().length === 0) {
       return;
     }
 
-    const sentenceTokens = SentenceParser.getTokensInRange(tokens, start, end);
+    if (excludedRanges && SentenceParser.isMarkdownTableSeparatorLine(sentenceText)) {
+      return;
+    }
+
+    const sentenceTokens = SentenceParser.getTokensInRange(tokens, effectiveStart, end);
     sentences.push(new Sentence({
       text: sentenceText,
       tokens: sentenceTokens,
-      start,
+      start: effectiveStart,
       end
     }));
+  }
+
+  private static isMarkdownTableSeparatorLine(lineText: string): boolean {
+    const trimmed = lineText.trim();
+    if (trimmed.length === 0) {
+      return false;
+    }
+
+    if (!trimmed.startsWith('|') || !/-/.test(trimmed)) {
+      return false;
+    }
+
+    return /^\|[\s\-:|]+\|?$/.test(trimmed);
   }
 
   /**

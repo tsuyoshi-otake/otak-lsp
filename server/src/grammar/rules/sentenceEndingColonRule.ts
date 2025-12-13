@@ -22,6 +22,27 @@ export class SentenceEndingColonRule implements AdvancedGrammarRule {
   name = 'sentence-ending-colon';
   description = '文末のコロン（：）をチェックします';
 
+  private getNextNonEmptyLine(text: string): string | null {
+    let i = 0;
+
+    while (i < text.length) {
+      const lineEnd = text.indexOf('\n', i);
+      const end = lineEnd === -1 ? text.length : lineEnd;
+      let line = text.slice(i, end);
+      if (line.endsWith('\r')) {
+        line = line.slice(0, -1);
+      }
+
+      if (line.trim().length > 0) {
+        return line;
+      }
+
+      i = end + 1;
+    }
+
+    return null;
+  }
+
   /**
    * 文がコロンで終わるかどうかを判定
    * @param text 文のテキスト
@@ -37,7 +58,7 @@ export class SentenceEndingColonRule implements AdvancedGrammarRule {
 
   /**
    * 箇条書き前置き文かどうかを判定
-   * 次の行が箇条書き（-、*、数字.）で始まる場合は前置き文と判定
+   * 次の非空行が箇条書き/Markdown構造で始まる場合は前置き文と判定
    * @param sentence 文
    * @param documentText ドキュメント全体のテキスト
    * @returns 箇条書き前置き文の場合true
@@ -46,12 +67,29 @@ export class SentenceEndingColonRule implements AdvancedGrammarRule {
     const sentenceEnd = sentence.end;
     const remainingText = documentText.substring(sentenceEnd);
 
-    // 次の行が箇条書きマーカーで始まるかチェック
-    // マーカー: -, *, 数字.
-    const bulletPattern = /^\s*\n\s*[-*]\s/;
-    const numberedPattern = /^\s*\n\s*\d+\.\s/;
+    const nextLine = this.getNextNonEmptyLine(remainingText);
+    if (!nextLine) {
+      return false;
+    }
 
-    return bulletPattern.test(remainingText) || numberedPattern.test(remainingText);
+    const trimmed = nextLine.trimStart();
+
+    // 箇条書き: -, *, +, 数字.
+    if (/^[-*+]\s/.test(trimmed) || /^\d+\.\s/.test(trimmed)) {
+      return true;
+    }
+
+    // Markdown構造: 見出し/テーブル/コードブロック/引用
+    if (
+      /^#{1,6}\s/.test(trimmed) ||
+      /^\|/.test(trimmed) ||
+      /^(`{3,}|~{3,})/.test(trimmed) ||
+      /^>/.test(trimmed)
+    ) {
+      return true;
+    }
+
+    return false;
   }
 
   /**

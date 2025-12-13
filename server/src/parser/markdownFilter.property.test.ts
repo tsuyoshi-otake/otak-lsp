@@ -207,7 +207,9 @@ describe('Property-Based Tests: Markdown Filter', () => {
               excludeInlineCode: false,
               excludeTables: false,
               excludeUrls: false,
-              excludeConfigKeys: false
+              excludeConfigKeys: false,
+              excludeHeadings: false,
+              excludeListMarkers: false
             };
             const disabledResult = filter.filter(text, disabledConfig);
 

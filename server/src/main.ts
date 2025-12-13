@@ -25,7 +25,6 @@ import { TextDocument } from 'vscode-languageserver-textdocument';
 import { MeCabAnalyzer } from './mecab/analyzer';
 import { CommentExtractor } from './parser/commentExtractor';
 import { MarkdownFilter } from './parser/markdownFilter';
-import { PositionMapper } from './parser/positionMapper';
 import { GrammarChecker } from './grammar/checker';
 import { AdvancedRulesManager } from './grammar/advancedRulesManager';
 import { SemanticTokenProvider, tokenTypes, tokenModifiers } from './semantic/tokenProvider';
@@ -55,7 +54,6 @@ let wikipediaClient: WikipediaClient;
 // Document analysis cache
 const documentTokens: Map<string, Token[]> = new Map();
 const documentTexts: Map<string, string> = new Map();
-const positionMappers: Map<string, PositionMapper> = new Map();
 const documentExcludedRanges: Map<string, ExcludedRange[]> = new Map();
 
 // Configuration
@@ -157,7 +155,6 @@ connection.onDidChangeConfiguration((change) => {
       connection.console.log('Semantic highlight disabled, clearing tokens');
       documentTokens.clear();
       documentTexts.clear();
-      positionMappers.clear();
       documentExcludedRanges.clear();
       connection.sendRequest('workspace/semanticTokens/refresh').catch(() => {});
     }
@@ -213,7 +210,6 @@ async function analyzeDocument(document: TextDocument): Promise<void> {
   try {
     // Extract text to analyze (comments for code, full text for markdown/plaintext)
     let textToAnalyze = text;
-    let positionMapper: PositionMapper | null = null;
     let excludedRanges: ExcludedRange[] = [];
     let semanticExcludedRanges: ExcludedRange[] = [];
     let grammarExcludedRanges: ExcludedRange[] = [];
@@ -237,9 +233,6 @@ async function analyzeDocument(document: TextDocument): Promise<void> {
       // 文法チェック用: すべての除外範囲を使用（table 全体も含む）
       grammarExcludedRanges = excludedRanges;
 
-      // PositionMapper は実際にスペース置換された範囲のみを使用
-      positionMapper = new PositionMapper(text, textToAnalyze, baseSemanticRanges);
-      positionMappers.set(uri, positionMapper);
       documentExcludedRanges.set(uri, excludedRanges);
       connection.console.log(`[DEBUG] Markdown filtered: ${excludedRanges.length} ranges excluded`);
     }
@@ -296,17 +289,6 @@ async function analyzeDocument(document: TextDocument): Promise<void> {
           end: { line: diag.range.end.line, character: diag.range.end.character },
         };
 
-        // Markdownの場合は位置マッピングを適用
-        if (positionMapper && languageId === 'markdown') {
-          const startOffset = getOffsetFromPosition(textToAnalyze, diag.range.start.line, diag.range.start.character);
-          const endOffset = getOffsetFromPosition(textToAnalyze, diag.range.end.line, diag.range.end.character);
-          
-          const mappedRange = positionMapper.mapRangeToOriginal(startOffset, endOffset);
-          if (mappedRange) {
-            range = mappedRange;
-          }
-        }
-
         diagnostics.push({
           severity: convertSeverity(diag.severity),
           range,
@@ -327,17 +309,6 @@ async function analyzeDocument(document: TextDocument): Promise<void> {
           start: { line: diag.range.start.line, character: diag.range.start.character },
           end: { line: diag.range.end.line, character: diag.range.end.character },
         };
-
-        // Markdownの場合は位置マッピングを適用
-        if (positionMapper && languageId === 'markdown') {
-          const startOffset = getOffsetFromPosition(textToAnalyze, diag.range.start.line, diag.range.start.character);
-          const endOffset = getOffsetFromPosition(textToAnalyze, diag.range.end.line, diag.range.end.character);
-          
-          const mappedRange = positionMapper.mapRangeToOriginal(startOffset, endOffset);
-          if (mappedRange) {
-            range = mappedRange;
-          }
-        }
 
         diagnostics.push({
           severity: convertSeverity(diag.severity),
@@ -364,7 +335,6 @@ async function analyzeDocument(document: TextDocument): Promise<void> {
     connection.console.error(`[ERROR] Analysis failed for ${uri}: ${error}`);
     documentTokens.delete(uri);
     documentTexts.delete(uri);
-    positionMappers.delete(uri);
     connection.sendDiagnostics({ uri, diagnostics: [] });
   }
 }
@@ -390,17 +360,6 @@ function convertSeverity(severity: number): LSPDiagnosticSeverity {
 /**
  * Get character offset from line and character position
  */
-function getOffsetFromPosition(text: string, line: number, character: number): number {
-  const lines = text.split('\n');
-  let offset = 0;
-  
-  for (let i = 0; i < line && i < lines.length; i++) {
-    offset += lines[i].length + 1; // +1 for newline
-  }
-  
-  return offset + character;
-}
-
 /**
  * Document opened
  */
@@ -433,7 +392,6 @@ documents.onDidClose((event) => {
   // Clear cache
   documentTokens.delete(uri);
   documentTexts.delete(uri);
-  positionMappers.delete(uri);
   documentExcludedRanges.delete(uri);
 
   // Clear diagnostics

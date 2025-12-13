@@ -22,6 +22,10 @@ export class CodeBlockLanguageRule implements AdvancedGrammarRule {
   name = 'code-block-language';
   description = 'コードブロックの言語指定欠落を検出します';
 
+  private countBlockquoteDepth(prefix: string): number {
+    return (prefix.match(/>/g) || []).length;
+  }
+
   /**
    * Check for code blocks without language specification
    */
@@ -30,19 +34,24 @@ export class CodeBlockLanguageRule implements AdvancedGrammarRule {
     const lines = context.documentText.split('\n');
 
     let inCodeBlock = false;
-    let codeBlockFence = '';
+    let codeBlockFenceChar = '';
+    let codeBlockFenceLength = 0;
+    let codeBlockBlockquoteDepth = 0;
 
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i];
 
       // Check for fenced code block start (``` or ~~~)
-      const startMatch = line.match(/^(`{3,}|~{3,})(.*)$/);
+      const startMatch = line.match(/^(\s*(?:>\s*)*)(`{3,}|~{3,})(.*)$/);
       if (startMatch && !inCodeBlock) {
-        const fence = startMatch[1];
-        const langSpec = startMatch[2].trim();
+        const prefix = startMatch[1];
+        const fence = startMatch[2];
+        const langSpec = startMatch[3].trim();
 
         inCodeBlock = true;
-        codeBlockFence = fence.charAt(0); // Store the fence character (` or ~)
+        codeBlockFenceChar = fence.charAt(0); // Store the fence character (` or ~)
+        codeBlockFenceLength = fence.length;
+        codeBlockBlockquoteDepth = this.countBlockquoteDepth(prefix);
 
         // Check if language specification is missing
         if (langSpec === '') {
@@ -61,11 +70,15 @@ export class CodeBlockLanguageRule implements AdvancedGrammarRule {
           }));
         }
       } else if (inCodeBlock) {
-        // Check for code block end (same fence type)
-        const endMatch = line.match(new RegExp(`^${codeBlockFence}{3,}\\s*$`));
-        if (endMatch) {
+        const endPattern =
+          codeBlockBlockquoteDepth > 0
+            ? new RegExp(`^\\s*(?:>\\s*){${codeBlockBlockquoteDepth}}\\s*${codeBlockFenceChar}{${codeBlockFenceLength},}\\s*$`)
+            : new RegExp(`^\\s*${codeBlockFenceChar}{${codeBlockFenceLength},}\\s*$`);
+        if (endPattern.test(line)) {
           inCodeBlock = false;
-          codeBlockFence = '';
+          codeBlockFenceChar = '';
+          codeBlockFenceLength = 0;
+          codeBlockBlockquoteDepth = 0;
         }
       }
     }

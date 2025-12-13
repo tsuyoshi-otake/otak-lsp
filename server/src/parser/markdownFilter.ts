@@ -28,6 +28,37 @@ export class MarkdownFilter implements IMarkdownFilter {
     this.config = config ? { ...DEFAULT_FILTER_CONFIG, ...config } : { ...DEFAULT_FILTER_CONFIG };
   }
 
+  private stripBlockquotePrefix(
+    line: string,
+    maxDepth: number = Number.POSITIVE_INFINITY
+  ): { strippedLine: string; depth: number; strippedLength: number } {
+    let index = 0;
+    let depth = 0;
+
+    while (depth < maxDepth) {
+      const whitespaceStart = index;
+      while (index < line.length && (line[index] === ' ' || line[index] === '\t')) {
+        index++;
+      }
+
+      if (index < line.length && line[index] === '>') {
+        depth++;
+        index++;
+        // CommonMark: ">" の直後の 1 空白は無視される
+        if (index < line.length && line[index] === ' ') {
+          index++;
+        }
+        continue;
+      }
+
+      // '>' が続かない場合、この空白は本文のインデントなので戻す
+      index = whitespaceStart;
+      break;
+    }
+
+    return { strippedLine: line.substring(index), depth, strippedLength: index };
+  }
+
   /**
    * テキストをフィルタリング
    * @param text フィルタリング対象のテキスト
@@ -122,17 +153,79 @@ export class MarkdownFilter implements IMarkdownFilter {
    */
   private findCodeBlocks(text: string): ExcludedRange[] {
     const ranges: ExcludedRange[] = [];
-    const codeBlockPattern = /```[\s\S]*?```/g;
-    let match;
 
-    while ((match = codeBlockPattern.exec(text)) !== null) {
-      ranges.push({
-        start: match.index,
-        end: match.index + match[0].length,
-        type: 'code-block',
-        content: match[0],
-        reason: 'コードブロック検出'
-      });
+    // NOTE:
+    // 以前は /```[\\s\\S]*?```/ で検出していたが、
+    // これは行途中の ```...``` を「コードブロック」と誤認し、
+    // テーブル検出を阻害する（README の evals など）ため、
+    // CommonMark 互換の「行頭フェンス」を優先しつつ、
+    // 後方互換のため単一行の ```code``` 形式も検出する。
+    const lines = text.split('\n');
+    let position = 0;
+
+    let inCodeBlock = false;
+    let codeBlockStart = -1;
+    let fenceChar: '`' | '~' | null = null;
+    let fenceLength = 0;
+
+    const openingFencePattern = /^\s*(`{3,}|~{3,})(.*)$/;
+    let codeBlockBlockquoteDepth = 0;
+
+    for (const line of lines) {
+      const lineStart = position;
+
+      if (!inCodeBlock) {
+        const { strippedLine, depth } = this.stripBlockquotePrefix(line);
+        const match = strippedLine.match(openingFencePattern);
+        if (match) {
+          inCodeBlock = true;
+          codeBlockStart = lineStart;
+          fenceChar = match[1][0] as '`' | '~';
+          fenceLength = match[1].length;
+          codeBlockBlockquoteDepth = depth;
+        }
+      } else if (fenceChar) {
+        const { strippedLine, depth: actualDepth } = this.stripBlockquotePrefix(line, codeBlockBlockquoteDepth);
+        if (actualDepth === codeBlockBlockquoteDepth) {
+          const closingFencePattern = new RegExp(`^\\s*${fenceChar}{${fenceLength},}\\s*$`);
+          if (closingFencePattern.test(strippedLine)) {
+            const codeBlockEnd = lineStart + line.length;
+            ranges.push({
+              start: codeBlockStart,
+              end: codeBlockEnd,
+              type: 'code-block',
+              content: text.substring(codeBlockStart, codeBlockEnd),
+              reason: 'コードブロック検出'
+            });
+
+            inCodeBlock = false;
+            codeBlockStart = -1;
+            fenceChar = null;
+            fenceLength = 0;
+            codeBlockBlockquoteDepth = 0;
+          }
+        }
+      }
+
+      position += line.length + 1; // +1 for newline
+    }
+
+    // 単一行の ```code``` 形式（GFMでは通常コードブロック扱いではないが、既存挙動維持）
+    // - ただし複数行ブロック検出と重複する場合は除外
+    const inlineFencePattern = /```[^`\n]+```/g;
+    let inlineMatch;
+    while ((inlineMatch = inlineFencePattern.exec(text)) !== null) {
+      const start = inlineMatch.index;
+      const end = inlineMatch.index + inlineMatch[0].length;
+      if (!this.isOverlapping(start, end, ranges)) {
+        ranges.push({
+          start,
+          end,
+          type: 'code-block',
+          content: inlineMatch[0],
+          reason: 'コードブロック検出'
+        });
+      }
     }
 
     return ranges;
@@ -143,19 +236,64 @@ export class MarkdownFilter implements IMarkdownFilter {
    */
   private findInlineCode(text: string, existingRanges: ExcludedRange[]): ExcludedRange[] {
     const ranges: ExcludedRange[] = [];
-    const inlineCodePattern = /`[^`\n]+`/g;
-    let match;
+    const lines = text.split('\n');
+    let position = 0;
 
-    while ((match = inlineCodePattern.exec(text)) !== null) {
-      if (!this.isOverlapping(match.index, match.index + match[0].length, existingRanges)) {
-        ranges.push({
-          start: match.index,
-          end: match.index + match[0].length,
-          type: 'inline-code',
-          content: match[0],
-          reason: 'インラインコード検出'
-        });
+    for (const line of lines) {
+      let i = 0;
+      while (i < line.length) {
+        if (line[i] !== '`') {
+          i++;
+          continue;
+        }
+
+        const openingStart = i;
+        let tickCount = 0;
+        while (i < line.length && line[i] === '`') {
+          tickCount++;
+          i++;
+        }
+
+        let closingEnd = -1;
+        let j = i;
+        while (j < line.length) {
+          if (line[j] !== '`') {
+            j++;
+            continue;
+          }
+
+          let k = j;
+          while (k < line.length && line[k] === '`') {
+            k++;
+          }
+          const runLength = k - j;
+          if (runLength === tickCount) {
+            closingEnd = k;
+            break;
+          }
+          j = k;
+        }
+
+        if (closingEnd !== -1) {
+          const absStart = position + openingStart;
+          const absEnd = position + closingEnd;
+          if (!this.isOverlapping(absStart, absEnd, existingRanges)) {
+            ranges.push({
+              start: absStart,
+              end: absEnd,
+              type: 'inline-code',
+              content: text.substring(absStart, absEnd),
+              reason: 'インラインコード検出'
+            });
+          }
+          i = closingEnd;
+        } else {
+          // 閉じバッククォートがない場合はリテラルとして扱い、1文字進める
+          i = openingStart + 1;
+        }
       }
+
+      position += line.length + 1; // +1 for newline
     }
 
     return ranges;
@@ -293,15 +431,20 @@ export class MarkdownFilter implements IMarkdownFilter {
     const tableSeparators: ExcludedRange[] = [];
 
     // コードブロック範囲のみをチェック対象とする（テーブル内にURL等があっても検出可能にする）
-    const codeBlockRanges = existingRanges.filter((r) => r.type === 'code-block');
+    // ただし単一行の ```code``` はフェンスドブロックではなく、
+    // テーブル検出を阻害しないよう「複数行のコードブロック」のみを対象にする。
+    const codeBlockRanges = existingRanges.filter(
+      (r) => r.type === 'code-block' && (r.content.includes('\n') || r.content.includes('\r'))
+    );
 
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i];
       const lineStart = position;
-      const trimmed = line.trim();
+      const { strippedLine } = this.stripBlockquotePrefix(line);
+      const trimmed = strippedLine.trim();
       const compact = trimmed.replace(/\s+/g, '');
-      const isTableRow = /^\|.*\|$/.test(trimmed);
-      const isSeparator = /^\|[-:|]+\|$/.test(compact);
+      const isTableRow = trimmed.startsWith('|') && trimmed.indexOf('|', 1) !== -1;
+      const isSeparator = /^\|[-:|]+\|?$/.test(compact);
 
       if ((isTableRow || isSeparator) && !inTable) {
         inTable = true;
@@ -396,15 +539,15 @@ export class MarkdownFilter implements IMarkdownFilter {
       const lineStart = position;
 
       // マークダウン見出し: # で始まる行のマーカー部分のみ除外
-      const headingMatch = line.match(/^(#{1,6}\s)/);
+      const headingMatch = line.match(/^(\s*(?:>\s*)*)(#{1,6}\s)/);
       if (headingMatch) {
-        const markerEnd = lineStart + headingMatch[1].length;
+        const markerEnd = lineStart + headingMatch[1].length + headingMatch[2].length;
         if (!this.isOverlapping(lineStart, markerEnd, codeBlockRanges)) {
           ranges.push({
             start: lineStart,
             end: markerEnd,
             type: 'heading',
-            content: headingMatch[1],
+            content: headingMatch[0],
             reason: 'マークダウン見出しマーカー検出'
           });
         }
@@ -433,15 +576,17 @@ export class MarkdownFilter implements IMarkdownFilter {
       const lineStart = position;
 
       // リストマーカー: - * + または 1. 2. などで始まる行のマーカー部分のみ除外
-      const listMatch = line.match(/^(\s*[-*+]\s)/) || line.match(/^(\s*\d+\.\s)/);
+      const listMatch =
+        line.match(/^(\s*(?:>\s*)*)(\s*[-*+]\s)/) ||
+        line.match(/^(\s*(?:>\s*)*)(\s*\d+\.\s)/);
       if (listMatch) {
-        const markerEnd = lineStart + listMatch[1].length;
+        const markerEnd = lineStart + listMatch[1].length + listMatch[2].length;
         if (!this.isOverlapping(lineStart, markerEnd, codeBlockRanges)) {
           ranges.push({
             start: lineStart,
             end: markerEnd,
             type: 'list-marker',
-            content: listMatch[1],
+            content: listMatch[0],
             reason: 'リストマーカー検出'
           });
         }
@@ -482,29 +627,104 @@ export class MarkdownFilter implements IMarkdownFilter {
       return text;
     }
 
-    // 範囲を逆順にソート（後ろから処理するため）
-    const sortedRanges = [...ranges].sort((a, b) => b.start - a.start);
-    let result = text;
+    // NOTE:
+    // - 位置（オフセット）だけでなく行構造も保持するため、\n/\r は置換しない
+    // - Markdown構造ルール（見出し/箇条書き/テーブル/コードブロック等）が参照できるよう、
+    //   一部の構文記号は保持する（トークン側は TokenFilter で除外する）
+    const chars = text.split('');
 
-    for (const range of sortedRanges) {
+    const maskRangePreservingNewlines = (start: number, end: number): void => {
+      const safeStart = Math.max(0, Math.min(start, chars.length));
+      const safeEnd = Math.max(safeStart, Math.min(end, chars.length));
+      for (let i = safeStart; i < safeEnd; i++) {
+        const ch = chars[i];
+        if (ch !== '\n' && ch !== '\r') {
+          chars[i] = ' ';
+        }
+      }
+    };
+
+    const sanitizeCodeFenceLanguageSpec = (lineStart: number, lineEndExclusive: number): void => {
+      const line = text.substring(lineStart, lineEndExclusive);
+      const match = line.match(/^(\s*(?:>\s*)*)(`{3,}|~{3,})(.*)$/);
+      if (!match) {
+        return;
+      }
+
+      const prefixLength = match[1].length + match[2].length;
+      const rest = match[3];
+      if (rest.trim().length === 0) {
+        return;
+      }
+
+      const restStart = lineStart + prefixLength;
+      for (let i = restStart; i < lineEndExclusive; i++) {
+        const ch = chars[i];
+        if (ch !== ' ' && ch !== '\t' && ch !== '\r') {
+          chars[i] = 'x';
+        }
+      }
+    };
+
+    const maskCodeBlockContentPreservingFences = (range: ExcludedRange): void => {
+      const start = Math.max(0, Math.min(range.start, chars.length));
+      const end = Math.max(start, Math.min(range.end, chars.length));
+      const blockText = text.substring(start, end);
+
+      // 単一行の ```code``` 形式など（改行なし）は全体をマスク
+      const firstNewlineRel = blockText.indexOf('\n');
+      if (firstNewlineRel === -1) {
+        maskRangePreservingNewlines(start, end);
+        return;
+      }
+
+      // 先頭行（フェンス）は保持しつつ、言語指定部分は規則検出（term-notation 等）のノイズにならないよう無害化
+      const openingFenceLineEndExclusive = start + firstNewlineRel;
+      sanitizeCodeFenceLanguageSpec(start, openingFenceLineEndExclusive);
+
+      // 末尾行（閉じフェンス）は保持し、間の内容だけをマスク
+      const lastNewlineRel = blockText.lastIndexOf('\n');
+      const openingFenceLineEnd = start + firstNewlineRel + 1; // include \n
+      const closingFenceLineStart = start + lastNewlineRel + 1; // start of last line
+
+      if (openingFenceLineEnd < closingFenceLineStart) {
+        maskRangePreservingNewlines(openingFenceLineEnd, closingFenceLineStart);
+      }
+    };
+
+    for (const range of ranges) {
+      // 無効な範囲はスキップ
+      if (range.start >= range.end) {
+        continue;
+      }
+
       // table 全体は文法チェック用の除外情報として保持しつつ、
       // セマンティックハイライトのために内容は残す
       if (range.type === 'table') {
         continue;
       }
-      
-      // リストマーカーは改行に置換（各項目を独立した文として扱う）
-      if (range.type === 'list-marker') {
-        const replacement = '\n' + ' '.repeat(range.end - range.start - 1);
-        result = result.substring(0, range.start) + replacement + result.substring(range.end);
-      } else {
-        // その他の除外範囲はスペースで置換（位置情報を保持）
-        const spaces = ' '.repeat(range.end - range.start);
-        result = result.substring(0, range.start) + spaces + result.substring(range.end);
+
+      // Markdown構造を維持したい要素は置換しない（TokenFilterでトークン側を除外する）
+      if (
+        range.type === 'heading' ||
+        range.type === 'list-marker' ||
+        range.type === 'table-delimiter' ||
+        range.type === 'table-separator'
+      ) {
+        continue;
       }
+
+      // コードブロックは内容だけをマスク（フェンス行は残す）
+      if (range.type === 'code-block') {
+        maskCodeBlockContentPreservingFences(range);
+        continue;
+      }
+
+      // その他の除外範囲はスペースで置換（改行は保持して行位置を崩さない）
+      maskRangePreservingNewlines(range.start, range.end);
     }
 
-    return result;
+    return chars.join('');
   }
 
   /**

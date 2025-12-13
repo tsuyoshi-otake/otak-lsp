@@ -37,6 +37,13 @@ describe('HeadingLevelSkipRule', () => {
       expect(diagnostics[0].code).toBe('heading-level-skip');
     });
 
+    it('should detect skip from h1 to h3 in blockquote', () => {
+      context.documentText = '> # タイトル\n> ### サブセクション';
+      const diagnostics = rule.check(emptyTokens, context);
+      expect(diagnostics.length).toBe(1);
+      expect(diagnostics[0].code).toBe('heading-level-skip');
+    });
+
     it('should detect skip from h2 to h4', () => {
       context.documentText = '## セクション\n#### 詳細';
       const diagnostics = rule.check(emptyTokens, context);
@@ -94,6 +101,12 @@ describe('HeadingLevelSkipRule', () => {
       context.documentText = '# タイトル\n```\n### コード内\n```\n## セクション';
       const diagnostics = rule.check(emptyTokens, context);
       // Should detect skip from # to ## (ignoring code block content)
+      expect(diagnostics.length).toBe(0);
+    });
+
+    it('should not detect heading-like patterns in blockquote code blocks', () => {
+      context.documentText = '> # タイトル\n> ```\n> ### コード内\n> ```\n> ## セクション';
+      const diagnostics = rule.check(emptyTokens, context);
       expect(diagnostics.length).toBe(0);
     });
   });

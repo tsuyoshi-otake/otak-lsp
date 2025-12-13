@@ -31,6 +31,10 @@ export class TableColumnMismatchRule implements AdvancedGrammarRule {
   name = 'table-column-mismatch';
   description = 'Markdownテーブルの列数不一致を検出します';
 
+  private stripBlockquotePrefix(line: string): string {
+    return line.replace(/^\s*(?:>\s*)*/, '');
+  }
+
   /**
    * Check for table column mismatches
    */
@@ -57,14 +61,15 @@ export class TableColumnMismatchRule implements AdvancedGrammarRule {
 
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i];
-      const isTableRow = line.trim().startsWith('|');
+      const normalizedLine = this.stripBlockquotePrefix(line);
+      const isTableRow = normalizedLine.trim().startsWith('|');
 
       if (isTableRow) {
         if (!currentTable) {
           currentTable = {
             startLine: i,
             lines: [line],
-            headerColumns: this.countColumns(line)
+            headerColumns: this.countColumns(normalizedLine)
           };
         } else {
           currentTable.lines.push(line);
@@ -90,10 +95,40 @@ export class TableColumnMismatchRule implements AdvancedGrammarRule {
    * Count columns in a table row
    */
   private countColumns(line: string): number {
-    // Remove leading/trailing pipes and split
     const trimmed = line.trim();
-    const withoutEdges = trimmed.replace(/^\||\|$/g, '');
-    return withoutEdges.split('|').length;
+    if (trimmed.length === 0) {
+      return 0;
+    }
+
+    // 先頭/末尾の区切りパイプは除外してカウント（Markdownの一般的な表記）
+    let start = 0;
+    let end = trimmed.length;
+    if (trimmed.startsWith('|')) {
+      start = 1;
+    }
+    if (end > start && trimmed.endsWith('|')) {
+      end -= 1;
+    }
+
+    // `\|` はセル内のリテラルとして扱い、列区切りとして数えない
+    let columns = 1;
+    let escaped = false;
+    for (let i = start; i < end; i++) {
+      const ch = trimmed[i];
+      if (escaped) {
+        escaped = false;
+        continue;
+      }
+      if (ch === '\\') {
+        escaped = true;
+        continue;
+      }
+      if (ch === '|') {
+        columns++;
+      }
+    }
+
+    return columns;
   }
 
   /**
@@ -105,11 +140,12 @@ export class TableColumnMismatchRule implements AdvancedGrammarRule {
 
     for (let i = 0; i < table.lines.length; i++) {
       const line = table.lines[i];
+      const normalizedLine = this.stripBlockquotePrefix(line);
       const lineIndex = table.startLine + i;
 
       // Skip separator row check for now (it uses different counting)
-      const isSeparator = /^\|[\s\-:|]+\|?$/.test(line.trim());
-      const actualColumns = this.countColumns(line);
+      const isSeparator = /^\|[\s\-:|]+\|?$/.test(normalizedLine.trim());
+      const actualColumns = this.countColumns(normalizedLine);
 
       if (!isSeparator && actualColumns !== expectedColumns) {
         diagnostics.push(new AdvancedDiagnostic({

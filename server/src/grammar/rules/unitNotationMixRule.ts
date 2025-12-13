@@ -34,6 +34,15 @@ export class UnitNotationMixRule extends MixDetectionRule {
   name = 'unit-notation-mix';
   description = '単位表記の混在（記号とカタカナ）を検出します';
 
+  private findFirstMatch(text: string, pattern: RegExp): { index: number; length: number } | null {
+    const regex = new RegExp(pattern.source, pattern.flags);
+    const match = regex.exec(text);
+    if (!match) {
+      return null;
+    }
+    return { index: match.index, length: match[0].length };
+  }
+
   private readonly unitCategories: UnitCategory[] = [
     {
       name: 'distance',
@@ -68,10 +77,20 @@ export class UnitNotationMixRule extends MixDetectionRule {
       const katakanaMatches = context.documentText.match(category.katakanaPattern);
 
       if (symbolMatches && symbolMatches.length > 0 && katakanaMatches && katakanaMatches.length > 0) {
+        const firstSymbol = this.findFirstMatch(context.documentText, category.symbolPattern);
+        const firstKatakana = this.findFirstMatch(context.documentText, category.katakanaPattern);
+
+        const symbolIndex = firstSymbol?.index ?? Number.POSITIVE_INFINITY;
+        const katakanaIndex = firstKatakana?.index ?? Number.POSITIVE_INFINITY;
+        const first = symbolIndex <= katakanaIndex ? firstSymbol : firstKatakana;
+
+        const startOffset = first?.index ?? 0;
+        const endOffset = Math.min(startOffset + (first?.length ?? 1), context.documentText.length);
+
         diagnostics.push(new AdvancedDiagnostic({
           range: {
-            start: { line: 0, character: 0 },
-            end: { line: 0, character: context.documentText.length }
+            start: { line: 0, character: startOffset },
+            end: { line: 0, character: endOffset }
           },
           message: `単位表記が混在しています。記号表記（${symbolMatches.join('、')}）とカタカナ表記（${katakanaMatches.join('、')}）が使用されています。`,
           code: 'unit-notation-mix',

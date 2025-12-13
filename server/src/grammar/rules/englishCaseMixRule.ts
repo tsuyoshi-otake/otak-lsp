@@ -37,10 +37,25 @@ export class EnglishCaseMixRule extends MixDetectionRule {
     for (const [normalizedWord, variants] of wordVariants) {
       if (variants.size > 1) {
         const variantList = Array.from(variants.keys());
+
+        let firstIndex: number | null = null;
+        let firstVariant = normalizedWord;
+        for (const [variant, indexes] of variants) {
+          for (const index of indexes) {
+            if (firstIndex === null || index < firstIndex) {
+              firstIndex = index;
+              firstVariant = variant;
+            }
+          }
+        }
+
+        const startOffset = firstIndex ?? 0;
+        const endOffset = Math.min(startOffset + firstVariant.length, context.documentText.length);
+
         diagnostics.push(new AdvancedDiagnostic({
           range: {
-            start: { line: 0, character: 0 },
-            end: { line: 0, character: context.documentText.length }
+            start: { line: 0, character: startOffset },
+            end: { line: 0, character: endOffset }
           },
           message: `英語表記「${normalizedWord}」の大文字小文字が統一されていません。${variantList.join('、')}が混在しています。`,
           code: 'english-case-mix',

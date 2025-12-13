@@ -130,7 +130,7 @@ describe('MixDetectionRule', () => {
       const diagnostics = rule.check(emptyTokens, context);
       expect(diagnostics.length).toBe(1);
       expect(diagnostics[0].range.start.character).toBe(0);
-      expect(diagnostics[0].range.end.character).toBe(4);
+      expect(diagnostics[0].range.end.character).toBe(1);
     });
   });
 

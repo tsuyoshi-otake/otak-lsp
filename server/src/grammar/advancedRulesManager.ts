@@ -172,7 +172,8 @@ export class AdvancedRulesManager {
       const end = Math.max(start, Math.min(range.end, chars.length));
       for (let i = start; i < end; i++) {
         const ch = chars[i];
-        if (ch !== '\n' && ch !== '\r') {
+        // テーブル構造ルール（列数不一致など）のために区切り文字（|）とエスケープ（\）は保持する
+        if (ch !== '\n' && ch !== '\r' && ch !== '|' && ch !== '\\' && ch !== '-' && ch !== ':') {
           chars[i] = ' ';
         }
       }

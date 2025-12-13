@@ -86,14 +86,17 @@ export abstract class MixDetectionRule implements AdvancedGrammarRule {
    * Create range for diagnostic
    * @param text Document text
    * @param patterns Detected patterns
-   * @returns Range covering the document
+   * @returns Range pointing at the first occurrence
    */
   protected createRange(text: string, patterns: Map<string, PatternInfo>): Range {
-    // Return range covering entire document by default
-    // Subclasses can override for more specific ranges
+    // 既定では最初の出現箇所を指す（ドキュメント全体に波線を引かない）
+    // サブクラスでより具体的な範囲に上書き可能
+    const positions = this.getAllPositions(patterns);
+    const startOffset = positions.length > 0 ? positions[0] : 0;
+    const endOffset = Math.min(startOffset + 1, text.length);
     return {
-      start: { line: 0, character: 0 },
-      end: { line: 0, character: text.length }
+      start: { line: 0, character: startOffset },
+      end: { line: 0, character: endOffset }
     };
   }
 
