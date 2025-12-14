@@ -30,6 +30,7 @@ import { AdvancedRulesManager } from './grammar/advancedRulesManager';
 import { SemanticTokenProvider, tokenTypes, tokenModifiers } from './semantic/tokenProvider';
 import { TokenFilter } from './semantic/tokenFilter';
 import { HoverProvider } from './hover/provider';
+import { DEFAULT_ENABLED_GLOSSARIES } from './hover/glossary';
 import { WikipediaClient } from './wikipedia/client';
 import { Configuration, Token, SupportedLanguage } from '../../shared/src/types';
 import { ExcludedRange } from '../../shared/src/markdownFilterTypes';
@@ -67,6 +68,11 @@ let configuration: Configuration = {
   },
   targetLanguages: ['markdown', 'javascript', 'typescript', 'python', 'c', 'cpp', 'java', 'rust', 'plaintext'] as SupportedLanguage[],
   debounceDelay: 250,
+  hover: {
+    enableWikipedia: true,
+    enableGlossary: true,
+    enabledGlossaries: [...DEFAULT_ENABLED_GLOSSARIES],
+  },
 };
 
 // Debounce timers
@@ -88,6 +94,9 @@ connection.onInitialize((params: InitializeParams): InitializeResult => {
   semanticTokenProvider = new SemanticTokenProvider();
   wikipediaClient = new WikipediaClient();
   hoverProvider = new HoverProvider(wikipediaClient);
+  hoverProvider.setWikipediaEnabled(configuration.hover.enableWikipedia);
+  hoverProvider.setGlossaryEnabled(configuration.hover.enableGlossary);
+  hoverProvider.setEnabledGlossaries(configuration.hover.enabledGlossaries);
 
   return {
     capabilities: {
@@ -136,6 +145,12 @@ connection.onDidChangeConfiguration((change) => {
       },
       targetLanguages: newConfig.targetLanguages ?? configuration.targetLanguages,
       debounceDelay: newConfig.debounceDelay ?? configuration.debounceDelay,
+      hover: {
+        ...configuration.hover,
+        enableWikipedia: newConfig.hover?.enableWikipedia ?? configuration.hover.enableWikipedia,
+        enableGlossary: newConfig.hover?.enableGlossary ?? configuration.hover.enableGlossary,
+        enabledGlossaries: newConfig.hover?.enabledGlossaries ?? configuration.hover.enabledGlossaries,
+      },
     };
 
     // 高度なルール設定を更新
@@ -150,6 +165,11 @@ connection.onDidChangeConfiguration((change) => {
     advancedRulesManager.updateConfig(advancedConfig);
 
     connection.console.log(`Configuration updated: grammarCheck=${configuration.enableGrammarCheck}, semanticHighlight=${configuration.enableSemanticHighlight}, sentenceSplitMode=${advancedConfig.sentenceSplitMode}`);
+
+    // Hover設定を反映
+    hoverProvider.setWikipediaEnabled(configuration.hover.enableWikipedia);
+    hoverProvider.setGlossaryEnabled(configuration.hover.enableGlossary);
+    hoverProvider.setEnabledGlossaries(configuration.hover.enabledGlossaries);
 
     // 文法チェックが無効になった場合、診断をクリア
     if (wasGrammarEnabled && !configuration.enableGrammarCheck) {

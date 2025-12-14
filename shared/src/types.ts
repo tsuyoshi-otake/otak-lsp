@@ -280,6 +280,39 @@ export interface CommentRange {
 /**
  * 設定
  */
+export type GlossaryId =
+  | 'it'
+  | 'cloud'
+  | 'awsServices'
+  | 'azureServices'
+  | 'gcpServices'
+  | 'ociServices'
+  | 'cloudflareServices'
+  | 'iotEmbedded'
+  | 'backend'
+  | 'frontend'
+  | 'ddd'
+  | 'tdd'
+  | 'pmbok'
+  | 'java'
+  | 'nextjs'
+  | 'dotnet'
+  | 'security'
+  | 'networkHttp'
+  | 'authIam'
+  | 'dbSqlTx'
+  | 'apiDesign'
+  | 'devopsCicd'
+  | 'containersK8s'
+  | 'observabilitySre'
+  | 'distributedSystems'
+  | 'messagingEda'
+  | 'performanceCache'
+  | 'architecturePatterns'
+  | 'agileProduct'
+  | 'aiLlm'
+  | 'contractLegal';
+
 export interface Configuration {
   /** 文法チェックの有効/無効 */
   enableGrammarCheck: boolean;
@@ -298,6 +331,15 @@ export interface Configuration {
   targetLanguages: SupportedLanguage[];
   /** デバウンス遅延（ミリ秒） */
   debounceDelay: number;
+  /** ホバー関連設定 */
+  hover: {
+    /** Wikipediaサマリーの表示 */
+    enableWikipedia: boolean;
+    /** 用語図鑑（オフライン）の表示 */
+    enableGlossary: boolean;
+    /** 有効な用語図鑑 */
+    enabledGlossaries: GlossaryId[];
+  };
 }
 
 /**

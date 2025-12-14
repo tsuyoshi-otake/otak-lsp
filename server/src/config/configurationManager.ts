@@ -6,6 +6,7 @@
  */
 
 import { Configuration, SupportedLanguage } from '../../../shared/src/types';
+import { DEFAULT_ENABLED_GLOSSARIES } from '../hover/glossary';
 
 /**
  * 設定変更イベント
@@ -49,9 +50,15 @@ export class ConfigurationManager {
       excludeTableDelimiters: true,
       markdown: {
         analyzeCodeBlocks: false,
+        analyzeTables: false,
       },
       targetLanguages: ['c', 'cpp', 'java', 'python', 'javascript', 'typescript', 'rust', 'markdown'],
-      debounceDelay: 250
+      debounceDelay: 250,
+      hover: {
+        enableWikipedia: true,
+        enableGlossary: true,
+        enabledGlossaries: [...DEFAULT_ENABLED_GLOSSARIES],
+      },
     };
   }
 
@@ -123,7 +130,8 @@ export class ConfigurationManager {
       'excludeTableDelimiters',
       'markdown',
       'targetLanguages',
-      'debounceDelay'
+      'debounceDelay',
+      'hover'
     ];
 
     this.configuration = this.getDefaultConfiguration();

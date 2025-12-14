@@ -301,6 +301,45 @@
 - 原形
 - 読み
 - Wikipediaサマリー（オプション）
+- 用語図鑑（オフライン、Wikipediaの下に表示）
+
+#### 用語図鑑カテゴリ（オフライン）
+
+`otakLcp.hover.enabledGlossaries` で表示するカテゴリを選べます。
+
+| ID | 名称 |
+|---|---|
+| `it` | IT用語図鑑 |
+| `cloud` | クラウド用語図鑑 |
+| `backend` | バックエンド用語図鑑 |
+| `frontend` | フロントエンド用語図鑑 |
+| `ddd` | DDD用語図鑑 |
+| `tdd` | TDD用語図鑑 |
+| `pmbok` | PMBOK用語図鑑 |
+| `java` | Java用語図鑑 |
+| `nextjs` | Next.js用語図鑑 |
+| `dotnet` | .NET用語図鑑 |
+| `security` | セキュリティ用語図鑑 |
+| `networkHttp` | ネットワーク・HTTP用語図鑑 |
+| `authIam` | 認証認可・IAM用語図鑑 |
+| `dbSqlTx` | DB・SQL・トランザクション用語図鑑 |
+| `apiDesign` | API設計用語図鑑 |
+| `devopsCicd` | DevOps・CI/CD・リリース用語図鑑 |
+| `containersK8s` | コンテナ・Kubernetes用語図鑑 |
+| `observabilitySre` | 監視・Observability・SRE用語図鑑 |
+| `distributedSystems` | 分散システム用語図鑑 |
+| `messagingEda` | メッセージング・イベント駆動用語図鑑 |
+| `performanceCache` | パフォーマンス・キャッシュ用語図鑑 |
+| `architecturePatterns` | 設計パターン・アーキテクチャ用語図鑑 |
+| `agileProduct` | アジャイル・Scrum・プロダクト用語図鑑 |
+| `aiLlm` | AI/LLM用語図鑑 |
+| `contractLegal` | 契約・法務（準委任・請負・SLA等）用語図鑑 |
+| `iotEmbedded` | IoT・組み込み用語図鑑 |
+| `awsServices` | AWSサービス用語図鑑 |
+| `azureServices` | Azureサービス用語図鑑 |
+| `gcpServices` | GCPサービス用語図鑑 |
+| `ociServices` | OCIサービス用語図鑑 |
+| `cloudflareServices` | Cloudflareサービス用語図鑑 |
 
 ### 対応ファイル形式
 
@@ -343,6 +382,9 @@
 | `otakLcp.markdown.analyzeTables` | Markdownのテーブル（|...|）内も文法チェック対象にする | `false` |
 | `otakLcp.targetLanguages` | 解析対象のファイルタイプ | `["markdown", "javascript", ...]` |
 | `otakLcp.debounceDelay` | 解析のデバウンス遅延（ミリ秒） | `250` |
+| `otakLcp.hover.enableWikipedia` | ホバーにWikipediaサマリーを表示 | `true` |
+| `otakLcp.hover.enableGlossary` | ホバーに用語図鑑（オフライン）を表示（Wikipediaの下に表示） | `true` |
+| `otakLcp.hover.enabledGlossaries` | ホバーで表示する用語図鑑カテゴリ（デフォルトは全カテゴリ） | `["it", "cloud", ...]` |
 
 ### 高度な文法ルール設定
 

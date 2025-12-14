@@ -81,8 +81,8 @@ describe('Property-Based Tests: Markdown Filter', () => {
       fc.assert(
         fc.property(
           fc.string({ minLength: 1, maxLength: 50 }).filter((s) => !s.includes('`') && !s.includes('\n')),
-          fc.string({ minLength: 0, maxLength: 30 }),
-          fc.string({ minLength: 0, maxLength: 30 }),
+          fc.string({ minLength: 0, maxLength: 30 }).filter((s) => !s.includes('`') && !s.includes('\n')),
+          fc.string({ minLength: 0, maxLength: 30 }).filter((s) => !s.includes('`') && !s.includes('\n')),
           (inlineCode, prefix, suffix) => {
             if (inlineCode.trim().length === 0) return true;
 

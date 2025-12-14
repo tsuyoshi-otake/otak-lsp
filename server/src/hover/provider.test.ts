@@ -159,6 +159,29 @@ describe('Hover Provider', () => {
       expect(result?.contents).toContain('日本国は、東アジアに位置する島国である。');
     });
 
+    it('should include glossary description below Wikipedia when term matches', async () => {
+      const tokens = [
+        createToken('API', 0, 3, '名詞', 'API', 'API')
+      ];
+
+      const mockFetch = jest.fn().mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve({
+          extract: 'Wikipediaサマリー'
+        })
+      });
+      mockWikipediaClient.setFetch(mockFetch);
+
+      const result = await provider.provideHover(tokens, 0);
+
+      expect(result).not.toBeNull();
+      const contents = result!.contents;
+      expect(contents).toContain('Wikipediaサマリー');
+      expect(contents).toContain('**Wikipedia**');
+      expect(contents).toContain('**IT用語図鑑**');
+      expect(contents.indexOf('**Wikipedia**')).toBeLessThan(contents.indexOf('**IT用語図鑑**'));
+    });
+
     it('should return morpheme info only when Wikipedia is unavailable', async () => {
       const tokens = [
         createToken('テスト', 0, 3, '名詞', 'テスト', 'テスト')

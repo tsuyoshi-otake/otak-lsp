@@ -6,6 +6,7 @@
  */
 
 import { Token, Configuration } from '../../../shared/src/types';
+import { DEFAULT_ENABLED_GLOSSARIES } from '../hover/glossary';
 
 /**
  * 解析結果
@@ -127,10 +128,16 @@ export class LanguageServer {
       enableSemanticHighlight: true,
       markdown: {
         analyzeCodeBlocks: false,
+        analyzeTables: false,
       },
       targetLanguages: ['markdown', 'javascript', 'typescript', 'python', 'c', 'cpp', 'java', 'rust'],
       debounceDelay: 250,
-      excludeTableDelimiters: true
+      excludeTableDelimiters: true,
+      hover: {
+        enableWikipedia: true,
+        enableGlossary: true,
+        enabledGlossaries: [...DEFAULT_ENABLED_GLOSSARIES],
+      },
     };
   }
 

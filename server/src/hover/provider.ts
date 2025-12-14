@@ -5,8 +5,9 @@
  * 要件: 5.1, 5.2, 5.3, 5.4, 5.5
  */
 
-import { Token } from '../../../shared/src/types';
+import { GlossaryId, Token } from '../../../shared/src/types';
 import { WikipediaClient } from '../wikipedia/client';
+import { DEFAULT_ENABLED_GLOSSARIES, findGlossaryHit } from './glossary';
 
 /**
  * ホバー結果
@@ -26,6 +27,8 @@ export interface HoverResult {
 export class HoverProvider {
   private wikipediaClient: WikipediaClient;
   private wikipediaEnabled: boolean = true;
+  private glossaryEnabled: boolean = true;
+  private enabledGlossaries: GlossaryId[] = [...DEFAULT_ENABLED_GLOSSARIES];
 
   // Wikipedia検索をスキップする品詞
   private static readonly SKIP_WIKIPEDIA_POS = ['助詞', '助動詞', '記号', '接続詞'];
@@ -39,6 +42,20 @@ export class HoverProvider {
    */
   setWikipediaEnabled(enabled: boolean): void {
     this.wikipediaEnabled = enabled;
+  }
+
+  /**
+   * 用語図鑑表示の有効/無効を設定
+   */
+  setGlossaryEnabled(enabled: boolean): void {
+    this.glossaryEnabled = enabled;
+  }
+
+  /**
+   * 有効な用語図鑑を設定
+   */
+  setEnabledGlossaries(glossaries: GlossaryId[]): void {
+    this.enabledGlossaries = Array.isArray(glossaries) ? [...glossaries] : [...DEFAULT_ENABLED_GLOSSARIES];
   }
 
   /**
@@ -120,6 +137,45 @@ export class HoverProvider {
       const summary = await this.fetchWikipediaSummary(token);
       if (summary) {
         contents += '\n\n---\n\n**Wikipedia**:\n\n' + summary;
+      }
+    }
+
+    // 用語図鑑（オフライン）
+    if (this.glossaryEnabled) {
+      const hit = findGlossaryHit(token, this.enabledGlossaries);
+      if (hit) {
+        const extraLines: string[] = [];
+        const normalize = (value: string): string => value.normalize('NFKC').trim().toLowerCase();
+        const uniq = (values: ReadonlyArray<string> | undefined): string[] => {
+          const baseKey = normalize(hit.term);
+          const seen = new Set<string>();
+          return (values ?? []).filter((value) => {
+            const key = normalize(value);
+            if (!key || key === baseKey || seen.has(key)) {
+              return false;
+            }
+            seen.add(key);
+            return true;
+          });
+        };
+
+        const aliases = uniq(hit.aliases);
+        if (aliases.length > 0) {
+          extraLines.push(`**別名**: ${aliases.join(' / ')}`);
+        }
+
+        const synonyms = uniq(hit.synonyms);
+        if (synonyms.length > 0) {
+          extraLines.push(`**類義語**: ${synonyms.join(' / ')}`);
+        }
+
+        const antonyms = uniq(hit.antonyms);
+        if (antonyms.length > 0) {
+          extraLines.push(`**対義語**: ${antonyms.join(' / ')}`);
+        }
+
+        const extras = extraLines.length > 0 ? `\n\n${extraLines.join('\n\n')}` : '';
+        contents += `\n\n---\n\n**${hit.title}**:\n\n${hit.description}${extras}`;
       }
     }
 

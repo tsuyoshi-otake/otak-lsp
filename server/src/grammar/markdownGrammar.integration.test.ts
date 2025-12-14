@@ -16,6 +16,7 @@ import { MarkdownFilter } from '../parser/markdownFilter';
 import { MeCabAnalyzer } from '../mecab/analyzer';
 import { GrammarChecker } from './checker';
 import { AdvancedRulesManager } from './advancedRulesManager';
+import { TokenFilter } from '../semantic/tokenFilter';
 import { Token, Diagnostic } from '../../../shared/src/types';
 
 /**
@@ -26,6 +27,7 @@ async function analyzeMarkdown(text: string): Promise<Diagnostic[]> {
   const mecabAnalyzer = new MeCabAnalyzer();
   const grammarChecker = new GrammarChecker();
   const advancedRulesManager = new AdvancedRulesManager();
+  const tokenFilter = new TokenFilter();
 
   // 1. Markdown filtering
   const filterResult = markdownFilter.filter(text);
@@ -33,11 +35,14 @@ async function analyzeMarkdown(text: string): Promise<Diagnostic[]> {
   const excludedRanges = filterResult.excludedRanges;
 
   // 2. Morphological analysis with kuromoji
-  const tokens = await mecabAnalyzer.analyze(textToAnalyze);
+  const allTokens = await mecabAnalyzer.analyze(textToAnalyze);
+  const grammarTokens = excludedRanges.length > 0 ? tokenFilter.filterTokens(allTokens, excludedRanges) : allTokens;
 
   // 3. Grammar check (basic + advanced)
-  const basicDiagnostics = grammarChecker.check(tokens, textToAnalyze);
-  const advancedDiagnostics = advancedRulesManager.checkText(textToAnalyze, tokens, excludedRanges);
+  const basicDiagnostics = grammarChecker.check(grammarTokens, textToAnalyze);
+  const advancedDiagnostics = advancedRulesManager.checkText(textToAnalyze, grammarTokens, excludedRanges, {
+    analyzeTables: false,
+  });
 
   return [...basicDiagnostics, ...advancedDiagnostics];
 }
