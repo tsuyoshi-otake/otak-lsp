@@ -39,7 +39,7 @@ export class NounChainRule implements AdvancedGrammarRule {
       return false;
     }
 
-    // 行頭（=箇条書きマーカー等がスペース置換された後）に現れる「ラベル: 説明」形式は許容する
+    // 行頭（ブロッククォート/箇条書きマーカーを除いた先頭）に現れる「ラベル: 説明」形式は許容する
     // 例: **IPA辞書内蔵**: npm installだけですぐに使えます
     const lineStart = Math.max(
       text.lastIndexOf('\n', start - 1),
@@ -55,11 +55,28 @@ export class NounChainRule implements AdvancedGrammarRule {
     }
 
     const line = text.slice(lineStart, lineEnd);
-    const firstNonWhitespace = line.search(/[^\t ]/);
-    if (firstNonWhitespace === -1) {
+    let contentLocalIndex = line.search(/[^\t ]/);
+    if (contentLocalIndex === -1) {
       return false;
     }
-    const contentStart = lineStart + firstNonWhitespace;
+
+    // 先頭のブロッククォート/箇条書きマーカーは除外してラベル判定する（MarkdownFilter がマーカーを保持するため）
+    const listMatch =
+      line.match(/^(\s*(?:>\s*)*)(\s*[-*+]\s+)/) ||
+      line.match(/^(\s*(?:>\s*)*)(\s*\d+\.\s+)/);
+    if (listMatch) {
+      contentLocalIndex = listMatch[1].length + listMatch[2].length;
+    } else {
+      const blockquoteMatch = line.match(/^\s*(?:>\s*)+/);
+      if (blockquoteMatch) {
+        contentLocalIndex = blockquoteMatch[0].length;
+      }
+    }
+    while (contentLocalIndex < line.length && /[ \t]/.test(line[contentLocalIndex])) {
+      contentLocalIndex++;
+    }
+
+    const contentStart = lineStart + contentLocalIndex;
 
     // チェーンが行頭ラベルの範囲外（途中から始まっている）なら対象外
     if (start < contentStart) {

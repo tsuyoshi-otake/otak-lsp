@@ -189,34 +189,6 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "message": "名詞が連続して読みにくくなっています。名詞の間に助詞を挿入して読みやすくしてください",
     "range": {
       "end": {
-        "character": 14,
-        "line": 6,
-      },
-      "start": {
-        "character": 2,
-        "line": 6,
-      },
-    },
-  },
-  {
-    "code": "noun-chain",
-    "message": "名詞が連続して読みにくくなっています。名詞の間に助詞を挿入して読みやすくしてください",
-    "range": {
-      "end": {
-        "character": 11,
-        "line": 16,
-      },
-      "start": {
-        "character": 2,
-        "line": 16,
-      },
-    },
-  },
-  {
-    "code": "noun-chain",
-    "message": "名詞が連続して読みにくくなっています。名詞の間に助詞を挿入して読みやすくしてください",
-    "range": {
-      "end": {
         "character": 13,
         "line": 117,
       },
@@ -405,20 +377,6 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
       "start": {
         "character": 31,
         "line": 559,
-      },
-    },
-  },
-  {
-    "code": "noun-chain",
-    "message": "名詞が連続して読みにくくなっています。名詞の間に助詞を挿入して読みやすくしてください",
-    "range": {
-      "end": {
-        "character": 20,
-        "line": 561,
-      },
-      "start": {
-        "character": 2,
-        "line": 561,
       },
     },
   },

@@ -37,7 +37,7 @@ describe('NounChainRule', () => {
   });
 
   it('should ignore noun chains in label style ("ラベル: 説明")', () => {
-    context.documentText = '  **IPA辞書内蔵**: npm installだけですぐに使えます';
+    context.documentText = '- **IPA辞書内蔵**: npm installだけですぐに使えます';
 
     // 5連続名詞（threshold=5）を意図的に作る
     const tokens = [
@@ -68,4 +68,3 @@ describe('NounChainRule', () => {
     expect(diagnostics[0].code).toBe('noun-chain');
   });
 });
-
