@@ -29,9 +29,73 @@ export class TokenFilter {
     }
 
     // 有効な除外範囲のみを使用（start < end）
-    const validRanges = excludedRanges.filter(range => range.start < range.end);
+    const validRanges = excludedRanges.filter((range) => range.start < range.end);
+    if (validRanges.length === 0) {
+      return [...tokens];
+    }
 
-    return tokens.filter(token => !this.isTokenInExcludedRange(token, validRanges));
+    // 除外範囲をソート + 結合（オーバーラップ/隣接）し、O(tokens + ranges) でフィルタリング
+    type RangeSpan = { start: number; end: number };
+
+    let ranges = validRanges as RangeSpan[];
+    let isSortedByStart = true;
+    for (let i = 1; i < ranges.length; i++) {
+      if (ranges[i - 1].start > ranges[i].start) {
+        isSortedByStart = false;
+        break;
+      }
+    }
+    if (!isSortedByStart) {
+      ranges = [...ranges].sort((a, b) => a.start - b.start);
+    }
+
+    const mergedRanges: RangeSpan[] = [];
+    for (const range of ranges) {
+      const last = mergedRanges[mergedRanges.length - 1];
+      if (!last) {
+        mergedRanges.push({ start: range.start, end: range.end });
+        continue;
+      }
+
+      if (range.start <= last.end) {
+        if (range.end > last.end) {
+          last.end = range.end;
+        }
+        continue;
+      }
+
+      mergedRanges.push({ start: range.start, end: range.end });
+    }
+
+    let tokensSortedByStart = true;
+    for (let i = 1; i < tokens.length; i++) {
+      if (tokens[i - 1].start > tokens[i].start) {
+        tokensSortedByStart = false;
+        break;
+      }
+    }
+
+    if (!tokensSortedByStart) {
+      return tokens.filter((token) => !this.isTokenInExcludedRange(token, validRanges));
+    }
+
+    const result: Token[] = [];
+    let rangeIndex = 0;
+
+    for (const token of tokens) {
+      while (rangeIndex < mergedRanges.length && mergedRanges[rangeIndex].end <= token.start) {
+        rangeIndex++;
+      }
+
+      const current = mergedRanges[rangeIndex];
+      if (current && token.start < current.end && token.end > current.start) {
+        continue;
+      }
+
+      result.push(token);
+    }
+
+    return result;
   }
 
   /**

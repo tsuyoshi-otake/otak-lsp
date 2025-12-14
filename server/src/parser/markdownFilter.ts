@@ -148,27 +148,29 @@ export class MarkdownFilter implements IMarkdownFilter {
     let codeBlockStart = -1;
     let fenceChar: '`' | '~' | null = null;
     let fenceLength = 0;
+    let closingFencePattern: RegExp | null = null;
 
     const openingFencePattern = /^\s*(`{3,}|~{3,})(.*)$/;
     let codeBlockBlockquoteDepth = 0;
 
     for (const line of lines) {
       const lineStart = position;
+      const lineForMatch = line.endsWith('\r') ? line.slice(0, -1) : line;
 
       if (!inCodeBlock) {
-        const { strippedLine, depth } = this.stripBlockquotePrefix(line);
+        const { strippedLine, depth } = this.stripBlockquotePrefix(lineForMatch);
         const match = strippedLine.match(openingFencePattern);
         if (match) {
           inCodeBlock = true;
           codeBlockStart = lineStart;
           fenceChar = match[1][0] as '`' | '~';
           fenceLength = match[1].length;
+          closingFencePattern = new RegExp(`^\\s*${fenceChar}{${fenceLength},}\\s*$`);
           codeBlockBlockquoteDepth = depth;
         }
-      } else if (fenceChar) {
-        const { strippedLine, depth: actualDepth } = this.stripBlockquotePrefix(line, codeBlockBlockquoteDepth);
+      } else if (closingFencePattern) {
+        const { strippedLine, depth: actualDepth } = this.stripBlockquotePrefix(lineForMatch, codeBlockBlockquoteDepth);
         if (actualDepth === codeBlockBlockquoteDepth) {
-          const closingFencePattern = new RegExp(`^\\s*${fenceChar}{${fenceLength},}\\s*$`);
           if (closingFencePattern.test(strippedLine)) {
             const codeBlockEnd = lineStart + line.length;
             ranges.push({
@@ -183,6 +185,7 @@ export class MarkdownFilter implements IMarkdownFilter {
             codeBlockStart = -1;
             fenceChar = null;
             fenceLength = 0;
+            closingFencePattern = null;
             codeBlockBlockquoteDepth = 0;
           }
         }
@@ -287,7 +290,7 @@ export class MarkdownFilter implements IMarkdownFilter {
     const ranges: ExcludedRange[] = [];
 
     const isOverlappingAny = (start: number, end: number): boolean => {
-      return this.isOverlapping(start, end, [...existingRanges, ...ranges]);
+      return this.isOverlapping(start, end, existingRanges) || this.isOverlapping(start, end, ranges);
     };
 
     const addUrlRange = (start: number, end: number, reason: string): void => {
@@ -709,9 +712,12 @@ export class MarkdownFilter implements IMarkdownFilter {
    * 範囲が既存の範囲と重複しているかチェック
    */
   private isOverlapping(start: number, end: number, existingRanges: ExcludedRange[]): boolean {
-    return existingRanges.some(
-      (range) => start < range.end && end > range.start
-    );
+    for (const range of existingRanges) {
+      if (start < range.end && end > range.start) {
+        return true;
+      }
+    }
+    return false;
   }
 
   /**
@@ -726,84 +732,59 @@ export class MarkdownFilter implements IMarkdownFilter {
     // - 位置（オフセット）だけでなく行構造も保持するため、\n/\r は置換しない
     // - Markdown構造ルール（見出し/箇条書き/テーブル/コードブロック等）が参照できるよう、
     //   一部の構文記号は保持する（トークン側は TokenFilter で除外する）
-    const chars = text.split('');
-
-    const maskRangePreservingNewlines = (start: number, end: number): void => {
-      const safeStart = Math.max(0, Math.min(start, chars.length));
-      const safeEnd = Math.max(safeStart, Math.min(end, chars.length));
-      for (let i = safeStart; i < safeEnd; i++) {
-        const ch = chars[i];
-        if (ch !== '\n' && ch !== '\r') {
-          chars[i] = ' ';
-        }
-      }
+    const maskPreservingNewlines = (segment: string): string => {
+      return segment.replace(/[^\r\n]/g, ' ');
     };
 
-    const sanitizeCodeFenceLanguageSpec = (lineStart: number, lineEndExclusive: number): void => {
-      const line = text.substring(lineStart, lineEndExclusive);
-      const match = line.match(/^(\s*(?:>\s*)*)(`{3,}|~{3,})(.*)$/);
+    const sanitizeCodeFenceLanguageSpecLine = (line: string): string => {
+      const lineForMatch = line.endsWith('\r') ? line.slice(0, -1) : line;
+      const match = lineForMatch.match(/^(\s*(?:>\s*)*)(`{3,}|~{3,})(.*)$/);
       if (!match) {
-        return;
+        return line;
       }
 
       const prefixLength = match[1].length + match[2].length;
       const rest = match[3];
       if (rest.trim().length === 0) {
-        return;
+        return line;
       }
 
-      const restStart = lineStart + prefixLength;
-      for (let i = restStart; i < lineEndExclusive; i++) {
-        const ch = chars[i];
-        if (ch !== ' ' && ch !== '\t' && ch !== '\r') {
-          chars[i] = 'x';
-        }
+      if (prefixLength >= line.length) {
+        return line;
       }
+
+      const before = line.slice(0, prefixLength);
+      const after = line.slice(prefixLength);
+      return before + after.replace(/[^\t \r]/g, 'x');
     };
 
-    const maskCodeBlockContentPreservingFences = (range: ExcludedRange): void => {
-      const start = Math.max(0, Math.min(range.start, chars.length));
-      const end = Math.max(start, Math.min(range.end, chars.length));
-      const blockText = text.substring(start, end);
-
-      // 単一行の ```code``` 形式など（改行なし）は全体をマスク
-      const firstNewlineRel = blockText.indexOf('\n');
-      if (firstNewlineRel === -1) {
-        maskRangePreservingNewlines(start, end);
-        return;
+    const transformCodeBlockSegment = (segment: string): string => {
+      const firstNewlineIndex = segment.indexOf('\n');
+      if (firstNewlineIndex === -1) {
+        return maskPreservingNewlines(segment);
       }
 
-      // 先頭行（フェンス）は保持しつつ、言語指定部分は規則検出（term-notation 等）のノイズにならないよう無害化
-      const openingFenceLineEndExclusive = start + firstNewlineRel;
-      sanitizeCodeFenceLanguageSpec(start, openingFenceLineEndExclusive);
+      const openingLine = segment.slice(0, firstNewlineIndex);
+      const sanitizedOpening = sanitizeCodeFenceLanguageSpecLine(openingLine);
 
-      // 末尾行（閉じフェンス）は保持し、間の内容だけをマスク
-      const lastNewlineRel = blockText.lastIndexOf('\n');
-      const openingFenceLineEnd = start + firstNewlineRel + 1; // include \n
-      const closingFenceLineStart = start + lastNewlineRel + 1; // start of last line
-
-      if (openingFenceLineEnd < closingFenceLineStart) {
-        maskRangePreservingNewlines(openingFenceLineEnd, closingFenceLineStart);
+      if (config.preserveCodeBlockContent) {
+        return sanitizedOpening + segment.slice(firstNewlineIndex);
       }
+
+      const lastNewlineIndex = segment.lastIndexOf('\n');
+      if (lastNewlineIndex === firstNewlineIndex) {
+        return sanitizedOpening + segment.slice(firstNewlineIndex);
+      }
+
+      const contentRegion = segment.slice(firstNewlineIndex + 1, lastNewlineIndex + 1);
+      const maskedContent = maskPreservingNewlines(contentRegion);
+      return sanitizedOpening + '\n' + maskedContent + segment.slice(lastNewlineIndex + 1);
     };
 
-    const sanitizeCodeBlockFenceLanguageSpec = (range: ExcludedRange): void => {
-      const start = Math.max(0, Math.min(range.start, chars.length));
-      const end = Math.max(start, Math.min(range.end, chars.length));
-      const blockText = text.substring(start, end);
-
-      // 単一行形式はフェンス/言語指定の区別が難しいため対象外
-      const firstNewlineRel = blockText.indexOf('\n');
-      if (firstNewlineRel === -1) {
-        return;
-      }
-
-      const openingFenceLineEndExclusive = start + firstNewlineRel;
-      sanitizeCodeFenceLanguageSpec(start, openingFenceLineEndExclusive);
-    };
+    const parts: string[] = [];
+    let cursor = 0;
 
     for (const range of ranges) {
-      // 無効な範囲はスキップ
       if (range.start >= range.end) {
         continue;
       }
@@ -824,21 +805,34 @@ export class MarkdownFilter implements IMarkdownFilter {
         continue;
       }
 
-      // コードブロックは内容だけをマスク（フェンス行は残す）
-      if (range.type === 'code-block') {
-        if (config.preserveCodeBlockContent) {
-          sanitizeCodeBlockFenceLanguageSpec(range);
-        } else {
-          maskCodeBlockContentPreservingFences(range);
-        }
+      const safeStart = Math.max(0, Math.min(range.start, text.length));
+      const safeEnd = Math.max(safeStart, Math.min(range.end, text.length));
+
+      if (safeEnd <= cursor) {
         continue;
       }
 
-      // その他の除外範囲はスペースで置換（改行は保持して行位置を崩さない）
-      maskRangePreservingNewlines(range.start, range.end);
+      const start = Math.max(cursor, safeStart);
+
+      if (cursor < start) {
+        parts.push(text.slice(cursor, start));
+      }
+
+      const segment = text.slice(start, safeEnd);
+      if (range.type === 'code-block' && start === safeStart) {
+        parts.push(transformCodeBlockSegment(segment));
+      } else {
+        parts.push(maskPreservingNewlines(segment));
+      }
+
+      cursor = safeEnd;
     }
 
-    return chars.join('');
+    if (cursor < text.length) {
+      parts.push(text.slice(cursor));
+    }
+
+    return parts.join('');
   }
 
   /**

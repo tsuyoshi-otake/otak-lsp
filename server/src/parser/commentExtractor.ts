@@ -142,13 +142,14 @@ export class CommentExtractor {
 
     while (i < text.length) {
       const char = text[i];
-      const nextChars = text.substring(i, i + 3);
 
       // トリプルクォート文字列（docstring）の処理
       if (!inString && !inTripleString) {
-        if (nextChars === '"""' || nextChars === "'''") {
+        const isDoubleTriple = char === '"' && text[i + 1] === '"' && text[i + 2] === '"';
+        const isSingleTriple = char === '\'' && text[i + 1] === '\'' && text[i + 2] === '\'';
+        if (isDoubleTriple || isSingleTriple) {
           const start = i;
-          tripleStringChar = nextChars;
+          tripleStringChar = isDoubleTriple ? '"""' : "'''";
           i += 3;
 
           // 終了を探す

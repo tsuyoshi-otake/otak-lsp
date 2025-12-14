@@ -34,6 +34,7 @@ import { DEFAULT_ENABLED_GLOSSARIES } from './hover/glossary';
 import { WikipediaClient } from './wikipedia/client';
 import { Configuration, Token, SupportedLanguage } from '../../shared/src/types';
 import { ExcludedRange } from '../../shared/src/markdownFilterTypes';
+import { AdvancedRulesConfig, SentenceSplitMode, WeakExpressionLevel } from '../../shared/src/advancedTypes';
 
 // Create connection
 const connection = createConnection(ProposedFeatures.all);
@@ -63,7 +64,7 @@ let configuration: Configuration = {
   enableSemanticHighlight: true,
   excludeTableDelimiters: true,
   markdown: {
-    analyzeCodeBlocks: false,
+    analyzeCodeBlocks: true,
     analyzeTables: false,
   },
   targetLanguages: ['markdown', 'javascript', 'typescript', 'python', 'c', 'cpp', 'java', 'rust', 'plaintext'] as SupportedLanguage[],
@@ -77,6 +78,154 @@ let configuration: Configuration = {
 
 // Debounce timers
 const debounceTimers: Map<string, NodeJS.Timeout> = new Map();
+
+function getSetting(config: unknown, keyPath: string): unknown {
+  if (!config || typeof config !== 'object') {
+    return undefined;
+  }
+
+  const record = config as Record<string, unknown>;
+  if (Object.prototype.hasOwnProperty.call(record, keyPath)) {
+    return record[keyPath];
+  }
+
+  const parts = keyPath.split('.');
+  let cursor: unknown = config;
+  for (const part of parts) {
+    if (!cursor || typeof cursor !== 'object') {
+      return undefined;
+    }
+    const asRecord = cursor as Record<string, unknown>;
+    if (!Object.prototype.hasOwnProperty.call(asRecord, part)) {
+      return undefined;
+    }
+    cursor = asRecord[part];
+  }
+
+  return cursor;
+}
+
+function isSentenceSplitMode(v: unknown): v is SentenceSplitMode {
+  return v === 'strict' || v === 'normal' || v === 'loose';
+}
+
+function isWeakExpressionLevel(v: unknown): v is WeakExpressionLevel {
+  return v === 'strict' || v === 'normal' || v === 'loose';
+}
+
+function applyAdvancedConfigFromSettings(settings: unknown): void {
+  const current = advancedRulesManager.getConfig();
+  const patch: Partial<AdvancedRulesConfig> = {};
+
+  for (const [key, currentValue] of Object.entries(current)) {
+    if (key === 'customNotationRules') {
+      continue;
+    }
+
+    const incoming = getSetting(settings, `advanced.${key}`);
+
+    if (typeof currentValue === 'boolean' && typeof incoming === 'boolean') {
+      (patch as any)[key] = incoming;
+      continue;
+    }
+    if (typeof currentValue === 'number' && typeof incoming === 'number' && Number.isFinite(incoming)) {
+      (patch as any)[key] = incoming;
+      continue;
+    }
+
+    if (key === 'sentenceSplitMode') {
+      if (isSentenceSplitMode(incoming)) {
+        patch.sentenceSplitMode = incoming;
+      }
+      continue;
+    }
+    if (key === 'weakExpressionLevel') {
+      if (isWeakExpressionLevel(incoming)) {
+        patch.weakExpressionLevel = incoming;
+      }
+      continue;
+    }
+    if (key === 'excludedLanguageIds') {
+      if (Array.isArray(incoming) && incoming.every((x) => typeof x === 'string')) {
+        patch.excludedLanguageIds = incoming as string[];
+      }
+      continue;
+    }
+  }
+
+  // 互換: advanced.sentenceSplitMode ではなく sentenceSplitMode が来るケース
+  const legacySentenceSplitMode = getSetting(settings, 'sentenceSplitMode');
+  if (patch.sentenceSplitMode === undefined && isSentenceSplitMode(legacySentenceSplitMode)) {
+    patch.sentenceSplitMode = legacySentenceSplitMode;
+  }
+
+  if (Object.keys(patch).length > 0) {
+    advancedRulesManager.updateConfig(patch);
+  }
+}
+
+function applyBaseConfigFromSettings(settings: unknown): void {
+  const enableGrammarCheck = getSetting(settings, 'enableGrammarCheck');
+  const enableSemanticHighlight = getSetting(settings, 'enableSemanticHighlight');
+  const excludeTableDelimiters = getSetting(settings, 'excludeTableDelimiters');
+  const analyzeCodeBlocks = getSetting(settings, 'markdown.analyzeCodeBlocks');
+  const analyzeTables = getSetting(settings, 'markdown.analyzeTables');
+  const targetLanguages = getSetting(settings, 'targetLanguages');
+  const debounceDelay = getSetting(settings, 'debounceDelay');
+  const enableWikipedia = getSetting(settings, 'hover.enableWikipedia');
+  const enableGlossary = getSetting(settings, 'hover.enableGlossary');
+  const enabledGlossaries = getSetting(settings, 'hover.enabledGlossaries');
+
+  configuration = {
+    ...configuration,
+    enableGrammarCheck: typeof enableGrammarCheck === 'boolean' ? enableGrammarCheck : configuration.enableGrammarCheck,
+    enableSemanticHighlight: typeof enableSemanticHighlight === 'boolean' ? enableSemanticHighlight : configuration.enableSemanticHighlight,
+    excludeTableDelimiters: typeof excludeTableDelimiters === 'boolean' ? excludeTableDelimiters : configuration.excludeTableDelimiters,
+    markdown: {
+      ...configuration.markdown,
+      analyzeCodeBlocks: typeof analyzeCodeBlocks === 'boolean' ? analyzeCodeBlocks : configuration.markdown.analyzeCodeBlocks,
+      analyzeTables: typeof analyzeTables === 'boolean' ? analyzeTables : configuration.markdown.analyzeTables,
+    },
+    targetLanguages: Array.isArray(targetLanguages) ? (targetLanguages as SupportedLanguage[]) : configuration.targetLanguages,
+    debounceDelay: typeof debounceDelay === 'number' && Number.isFinite(debounceDelay) ? debounceDelay : configuration.debounceDelay,
+    hover: {
+      ...configuration.hover,
+      enableWikipedia: typeof enableWikipedia === 'boolean' ? enableWikipedia : configuration.hover.enableWikipedia,
+      enableGlossary: typeof enableGlossary === 'boolean' ? enableGlossary : configuration.hover.enableGlossary,
+      enabledGlossaries: Array.isArray(enabledGlossaries) ? (enabledGlossaries as any) : configuration.hover.enabledGlossaries,
+    },
+  };
+
+  hoverProvider.setWikipediaEnabled(configuration.hover.enableWikipedia);
+  hoverProvider.setGlossaryEnabled(configuration.hover.enableGlossary);
+  hoverProvider.setEnabledGlossaries(configuration.hover.enabledGlossaries);
+}
+
+async function getWorkspaceOtakLcpSettings(): Promise<unknown> {
+  try {
+    const [base, advanced] = await Promise.all([
+      connection.workspace.getConfiguration({ section: 'otakLcp' } as any),
+      connection.workspace.getConfiguration({ section: 'otakLcp.advanced' } as any),
+    ]);
+
+    if (base && typeof base === 'object') {
+      const merged = { ...(base as Record<string, unknown>) } as Record<string, unknown>;
+      if (advanced && typeof advanced === 'object') {
+        const baseAdvanced = getSetting(merged, 'advanced');
+        merged.advanced = {
+          ...(baseAdvanced && typeof baseAdvanced === 'object' ? (baseAdvanced as Record<string, unknown>) : {}),
+          ...(advanced as Record<string, unknown>),
+        };
+      }
+      return merged;
+    }
+
+    return { advanced };
+  } catch (error) {
+    connection.console.error(`[ERROR] Failed to load workspace configuration: ${error}`);
+    return undefined;
+  }
+}
 
 /**
  * Initialize server
@@ -121,79 +270,56 @@ connection.onInitialized(() => {
 
   // Register for configuration changes
   connection.client.register(DidChangeConfigurationNotification.type, undefined);
+
+  // Load initial configuration (VS Code は起動時に didChangeConfiguration を送らないことがある)
+  void (async () => {
+    const settings = await getWorkspaceOtakLcpSettings();
+    if (settings) {
+      applyBaseConfigFromSettings(settings);
+      applyAdvancedConfigFromSettings(settings);
+    }
+  })();
 });
 
 /**
  * Configuration changed
  */
-connection.onDidChangeConfiguration((change) => {
-  if (change.settings?.otakLcp) {
-    const newConfig = change.settings.otakLcp as any;
-    const wasGrammarEnabled = configuration.enableGrammarCheck;
-    const wasSemanticEnabled = configuration.enableSemanticHighlight;
+connection.onDidChangeConfiguration(async (change) => {
+  const wasGrammarEnabled = configuration.enableGrammarCheck;
+  const wasSemanticEnabled = configuration.enableSemanticHighlight;
 
-    // 基本設定を更新
-    configuration = {
-      ...configuration,
-      enableGrammarCheck: newConfig.enableGrammarCheck ?? configuration.enableGrammarCheck,
-      enableSemanticHighlight: newConfig.enableSemanticHighlight ?? configuration.enableSemanticHighlight,
-      excludeTableDelimiters: newConfig.excludeTableDelimiters ?? configuration.excludeTableDelimiters,
-      markdown: {
-        ...configuration.markdown,
-        analyzeCodeBlocks: newConfig.markdown?.analyzeCodeBlocks ?? configuration.markdown.analyzeCodeBlocks,
-        analyzeTables: newConfig.markdown?.analyzeTables ?? configuration.markdown.analyzeTables,
-      },
-      targetLanguages: newConfig.targetLanguages ?? configuration.targetLanguages,
-      debounceDelay: newConfig.debounceDelay ?? configuration.debounceDelay,
-      hover: {
-        ...configuration.hover,
-        enableWikipedia: newConfig.hover?.enableWikipedia ?? configuration.hover.enableWikipedia,
-        enableGlossary: newConfig.hover?.enableGlossary ?? configuration.hover.enableGlossary,
-        enabledGlossaries: newConfig.hover?.enabledGlossaries ?? configuration.hover.enabledGlossaries,
-      },
-    };
+  const incomingSettings = change.settings?.otakLcp ?? await getWorkspaceOtakLcpSettings();
+  if (!incomingSettings) {
+    return;
+  }
 
-    // 高度なルール設定を更新
-    const advancedConfig = {
-      ...advancedRulesManager.getConfig(),
-      sentenceSplitMode: newConfig.sentenceSplitMode ?? advancedRulesManager.getConfig().sentenceSplitMode,
-      // 他の高度な設定も必要に応じて更新
-      enableStyleConsistency: newConfig.advanced?.enableStyleConsistency ?? advancedRulesManager.getConfig().enableStyleConsistency,
-      enableRaNukiDetection: newConfig.advanced?.enableRaNukiDetection ?? advancedRulesManager.getConfig().enableRaNukiDetection,
-      // ... 他の設定も同様に
-    };
-    advancedRulesManager.updateConfig(advancedConfig);
+  applyBaseConfigFromSettings(incomingSettings);
+  applyAdvancedConfigFromSettings(incomingSettings);
 
-    connection.console.log(`Configuration updated: grammarCheck=${configuration.enableGrammarCheck}, semanticHighlight=${configuration.enableSemanticHighlight}, sentenceSplitMode=${advancedConfig.sentenceSplitMode}`);
+  connection.console.log(`Configuration updated: grammarCheck=${configuration.enableGrammarCheck}, semanticHighlight=${configuration.enableSemanticHighlight}, sentenceSplitMode=${advancedRulesManager.getConfig().sentenceSplitMode}`);
 
-    // Hover設定を反映
-    hoverProvider.setWikipediaEnabled(configuration.hover.enableWikipedia);
-    hoverProvider.setGlossaryEnabled(configuration.hover.enableGlossary);
-    hoverProvider.setEnabledGlossaries(configuration.hover.enabledGlossaries);
+  // 文法チェックが無効になった場合、診断をクリア
+  if (wasGrammarEnabled && !configuration.enableGrammarCheck) {
+    connection.console.log('Grammar check disabled, clearing diagnostics');
+    documents.all().forEach((doc) => {
+      connection.sendDiagnostics({ uri: doc.uri, diagnostics: [] });
+    });
+  }
 
-    // 文法チェックが無効になった場合、診断をクリア
-    if (wasGrammarEnabled && !configuration.enableGrammarCheck) {
-      connection.console.log('Grammar check disabled, clearing diagnostics');
-      documents.all().forEach((doc) => {
-        connection.sendDiagnostics({ uri: doc.uri, diagnostics: [] });
-      });
-    }
+  // セマンティックハイライトが無効になった場合、トークンをクリア
+  if (wasSemanticEnabled && !configuration.enableSemanticHighlight) {
+    connection.console.log('Semantic highlight disabled, clearing tokens');
+    documentTokens.clear();
+    documentTexts.clear();
+    documentExcludedRanges.clear();
+    connection.sendRequest('workspace/semanticTokens/refresh').catch(() => {});
+  }
 
-    // セマンティックハイライトが無効になった場合、トークンをクリア
-    if (wasSemanticEnabled && !configuration.enableSemanticHighlight) {
-      connection.console.log('Semantic highlight disabled, clearing tokens');
-      documentTokens.clear();
-      documentTexts.clear();
-      documentExcludedRanges.clear();
-      connection.sendRequest('workspace/semanticTokens/refresh').catch(() => {});
-    }
-
-    // 有効になった場合、再解析
-    if (configuration.enableGrammarCheck || configuration.enableSemanticHighlight) {
-      documents.all().forEach((doc) => {
-        scheduleAnalysis(doc);
-      });
-    }
+  // 有効になった場合、再解析
+  if (configuration.enableGrammarCheck || configuration.enableSemanticHighlight) {
+    documents.all().forEach((doc) => {
+      scheduleAnalysis(doc);
+    });
   }
 });
 
@@ -201,6 +327,10 @@ connection.onDidChangeConfiguration((change) => {
  * Schedule document analysis with debounce
  */
 function scheduleAnalysis(document: TextDocument): void {
+  if (!configuration.enableGrammarCheck && !configuration.enableSemanticHighlight) {
+    return;
+  }
+
   const uri = document.uri;
 
   // Clear existing timer
@@ -222,6 +352,10 @@ function scheduleAnalysis(document: TextDocument): void {
  * Analyze document
  */
 async function analyzeDocument(document: TextDocument): Promise<void> {
+  if (!configuration.enableGrammarCheck && !configuration.enableSemanticHighlight) {
+    return;
+  }
+
   const uri = document.uri;
   const text = document.getText();
   const languageId = document.languageId as SupportedLanguage;

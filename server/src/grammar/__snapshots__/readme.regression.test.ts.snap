@@ -3,62 +3,6 @@
 exports[`README Regression Snapshot should match README diagnostics snapshot 1`] = `
 [
   {
-    "code": "adverb-agreement",
-    "message": "副詞「もし」は「なら、たら、ば、と」などと呼応します。現在の文末「ない」との呼応を確認してください。",
-    "range": {
-      "end": {
-        "character": 13,
-        "line": 492,
-      },
-      "start": {
-        "character": 10,
-        "line": 489,
-      },
-    },
-  },
-  {
-    "code": "adversative-ga",
-    "message": "逆接の「が」が連続する文で使用されています。文の分割や接続詞の変更を検討してください。",
-    "range": {
-      "end": {
-        "character": 15,
-        "line": 82,
-      },
-      "start": {
-        "character": 14,
-        "line": 82,
-      },
-    },
-  },
-  {
-    "code": "alphabet-width",
-    "message": "全角と半角アルファベットが混在しています。「ＡＢＣ」を半角に統一してください。",
-    "range": {
-      "end": {
-        "character": 6,
-        "line": 91,
-      },
-      "start": {
-        "character": 3,
-        "line": 91,
-      },
-    },
-  },
-  {
-    "code": "alphabet-width",
-    "message": "全角と半角アルファベットが混在しています。「ＡＢＣ」を半角に統一してください。",
-    "range": {
-      "end": {
-        "character": 9,
-        "line": 92,
-      },
-      "start": {
-        "character": 6,
-        "line": 92,
-      },
-    },
-  },
-  {
     "code": "comma-count",
     "message": "1文中に読点が8個使用されています（閾値: 4個）。文を分割することを検討してください。",
     "range": {
@@ -69,48 +13,6 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
       "start": {
         "character": 0,
         "line": 75,
-      },
-    },
-  },
-  {
-    "code": "comma-count",
-    "message": "1文中に読点が6個使用されています（閾値: 4個）。文を分割することを検討してください。",
-    "range": {
-      "end": {
-        "character": 22,
-        "line": 110,
-      },
-      "start": {
-        "character": 0,
-        "line": 110,
-      },
-    },
-  },
-  {
-    "code": "comma-count",
-    "message": "1文中に読点が6個使用されています（閾値: 4個）。文を分割することを検討してください。",
-    "range": {
-      "end": {
-        "character": 22,
-        "line": 495,
-      },
-      "start": {
-        "character": 0,
-        "line": 495,
-      },
-    },
-  },
-  {
-    "code": "conjunction-repetition",
-    "message": "接続詞「しかし」が連続して使用されています。",
-    "range": {
-      "end": {
-        "character": 11,
-        "line": 71,
-      },
-      "start": {
-        "character": 8,
-        "line": 71,
       },
     },
   },
@@ -139,34 +41,6 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
       "start": {
         "character": 11,
         "line": 49,
-      },
-    },
-  },
-  {
-    "code": "double-negation",
-    "message": "二重否定「ないわけではない」が検出されました。わかりにくい表現になる可能性があります。",
-    "range": {
-      "end": {
-        "character": 10,
-        "line": 52,
-      },
-      "start": {
-        "character": 2,
-        "line": 52,
-      },
-    },
-  },
-  {
-    "code": "double-negation",
-    "message": "二重否定「ないことはない」が検出されました。わかりにくい表現になる可能性があります。",
-    "range": {
-      "end": {
-        "character": 9,
-        "line": 53,
-      },
-      "start": {
-        "character": 2,
-        "line": 53,
       },
     },
   },
@@ -185,76 +59,6 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     },
   },
   {
-    "code": "double-particle",
-    "message": "二重助詞「はは」が検出されました。「は」を1つにしてください。",
-    "range": {
-      "end": {
-        "character": 4,
-        "line": 469,
-      },
-      "start": {
-        "character": 2,
-        "line": 469,
-      },
-    },
-  },
-  {
-    "code": "double-particle",
-    "message": "二重助詞「はは」が検出されました。「は」を1つにしてください。",
-    "range": {
-      "end": {
-        "character": 20,
-        "line": 469,
-      },
-      "start": {
-        "character": 18,
-        "line": 469,
-      },
-    },
-  },
-  {
-    "code": "double-particle",
-    "message": "二重助詞「がが」が検出されました。「が」を1つにしてください。",
-    "range": {
-      "end": {
-        "character": 3,
-        "line": 470,
-      },
-      "start": {
-        "character": 1,
-        "line": 470,
-      },
-    },
-  },
-  {
-    "code": "double-particle",
-    "message": "二重助詞「をを」が検出されました。「を」を1つにしてください。",
-    "range": {
-      "end": {
-        "character": 3,
-        "line": 471,
-      },
-      "start": {
-        "character": 1,
-        "line": 471,
-      },
-    },
-  },
-  {
-    "code": "double-particle",
-    "message": "二重助詞「をを」が検出されました。「を」を1つにしてください。",
-    "range": {
-      "end": {
-        "character": 26,
-        "line": 471,
-      },
-      "start": {
-        "character": 24,
-        "line": 471,
-      },
-    },
-  },
-  {
     "code": "english-case-mix",
     "message": "英語表記「vscode」の大文字小文字が統一されていません。VSCode、vscodeが混在しています。",
     "range": {
@@ -265,76 +69,6 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
       "start": {
         "character": 8,
         "line": 2,
-      },
-    },
-  },
-  {
-    "code": "english-case-mix",
-    "message": "英語表記「javascript」の大文字小文字が統一されていません。JavaScript、javascript、Javascriptが混在しています。",
-    "range": {
-      "end": {
-        "character": 23,
-        "line": 7,
-      },
-      "start": {
-        "character": 13,
-        "line": 7,
-      },
-    },
-  },
-  {
-    "code": "english-case-mix",
-    "message": "英語表記「markdown」の大文字小文字が統一されていません。Markdown、markdownが混在しています。",
-    "range": {
-      "end": {
-        "character": 23,
-        "line": 14,
-      },
-      "start": {
-        "character": 15,
-        "line": 14,
-      },
-    },
-  },
-  {
-    "code": "english-case-mix",
-    "message": "英語表記「abc」の大文字小文字が統一されていません。abc、ABCが混在しています。",
-    "range": {
-      "end": {
-        "character": 10,
-        "line": 91,
-      },
-      "start": {
-        "character": 7,
-        "line": 91,
-      },
-    },
-  },
-  {
-    "code": "english-case-mix",
-    "message": "英語表記「aws」の大文字小文字が統一されていません。AWS、awsが混在しています。",
-    "range": {
-      "end": {
-        "character": 5,
-        "line": 146,
-      },
-      "start": {
-        "character": 2,
-        "line": 146,
-      },
-    },
-  },
-  {
-    "code": "english-case-mix",
-    "message": "英語表記「typescript」の大文字小文字が統一されていません。TypeScript、typescriptが混在しています。",
-    "range": {
-      "end": {
-        "character": 25,
-        "line": 347,
-      },
-      "start": {
-        "character": 15,
-        "line": 347,
       },
     },
   },
@@ -367,104 +101,6 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     },
   },
   {
-    "code": "english-case-mix",
-    "message": "英語表記「chatgpt」の大文字小文字が統一されていません。chatgpt、ChatGPTが混在しています。",
-    "range": {
-      "end": {
-        "character": 7,
-        "line": 485,
-      },
-      "start": {
-        "character": 0,
-        "line": 485,
-      },
-    },
-  },
-  {
-    "code": "heading-level-skip",
-    "message": "見出しレベルが飛んでいます。h1の次にh4が使用されています。h2を使用してください。",
-    "range": {
-      "end": {
-        "character": 12,
-        "line": 474,
-      },
-      "start": {
-        "character": 0,
-        "line": 474,
-      },
-    },
-  },
-  {
-    "code": "kanji-opening",
-    "message": "漢字「事」はひらがな「こと」で表記することが推奨されます。",
-    "range": {
-      "end": {
-        "character": 16,
-        "line": 110,
-      },
-      "start": {
-        "character": 15,
-        "line": 110,
-      },
-    },
-  },
-  {
-    "code": "kanji-opening",
-    "message": "漢字「様」はひらがな「よう」で表記することが推奨されます。",
-    "range": {
-      "end": {
-        "character": 23,
-        "line": 247,
-      },
-      "start": {
-        "character": 22,
-        "line": 247,
-      },
-    },
-  },
-  {
-    "code": "kanji-opening",
-    "message": "漢字「下さい」はひらがな「ください」で表記することが推奨されます。",
-    "range": {
-      "end": {
-        "character": 7,
-        "line": 488,
-      },
-      "start": {
-        "character": 4,
-        "line": 488,
-      },
-    },
-  },
-  {
-    "code": "kanji-opening",
-    "message": "漢字「出来ます」はひらがな「できます」で表記することが推奨されます。",
-    "range": {
-      "end": {
-        "character": 7,
-        "line": 489,
-      },
-      "start": {
-        "character": 3,
-        "line": 489,
-      },
-    },
-  },
-  {
-    "code": "kanji-opening",
-    "message": "漢字「事」はひらがな「こと」で表記することが推奨されます。",
-    "range": {
-      "end": {
-        "character": 16,
-        "line": 495,
-      },
-      "start": {
-        "character": 15,
-        "line": 495,
-      },
-    },
-  },
-  {
     "code": "kanji-opening",
     "message": "漢字「時」はひらがな「とき」で表記することが推奨されます。",
     "range": {
@@ -517,62 +153,6 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
       "start": {
         "character": 6,
         "line": 607,
-      },
-    },
-  },
-  {
-    "code": "missing-subject",
-    "message": "主語が明示されていない可能性があります。主語を明示することを検討してください",
-    "range": {
-      "end": {
-        "character": 8,
-        "line": 71,
-      },
-      "start": {
-        "character": 0,
-        "line": 70,
-      },
-    },
-  },
-  {
-    "code": "missing-subject",
-    "message": "主語が明示されていない可能性があります。主語を明示することを検討してください",
-    "range": {
-      "end": {
-        "character": 16,
-        "line": 71,
-      },
-      "start": {
-        "character": 8,
-        "line": 71,
-      },
-    },
-  },
-  {
-    "code": "monotonous-ending",
-    "message": "文末「です」が3回連続しています（閾値: 3回）。表現を多様化してください。",
-    "range": {
-      "end": {
-        "character": 21,
-        "line": 246,
-      },
-      "start": {
-        "character": 0,
-        "line": 246,
-      },
-    },
-  },
-  {
-    "code": "no-particle-chain",
-    "message": "助詞「の」が3回連続しています（閾値: 3回）。文の書き換えを検討してください。",
-    "range": {
-      "end": {
-        "character": 9,
-        "line": 235,
-      },
-      "start": {
-        "character": 2,
-        "line": 235,
       },
     },
   },
@@ -900,7 +480,7 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
   },
   {
     "code": "quotation-style-mix",
-    "message": "引用符のスタイルが混在しています。「」（94箇所）と""（38箇所）が使用されています。どれかに統一してください。",
+    "message": "引用符のスタイルが混在しています。「」（42箇所）と""（4箇所）が使用されています。どれかに統一してください。",
     "range": {
       "end": {
         "character": 13,
@@ -941,76 +521,6 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     },
   },
   {
-    "code": "ra-nuki",
-    "message": "ら抜き言葉「食べれる」が検出されました。正しくは「食べられる」です。",
-    "range": {
-      "end": {
-        "character": 4,
-        "line": 39,
-      },
-      "start": {
-        "character": 0,
-        "line": 39,
-      },
-    },
-  },
-  {
-    "code": "ra-nuki",
-    "message": "ら抜き言葉「見れる」が検出されました。正しくは「見られる」です。",
-    "range": {
-      "end": {
-        "character": 3,
-        "line": 40,
-      },
-      "start": {
-        "character": 0,
-        "line": 40,
-      },
-    },
-  },
-  {
-    "code": "ra-nuki",
-    "message": "ら抜き言葉「起きれる」が検出されました。正しくは「起きられる」です。",
-    "range": {
-      "end": {
-        "character": 4,
-        "line": 41,
-      },
-      "start": {
-        "character": 0,
-        "line": 41,
-      },
-    },
-  },
-  {
-    "code": "ra-nuki",
-    "message": "ら抜き言葉「使えれる」が検出されました。正しくは「使えられる」です。",
-    "range": {
-      "end": {
-        "character": 12,
-        "line": 480,
-      },
-      "start": {
-        "character": 8,
-        "line": 480,
-      },
-    },
-  },
-  {
-    "code": "ra-nuki",
-    "message": "ら抜き言葉「使えれる」が検出されました。正しくは「使えられる」です。",
-    "range": {
-      "end": {
-        "character": 23,
-        "line": 480,
-      },
-      "start": {
-        "character": 19,
-        "line": 480,
-      },
-    },
-  },
-  {
     "code": "redundant-expression",
     "message": "冗長表現「馬から落馬」が検出されました。「落馬」に簡潔化できます。",
     "range": {
@@ -1039,39 +549,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     },
   },
   {
-    "code": "style-inconsistency",
-    "message": "文体の混在が検出されました。この文は常体ですが、文書全体は敬体が主に使用されています。",
-    "range": {
-      "end": {
-        "character": 10,
-        "line": 30,
-      },
-      "start": {
-        "character": 0,
-        "line": 30,
-      },
-    },
-  },
-  {
-    "code": "style-inconsistency",
-    "message": "文体の混在が検出されました。この文は常体ですが、文書全体は敬体が主に使用されています。",
-    "range": {
-      "end": {
-        "character": 6,
-        "line": 471,
-      },
-      "start": {
-        "character": 0,
-        "line": 471,
-      },
-    },
-  },
-  {
     "code": "table-column-mismatch",
     "message": "テーブルの区切り行の列数が一致しません。ヘッダーは3列ですが、区切り行は2列です。",
     "range": {
       "end": {
-        "character": 88,
+        "character": 87,
         "line": 381,
       },
       "start": {
@@ -1124,76 +606,6 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
   },
   {
     "code": "term-notation",
-    "message": "技術用語の表記「javascript」は「JavaScript」に統一してください。",
-    "range": {
-      "end": {
-        "character": 15,
-        "line": 442,
-      },
-      "start": {
-        "character": 5,
-        "line": 442,
-      },
-    },
-  },
-  {
-    "code": "term-notation",
-    "message": "技術用語の表記「typescript」は「TypeScript」に統一してください。",
-    "range": {
-      "end": {
-        "character": 15,
-        "line": 443,
-      },
-      "start": {
-        "character": 5,
-        "line": 443,
-      },
-    },
-  },
-  {
-    "code": "term-notation",
-    "message": "技術用語の表記「Javascript」は「JavaScript」に統一してください。",
-    "range": {
-      "end": {
-        "character": 10,
-        "line": 483,
-      },
-      "start": {
-        "character": 0,
-        "line": 483,
-      },
-    },
-  },
-  {
-    "code": "term-notation",
-    "message": "技術用語の表記「aws」は「AWS」に統一してください。",
-    "range": {
-      "end": {
-        "character": 3,
-        "line": 484,
-      },
-      "start": {
-        "character": 0,
-        "line": 484,
-      },
-    },
-  },
-  {
-    "code": "term-notation",
-    "message": "技術用語の表記「chatgpt」は「ChatGPT」に統一してください。",
-    "range": {
-      "end": {
-        "character": 7,
-        "line": 485,
-      },
-      "start": {
-        "character": 0,
-        "line": 485,
-      },
-    },
-  },
-  {
-    "code": "term-notation",
     "message": "技術用語の表記「vscode」は「VS Code」に統一してください。",
     "range": {
       "end": {
@@ -1203,20 +615,6 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
       "start": {
         "character": 32,
         "line": 610,
-      },
-    },
-  },
-  {
-    "code": "weak-expression",
-    "message": "弱い表現「かもしれない」が使用されています。より断定的な表現を検討してください。",
-    "range": {
-      "end": {
-        "character": 12,
-        "line": 492,
-      },
-      "start": {
-        "character": 6,
-        "line": 492,
       },
     },
   },

@@ -123,30 +123,59 @@ export class SemanticTokenProvider {
     // テキストから行ごとの開始位置を計算
     const lineStarts: number[] = [0];
     for (let i = 0; i < text.length; i++) {
-      if (text[i] === '\n') {
+      if (text.charCodeAt(i) === 10) {
         lineStarts.push(i + 1);
       }
     }
 
-    // オフセットから行と文字位置を取得する関数
-    const getLineAndChar = (offset: number): { line: number; char: number } => {
-      let line = 0;
-      for (let i = 1; i < lineStarts.length; i++) {
-        if (offset < lineStarts[i]) {
-          break;
+    const isSortedByStart = (() => {
+      for (let i = 1; i < tokens.length; i++) {
+        if (tokens[i - 1].start > tokens[i].start) {
+          return false;
         }
-        line = i;
       }
-      return { line, char: offset - lineStarts[line] };
+      return true;
+    })();
+
+    const findLineForOffset = (offset: number): number => {
+      let low = 0;
+      let high = lineStarts.length - 1;
+      while (low <= high) {
+        const mid = (low + high) >> 1;
+        const start = lineStarts[mid];
+        const nextStart = mid + 1 < lineStarts.length ? lineStarts[mid + 1] : Number.POSITIVE_INFINITY;
+        if (start <= offset && offset < nextStart) {
+          return mid;
+        }
+        if (offset < start) {
+          high = mid - 1;
+        } else {
+          low = mid + 1;
+        }
+      }
+      return 0;
     };
 
-    const data: number[] = [];
+    const data = new Array<number>(tokens.length * 5);
+    let dataIndex = 0;
     let prevLine = 0;
     let prevChar = 0;
 
+    let currentLine = 0;
+    let nextLineStartIndex = 1;
+
     for (const token of tokens) {
       // 現在のトークンの行と文字位置を計算
-      const { line, char } = getLineAndChar(token.start);
+      const line = isSortedByStart
+        ? (() => {
+          while (nextLineStartIndex < lineStarts.length && token.start >= lineStarts[nextLineStartIndex]) {
+            currentLine = nextLineStartIndex;
+            nextLineStartIndex++;
+          }
+          return currentLine;
+        })()
+        : findLineForOffset(token.start);
+      const char = token.start - lineStarts[line];
 
       // 相対位置を計算
       const deltaLine = line - prevLine;
@@ -154,16 +183,18 @@ export class SemanticTokenProvider {
 
       // セマンティックトークンのデータを追加
       // [deltaLine, deltaStartChar, length, tokenType, tokenModifiers]
-      data.push(
-        deltaLine,                           // 相対行
-        deltaChar,                           // 相対文字位置
-        token.surface.length,                // トークンの長さ
-        this.mapTokenToTokenType(token),     // トークンタイプ
-        0                                    // トークン修飾子（現在は未使用）
-      );
+      data[dataIndex++] = deltaLine; // 相対行
+      data[dataIndex++] = deltaChar; // 相対文字位置
+      data[dataIndex++] = token.surface.length; // トークンの長さ
+      data[dataIndex++] = this.mapTokenToTokenType(token); // トークンタイプ
+      data[dataIndex++] = 0; // トークン修飾子（現在は未使用）
 
       prevLine = line;
       prevChar = char;
+    }
+
+    if (dataIndex !== data.length) {
+      data.length = dataIndex;
     }
 
     return { data };

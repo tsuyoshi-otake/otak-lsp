@@ -302,6 +302,27 @@ describe('Code Block Exclusion (Task 3.1)', () => {
       expect(result.excludedRanges).toHaveLength(1);
       expect(result.excludedRanges[0].content).toContain('<html>');
     });
+
+    it('should exclude code block with CRLF (\\\\r\\\\n)', () => {
+      const text = '```\r\nconst x = 1;\r\n```';
+      const result = filter.filter(text);
+
+      expect(result.excludedRanges.some((r) => r.type === 'code-block')).toBe(true);
+      expect(result.filteredText).not.toContain('const x');
+      expect(result.filteredText.length).toBe(text.length);
+    });
+
+    it('should sanitize code fence language spec with CRLF when preserveCodeBlockContent is true', () => {
+      const text = '```javascript\r\n食べれる\r\n```';
+      const result = filter.filter(text, {
+        ...DEFAULT_FILTER_CONFIG,
+        preserveCodeBlockContent: true
+      });
+
+      expect(result.filteredText).toContain('食べれる');
+      expect(result.filteredText).not.toContain('javascript');
+      expect(result.filteredText.length).toBe(text.length);
+    });
   });
 
   describe('inline code (`)', () => {

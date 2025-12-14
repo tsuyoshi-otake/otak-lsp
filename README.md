@@ -42,7 +42,7 @@
 起きれる -> 起きられる
 ```
 
-※ Markdownのコードブロック（```）内は既定では解析対象外です。コードブロック内も検出したい場合は `otakLcp.markdown.analyzeCodeBlocks` を有効にしてください。
+※ Markdownのコードブロック（```）内も既定で解析対象です。対象外にしたい場合は `otakLcp.markdown.analyzeCodeBlocks` を無効にしてください。
 ※ Markdownのテーブル（`|...|`）内は既定では文法チェック対象外です。テーブル内も検出したい場合は `otakLcp.markdown.analyzeTables` を有効にしてください。
 
 #### 3. 二重否定の検出（Double Negation）
@@ -379,7 +379,7 @@
 | `otakLcp.enableGrammarCheck` | 文法チェックの有効/無効 | `true` |
 | `otakLcp.enableSemanticHighlight` | セマンティックハイライトの有効/無効 | `true` |
 | `otakLcp.excludeTableDelimiters` | Markdownテーブル内のセマンティックハイライトの有効/無効（falseでテーブル全体をハイライト対象外） | `true` |
-| `otakLcp.markdown.analyzeCodeBlocks` | Markdownのコードブロック（```）内も文法チェック対象にする | `false` |
+| `otakLcp.markdown.analyzeCodeBlocks` | Markdownのコードブロック（```）内も文法チェック対象にする | `true` |
 | `otakLcp.markdown.analyzeTables` | Markdownのテーブル（|...|）内も文法チェック対象にする | `false` |
 | `otakLcp.targetLanguages` | 解析対象のファイルタイプ | `["markdown", "javascript", ...]` |
 | `otakLcp.debounceDelay` | 解析のデバウンス遅延（ミリ秒） | `250` |
@@ -436,7 +436,7 @@
   "otakLcp.enableGrammarCheck": true,
   "otakLcp.enableSemanticHighlight": true,
   "otakLcp.excludeTableDelimiters": true,
-  "otakLcp.markdown.analyzeCodeBlocks": false,
+  "otakLcp.markdown.analyzeCodeBlocks": true,
   "otakLcp.markdown.analyzeTables": false,
   "otakLcp.targetLanguages": [
     "markdown",

@@ -49,7 +49,7 @@ export class ConfigurationManager {
       enableSemanticHighlight: true,
       excludeTableDelimiters: true,
       markdown: {
-        analyzeCodeBlocks: false,
+        analyzeCodeBlocks: true,
         analyzeTables: false,
       },
       targetLanguages: ['c', 'cpp', 'java', 'python', 'javascript', 'typescript', 'rust', 'markdown'],

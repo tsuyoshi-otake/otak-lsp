@@ -124,7 +124,7 @@ export class ExtensionClient {
       enableSemanticHighlight: true,
       excludeTableDelimiters: true,
       markdown: {
-        analyzeCodeBlocks: false,
+        analyzeCodeBlocks: true,
         analyzeTables: false,
       },
       targetLanguages: ['markdown', 'javascript', 'typescript', 'python', 'c', 'cpp', 'java', 'rust', 'plaintext'] as SupportedLanguage[],
