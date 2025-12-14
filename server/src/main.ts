@@ -65,7 +65,7 @@ let configuration: Configuration = {
     analyzeCodeBlocks: false,
   },
   targetLanguages: ['markdown', 'javascript', 'typescript', 'python', 'c', 'cpp', 'java', 'rust', 'plaintext'] as SupportedLanguage[],
-  debounceDelay: 500,
+  debounceDelay: 250,
 };
 
 // Debounce timers

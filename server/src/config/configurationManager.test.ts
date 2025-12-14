@@ -21,7 +21,7 @@ describe('Configuration Manager', () => {
       expect(config.enableSemanticHighlight).toBe(true);
       expect(config.excludeTableDelimiters).toBe(true);
       expect(config.targetLanguages).toContain('markdown');
-      expect(config.debounceDelay).toBe(500);
+      expect(config.debounceDelay).toBe(250);
     });
 
     it('should return a copy of configuration', () => {
@@ -145,7 +145,7 @@ describe('Configuration Manager', () => {
   describe('getValue', () => {
     it('should get specific configuration value', () => {
       expect(manager.getValue('enableGrammarCheck')).toBe(true);
-      expect(manager.getValue('debounceDelay')).toBe(500);
+      expect(manager.getValue('debounceDelay')).toBe(250);
     });
 
     it('should reflect updated values', () => {
@@ -166,7 +166,7 @@ describe('Configuration Manager', () => {
 
       const config = manager.getConfiguration();
       expect(config.enableGrammarCheck).toBe(true);
-      expect(config.debounceDelay).toBe(500);
+      expect(config.debounceDelay).toBe(250);
     });
 
     it('should notify listeners on reset', () => {

@@ -8,20 +8,6 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 3,
-        "line": 28,
-      },
-      "start": {
-        "character": 0,
-        "line": 28,
-      },
-    },
-  },
-  {
-    "code": "code-block-language",
-    "message": "コードブロックに言語指定がありません。シンタックスハイライトのために言語を指定してください。",
-    "range": {
-      "end": {
-        "character": 3,
         "line": 38,
       },
       "start": {

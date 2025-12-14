@@ -220,7 +220,7 @@ describe('Language Server', () => {
 
       expect(config.enableGrammarCheck).toBe(true);
       expect(config.enableSemanticHighlight).toBe(true);
-      expect(config.debounceDelay).toBe(500);
+      expect(config.debounceDelay).toBe(250);
     });
 
     it('should update configuration', () => {

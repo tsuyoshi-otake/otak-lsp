@@ -24,7 +24,7 @@ let mockConfigValues: Record<string, unknown> = {
   enableGrammarCheck: true,
   enableSemanticHighlight: true,
   targetLanguages: ['markdown', 'javascript', 'typescript', 'python', 'c', 'cpp', 'java', 'rust'],
-  debounceDelay: 500,
+  debounceDelay: 250,
 };
 
 const mockVscode = {
@@ -83,7 +83,7 @@ describe('Extension Client', () => {
       enableGrammarCheck: true,
       enableSemanticHighlight: true,
       targetLanguages: ['markdown', 'javascript', 'typescript', 'python', 'c', 'cpp', 'java', 'rust'],
-      debounceDelay: 500,
+      debounceDelay: 250,
     };
   });
 
@@ -148,7 +148,7 @@ describe('Extension Client', () => {
 
         expect(config.enableGrammarCheck).toBe(true);
         expect(config.enableSemanticHighlight).toBe(true);
-        expect(config.debounceDelay).toBe(500);
+        expect(config.debounceDelay).toBe(250);
       });
     });
 
@@ -207,7 +207,7 @@ describe('Extension Client', () => {
 
     describe('getDebounceDelay', () => {
       it('should return debounce delay', () => {
-        expect(client.getDebounceDelay()).toBe(500);
+        expect(client.getDebounceDelay()).toBe(250);
       });
     });
   });

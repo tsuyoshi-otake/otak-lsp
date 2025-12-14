@@ -51,7 +51,7 @@ export class ConfigurationManager {
         analyzeCodeBlocks: false,
       },
       targetLanguages: ['c', 'cpp', 'java', 'python', 'javascript', 'typescript', 'rust', 'markdown'],
-      debounceDelay: 500
+      debounceDelay: 250
     };
   }
 

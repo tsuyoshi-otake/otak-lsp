@@ -112,7 +112,7 @@
         },
         "otakLcp.debounceDelay": {
           "type": "number",
-          "default": 500,
+          "default": 250,
           "minimum": 100,
           "maximum": 5000,
           "description": "テキスト編集後に解析を開始するまでの遅延時間（ミリ秒）",

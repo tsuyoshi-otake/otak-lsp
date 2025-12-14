@@ -129,7 +129,7 @@ export class LanguageServer {
         analyzeCodeBlocks: false,
       },
       targetLanguages: ['markdown', 'javascript', 'typescript', 'python', 'c', 'cpp', 'java', 'rust'],
-      debounceDelay: 500,
+      debounceDelay: 250,
       excludeTableDelimiters: true
     };
   }

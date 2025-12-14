@@ -28,7 +28,7 @@ let mockConfigValues: Record<string, unknown> = {
   enableSemanticHighlight: true,
   excludeTableDelimiters: true,
   targetLanguages: ['markdown', 'javascript', 'typescript', 'python', 'c', 'cpp', 'java', 'rust'],
-  debounceDelay: 500,
+  debounceDelay: 250,
 };
 
 const mockVscode = {
@@ -77,7 +77,7 @@ describe('Extension Integration Tests', () => {
       enableSemanticHighlight: true,
       excludeTableDelimiters: true,
       targetLanguages: ['markdown', 'javascript', 'typescript', 'python', 'c', 'cpp', 'java', 'rust'],
-      debounceDelay: 500,
+      debounceDelay: 250,
     };
   });
 
@@ -147,7 +147,7 @@ describe('Extension Integration Tests', () => {
       expect(config.enableGrammarCheck).toBe(true);
       expect(config.enableSemanticHighlight).toBe(true);
       expect(config.targetLanguages).toHaveLength(8);
-      expect(config.debounceDelay).toBe(500);
+      expect(config.debounceDelay).toBe(250);
     });
 
     it('should correctly identify target languages', () => {
@@ -177,7 +177,7 @@ describe('Extension Integration Tests', () => {
       expect(client.getTargetLanguages()).toEqual(
         expect.arrayContaining(['markdown', 'javascript', 'typescript', 'python', 'c', 'cpp', 'java', 'rust'])
       );
-      expect(client.getDebounceDelay()).toBe(500);
+      expect(client.getDebounceDelay()).toBe(250);
     });
 
     it('should reload configuration when requested', () => {
@@ -238,7 +238,7 @@ describe('Extension Integration Tests', () => {
         enableSemanticHighlight: true,
         excludeTableDelimiters: true,
         targetLanguages: ['markdown', 'javascript', 'typescript', 'python', 'c', 'cpp', 'java', 'rust'],
-        debounceDelay: 500,
+        debounceDelay: 250,
       };
 
       // Reload and verify
@@ -261,7 +261,7 @@ describe('Extension Lifecycle Integration', () => {
       enableSemanticHighlight: true,
       excludeTableDelimiters: true,
       targetLanguages: ['markdown', 'javascript', 'typescript', 'python', 'c', 'cpp', 'java', 'rust'],
-      debounceDelay: 500,
+      debounceDelay: 250,
     };
   });
 

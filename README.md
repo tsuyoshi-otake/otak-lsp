@@ -26,7 +26,7 @@
 
 文書内で「です・ます調」（敬体）と「である調」（常体）が混在している場合に警告します。
 
-```
+```markdown
 これはテストです。      <- 敬体（です・ます調）
 これはテストである。    <- 常体（である調）
 -> 文体混在の警告が表示されます
@@ -338,7 +338,7 @@
 | `otakLcp.enableGrammarCheck` | 文法チェックの有効/無効 | `true` |
 | `otakLcp.enableSemanticHighlight` | セマンティックハイライトの有効/無効 | `true` |
 | `otakLcp.targetLanguages` | 解析対象のファイルタイプ | `["markdown", "javascript", ...]` |
-| `otakLcp.debounceDelay` | 解析のデバウンス遅延（ミリ秒） | `500` |
+| `otakLcp.debounceDelay` | 解析のデバウンス遅延（ミリ秒） | `250` |
 
 ### 高度な文法ルール設定
 
