@@ -21,14 +21,44 @@ export class ParticleRepetitionRule implements AdvancedGrammarRule {
   name = 'particle-repetition';
   description = '同じ助詞の連続使用を検出します';
 
+  private static readonly QUOTE_PAIRS: ReadonlyArray<[string, string]> = [
+    ['「', '」'],
+    ['『', '』'],
+    ['（', '）'],
+    ['(', ')'],
+    ['【', '】'],
+    ['〈', '〉'],
+    ['《', '》'],
+    ['“', '”'],
+    ['"', '"'],
+    ["'", "'"]
+  ];
+
+  private isQuotedToken(token: Token, documentText: string): boolean {
+    const beforeIndex = token.start - 1;
+    const afterIndex = token.end;
+    if (beforeIndex < 0 || afterIndex >= documentText.length) {
+      return false;
+    }
+
+    const before = documentText[beforeIndex];
+    const after = documentText[afterIndex];
+    return ParticleRepetitionRule.QUOTE_PAIRS.some(
+      ([open, close]) => before === open && after === close
+    );
+  }
+
   /**
    * 文内の同じ助詞の連続使用を検出
    */
-  findRepeatedParticles(sentence: Sentence): Array<{ particle: string; positions: number[] }> {
+  findRepeatedParticles(
+    sentence: Sentence,
+    documentText: string
+  ): Array<{ particle: string; positions: number[] }> {
     const particles: Map<string, number[]> = new Map();
 
     for (const token of sentence.tokens) {
-      if (token.pos === '助詞') {
+      if (token.pos === '助詞' && !this.isQuotedToken(token, documentText)) {
         const positions = particles.get(token.surface) || [];
         positions.push(token.start);
         particles.set(token.surface, positions);
@@ -52,7 +82,7 @@ export class ParticleRepetitionRule implements AdvancedGrammarRule {
     const diagnostics: AdvancedDiagnostic[] = [];
 
     for (const sentence of context.sentences) {
-      const repetitions = this.findRepeatedParticles(sentence);
+      const repetitions = this.findRepeatedParticles(sentence, context.documentText);
 
       for (const rep of repetitions) {
         diagnostics.push(new AdvancedDiagnostic({

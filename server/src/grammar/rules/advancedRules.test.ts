@@ -81,6 +81,21 @@ describe('ParticleRepetitionRule', () => {
     expect(diagnostics).toHaveLength(0);
   });
 
+  it('should not count quoted particles like 「を」', () => {
+    const text = '助詞「を」を使う';
+    const tokens = [
+      createToken('助詞', '名詞', 0),
+      createToken('を', '助詞', 3), // 「を」(引用) はカウント対象外
+      createToken('を', '助詞', 5),
+      createToken('使う', '動詞', 6)
+    ];
+    const sentence = new Sentence({ text, tokens, start: 0, end: text.length });
+    const context = createContext(text, [sentence]);
+    const diagnostics = rule.check(tokens, context);
+
+    expect(diagnostics).toHaveLength(0);
+  });
+
   it('should be enabled by default', () => {
     expect(rule.isEnabled(DEFAULT_ADVANCED_RULES_CONFIG)).toBe(true);
   });
