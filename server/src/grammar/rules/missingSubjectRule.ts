@@ -5,25 +5,14 @@
  * 要件: 2.1, 2.2, 2.3
  */
 
-import { Token, Range } from '../../../../shared/src/types';
+import { Token } from '../../../../shared/src/types';
 import {
   AdvancedGrammarRule,
   AdvancedRulesConfig,
   RuleContext,
   AdvancedDiagnostic,
-  MissingSubject
+  Sentence
 } from '../../../../shared/src/advancedTypes';
-
-/**
- * 主語が必要な文パターン
- * 短い文で主語がなく、文脈から推測困難なもの
- */
-const MISSING_SUBJECT_PATTERNS: RegExp[] = [
-  /^昨日、[^。]+ました。$/,
-  /^今日、[^。]+ました。$/,
-  /^明日、[^。]+ます。$/,
-  /^[^。]{0,10}、[^は][^。]*ました。$/
-];
 
 /**
  * 主語欠如検出ルール
@@ -33,43 +22,54 @@ export class MissingSubjectRule implements AdvancedGrammarRule {
   description = '主語が欠如している文を検出します';
 
   /**
-   * テキストから主語欠如を検出
-   * @param text テキスト
-   * @returns 検出された主語欠如のリスト
+   * 主語欠如の可能性があるか判定
    */
-  detectMissingSubject(text: string): MissingSubject[] {
-    const results: MissingSubject[] = [];
-
-    // 文ごとに分割して検査
-    const sentences = text.split(/(?<=[。！？!?])/);
-
-    for (const sentence of sentences) {
-      const trimmed = sentence.trim();
-      if (!trimmed) continue;
-
-      // 短い文で主語指標（は、が）がない場合
-      if (trimmed.length < 25 &&
-          !trimmed.includes('は') &&
-          !trimmed.includes('が') &&
-          (trimmed.endsWith('ました。') ||
-           trimmed.endsWith('ます。') ||
-           trimmed.endsWith('です。') ||
-           trimmed.endsWith('かったです。'))) {
-
-        const index = text.indexOf(trimmed);
-        results.push({
-          sentence: null as any, // Simplified for pattern-based detection
-          verbToken: null as any,
-          range: {
-            start: { line: 0, character: index },
-            end: { line: 0, character: index + trimmed.length }
-          },
-          suggestion: '主語を明示することを検討してください'
-        });
-      }
+  private shouldReport(sentenceText: string): boolean {
+    const trimmed = sentenceText.trim();
+    if (!trimmed) {
+      return false;
     }
 
-    return results;
+    // Markdownのコードフェンス行は対象外
+    if (/^(\s*(?:>\s*)*)(`{3,}|~{3,})(.*)$/.test(trimmed)) {
+      return false;
+    }
+
+    // 短い文で主語指標（は、が）がない場合
+    if (trimmed.length >= 25) {
+      return false;
+    }
+    if (trimmed.includes('は') || trimmed.includes('が')) {
+      return false;
+    }
+
+    return (
+      trimmed.endsWith('ました。') ||
+      trimmed.endsWith('ます。') ||
+      trimmed.endsWith('です。') ||
+      trimmed.endsWith('かったです。')
+    );
+  }
+
+  private computeTrimmedOffsets(sentence: Sentence): { startOffset: number; endOffset: number } | null {
+    const raw = sentence.text;
+    const trimmed = raw.trim();
+    if (!trimmed) {
+      return null;
+    }
+
+    const startInSentence = raw.indexOf(trimmed);
+    if (startInSentence < 0) {
+      return null;
+    }
+
+    const startOffset = sentence.start + startInSentence;
+    const endOffset = startOffset + trimmed.length;
+    if (endOffset <= startOffset) {
+      return null;
+    }
+
+    return { startOffset, endOffset };
   }
 
   /**
@@ -78,14 +78,25 @@ export class MissingSubjectRule implements AdvancedGrammarRule {
    * @param context ルールコンテキスト
    * @returns 診断情報のリスト
    */
-  check(tokens: Token[], context: RuleContext): AdvancedDiagnostic[] {
+  check(_tokens: Token[], context: RuleContext): AdvancedDiagnostic[] {
     const diagnostics: AdvancedDiagnostic[] = [];
-    const errors = this.detectMissingSubject(context.documentText);
 
-    for (const error of errors) {
+    for (const sentence of context.sentences) {
+      if (!this.shouldReport(sentence.text)) {
+        continue;
+      }
+
+      const offsets = this.computeTrimmedOffsets(sentence);
+      if (!offsets) {
+        continue;
+      }
+
       diagnostics.push(new AdvancedDiagnostic({
-        range: error.range,
-        message: `主語が明示されていない可能性があります。${error.suggestion}`,
+        range: {
+          start: { line: 0, character: offsets.startOffset },
+          end: { line: 0, character: offsets.endOffset }
+        },
+        message: '主語が明示されていない可能性があります。主語を明示することを検討してください',
         code: 'missing-subject',
         ruleName: this.name,
         suggestions: ['「私は」「彼は」などの主語を追加']

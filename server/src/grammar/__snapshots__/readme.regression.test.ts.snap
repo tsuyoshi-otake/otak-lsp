@@ -185,6 +185,34 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     },
   },
   {
+    "code": "missing-subject",
+    "message": "主語が明示されていない可能性があります。主語を明示することを検討してください",
+    "range": {
+      "end": {
+        "character": 21,
+        "line": 2,
+      },
+      "start": {
+        "character": 0,
+        "line": 2,
+      },
+    },
+  },
+  {
+    "code": "missing-subject",
+    "message": "主語が明示されていない可能性があります。主語を明示することを検討してください",
+    "range": {
+      "end": {
+        "character": 49,
+        "line": 307,
+      },
+      "start": {
+        "character": 34,
+        "line": 307,
+      },
+    },
+  },
+  {
     "code": "no-particle-chain",
     "message": "助詞「の」が3回連続しています（閾値: 3回）。文の書き換えを検討してください。",
     "range": {

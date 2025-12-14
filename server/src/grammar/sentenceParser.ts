@@ -135,6 +135,47 @@ export class SentenceParser {
       if (range.type === 'table' || range.type === 'code-block') {
         breaks.add(range.start);
         breaks.add(range.end);
+
+        // コードフェンス行（```lang / ```）が直後の本文と結合されると
+        // 文ベースのルール（missing-subject 等）の範囲が崩れるため、
+        // フェンスの開閉行を本文から分離する。
+        if (range.type === 'code-block') {
+          const findNewlineStartAtOrAfter = (start: number, endExclusive: number): number | null => {
+            for (let i = start; i < endExclusive; i++) {
+              const ch = text[i];
+              if (ch === '\n') {
+                return i > 0 && text[i - 1] === '\r' ? i - 1 : i;
+              }
+              if (ch === '\r') {
+                return i;
+              }
+            }
+            return null;
+          };
+
+          const findLastNewlineStartBefore = (endExclusive: number, lowerBound: number): number | null => {
+            for (let i = endExclusive - 1; i >= lowerBound; i--) {
+              const ch = text[i];
+              if (ch === '\n') {
+                return i > 0 && text[i - 1] === '\r' ? i - 1 : i;
+              }
+              if (ch === '\r') {
+                return i;
+              }
+            }
+            return null;
+          };
+
+          const openingFenceLineEnd = findNewlineStartAtOrAfter(range.start, range.end);
+          if (openingFenceLineEnd !== null) {
+            breaks.add(openingFenceLineEnd);
+          }
+
+          const closingFenceLineStart = findLastNewlineStartBefore(range.end, range.start);
+          if (closingFenceLineStart !== null) {
+            breaks.add(closingFenceLineStart);
+          }
+        }
       }
 
       if (range.type === 'heading') {
