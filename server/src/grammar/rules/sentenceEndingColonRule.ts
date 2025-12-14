@@ -58,7 +58,7 @@ export class SentenceEndingColonRule implements AdvancedGrammarRule {
 
   /**
    * 箇条書き前置き文かどうかを判定
-   * 次の非空行が箇条書き/Markdown構造で始まる場合は前置き文と判定
+   * 次の非空行がMarkdown構造で始まる場合は前置き文と判定
    * @param sentence 文
    * @param documentText ドキュメント全体のテキスト
    * @returns 箇条書き前置き文の場合true
@@ -73,11 +73,6 @@ export class SentenceEndingColonRule implements AdvancedGrammarRule {
     }
 
     const trimmed = nextLine.trimStart();
-
-    // 箇条書き: -, *, +, 数字.
-    if (/^[-*+]\s/.test(trimmed) || /^\d+\.\s/.test(trimmed)) {
-      return true;
-    }
 
     // Markdown構造: 見出し/テーブル/コードブロック/引用
     if (

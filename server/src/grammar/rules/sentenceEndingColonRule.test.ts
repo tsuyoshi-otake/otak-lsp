@@ -129,38 +129,38 @@ describe('SentenceEndingColonRule', () => {
     });
   });
 
-  describe('箇条書き前置きのコロンは検出しない (要件 1.4)', () => {
-    it('次の行が「-」で始まる箇条書き前置きは検出しない', () => {
+  describe('箇条書き前置きのコロンも検出する', () => {
+    it('次の行が「-」で始まる場合も検出する', () => {
       const text = '以下の項目を確認してください：\n- 項目1\n- 項目2';
       const sentence = createSentence('以下の項目を確認してください：', 0);
       const context = createContext(text, [sentence]);
       const tokens = [createToken(text, '名詞', 0)];
       const diagnostics = rule.check(tokens, context);
 
-      expect(diagnostics).toHaveLength(0);
+      expect(diagnostics.length).toBeGreaterThan(0);
     });
 
-    it('次の行が「*」で始まる箇条書き前置きは検出しない', () => {
+    it('次の行が「*」で始まる場合も検出する', () => {
       const text = '必要な物：\n* 鉛筆\n* 消しゴム';
       const sentence = createSentence('必要な物：', 0);
       const context = createContext(text, [sentence]);
       const tokens = [createToken(text, '名詞', 0)];
       const diagnostics = rule.check(tokens, context);
 
-      expect(diagnostics).toHaveLength(0);
+      expect(diagnostics.length).toBeGreaterThan(0);
     });
 
-    it('次の行が番号付きリストで始まる箇条書き前置きは検出しない', () => {
+    it('次の行が番号付きリストで始まる場合も検出する', () => {
       const text = '手順は以下の通り：\n1. 準備する\n2. 実行する';
       const sentence = createSentence('手順は以下の通り：', 0);
       const context = createContext(text, [sentence]);
       const tokens = [createToken(text, '名詞', 0)];
       const diagnostics = rule.check(tokens, context);
 
-      expect(diagnostics).toHaveLength(0);
+      expect(diagnostics.length).toBeGreaterThan(0);
     });
 
-    it('次の行が箇条書きでない場合は検出する', () => {
+    it('次の行が箇条書きでない場合も検出する', () => {
       const text = 'これはテストです：\nこれは通常の文です。';
       const sentence = createSentence('これはテストです：', 0);
       const context = createContext(text, [sentence]);

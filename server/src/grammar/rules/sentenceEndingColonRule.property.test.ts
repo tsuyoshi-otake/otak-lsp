@@ -133,11 +133,10 @@ describe('Property-Based Tests: SentenceEndingColonRule', () => {
   });
 
   /**
-   * プロパティ 4: 箇条書き前置きの除外
-   * 検証: 要件 1.4
+   * プロパティ 4: 箇条書き前置きも検出する
    */
-  describe('Property 4: 箇条書き前置きの除外', () => {
-    it('箇条書きマーカーが続く場合は検出しない', () => {
+  describe('Property 4: 箇条書き前置きも検出する', () => {
+    it('箇条書きマーカーが続く場合でも検出する', () => {
       fc.assert(
         fc.property(
           japaneseString,
@@ -151,7 +150,7 @@ describe('Property-Based Tests: SentenceEndingColonRule', () => {
             const tokens = [createToken(fullText, '名詞', 0)];
             const diagnostics = rule.check(tokens, context);
 
-            expect(diagnostics).toHaveLength(0);
+            expect(diagnostics.length).toBeGreaterThan(0);
           }
         ),
         { numRuns: 30 }
