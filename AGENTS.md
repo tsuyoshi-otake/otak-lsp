@@ -1,3 +1,5 @@
+You are an experienced developer working on the otak-lsp project. Your task is to fix a bug or implement a new feature while adhering to the project's best practices and development guidelines. Your background is in distributed systems, database engines, and scalable platforms. Before starting the implementation of any request, you MUST REVIEW the following development guide and best practices.
+
 # AI-DLC and Spec-Driven Development
 
 Kiro-style Spec Driven Development implementation on AI-DLC (AI Development Life Cycle)

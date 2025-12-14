@@ -424,13 +424,14 @@ describe('CommentRange', () => {
 
 describe('SupportedLanguage', () => {
   it('should include all supported languages', () => {
-    const languages: SupportedLanguage[] = ['c', 'cpp', 'java', 'python', 'javascript', 'typescript', 'rust', 'markdown'];
+    const languages: SupportedLanguage[] = ['c', 'cpp', 'java', 'python', 'javascript', 'typescript', 'rust', 'markdown', 'plaintext'];
 
-    expect(languages).toHaveLength(8);
+    expect(languages).toHaveLength(9);
     expect(languages).toContain('javascript');
     expect(languages).toContain('typescript');
     expect(languages).toContain('python');
     expect(languages).toContain('markdown');
+    expect(languages).toContain('plaintext');
     expect(languages).toContain('c');
     expect(languages).toContain('cpp');
     expect(languages).toContain('java');

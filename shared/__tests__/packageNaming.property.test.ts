@@ -6,7 +6,6 @@
  * 検証対象: 要件 1.1, 1.2, 1.4
  */
 
-import * as fc from 'fast-check';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -58,16 +57,12 @@ describe('パッケージ名リファクタリング - プロパティテスト'
     });
 
     it('コマンド識別子はcamelCase形式である', () => {
-      fc.assert(
-        fc.property(fc.constant(packageJson.contributes.commands), (commands) => {
-          return commands.every((cmd: { command: string }) => {
-            const suffix = cmd.command.replace('otakLcp.', '');
-            // camelCaseパターン: 小文字で始まり、アンダースコアやハイフンを含まない
-            return /^[a-z][a-zA-Z]*$/.test(suffix);
-          });
-        }),
-        { numRuns: 30 }
-      );
+      const commands = packageJson.contributes.commands;
+      for (const cmd of commands) {
+        const suffix = cmd.command.replace('otakLcp.', '');
+        // camelCaseパターン: 小文字で始まり、アンダースコアやハイフンを含まない
+        expect(suffix).toMatch(/^[a-z][a-zA-Z]*$/);
+      }
     });
   });
 
@@ -84,18 +79,11 @@ describe('パッケージ名リファクタリング - プロパティテスト'
     });
 
     it('設定キーはドット区切りのcamelCase形式である', () => {
-      fc.assert(
-        fc.property(
-          fc.constant(Object.keys(packageJson.contributes.configuration.properties)),
-          (keys) => {
-            return keys.every((key: string) => {
-              // otakLcp.xxx または otakLcp.category.xxx 形式
-              return /^otakLcp(\.[a-z][a-zA-Z]*)+$/.test(key);
-            });
-          }
-        ),
-        { numRuns: 30 }
-      );
+      const keys = Object.keys(packageJson.contributes.configuration.properties);
+      for (const key of keys) {
+        // otakLcp.xxx または otakLcp.category.xxx 形式
+        expect(key).toMatch(/^otakLcp(\.[a-z][a-zA-Z]*)+$/);
+      }
     });
   });
 

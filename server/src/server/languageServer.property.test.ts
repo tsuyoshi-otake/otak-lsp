@@ -77,30 +77,39 @@ describe('Property-Based Tests: Language Server', () => {
     });
 
     it('should trigger analysis after debounce period', () => {
-      fc.assert(
-        fc.property(
-          fc.integer({ min: 100, max: 1000 }),
-          fc.integer({ min: 1, max: 10 }),
-          (debounceDelay, callCount) => {
-            const server = new LanguageServer();
-            const callback = jest.fn();
-            const debouncedCallback = server.createDebouncedCallback(callback, debounceDelay);
+      jest.useFakeTimers();
+      try {
+        fc.assert(
+          fc.property(
+            fc.integer({ min: 100, max: 1000 }),
+            fc.integer({ min: 1, max: 10 }),
+            (debounceDelay, callCount) => {
+              const server = new LanguageServer();
+              const callback = jest.fn();
+              const debouncedCallback = server.createDebouncedCallback(callback, debounceDelay);
 
-            // 複数回呼び出し
-            for (let i = 0; i < callCount; i++) {
-              debouncedCallback(`call${i}`);
+              // 複数回呼び出し（最後の呼び出しだけが実行されるはず）
+              for (let i = 0; i < callCount; i++) {
+                debouncedCallback(`call${i}`);
+              }
+
+              // デバウンス期間中は呼び出されない
+              jest.advanceTimersByTime(debounceDelay - 1);
+              expect(callback).not.toHaveBeenCalled();
+
+              // デバウンス期間経過後に一度だけ呼び出される
+              jest.advanceTimersByTime(1);
+              expect(callback).toHaveBeenCalledTimes(1);
+              expect(callback).toHaveBeenCalledWith(`call${callCount - 1}`);
+
+              jest.clearAllTimers();
             }
-
-            // デバウンス期間中は呼び出されない
-            expect(callback).not.toHaveBeenCalled();
-
-            // 注: 実際のタイマーテストはjest.useFakeTimersが必要
-            // ここではデバウンス関数が正しく作成されることを確認
-            expect(typeof debouncedCallback).toBe('function');
-          }
-        ),
-        { numRuns: 50 }
-      );
+          ),
+          { numRuns: 50 }
+        );
+      } finally {
+        jest.useRealTimers();
+      }
     });
   });
 

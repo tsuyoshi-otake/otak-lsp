@@ -36,15 +36,41 @@ describe('Property-Based Tests: Markdown Filter', () => {
             const text = `${prefix}\n\`\`\`\n${safeContent}\n\`\`\`\n${suffix}`;
             const result = filter.filter(text);
 
-            // フィルタリング後のテキストにコードコンテンツが含まれていないことを確認
-            // ただし、除外範囲はスペースで置換されるため、スペースを除いて確認
-            const filteredWithoutSpaces = result.filteredText.trim();
-            const expectedPrefix = prefix.trim();
-            const expectedSuffix = suffix.trim();
+            expect(result.filteredText.length).toBe(text.length);
 
-            // コード部分が除外されていることを確認
-            expect(result.excludedRanges.length).toBeGreaterThanOrEqual(1);
-            expect(result.excludedRanges.some((r) => r.type === 'code-block')).toBe(true);
+            // コード部分が除外（マスク）されていることを確認
+            const codeBlockRanges = result.excludedRanges.filter((r) => r.type === 'code-block');
+            expect(codeBlockRanges.length).toBeGreaterThanOrEqual(1);
+
+            for (const range of codeBlockRanges) {
+              const originalSegment = text.slice(range.start, range.end);
+              const filteredSegment = result.filteredText.slice(range.start, range.end);
+
+              // コードブロックの内容はスペース置換（改行は保持）される
+              const firstNewline = originalSegment.indexOf('\n');
+              if (firstNewline === -1) {
+                // 単一行の ```code``` 形式は全体がマスクされる
+                for (let i = 0; i < originalSegment.length; i++) {
+                  const ch = originalSegment[i];
+                  if (ch !== '\n' && ch !== '\r') {
+                    expect(filteredSegment[i]).toBe(' ');
+                  }
+                }
+                continue;
+              }
+
+              // 複数行コードブロック: フェンス行は保持し、内容のみマスクされる
+              const lastNewline = originalSegment.lastIndexOf('\n');
+              const contentStart = firstNewline + 1;
+              const closingFenceLineStart = lastNewline + 1;
+
+              for (let i = contentStart; i < closingFenceLineStart; i++) {
+                const ch = originalSegment[i];
+                if (ch !== '\n' && ch !== '\r') {
+                  expect(filteredSegment[i]).toBe(' ');
+                }
+              }
+            }
           }
         ),
         { numRuns: 30 }

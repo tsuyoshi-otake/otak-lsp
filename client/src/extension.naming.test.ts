@@ -7,7 +7,6 @@
  * 検証対象: 要件 1.5, 2.1, 2.2, 4.2, 4.3
  */
 
-import * as fc from 'fast-check';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -83,22 +82,17 @@ describe('Extension Client 命名規則テスト', () => {
 
   describe('プロパティ: 古い命名規則の排除', () => {
     it('japaneseGrammarAnalyzerパターンはコードに存在しない', () => {
-      fc.assert(
-        fc.property(fc.constant(extensionSource), (source) => {
-          // コメント以外でjapaneseGrammarAnalyzerを使用していないことを確認
-          const lines = source.split('\n');
-          return lines.every((line) => {
-            // コメント行は許容
-            if (line.trim().startsWith('//') || line.trim().startsWith('*')) {
-              return true;
-            }
-            // 文字列リテラルや識別子でjapaneseGrammarAnalyzerを使用していない
-            return !line.includes("'japaneseGrammarAnalyzer") &&
-                   !line.includes('"japaneseGrammarAnalyzer');
-          });
-        }),
-        { numRuns: 30 }
-      );
+      // コメント以外でjapaneseGrammarAnalyzerを使用していないことを確認
+      const lines = extensionSource.split('\n');
+      for (const line of lines) {
+        // コメント行は許容
+        if (line.trim().startsWith('//') || line.trim().startsWith('*')) {
+          continue;
+        }
+        // 文字列リテラルや識別子でjapaneseGrammarAnalyzerを使用していない
+        expect(line).not.toContain("'japaneseGrammarAnalyzer");
+        expect(line).not.toContain('"japaneseGrammarAnalyzer');
+      }
     });
   });
 });

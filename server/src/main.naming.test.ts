@@ -7,7 +7,6 @@
  * 検証対象: 要件 4.1, 4.2, 4.3, 4.4, 4.5
  */
 
-import * as fc from 'fast-check';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -41,20 +40,15 @@ describe('Language Server 命名規則テスト', () => {
 
   describe('プロパティ: 古い命名規則の排除', () => {
     it('japaneseGrammarAnalyzerパターンはコードに存在しない', () => {
-      fc.assert(
-        fc.property(fc.constant(serverSource), (source) => {
-          const lines = source.split('\n');
-          return lines.every((line) => {
-            if (line.trim().startsWith('//') || line.trim().startsWith('*')) {
-              return true;
-            }
-            return !line.includes("'japaneseGrammarAnalyzer") &&
-                   !line.includes('"japaneseGrammarAnalyzer') &&
-                   !line.includes('?.japaneseGrammarAnalyzer');
-          });
-        }),
-        { numRuns: 30 }
-      );
+      const lines = serverSource.split('\n');
+      for (const line of lines) {
+        if (line.trim().startsWith('//') || line.trim().startsWith('*')) {
+          continue;
+        }
+        expect(line).not.toContain("'japaneseGrammarAnalyzer");
+        expect(line).not.toContain('"japaneseGrammarAnalyzer');
+        expect(line).not.toContain('?.japaneseGrammarAnalyzer');
+      }
     });
   });
 });
