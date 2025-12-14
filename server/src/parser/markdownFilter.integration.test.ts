@@ -167,6 +167,7 @@ Also contains \`code\` and https://example.com.`;
     it('should work with all filters disabled', () => {
       const filter = new MarkdownFilter({
         excludeCodeBlocks: false,
+        preserveCodeBlockContent: false,
         excludeInlineCode: false,
         excludeTables: false,
         excludeUrls: false,
@@ -188,6 +189,7 @@ Also contains \`code\` and https://example.com.`;
     it('should work with selective filters enabled', () => {
       const filter = new MarkdownFilter({
         excludeCodeBlocks: true,
+        preserveCodeBlockContent: false,
         excludeInlineCode: false,
         excludeTables: false,
         excludeUrls: true,

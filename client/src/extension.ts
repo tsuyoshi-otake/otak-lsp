@@ -27,6 +27,9 @@ interface Configuration {
   enableGrammarCheck: boolean;
   enableSemanticHighlight: boolean;
   excludeTableDelimiters: boolean;
+  markdown: {
+    analyzeCodeBlocks: boolean;
+  };
   targetLanguages: SupportedLanguage[];
   debounceDelay: number;
 }
@@ -119,6 +122,9 @@ export class ExtensionClient {
       enableGrammarCheck: true,
       enableSemanticHighlight: true,
       excludeTableDelimiters: true,
+      markdown: {
+        analyzeCodeBlocks: false,
+      },
       targetLanguages: ['markdown', 'javascript', 'typescript', 'python', 'c', 'cpp', 'java', 'rust', 'plaintext'] as SupportedLanguage[],
       debounceDelay: 500,
     };
@@ -134,6 +140,9 @@ export class ExtensionClient {
       enableGrammarCheck: config.get<boolean>('enableGrammarCheck') ?? this.configuration.enableGrammarCheck,
       enableSemanticHighlight: config.get<boolean>('enableSemanticHighlight') ?? this.configuration.enableSemanticHighlight,
       excludeTableDelimiters: config.get<boolean>('excludeTableDelimiters') ?? this.configuration.excludeTableDelimiters,
+      markdown: {
+        analyzeCodeBlocks: config.get<boolean>('markdown.analyzeCodeBlocks') ?? this.configuration.markdown.analyzeCodeBlocks,
+      },
       targetLanguages: config.get<SupportedLanguage[]>('targetLanguages') ?? this.configuration.targetLanguages,
       debounceDelay: config.get<number>('debounceDelay') ?? this.configuration.debounceDelay,
     };

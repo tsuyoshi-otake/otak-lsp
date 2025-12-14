@@ -25,6 +25,8 @@ export type ExcludeType =
 export interface FilterConfig {
   /** コードブロック（```で囲まれた部分）を除外 */
   excludeCodeBlocks: boolean;
+  /** コードブロック内の内容を保持（コードブロック内も解析対象にしたい場合に使用） */
+  preserveCodeBlockContent: boolean;
   /** インラインコード（`で囲まれた部分）を除外 */
   excludeInlineCode: boolean;
   /** マークダウンテーブルを除外 */
@@ -127,6 +129,7 @@ export class FilterError extends Error {
  */
 export const DEFAULT_FILTER_CONFIG: FilterConfig = {
   excludeCodeBlocks: true,
+  preserveCodeBlockContent: false,
   excludeInlineCode: true,
   excludeTables: true,
   excludeUrls: true,

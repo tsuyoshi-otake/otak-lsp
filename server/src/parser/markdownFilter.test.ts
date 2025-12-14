@@ -19,6 +19,7 @@ describe('Core Interfaces and Data Models', () => {
     it('should have all required properties with correct types', () => {
       const config: FilterConfig = {
         excludeCodeBlocks: true,
+        preserveCodeBlockContent: false,
         excludeInlineCode: true,
         excludeTables: true,
         excludeUrls: true,
@@ -229,6 +230,29 @@ describe('Code Block Exclusion (Task 3.1)', () => {
 
       expect(result.excludedRanges).toHaveLength(1);
       expect(result.excludedRanges[0].type).toBe('code-block');
+    });
+
+    it('should preserve code block content when preserveCodeBlockContent is true', () => {
+      const text = '前の行\n```\n食べれる\n```\n後の行';
+      const result = filter.filter(text, {
+        ...DEFAULT_FILTER_CONFIG,
+        preserveCodeBlockContent: true
+      });
+
+      expect(result.excludedRanges.some((r) => r.type === 'code-block')).toBe(true);
+      expect(result.filteredText).toContain('食べれる');
+      expect(result.filteredText.length).toBe(text.length);
+    });
+
+    it('should sanitize code fence language spec even when preserveCodeBlockContent is true', () => {
+      const text = '```javascript\n食べれる\n```';
+      const result = filter.filter(text, {
+        ...DEFAULT_FILTER_CONFIG,
+        preserveCodeBlockContent: true
+      });
+
+      expect(result.filteredText).toContain('食べれる');
+      expect(result.filteredText).not.toContain('javascript');
     });
 
     it('should exclude code block with language identifier', () => {

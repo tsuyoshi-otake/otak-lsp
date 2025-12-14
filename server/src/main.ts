@@ -61,6 +61,9 @@ let configuration: Configuration = {
   enableGrammarCheck: true,
   enableSemanticHighlight: true,
   excludeTableDelimiters: true,
+  markdown: {
+    analyzeCodeBlocks: false,
+  },
   targetLanguages: ['markdown', 'javascript', 'typescript', 'python', 'c', 'cpp', 'java', 'rust', 'plaintext'] as SupportedLanguage[],
   debounceDelay: 500,
 };
@@ -125,6 +128,10 @@ connection.onDidChangeConfiguration((change) => {
       enableGrammarCheck: newConfig.enableGrammarCheck ?? configuration.enableGrammarCheck,
       enableSemanticHighlight: newConfig.enableSemanticHighlight ?? configuration.enableSemanticHighlight,
       excludeTableDelimiters: newConfig.excludeTableDelimiters ?? configuration.excludeTableDelimiters,
+      markdown: {
+        ...configuration.markdown,
+        analyzeCodeBlocks: newConfig.markdown?.analyzeCodeBlocks ?? configuration.markdown.analyzeCodeBlocks,
+      },
       targetLanguages: newConfig.targetLanguages ?? configuration.targetLanguages,
       debounceDelay: newConfig.debounceDelay ?? configuration.debounceDelay,
     };
@@ -220,7 +227,10 @@ async function analyzeDocument(document: TextDocument): Promise<void> {
       connection.console.log(`[DEBUG] Extracted ${comments.length} comments`);
     } else if (languageId === 'markdown') {
       // Apply markdown filtering to exclude code blocks, URLs, table delimiters, etc.
-      const filterResult = markdownFilter.filter(textToAnalyze);
+      const filterResult = markdownFilter.filter(textToAnalyze, {
+        ...markdownFilter.getConfig(),
+        preserveCodeBlockContent: configuration.markdown.analyzeCodeBlocks,
+      });
       textToAnalyze = filterResult.filteredText;
       excludedRanges = filterResult.excludedRanges;
 
@@ -231,7 +241,9 @@ async function analyzeDocument(document: TextDocument): Promise<void> {
         : baseSemanticRanges;
 
       // 文法チェック用: すべての除外範囲を使用（table 全体も含む）
-      grammarExcludedRanges = excludedRanges;
+      grammarExcludedRanges = configuration.markdown.analyzeCodeBlocks
+        ? excludedRanges.filter((r) => r.type !== 'code-block')
+        : excludedRanges;
 
       documentExcludedRanges.set(uri, excludedRanges);
       connection.console.log(`[DEBUG] Markdown filtered: ${excludedRanges.length} ranges excluded`);

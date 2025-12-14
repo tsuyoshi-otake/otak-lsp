@@ -125,6 +125,9 @@ export class LanguageServer {
     return {
       enableGrammarCheck: true,
       enableSemanticHighlight: true,
+      markdown: {
+        analyzeCodeBlocks: false,
+      },
       targetLanguages: ['markdown', 'javascript', 'typescript', 'python', 'c', 'cpp', 'java', 'rust'],
       debounceDelay: 500,
       excludeTableDelimiters: true

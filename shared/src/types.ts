@@ -287,6 +287,11 @@ export interface Configuration {
   enableSemanticHighlight: boolean;
   /** テーブル内のセマンティックハイライト（旧動作に戻す場合はfalse） */
   excludeTableDelimiters: boolean;
+  /** Markdown関連設定 */
+  markdown: {
+    /** Markdownのコードブロック（```）内も文法チェック対象にする */
+    analyzeCodeBlocks: boolean;
+  };
   /** 解析対象の言語 */
   targetLanguages: SupportedLanguage[];
   /** デバウンス遅延（ミリ秒） */

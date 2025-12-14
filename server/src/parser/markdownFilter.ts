@@ -65,7 +65,7 @@ export class MarkdownFilter implements IMarkdownFilter {
       this.log(`除外範囲数: ${excludedRanges.length}`);
 
       // フィルタリング済みテキストを生成
-      const filteredText = this.applyFilter(text, excludedRanges);
+      const filteredText = this.applyFilter(text, excludedRanges, effectiveConfig);
       this.log('フィルタリング処理完了');
 
       return this.createResult(filteredText, excludedRanges, text, startTime, effectiveConfig);
@@ -717,7 +717,7 @@ export class MarkdownFilter implements IMarkdownFilter {
   /**
    * フィルタリングを適用してテキストを生成
    */
-  private applyFilter(text: string, ranges: ExcludedRange[]): string {
+  private applyFilter(text: string, ranges: ExcludedRange[], config: FilterConfig): string {
     if (ranges.length === 0) {
       return text;
     }
@@ -787,6 +787,21 @@ export class MarkdownFilter implements IMarkdownFilter {
       }
     };
 
+    const sanitizeCodeBlockFenceLanguageSpec = (range: ExcludedRange): void => {
+      const start = Math.max(0, Math.min(range.start, chars.length));
+      const end = Math.max(start, Math.min(range.end, chars.length));
+      const blockText = text.substring(start, end);
+
+      // 単一行形式はフェンス/言語指定の区別が難しいため対象外
+      const firstNewlineRel = blockText.indexOf('\n');
+      if (firstNewlineRel === -1) {
+        return;
+      }
+
+      const openingFenceLineEndExclusive = start + firstNewlineRel;
+      sanitizeCodeFenceLanguageSpec(start, openingFenceLineEndExclusive);
+    };
+
     for (const range of ranges) {
       // 無効な範囲はスキップ
       if (range.start >= range.end) {
@@ -811,7 +826,11 @@ export class MarkdownFilter implements IMarkdownFilter {
 
       // コードブロックは内容だけをマスク（フェンス行は残す）
       if (range.type === 'code-block') {
-        maskCodeBlockContentPreservingFences(range);
+        if (config.preserveCodeBlockContent) {
+          sanitizeCodeBlockFenceLanguageSpec(range);
+        } else {
+          maskCodeBlockContentPreservingFences(range);
+        }
         continue;
       }
 

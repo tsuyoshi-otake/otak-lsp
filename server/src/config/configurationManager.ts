@@ -47,6 +47,9 @@ export class ConfigurationManager {
       enableGrammarCheck: true,
       enableSemanticHighlight: true,
       excludeTableDelimiters: true,
+      markdown: {
+        analyzeCodeBlocks: false,
+      },
       targetLanguages: ['c', 'cpp', 'java', 'python', 'javascript', 'typescript', 'rust', 'markdown'],
       debounceDelay: 500
     };
@@ -118,6 +121,7 @@ export class ConfigurationManager {
       'enableGrammarCheck',
       'enableSemanticHighlight',
       'excludeTableDelimiters',
+      'markdown',
       'targetLanguages',
       'debounceDelay'
     ];
