@@ -66,6 +66,29 @@ describe('ParticleRepetitionRule', () => {
     expect(diagnostics[0].code).toBe('particle-repetition');
   });
 
+  it('should not flag particles used for different predicates (e.g. 〜を解析し、〜を検出する)', () => {
+    const text = '日本語テキストを解析し、文法エラーを検出します';
+    const tokens = [
+      createToken('日本語', '名詞', 0),
+      createToken('テキスト', '名詞', 3),
+      createToken('を', '助詞', 7),
+      createToken('解析', '名詞', 8),
+      createToken('し', '動詞', 10),
+      createToken('、', '記号', 11),
+      createToken('文法', '名詞', 12),
+      createToken('エラー', '名詞', 14),
+      createToken('を', '助詞', 17),
+      createToken('検出', '名詞', 18),
+      createToken('し', '動詞', 20),
+      createToken('ます', '助動詞', 21)
+    ];
+    const sentence = new Sentence({ text, tokens, start: 0, end: text.length });
+    const context = createContext(text, [sentence]);
+    const diagnostics = rule.check(tokens, context);
+
+    expect(diagnostics).toHaveLength(0);
+  });
+
   it('should not detect when particles are different', () => {
     const tokens = [
       createToken('私', '名詞', 0),

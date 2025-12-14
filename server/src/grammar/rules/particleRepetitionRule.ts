@@ -22,6 +22,7 @@ export class ParticleRepetitionRule implements AdvancedGrammarRule {
   description = '同じ助詞の連続使用を検出します';
 
   private static readonly IGNORED_PARTICLES = new Set(['の']);
+  private static readonly PREDICATE_BOUNDARY_POS = new Set(['動詞', '形容詞', '助動詞']);
 
   private static readonly QUOTE_PAIRS: ReadonlyArray<[string, string]> = [
     ['「', '」'],
@@ -57,11 +58,18 @@ export class ParticleRepetitionRule implements AdvancedGrammarRule {
     sentence: Sentence,
     documentText: string
   ): Array<{ particle: string; positions: number[] }> {
-    const particles: Map<string, number[]> = new Map();
+    const particles: Map<string, { totalPositions: number[]; positionsBySegment: Map<number, number[]> }> = new Map();
+    let segmentIndex = 0;
 
     for (let index = 0; index < sentence.tokens.length; index++) {
       const token = sentence.tokens[index];
       const prev = index > 0 ? sentence.tokens[index - 1] : undefined;
+
+      // 述語（動詞/形容詞/助動詞）が出現したら、以降は別節として扱う
+      // 例: 「Aを解析し、Bを検出する」の「を」は別述語に掛かるため誤検知しやすい
+      if (ParticleRepetitionRule.PREDICATE_BOUNDARY_POS.has(token.pos)) {
+        segmentIndex++;
+      }
 
       if (token.pos !== '助詞') {
         continue;
@@ -78,16 +86,29 @@ export class ParticleRepetitionRule implements AdvancedGrammarRule {
         continue;
       }
 
-        const positions = particles.get(token.surface) || [];
-        positions.push(token.start);
-        particles.set(token.surface, positions);
+      const entry = particles.get(token.surface) ?? {
+        totalPositions: [],
+        positionsBySegment: new Map<number, number[]>()
+      };
+      entry.totalPositions.push(token.start);
+      const segmentPositions = entry.positionsBySegment.get(segmentIndex) ?? [];
+      segmentPositions.push(token.start);
+      entry.positionsBySegment.set(segmentIndex, segmentPositions);
+      particles.set(token.surface, entry);
     }
 
     const repetitions: Array<{ particle: string; positions: number[] }> = [];
-    for (const [particle, positions] of particles) {
-      if (positions.length >= 2) {
-        repetitions.push({ particle, positions });
+    for (const [particle, entry] of particles) {
+      if (entry.totalPositions.length < 2) {
+        continue;
       }
+      const hasProblemSegment = Array.from(entry.positionsBySegment.values()).some(
+        (positions) => positions.length >= 2
+      );
+      if (!hasProblemSegment) {
+        continue;
+      }
+      repetitions.push({ particle, positions: entry.totalPositions });
     }
 
     return repetitions;
