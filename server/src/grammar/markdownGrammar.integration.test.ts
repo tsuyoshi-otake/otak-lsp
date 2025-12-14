@@ -195,22 +195,86 @@ const aws = require('aws-sdk');
   });
 
   describe('Table Exclusion', () => {
-    it('should NOT detect errors in table content', async () => {
+    it('should NOT detect ra-nuki in table content by default', async () => {
       const markdown = `# 設定一覧
 
 | 設定キー | 説明 |
 |----------|------|
-| Javascript | 技術用語 |
-| aws | クラウド |
+| 食べれる | ら抜き |
 
 上記を参照。
 `;
 
       const diagnostics = await analyzeMarkdown(markdown);
-      const termErrors = filterByCode(diagnostics, 'term-notation');
+      const raNukiErrors = filterByCode(diagnostics, 'ra-nuki');
 
-      // テーブル内の誤表記は検出されない
-      expect(termErrors.length).toBe(0);
+      // テーブル内の「食べれる」は既定では検出されない
+      expect(raNukiErrors.length).toBe(0);
+    });
+
+    it('should detect weak-expression in table content by default', async () => {
+      const markdown = `# 設定一覧
+
+| 文章 | 備考 |
+|------|------|
+| これは正しいかもしれない | 例 |
+`;
+
+      const diagnostics = await analyzeMarkdown(markdown);
+      const weakErrors = filterByCode(diagnostics, 'weak-expression');
+      expect(weakErrors.length).toBeGreaterThan(0);
+    });
+
+    it('should detect term-notation in table content by default', async () => {
+      const markdown = `# 設定一覧
+
+| 用語 | 説明 |
+|------|------|
+| Javascript | 技術用語 |
+`;
+
+      const diagnostics = await analyzeMarkdown(markdown);
+      const termErrors = filterByCode(diagnostics, 'term-notation');
+      expect(termErrors.length).toBeGreaterThan(0);
+    });
+
+    it('should detect kanji-opening in table content by default', async () => {
+      const markdown = `# 設定一覧
+
+| 表記 | 備考 |
+|------|------|
+| 確認して下さい | 例 |
+`;
+
+      const diagnostics = await analyzeMarkdown(markdown);
+      const kanji = filterByCode(diagnostics, 'kanji-opening');
+      expect(kanji.length).toBeGreaterThan(0);
+    });
+
+    it('should detect redundant-expression in table content by default', async () => {
+      const markdown = `# 設定一覧
+
+| 表現 | 備考 |
+|------|------|
+| 馬から落馬 | 例 |
+`;
+
+      const diagnostics = await analyzeMarkdown(markdown);
+      const redundant = filterByCode(diagnostics, 'redundant-expression');
+      expect(redundant.length).toBeGreaterThan(0);
+    });
+
+    it('should detect tautology in table content by default', async () => {
+      const markdown = `# 設定一覧
+
+| 表現 | 備考 |
+|------|------|
+| 頭痛が痛い | 例 |
+`;
+
+      const diagnostics = await analyzeMarkdown(markdown);
+      const tautology = filterByCode(diagnostics, 'tautology');
+      expect(tautology.length).toBeGreaterThan(0);
     });
   });
 

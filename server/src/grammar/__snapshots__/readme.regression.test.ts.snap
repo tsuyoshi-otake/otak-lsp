@@ -102,6 +102,118 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
   },
   {
     "code": "kanji-opening",
+    "message": "漢字「下さい」はひらがな「ください」で表記することが推奨されます。",
+    "range": {
+      "end": {
+        "character": 5,
+        "line": 194,
+      },
+      "start": {
+        "character": 2,
+        "line": 194,
+      },
+    },
+  },
+  {
+    "code": "kanji-opening",
+    "message": "漢字「出来る」はひらがな「できる」で表記することが推奨されます。",
+    "range": {
+      "end": {
+        "character": 5,
+        "line": 195,
+      },
+      "start": {
+        "character": 2,
+        "line": 195,
+      },
+    },
+  },
+  {
+    "code": "kanji-opening",
+    "message": "漢字「出来ます」はひらがな「できます」で表記することが推奨されます。",
+    "range": {
+      "end": {
+        "character": 6,
+        "line": 196,
+      },
+      "start": {
+        "character": 2,
+        "line": 196,
+      },
+    },
+  },
+  {
+    "code": "kanji-opening",
+    "message": "漢字「有難う」はひらがな「ありがとう」で表記することが推奨されます。",
+    "range": {
+      "end": {
+        "character": 5,
+        "line": 197,
+      },
+      "start": {
+        "character": 2,
+        "line": 197,
+      },
+    },
+  },
+  {
+    "code": "kanji-opening",
+    "message": "漢字「宜しく」はひらがな「よろしく」で表記することが推奨されます。",
+    "range": {
+      "end": {
+        "character": 5,
+        "line": 198,
+      },
+      "start": {
+        "character": 2,
+        "line": 198,
+      },
+    },
+  },
+  {
+    "code": "kanji-opening",
+    "message": "漢字「致します」はひらがな「いたします」で表記することが推奨されます。",
+    "range": {
+      "end": {
+        "character": 6,
+        "line": 199,
+      },
+      "start": {
+        "character": 2,
+        "line": 199,
+      },
+    },
+  },
+  {
+    "code": "kanji-opening",
+    "message": "漢字「頂く」はひらがな「いただく」で表記することが推奨されます。",
+    "range": {
+      "end": {
+        "character": 4,
+        "line": 200,
+      },
+      "start": {
+        "character": 2,
+        "line": 200,
+      },
+    },
+  },
+  {
+    "code": "kanji-opening",
+    "message": "漢字「頂きます」はひらがな「いただきます」で表記することが推奨されます。",
+    "range": {
+      "end": {
+        "character": 6,
+        "line": 201,
+      },
+      "start": {
+        "character": 2,
+        "line": 201,
+      },
+    },
+  },
+  {
+    "code": "kanji-opening",
     "message": "漢字「様」はひらがな「よう」で表記することが推奨されます。",
     "range": {
       "end": {
@@ -158,6 +270,132 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
   },
   {
     "code": "kanji-opening",
+    "message": "漢字「事」はひらがな「こと」で表記することが推奨されます。",
+    "range": {
+      "end": {
+        "character": 32,
+        "line": 568,
+      },
+      "start": {
+        "character": 31,
+        "line": 568,
+      },
+    },
+  },
+  {
+    "code": "kanji-opening",
+    "message": "漢字「下さい」はひらがな「ください」で表記することが推奨されます。",
+    "range": {
+      "end": {
+        "character": 23,
+        "line": 570,
+      },
+      "start": {
+        "character": 20,
+        "line": 570,
+      },
+    },
+  },
+  {
+    "code": "kanji-opening",
+    "message": "漢字「様」はひらがな「よう」で表記することが推奨されます。",
+    "range": {
+      "end": {
+        "character": 20,
+        "line": 578,
+      },
+      "start": {
+        "character": 19,
+        "line": 578,
+      },
+    },
+  },
+  {
+    "code": "kanji-opening",
+    "message": "漢字「所」はひらがな「ところ」で表記することが推奨されます。",
+    "range": {
+      "end": {
+        "character": 30,
+        "line": 584,
+      },
+      "start": {
+        "character": 29,
+        "line": 584,
+      },
+    },
+  },
+  {
+    "code": "kanji-opening",
+    "message": "漢字「出来る」はひらがな「できる」で表記することが推奨されます。",
+    "range": {
+      "end": {
+        "character": 19,
+        "line": 588,
+      },
+      "start": {
+        "character": 16,
+        "line": 588,
+      },
+    },
+  },
+  {
+    "code": "kanji-opening",
+    "message": "漢字「時」はひらがな「とき」で表記することが推奨されます。",
+    "range": {
+      "end": {
+        "character": 31,
+        "line": 596,
+      },
+      "start": {
+        "character": 30,
+        "line": 596,
+      },
+    },
+  },
+  {
+    "code": "kanji-opening",
+    "message": "漢字「時」はひらがな「とき」で表記することが推奨されます。",
+    "range": {
+      "end": {
+        "character": 19,
+        "line": 598,
+      },
+      "start": {
+        "character": 18,
+        "line": 598,
+      },
+    },
+  },
+  {
+    "code": "kanji-opening",
+    "message": "漢字「時」はひらがな「とき」で表記することが推奨されます。",
+    "range": {
+      "end": {
+        "character": 24,
+        "line": 598,
+      },
+      "start": {
+        "character": 23,
+        "line": 598,
+      },
+    },
+  },
+  {
+    "code": "kanji-opening",
+    "message": "漢字「所」はひらがな「ところ」で表記することが推奨されます。",
+    "range": {
+      "end": {
+        "character": 27,
+        "line": 598,
+      },
+      "start": {
+        "character": 26,
+        "line": 598,
+      },
+    },
+  },
+  {
+    "code": "kanji-opening",
     "message": "漢字「様」はひらがな「よう」で表記することが推奨されます。",
     "range": {
       "end": {
@@ -167,6 +405,34 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
       "start": {
         "character": 6,
         "line": 614,
+      },
+    },
+  },
+  {
+    "code": "long-sentence",
+    "message": "文が長すぎます（169文字、閾値: 120文字）。文の分割を検討してください。",
+    "range": {
+      "end": {
+        "character": 229,
+        "line": 44,
+      },
+      "start": {
+        "character": 60,
+        "line": 44,
+      },
+    },
+  },
+  {
+    "code": "long-sentence",
+    "message": "文が長すぎます（161文字、閾値: 120文字）。文の分割を検討してください。",
+    "range": {
+      "end": {
+        "character": 161,
+        "line": 45,
+      },
+      "start": {
+        "character": 0,
+        "line": 45,
       },
     },
   },
@@ -508,10 +774,24 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
   },
   {
     "code": "particle-repetition",
-    "message": "同じ助詞「は」が2回使用されています。文の構造を見直してください。",
+    "message": "同じ助詞「は」が3回使用されています。文の構造を見直してください。",
     "range": {
       "end": {
-        "character": 42,
+        "character": 229,
+        "line": 44,
+      },
+      "start": {
+        "character": 60,
+        "line": 44,
+      },
+    },
+  },
+  {
+    "code": "particle-repetition",
+    "message": "同じ助詞「は」が3回使用されています。文の構造を見直してください。",
+    "range": {
+      "end": {
+        "character": 161,
         "line": 45,
       },
       "start": {
@@ -578,7 +858,7 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
   },
   {
     "code": "quotation-style-mix",
-    "message": "引用符のスタイルが混在しています。「」（44箇所）と""（4箇所）が使用されています。どれかに統一してください。",
+    "message": "引用符のスタイルが混在しています。「」（48箇所）と""（4箇所）が使用されています。どれかに統一してください。",
     "range": {
       "end": {
         "character": 13,
@@ -643,6 +923,118 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
       "start": {
         "character": 10,
         "line": 205,
+      },
+    },
+  },
+  {
+    "code": "redundant-expression",
+    "message": "冗長表現「馬から落馬」が検出されました。「落馬」に簡潔化できます。",
+    "range": {
+      "end": {
+        "character": 7,
+        "line": 209,
+      },
+      "start": {
+        "character": 2,
+        "line": 209,
+      },
+    },
+  },
+  {
+    "code": "redundant-expression",
+    "message": "冗長表現「後で後悔」が検出されました。「後悔」に簡潔化できます。",
+    "range": {
+      "end": {
+        "character": 6,
+        "line": 210,
+      },
+      "start": {
+        "character": 2,
+        "line": 210,
+      },
+    },
+  },
+  {
+    "code": "redundant-expression",
+    "message": "冗長表現「一番最初」が検出されました。「最初」に簡潔化できます。",
+    "range": {
+      "end": {
+        "character": 6,
+        "line": 211,
+      },
+      "start": {
+        "character": 2,
+        "line": 211,
+      },
+    },
+  },
+  {
+    "code": "redundant-expression",
+    "message": "冗長表現「各々それぞれ」が検出されました。「それぞれ」に簡潔化できます。",
+    "range": {
+      "end": {
+        "character": 8,
+        "line": 212,
+      },
+      "start": {
+        "character": 2,
+        "line": 212,
+      },
+    },
+  },
+  {
+    "code": "redundant-expression",
+    "message": "冗長表現「まず最初に」が検出されました。「最初に」に簡潔化できます。",
+    "range": {
+      "end": {
+        "character": 7,
+        "line": 213,
+      },
+      "start": {
+        "character": 2,
+        "line": 213,
+      },
+    },
+  },
+  {
+    "code": "redundant-expression",
+    "message": "冗長表現「過半数を超える」が検出されました。「過半数」に簡潔化できます。",
+    "range": {
+      "end": {
+        "character": 9,
+        "line": 214,
+      },
+      "start": {
+        "character": 2,
+        "line": 214,
+      },
+    },
+  },
+  {
+    "code": "redundant-expression",
+    "message": "冗長表現「元旦の朝」が検出されました。「元旦」に簡潔化できます。",
+    "range": {
+      "end": {
+        "character": 6,
+        "line": 215,
+      },
+      "start": {
+        "character": 2,
+        "line": 215,
+      },
+    },
+  },
+  {
+    "code": "redundant-expression",
+    "message": "冗長表現「馬から落馬」が検出されました。「落馬」に簡潔化できます。",
+    "range": {
+      "end": {
+        "character": 21,
+        "line": 571,
+      },
+      "start": {
+        "character": 16,
+        "line": 571,
       },
     },
   },
@@ -717,6 +1109,1266 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     },
   },
   {
+    "code": "tautology",
+    "message": "重複表現「頭痛が痛い」が検出されました。「頭」と「痛い」が重複しています。",
+    "range": {
+      "end": {
+        "character": 7,
+        "line": 223,
+      },
+      "start": {
+        "character": 2,
+        "line": 223,
+      },
+    },
+  },
+  {
+    "code": "tautology",
+    "message": "重複表現「違和感を感じる」が検出されました。「感」が重複しています。",
+    "range": {
+      "end": {
+        "character": 9,
+        "line": 224,
+      },
+      "start": {
+        "character": 2,
+        "line": 224,
+      },
+    },
+  },
+  {
+    "code": "tautology",
+    "message": "重複表現「被害を被る」が検出されました。「被」が重複しています。",
+    "range": {
+      "end": {
+        "character": 7,
+        "line": 225,
+      },
+      "start": {
+        "character": 2,
+        "line": 225,
+      },
+    },
+  },
+  {
+    "code": "tautology",
+    "message": "重複表現「犯罪を犯す」が検出されました。「犯」が重複しています。",
+    "range": {
+      "end": {
+        "character": 7,
+        "line": 226,
+      },
+      "start": {
+        "character": 2,
+        "line": 226,
+      },
+    },
+  },
+  {
+    "code": "tautology",
+    "message": "重複表現「危険が危ない」が検出されました。「危」が重複しています。",
+    "range": {
+      "end": {
+        "character": 8,
+        "line": 227,
+      },
+      "start": {
+        "character": 2,
+        "line": 227,
+      },
+    },
+  },
+  {
+    "code": "tautology",
+    "message": "重複表現「歌を歌う」が検出されました。「歌」が重複しています。",
+    "range": {
+      "end": {
+        "character": 6,
+        "line": 228,
+      },
+      "start": {
+        "character": 2,
+        "line": 228,
+      },
+    },
+  },
+  {
+    "code": "tautology",
+    "message": "重複表現「頭痛が痛い」が検出されました。「頭」と「痛い」が重複しています。",
+    "range": {
+      "end": {
+        "character": 27,
+        "line": 572,
+      },
+      "start": {
+        "character": 22,
+        "line": 572,
+      },
+    },
+  },
+  {
+    "code": "term-notation",
+    "message": "技術用語の表記「Javascript」は「JavaScript」に統一してください。",
+    "range": {
+      "end": {
+        "character": 12,
+        "line": 122,
+      },
+      "start": {
+        "character": 2,
+        "line": 122,
+      },
+    },
+  },
+  {
+    "code": "term-notation",
+    "message": "技術用語の表記「javascript」は「JavaScript」に統一してください。",
+    "range": {
+      "end": {
+        "character": 24,
+        "line": 122,
+      },
+      "start": {
+        "character": 14,
+        "line": 122,
+      },
+    },
+  },
+  {
+    "code": "term-notation",
+    "message": "技術用語の表記「Typescript」は「TypeScript」に統一してください。",
+    "range": {
+      "end": {
+        "character": 12,
+        "line": 123,
+      },
+      "start": {
+        "character": 2,
+        "line": 123,
+      },
+    },
+  },
+  {
+    "code": "term-notation",
+    "message": "技術用語の表記「typescript」は「TypeScript」に統一してください。",
+    "range": {
+      "end": {
+        "character": 24,
+        "line": 123,
+      },
+      "start": {
+        "character": 14,
+        "line": 123,
+      },
+    },
+  },
+  {
+    "code": "term-notation",
+    "message": "技術用語の表記「Github」は「GitHub」に統一してください。",
+    "range": {
+      "end": {
+        "character": 8,
+        "line": 124,
+      },
+      "start": {
+        "character": 2,
+        "line": 124,
+      },
+    },
+  },
+  {
+    "code": "term-notation",
+    "message": "技術用語の表記「github」は「GitHub」に統一してください。",
+    "range": {
+      "end": {
+        "character": 16,
+        "line": 124,
+      },
+      "start": {
+        "character": 10,
+        "line": 124,
+      },
+    },
+  },
+  {
+    "code": "term-notation",
+    "message": "技術用語の表記「Nodejs」は「Node.js」に統一してください。",
+    "range": {
+      "end": {
+        "character": 8,
+        "line": 125,
+      },
+      "start": {
+        "character": 2,
+        "line": 125,
+      },
+    },
+  },
+  {
+    "code": "term-notation",
+    "message": "技術用語の表記「nodejs」は「Node.js」に統一してください。",
+    "range": {
+      "end": {
+        "character": 16,
+        "line": 125,
+      },
+      "start": {
+        "character": 10,
+        "line": 125,
+      },
+    },
+  },
+  {
+    "code": "term-notation",
+    "message": "技術用語の表記「Vscode」は「VS Code」に統一してください。",
+    "range": {
+      "end": {
+        "character": 8,
+        "line": 126,
+      },
+      "start": {
+        "character": 2,
+        "line": 126,
+      },
+    },
+  },
+  {
+    "code": "term-notation",
+    "message": "技術用語の表記「vscode」は「VS Code」に統一してください。",
+    "range": {
+      "end": {
+        "character": 16,
+        "line": 126,
+      },
+      "start": {
+        "character": 10,
+        "line": 126,
+      },
+    },
+  },
+  {
+    "code": "term-notation",
+    "message": "技術用語の表記「Nextjs」は「Next.js」に統一してください。",
+    "range": {
+      "end": {
+        "character": 8,
+        "line": 127,
+      },
+      "start": {
+        "character": 2,
+        "line": 127,
+      },
+    },
+  },
+  {
+    "code": "term-notation",
+    "message": "技術用語の表記「nextjs」は「Next.js」に統一してください。",
+    "range": {
+      "end": {
+        "character": 16,
+        "line": 127,
+      },
+      "start": {
+        "character": 10,
+        "line": 127,
+      },
+    },
+  },
+  {
+    "code": "term-notation",
+    "message": "技術用語の表記「Vuejs」は「Vue.js」に統一してください。",
+    "range": {
+      "end": {
+        "character": 7,
+        "line": 128,
+      },
+      "start": {
+        "character": 2,
+        "line": 128,
+      },
+    },
+  },
+  {
+    "code": "term-notation",
+    "message": "技術用語の表記「vuejs」は「Vue.js」に統一してください。",
+    "range": {
+      "end": {
+        "character": 14,
+        "line": 128,
+      },
+      "start": {
+        "character": 9,
+        "line": 128,
+      },
+    },
+  },
+  {
+    "code": "term-notation",
+    "message": "技術用語の表記「chatgpt」は「ChatGPT」に統一してください。",
+    "range": {
+      "end": {
+        "character": 9,
+        "line": 134,
+      },
+      "start": {
+        "character": 2,
+        "line": 134,
+      },
+    },
+  },
+  {
+    "code": "term-notation",
+    "message": "技術用語の表記「Chatgpt」は「ChatGPT」に統一してください。",
+    "range": {
+      "end": {
+        "character": 18,
+        "line": 134,
+      },
+      "start": {
+        "character": 11,
+        "line": 134,
+      },
+    },
+  },
+  {
+    "code": "term-notation",
+    "message": "技術用語の表記「chat-gpt」は「ChatGPT」に統一してください。",
+    "range": {
+      "end": {
+        "character": 28,
+        "line": 134,
+      },
+      "start": {
+        "character": 20,
+        "line": 134,
+      },
+    },
+  },
+  {
+    "code": "term-notation",
+    "message": "技術用語の表記「openai」は「OpenAI」に統一してください。",
+    "range": {
+      "end": {
+        "character": 8,
+        "line": 135,
+      },
+      "start": {
+        "character": 2,
+        "line": 135,
+      },
+    },
+  },
+  {
+    "code": "term-notation",
+    "message": "技術用語の表記「Openai」は「OpenAI」に統一してください。",
+    "range": {
+      "end": {
+        "character": 16,
+        "line": 135,
+      },
+      "start": {
+        "character": 10,
+        "line": 135,
+      },
+    },
+  },
+  {
+    "code": "term-notation",
+    "message": "技術用語の表記「Open AI」は「OpenAI」に統一してください。",
+    "range": {
+      "end": {
+        "character": 25,
+        "line": 135,
+      },
+      "start": {
+        "character": 18,
+        "line": 135,
+      },
+    },
+  },
+  {
+    "code": "term-notation",
+    "message": "技術用語の表記「claude」は「Claude」に統一してください。",
+    "range": {
+      "end": {
+        "character": 8,
+        "line": 136,
+      },
+      "start": {
+        "character": 2,
+        "line": 136,
+      },
+    },
+  },
+  {
+    "code": "term-notation",
+    "message": "技術用語の表記「gpt-4」は「GPT-4」に統一してください。",
+    "range": {
+      "end": {
+        "character": 7,
+        "line": 137,
+      },
+      "start": {
+        "character": 2,
+        "line": 137,
+      },
+    },
+  },
+  {
+    "code": "term-notation",
+    "message": "技術用語の表記「gpt4」は「GPT-4」に統一してください。",
+    "range": {
+      "end": {
+        "character": 13,
+        "line": 137,
+      },
+      "start": {
+        "character": 9,
+        "line": 137,
+      },
+    },
+  },
+  {
+    "code": "term-notation",
+    "message": "技術用語の表記「GPT4」は「GPT-4」に統一してください。",
+    "range": {
+      "end": {
+        "character": 19,
+        "line": 137,
+      },
+      "start": {
+        "character": 15,
+        "line": 137,
+      },
+    },
+  },
+  {
+    "code": "term-notation",
+    "message": "技術用語の表記「llm」は「LLM」に統一してください。",
+    "range": {
+      "end": {
+        "character": 5,
+        "line": 138,
+      },
+      "start": {
+        "character": 2,
+        "line": 138,
+      },
+    },
+  },
+  {
+    "code": "term-notation",
+    "message": "技術用語の表記「Llm」は「LLM」に統一してください。",
+    "range": {
+      "end": {
+        "character": 10,
+        "line": 138,
+      },
+      "start": {
+        "character": 7,
+        "line": 138,
+      },
+    },
+  },
+  {
+    "code": "term-notation",
+    "message": "技術用語の表記「rag」は「RAG」に統一してください。",
+    "range": {
+      "end": {
+        "character": 5,
+        "line": 139,
+      },
+      "start": {
+        "character": 2,
+        "line": 139,
+      },
+    },
+  },
+  {
+    "code": "term-notation",
+    "message": "技術用語の表記「Rag」は「RAG」に統一してください。",
+    "range": {
+      "end": {
+        "character": 10,
+        "line": 139,
+      },
+      "start": {
+        "character": 7,
+        "line": 139,
+      },
+    },
+  },
+  {
+    "code": "term-notation",
+    "message": "技術用語の表記「gemini」は「Gemini」に統一してください。",
+    "range": {
+      "end": {
+        "character": 8,
+        "line": 140,
+      },
+      "start": {
+        "character": 2,
+        "line": 140,
+      },
+    },
+  },
+  {
+    "code": "term-notation",
+    "message": "技術用語の表記「copilot」は「Copilot」に統一してください。",
+    "range": {
+      "end": {
+        "character": 9,
+        "line": 141,
+      },
+      "start": {
+        "character": 2,
+        "line": 141,
+      },
+    },
+  },
+  {
+    "code": "term-notation",
+    "message": "技術用語の表記「Co-pilot」は「Copilot」に統一してください。",
+    "range": {
+      "end": {
+        "character": 19,
+        "line": 141,
+      },
+      "start": {
+        "character": 11,
+        "line": 141,
+      },
+    },
+  },
+  {
+    "code": "term-notation",
+    "message": "技術用語の表記「anthropic」は「Anthropic」に統一してください。",
+    "range": {
+      "end": {
+        "character": 11,
+        "line": 142,
+      },
+      "start": {
+        "character": 2,
+        "line": 142,
+      },
+    },
+  },
+  {
+    "code": "term-notation",
+    "message": "技術用語の表記「midjourney」は「Midjourney」に統一してください。",
+    "range": {
+      "end": {
+        "character": 12,
+        "line": 143,
+      },
+      "start": {
+        "character": 2,
+        "line": 143,
+      },
+    },
+  },
+  {
+    "code": "term-notation",
+    "message": "技術用語の表記「Mid Journey」は「Midjourney」に統一してください。",
+    "range": {
+      "end": {
+        "character": 25,
+        "line": 143,
+      },
+      "start": {
+        "character": 14,
+        "line": 143,
+      },
+    },
+  },
+  {
+    "code": "term-notation",
+    "message": "技術用語の表記「stable diffusion」は「Stable Diffusion」に統一してください。",
+    "range": {
+      "end": {
+        "character": 18,
+        "line": 144,
+      },
+      "start": {
+        "character": 2,
+        "line": 144,
+      },
+    },
+  },
+  {
+    "code": "term-notation",
+    "message": "技術用語の表記「StableDiffusion」は「Stable Diffusion」に統一してください。",
+    "range": {
+      "end": {
+        "character": 35,
+        "line": 144,
+      },
+      "start": {
+        "character": 20,
+        "line": 144,
+      },
+    },
+  },
+  {
+    "code": "term-notation",
+    "message": "技術用語の表記「aws」は「AWS」に統一してください。",
+    "range": {
+      "end": {
+        "character": 5,
+        "line": 150,
+      },
+      "start": {
+        "character": 2,
+        "line": 150,
+      },
+    },
+  },
+  {
+    "code": "term-notation",
+    "message": "技術用語の表記「Aws」は「AWS」に統一してください。",
+    "range": {
+      "end": {
+        "character": 10,
+        "line": 150,
+      },
+      "start": {
+        "character": 7,
+        "line": 150,
+      },
+    },
+  },
+  {
+    "code": "term-notation",
+    "message": "技術用語の表記「ec2」は「EC2」に統一してください。",
+    "range": {
+      "end": {
+        "character": 5,
+        "line": 151,
+      },
+      "start": {
+        "character": 2,
+        "line": 151,
+      },
+    },
+  },
+  {
+    "code": "term-notation",
+    "message": "技術用語の表記「s3」は「S3」に統一してください。",
+    "range": {
+      "end": {
+        "character": 4,
+        "line": 152,
+      },
+      "start": {
+        "character": 2,
+        "line": 152,
+      },
+    },
+  },
+  {
+    "code": "term-notation",
+    "message": "技術用語の表記「lambda」は「Lambda」に統一してください。",
+    "range": {
+      "end": {
+        "character": 8,
+        "line": 153,
+      },
+      "start": {
+        "character": 2,
+        "line": 153,
+      },
+    },
+  },
+  {
+    "code": "term-notation",
+    "message": "技術用語の表記「dynamodb」は「DynamoDB」に統一してください。",
+    "range": {
+      "end": {
+        "character": 10,
+        "line": 154,
+      },
+      "start": {
+        "character": 2,
+        "line": 154,
+      },
+    },
+  },
+  {
+    "code": "term-notation",
+    "message": "技術用語の表記「Dynamodb」は「DynamoDB」に統一してください。",
+    "range": {
+      "end": {
+        "character": 20,
+        "line": 154,
+      },
+      "start": {
+        "character": 12,
+        "line": 154,
+      },
+    },
+  },
+  {
+    "code": "term-notation",
+    "message": "技術用語の表記「rds」は「RDS」に統一してください。",
+    "range": {
+      "end": {
+        "character": 5,
+        "line": 155,
+      },
+      "start": {
+        "character": 2,
+        "line": 155,
+      },
+    },
+  },
+  {
+    "code": "term-notation",
+    "message": "技術用語の表記「cloudformation」は「CloudFormation」に統一してください。",
+    "range": {
+      "end": {
+        "character": 16,
+        "line": 156,
+      },
+      "start": {
+        "character": 2,
+        "line": 156,
+      },
+    },
+  },
+  {
+    "code": "term-notation",
+    "message": "技術用語の表記「Cloud Formation」は「CloudFormation」に統一してください。",
+    "range": {
+      "end": {
+        "character": 33,
+        "line": 156,
+      },
+      "start": {
+        "character": 18,
+        "line": 156,
+      },
+    },
+  },
+  {
+    "code": "term-notation",
+    "message": "技術用語の表記「cloudwatch」は「CloudWatch」に統一してください。",
+    "range": {
+      "end": {
+        "character": 12,
+        "line": 157,
+      },
+      "start": {
+        "character": 2,
+        "line": 157,
+      },
+    },
+  },
+  {
+    "code": "term-notation",
+    "message": "技術用語の表記「Cloud Watch」は「CloudWatch」に統一してください。",
+    "range": {
+      "end": {
+        "character": 25,
+        "line": 157,
+      },
+      "start": {
+        "character": 14,
+        "line": 157,
+      },
+    },
+  },
+  {
+    "code": "term-notation",
+    "message": "技術用語の表記「ecs」は「ECS」に統一してください。",
+    "range": {
+      "end": {
+        "character": 5,
+        "line": 158,
+      },
+      "start": {
+        "character": 2,
+        "line": 158,
+      },
+    },
+  },
+  {
+    "code": "term-notation",
+    "message": "技術用語の表記「eks」は「EKS」に統一してください。",
+    "range": {
+      "end": {
+        "character": 5,
+        "line": 159,
+      },
+      "start": {
+        "character": 2,
+        "line": 159,
+      },
+    },
+  },
+  {
+    "code": "term-notation",
+    "message": "技術用語の表記「fargate」は「Fargate」に統一してください。",
+    "range": {
+      "end": {
+        "character": 9,
+        "line": 160,
+      },
+      "start": {
+        "character": 2,
+        "line": 160,
+      },
+    },
+  },
+  {
+    "code": "term-notation",
+    "message": "技術用語の表記「sagemaker」は「SageMaker」に統一してください。",
+    "range": {
+      "end": {
+        "character": 11,
+        "line": 161,
+      },
+      "start": {
+        "character": 2,
+        "line": 161,
+      },
+    },
+  },
+  {
+    "code": "term-notation",
+    "message": "技術用語の表記「Sagemaker」は「SageMaker」に統一してください。",
+    "range": {
+      "end": {
+        "character": 22,
+        "line": 161,
+      },
+      "start": {
+        "character": 13,
+        "line": 161,
+      },
+    },
+  },
+  {
+    "code": "term-notation",
+    "message": "技術用語の表記「Sage Maker」は「SageMaker」に統一してください。",
+    "range": {
+      "end": {
+        "character": 34,
+        "line": 161,
+      },
+      "start": {
+        "character": 24,
+        "line": 161,
+      },
+    },
+  },
+  {
+    "code": "term-notation",
+    "message": "技術用語の表記「bedrock」は「Bedrock」に統一してください。",
+    "range": {
+      "end": {
+        "character": 9,
+        "line": 162,
+      },
+      "start": {
+        "character": 2,
+        "line": 162,
+      },
+    },
+  },
+  {
+    "code": "term-notation",
+    "message": "技術用語の表記「azure」は「Azure」に統一してください。",
+    "range": {
+      "end": {
+        "character": 7,
+        "line": 168,
+      },
+      "start": {
+        "character": 2,
+        "line": 168,
+      },
+    },
+  },
+  {
+    "code": "term-notation",
+    "message": "技術用語の表記「AZURE」は「Azure」に統一してください。",
+    "range": {
+      "end": {
+        "character": 14,
+        "line": 168,
+      },
+      "start": {
+        "character": 9,
+        "line": 168,
+      },
+    },
+  },
+  {
+    "code": "term-notation",
+    "message": "技術用語の表記「azure」は「Azure」に統一してください。",
+    "range": {
+      "end": {
+        "character": 7,
+        "line": 169,
+      },
+      "start": {
+        "character": 2,
+        "line": 169,
+      },
+    },
+  },
+  {
+    "code": "term-notation",
+    "message": "技術用語の表記「azure functions」は「Azure Functions」に統一してください。",
+    "range": {
+      "end": {
+        "character": 17,
+        "line": 169,
+      },
+      "start": {
+        "character": 2,
+        "line": 169,
+      },
+    },
+  },
+  {
+    "code": "term-notation",
+    "message": "技術用語の表記「azure」は「Azure」に統一してください。",
+    "range": {
+      "end": {
+        "character": 7,
+        "line": 170,
+      },
+      "start": {
+        "character": 2,
+        "line": 170,
+      },
+    },
+  },
+  {
+    "code": "term-notation",
+    "message": "技術用語の表記「azure devops」は「Azure DevOps」に統一してください。",
+    "range": {
+      "end": {
+        "character": 14,
+        "line": 170,
+      },
+      "start": {
+        "character": 2,
+        "line": 170,
+      },
+    },
+  },
+  {
+    "code": "term-notation",
+    "message": "技術用語の表記「AzureDevOps」は「Azure DevOps」に統一してください。",
+    "range": {
+      "end": {
+        "character": 27,
+        "line": 170,
+      },
+      "start": {
+        "character": 16,
+        "line": 170,
+      },
+    },
+  },
+  {
+    "code": "term-notation",
+    "message": "技術用語の表記「azure」は「Azure」に統一してください。",
+    "range": {
+      "end": {
+        "character": 7,
+        "line": 171,
+      },
+      "start": {
+        "character": 2,
+        "line": 171,
+      },
+    },
+  },
+  {
+    "code": "term-notation",
+    "message": "技術用語の表記「azure ad」は「Azure AD」に統一してください。",
+    "range": {
+      "end": {
+        "character": 10,
+        "line": 171,
+      },
+      "start": {
+        "character": 2,
+        "line": 171,
+      },
+    },
+  },
+  {
+    "code": "term-notation",
+    "message": "技術用語の表記「AzureAD」は「Azure AD」に統一してください。",
+    "range": {
+      "end": {
+        "character": 19,
+        "line": 171,
+      },
+      "start": {
+        "character": 12,
+        "line": 171,
+      },
+    },
+  },
+  {
+    "code": "term-notation",
+    "message": "技術用語の表記「cosmos db」は「Cosmos DB」に統一してください。",
+    "range": {
+      "end": {
+        "character": 11,
+        "line": 172,
+      },
+      "start": {
+        "character": 2,
+        "line": 172,
+      },
+    },
+  },
+  {
+    "code": "term-notation",
+    "message": "技術用語の表記「CosmosDB」は「Cosmos DB」に統一してください。",
+    "range": {
+      "end": {
+        "character": 21,
+        "line": 172,
+      },
+      "start": {
+        "character": 13,
+        "line": 172,
+      },
+    },
+  },
+  {
+    "code": "term-notation",
+    "message": "技術用語の表記「app service」は「App Service」に統一してください。",
+    "range": {
+      "end": {
+        "character": 13,
+        "line": 173,
+      },
+      "start": {
+        "character": 2,
+        "line": 173,
+      },
+    },
+  },
+  {
+    "code": "term-notation",
+    "message": "技術用語の表記「azure」は「Azure」に統一してください。",
+    "range": {
+      "end": {
+        "character": 7,
+        "line": 174,
+      },
+      "start": {
+        "character": 2,
+        "line": 174,
+      },
+    },
+  },
+  {
+    "code": "term-notation",
+    "message": "技術用語の表記「azure openai」は「Azure OpenAI」に統一してください。",
+    "range": {
+      "end": {
+        "character": 14,
+        "line": 174,
+      },
+      "start": {
+        "character": 2,
+        "line": 174,
+      },
+    },
+  },
+  {
+    "code": "term-notation",
+    "message": "技術用語の表記「openai」は「OpenAI」に統一してください。",
+    "range": {
+      "end": {
+        "character": 14,
+        "line": 174,
+      },
+      "start": {
+        "character": 8,
+        "line": 174,
+      },
+    },
+  },
+  {
+    "code": "term-notation",
+    "message": "技術用語の表記「AzureOpenAI」は「Azure OpenAI」に統一してください。",
+    "range": {
+      "end": {
+        "character": 27,
+        "line": 174,
+      },
+      "start": {
+        "character": 16,
+        "line": 174,
+      },
+    },
+  },
+  {
+    "code": "term-notation",
+    "message": "技術用語の表記「oci」は「OCI」に統一してください。",
+    "range": {
+      "end": {
+        "character": 5,
+        "line": 180,
+      },
+      "start": {
+        "character": 2,
+        "line": 180,
+      },
+    },
+  },
+  {
+    "code": "term-notation",
+    "message": "技術用語の表記「Oci」は「OCI」に統一してください。",
+    "range": {
+      "end": {
+        "character": 10,
+        "line": 180,
+      },
+      "start": {
+        "character": 7,
+        "line": 180,
+      },
+    },
+  },
+  {
+    "code": "term-notation",
+    "message": "技術用語の表記「oracle cloud」は「Oracle Cloud」に統一してください。",
+    "range": {
+      "end": {
+        "character": 14,
+        "line": 181,
+      },
+      "start": {
+        "character": 2,
+        "line": 181,
+      },
+    },
+  },
+  {
+    "code": "term-notation",
+    "message": "技術用語の表記「oracle cloud infrastructure」は「Oracle Cloud Infrastructure」に統一してください。",
+    "range": {
+      "end": {
+        "character": 29,
+        "line": 181,
+      },
+      "start": {
+        "character": 2,
+        "line": 181,
+      },
+    },
+  },
+  {
+    "code": "term-notation",
+    "message": "技術用語の表記「oracle cloud」は「Oracle Cloud」に統一してください。",
+    "range": {
+      "end": {
+        "character": 14,
+        "line": 182,
+      },
+      "start": {
+        "character": 2,
+        "line": 182,
+      },
+    },
+  },
+  {
+    "code": "term-notation",
+    "message": "技術用語の表記「compute instance」は「Compute Instance」に統一してください。",
+    "range": {
+      "end": {
+        "character": 18,
+        "line": 183,
+      },
+      "start": {
+        "character": 2,
+        "line": 183,
+      },
+    },
+  },
+  {
+    "code": "term-notation",
+    "message": "技術用語の表記「object storage」は「Object Storage」に統一してください。",
+    "range": {
+      "end": {
+        "character": 16,
+        "line": 184,
+      },
+      "start": {
+        "character": 2,
+        "line": 184,
+      },
+    },
+  },
+  {
+    "code": "term-notation",
+    "message": "技術用語の表記「autonomous database」は「Autonomous Database」に統一してください。",
+    "range": {
+      "end": {
+        "character": 21,
+        "line": 185,
+      },
+      "start": {
+        "character": 2,
+        "line": 185,
+      },
+    },
+  },
+  {
+    "code": "term-notation",
+    "message": "技術用語の表記「oci」は「OCI」に統一してください。",
+    "range": {
+      "end": {
+        "character": 5,
+        "line": 186,
+      },
+      "start": {
+        "character": 2,
+        "line": 186,
+      },
+    },
+  },
+  {
+    "code": "term-notation",
+    "message": "技術用語の表記「oci generative ai」は「OCI Generative AI」に統一してください。",
+    "range": {
+      "end": {
+        "character": 19,
+        "line": 186,
+      },
+      "start": {
+        "character": 2,
+        "line": 186,
+      },
+    },
+  },
+  {
+    "code": "term-notation",
+    "message": "技術用語の表記「Javascript」は「JavaScript」に統一してください。",
+    "range": {
+      "end": {
+        "character": 28,
+        "line": 569,
+      },
+      "start": {
+        "character": 18,
+        "line": 569,
+      },
+    },
+  },
+  {
     "code": "term-notation",
     "message": "技術用語の表記「vscode」は「VS Code」に統一してください。",
     "range": {
@@ -727,6 +2379,62 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
       "start": {
         "character": 32,
         "line": 617,
+      },
+    },
+  },
+  {
+    "code": "weak-expression",
+    "message": "弱い表現「かもしれない」が使用されています。より断定的な表現を検討してください。",
+    "range": {
+      "end": {
+        "character": 8,
+        "line": 101,
+      },
+      "start": {
+        "character": 2,
+        "line": 101,
+      },
+    },
+  },
+  {
+    "code": "weak-expression",
+    "message": "弱い表現「と思われる」が使用されています。より断定的な表現を検討してください。",
+    "range": {
+      "end": {
+        "character": 7,
+        "line": 102,
+      },
+      "start": {
+        "character": 2,
+        "line": 102,
+      },
+    },
+  },
+  {
+    "code": "weak-expression",
+    "message": "弱い表現「ような気がする」が使用されています。より断定的な表現を検討してください。",
+    "range": {
+      "end": {
+        "character": 9,
+        "line": 103,
+      },
+      "start": {
+        "character": 2,
+        "line": 103,
+      },
+    },
+  },
+  {
+    "code": "weak-expression",
+    "message": "弱い表現「かもしれない」が使用されています。より断定的な表現を検討してください。",
+    "range": {
+      "end": {
+        "character": 28,
+        "line": 567,
+      },
+      "start": {
+        "character": 22,
+        "line": 567,
       },
     },
   },

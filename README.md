@@ -42,8 +42,8 @@
 起きれる -> 起きられる
 ```
 
-※ Markdownのコードブロック（コードフェンス）内も既定で解析対象（文法チェック/セマンティックハイライト）です。ただし、接続詞連続（Conjunction Repetition）や逆接「が」連続（Adversative Ga）など、文脈依存で誤検出しやすい一部ルールはコードブロック内を対象外とします。コードブロック自体を対象外にしたい場合は `otakLcp.markdown.analyzeCodeBlocks` を無効にしてください。
-※ Markdownのテーブル（`|...|`）内は既定では文法チェック対象外です。テーブル内も検出したい場合は `otakLcp.markdown.analyzeTables` を有効にしてください。
+※ Markdownのコードブロック（コードフェンス）内も既定で解析対象（文法チェック/セマンティックハイライト）です。接続詞連続（Conjunction Repetition）や逆接「が」連続（Adversative Ga）など、文脈依存で誤検出しやすい一部ルールは「コード（例: ` ```javascript `）」では対象外としますが、` ```markdown ` / ` ```text ` のような「例文」コードブロックでは検出対象になります。コードブロック自体を対象外にしたい場合は `otakLcp.markdown.analyzeCodeBlocks` を無効にしてください。
+※ Markdownのテーブル（`|...|`）内は既定では文法チェック対象外です（ただし、弱い表現（Weak Expression）/ 技術用語表記（Term Notation）/ 漢字開き（Kanji Opening）/ 冗長表現（Redundant Expression）/ 重複表現（Tautology）は対象）。テーブル内も幅広く検出したい場合は `otakLcp.markdown.analyzeTables` を有効にしてください。
 
 #### 3. 二重否定の検出（Double Negation）
 

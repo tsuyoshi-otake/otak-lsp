@@ -71,6 +71,44 @@ export class AdvancedRulesManager {
   private firstLineLength: number = 0;
 
   /**
+   * code-block が「自然言語の例文」として書かれているかを判定
+   * - ```markdown / ```md / ```text / ```plaintext / ```txt は例文扱い（文脈依存ルールも適用）
+   * - それ以外、および言語未指定のコードブロックは従来通り除外（誤検出抑止）
+   */
+  private isProseCodeBlock(range: ExcludedRange): boolean {
+    if (range.type !== 'code-block') {
+      return false;
+    }
+
+    // 単一行の ```code``` は既存互換の「コードブロック」扱いなので除外する
+    if (!range.content.includes('\n') && !range.content.includes('\r')) {
+      return false;
+    }
+
+    const firstLine = range.content.split(/\r?\n/, 1)[0] ?? '';
+    const stripped = firstLine.replace(/^\s*(?:>\s*)*/, '');
+    const match = stripped.match(/^([`~]{3,})(.*)$/);
+    if (!match) {
+      return false;
+    }
+
+    const info = match[2].trim();
+    if (!info) {
+      // 言語未指定はコードサンプルであることが多いので除外
+      return false;
+    }
+
+    const language = info.split(/\s+/)[0].toLowerCase();
+    return (
+      language === 'markdown' ||
+      language === 'md' ||
+      language === 'text' ||
+      language === 'plaintext' ||
+      language === 'txt'
+    );
+  }
+
+  /**
    * テキストから行開始位置を計算
    * (Feature: diagnostic-range-fix)
    */
@@ -239,13 +277,31 @@ export class AdvancedRulesManager {
   private buildRuleContextForRule(
     rule: AdvancedGrammarRule,
     baseContext: RuleContext,
-    excludedRanges?: ExcludedRange[]
+    excludedRanges?: ExcludedRange[],
+    originalText?: string
   ): RuleContext {
-    // Markdownコードブロック内の文を本文扱いしない（誤検出抑止）
-    if (rule.name === 'conjunction-repetition' || rule.name === 'adversative-ga') {
+    // テーブルは既定でマスクされるが、「弱い表現」は表セル内の自然言語でも有用なので原文で判定する
+    if (
+      (rule.name === 'weak-expression' ||
+        rule.name === 'term-notation' ||
+        rule.name === 'kanji-opening' ||
+        rule.name === 'redundant-expression' ||
+        rule.name === 'tautology') &&
+      typeof originalText === 'string'
+    ) {
       return {
         ...baseContext,
-        sentences: this.replaceSentencesOverlappingExcludedTypesWithBoundary(baseContext.sentences, excludedRanges, ['code-block'])
+        documentText: originalText
+      };
+    }
+
+    // Markdownコードブロック内の文を本文扱いしない（誤検出抑止）
+    if (rule.name === 'conjunction-repetition' || rule.name === 'adversative-ga') {
+      const codeBlockRanges = excludedRanges?.filter((r) => r.type === 'code-block') ?? [];
+      const codeBlocksToExclude = codeBlockRanges.filter((r) => !this.isProseCodeBlock(r));
+      return {
+        ...baseContext,
+        sentences: this.replaceSentencesOverlappingExcludedTypesWithBoundary(baseContext.sentences, codeBlocksToExclude, ['code-block'])
       };
     }
 
@@ -347,6 +403,7 @@ export class AdvancedRulesManager {
     options?: { analyzeTables?: boolean }
   ): Diagnostic[] {
     const shouldExcludeTables = Boolean(excludedRanges) && options?.analyzeTables !== true;
+    const originalText = text;
     const effectiveText = shouldExcludeTables && excludedRanges
       ? this.maskTableContent(text, excludedRanges)
       : text;
@@ -369,7 +426,7 @@ export class AdvancedRulesManager {
 
     for (const rule of enabledRules) {
       try {
-        const ruleContext = this.buildRuleContextForRule(rule, baseContext, excludedRanges);
+        const ruleContext = this.buildRuleContextForRule(rule, baseContext, excludedRanges, originalText);
         const ruleDiagnostics = rule.check(tokens, ruleContext);
         diagnostics.push(...ruleDiagnostics);
       } catch (error) {
@@ -394,6 +451,7 @@ export class AdvancedRulesManager {
     options?: { analyzeTables?: boolean }
   ): Diagnostic[] {
     const shouldExcludeTables = Boolean(excludedRanges) && options?.analyzeTables !== true;
+    const originalText = text;
     const effectiveText = shouldExcludeTables && excludedRanges
       ? this.maskTableContent(text, excludedRanges)
       : text;
@@ -416,7 +474,7 @@ export class AdvancedRulesManager {
 
     for (const rule of selectedRules) {
       try {
-        const ruleContext = this.buildRuleContextForRule(rule, baseContext, excludedRanges);
+        const ruleContext = this.buildRuleContextForRule(rule, baseContext, excludedRanges, originalText);
         const ruleDiagnostics = rule.check(tokens, ruleContext);
         diagnostics.push(...ruleDiagnostics);
       } catch (error) {

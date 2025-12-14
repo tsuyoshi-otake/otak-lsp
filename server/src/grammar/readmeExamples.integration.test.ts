@@ -102,9 +102,9 @@ describe('README Examples Integration', () => {
     const diagnostics = await analyzeMarkdown(markdown);
     const conj = diagnostics.filter((d) => d.code === 'conjunction-repetition');
 
-    // 本文側の1件だけが残る想定（コードブロック側は非本文として除外）
-    expect(conj).toHaveLength(1);
-    expect(conj[0].range.start.line).toBe(4);
+    // ```markdown は例文扱いとして、コードブロック側も検出対象
+    expect(conj).toHaveLength(2);
+    expect(conj.map((d) => d.range.start.line).sort((a, b) => a - b)).toEqual([1, 4]);
   });
 
   it('Adversative Ga はコードブロック内を誤検出しないこと（本文のみ検出）', async () => {
@@ -120,8 +120,8 @@ describe('README Examples Integration', () => {
     const diagnostics = await analyzeMarkdown(markdown);
     const ga = diagnostics.filter((d) => d.code === 'adversative-ga');
 
-    // 本文側の1件だけが残る想定（コードブロック側は非本文として除外）
-    expect(ga).toHaveLength(1);
-    expect(ga[0].range.start.line).toBe(4);
+    // ```markdown は例文扱いとして、コードブロック側も検出対象
+    expect(ga).toHaveLength(2);
+    expect(ga.map((d) => d.range.start.line).sort((a, b) => a - b)).toEqual([1, 4]);
   });
 });
