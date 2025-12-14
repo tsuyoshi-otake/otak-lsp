@@ -270,8 +270,14 @@ export class AdvancedRulesManager {
    * 診断の範囲はオフセットベースの場合のみ行/文字ベースに変換する
    * (Feature: diagnostic-range-fix)
    */
-  checkText(text: string, tokens: Token[], excludedRanges?: ExcludedRange[]): Diagnostic[] {
-    const effectiveText = excludedRanges
+  checkText(
+    text: string,
+    tokens: Token[],
+    excludedRanges?: ExcludedRange[],
+    options?: { analyzeTables?: boolean }
+  ): Diagnostic[] {
+    const shouldExcludeTables = Boolean(excludedRanges) && options?.analyzeTables !== true;
+    const effectiveText = shouldExcludeTables && excludedRanges
       ? this.maskTableContent(text, excludedRanges)
       : text;
 
@@ -279,7 +285,7 @@ export class AdvancedRulesManager {
     this.calculateLineStarts(effectiveText);
 
     const parsedSentences = SentenceParser.parseSentences(effectiveText, tokens, excludedRanges, this.config.sentenceSplitMode);
-    const sentences = excludedRanges
+    const sentences = shouldExcludeTables && excludedRanges
       ? this.filterOutTableSentences(parsedSentences, excludedRanges)
       : parsedSentences;
     const context: RuleContext = {
@@ -309,8 +315,15 @@ export class AdvancedRulesManager {
    * 診断の範囲はオフセットベースの場合のみ行/文字ベースに変換する
    * (Feature: diagnostic-range-fix)
    */
-  checkWithRules(text: string, tokens: Token[], ruleNames: string[], excludedRanges?: ExcludedRange[]): Diagnostic[] {
-    const effectiveText = excludedRanges
+  checkWithRules(
+    text: string,
+    tokens: Token[],
+    ruleNames: string[],
+    excludedRanges?: ExcludedRange[],
+    options?: { analyzeTables?: boolean }
+  ): Diagnostic[] {
+    const shouldExcludeTables = Boolean(excludedRanges) && options?.analyzeTables !== true;
+    const effectiveText = shouldExcludeTables && excludedRanges
       ? this.maskTableContent(text, excludedRanges)
       : text;
 
@@ -318,7 +331,7 @@ export class AdvancedRulesManager {
     this.calculateLineStarts(effectiveText);
 
     const parsedSentences = SentenceParser.parseSentences(effectiveText, tokens, excludedRanges, this.config.sentenceSplitMode);
-    const sentences = excludedRanges
+    const sentences = shouldExcludeTables && excludedRanges
       ? this.filterOutTableSentences(parsedSentences, excludedRanges)
       : parsedSentences;
     const context: RuleContext = {

@@ -2,7 +2,7 @@
   "name": "otak-lcp",
   "displayName": "otak-lcp - Japanese Grammar Analyzer",
   "description": "日本語形態素解析VSCode拡張機能（外部依存なし）。文法チェック、セマンティックハイライト、ホバー情報を提供します。kuromoji.js内蔵でMeCab不要。",
-  "version": "0.2.2",
+  "version": "0.2.5",
   "publisher": "otak-lsp",
   "license": "MIT",
   "repository": {
@@ -76,8 +76,14 @@
         },
         "otakLcp.markdown.analyzeCodeBlocks": {
           "type": "boolean",
+          "default": true,
+          "description": "Markdownのコードブロック（```）内も文法チェック対象にします。",
+          "scope": "resource"
+        },
+        "otakLcp.markdown.analyzeTables": {
+          "type": "boolean",
           "default": false,
-          "description": "Markdownのコードブロック（```）内も文法チェック対象にします（コード例が多い文書では誤検出が増える可能性があります）。",
+          "description": "Markdownのテーブル（|...|）内も文法チェック対象にします。",
           "scope": "resource"
         },
         "otakLcp.targetLanguages": {

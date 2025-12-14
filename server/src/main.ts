@@ -63,6 +63,7 @@ let configuration: Configuration = {
   excludeTableDelimiters: true,
   markdown: {
     analyzeCodeBlocks: false,
+    analyzeTables: false,
   },
   targetLanguages: ['markdown', 'javascript', 'typescript', 'python', 'c', 'cpp', 'java', 'rust', 'plaintext'] as SupportedLanguage[],
   debounceDelay: 250,
@@ -131,6 +132,7 @@ connection.onDidChangeConfiguration((change) => {
       markdown: {
         ...configuration.markdown,
         analyzeCodeBlocks: newConfig.markdown?.analyzeCodeBlocks ?? configuration.markdown.analyzeCodeBlocks,
+        analyzeTables: newConfig.markdown?.analyzeTables ?? configuration.markdown.analyzeTables,
       },
       targetLanguages: newConfig.targetLanguages ?? configuration.targetLanguages,
       debounceDelay: newConfig.debounceDelay ?? configuration.debounceDelay,
@@ -244,6 +246,9 @@ async function analyzeDocument(document: TextDocument): Promise<void> {
       grammarExcludedRanges = configuration.markdown.analyzeCodeBlocks
         ? excludedRanges.filter((r) => r.type !== 'code-block')
         : excludedRanges;
+      if (configuration.markdown.analyzeTables) {
+        grammarExcludedRanges = grammarExcludedRanges.filter((r) => r.type !== 'table');
+      }
 
       documentExcludedRanges.set(uri, excludedRanges);
       connection.console.log(`[DEBUG] Markdown filtered: ${excludedRanges.length} ranges excluded`);
@@ -313,7 +318,9 @@ async function analyzeDocument(document: TextDocument): Promise<void> {
       // Advanced grammar rules
       connection.console.log(`[DEBUG] Running advanced grammar check...`);
       const advancedDiagnostics = languageId === 'markdown'
-        ? advancedRulesManager.checkText(textToAnalyze, grammarTokensList, excludedRanges)
+        ? advancedRulesManager.checkText(textToAnalyze, grammarTokensList, excludedRanges, {
+          analyzeTables: configuration.markdown.analyzeTables,
+        })
         : advancedRulesManager.checkText(textToAnalyze, grammarTokensList);
       connection.console.log(`[DEBUG] Advanced grammar check found ${advancedDiagnostics.length} issues`);
       for (const diag of advancedDiagnostics) {

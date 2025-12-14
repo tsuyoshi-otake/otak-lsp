@@ -181,6 +181,12 @@ export class RaNukiRule implements AdvancedGrammarRule {
 
       // パターン1: 単一トークンのら抜き言葉（例：「見れる」）
       if (token.pos === '動詞') {
+        // 「いれる」は「入れる(verb)」と「居れる(ra-nuki)」が同形になりやすい。
+        // kuromoji が「入れる」と解析した場合は誤検出を避ける。
+        if (token.surface === 'いれる' && token.baseForm === '入れる') {
+          continue;
+        }
+
         const correctForm = this.detectRaNuki(token.surface, token.conjugation);
         if (correctForm) {
           diagnostics.push(new AdvancedDiagnostic({
@@ -225,7 +231,7 @@ export class RaNukiRule implements AdvancedGrammarRule {
     auxiliary: Token
   ): { surface: string; correctForm: string } | null {
     // 動詞 + 「れる」のパターン
-    if (verb.pos !== '動詞' || auxiliary.pos !== '動詞') {
+    if (verb.pos !== '動詞' || (auxiliary.pos !== '助動詞' && auxiliary.pos !== '動詞')) {
       return null;
     }
 

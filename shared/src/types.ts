@@ -291,6 +291,8 @@ export interface Configuration {
   markdown: {
     /** Markdownのコードブロック（```）内も文法チェック対象にする */
     analyzeCodeBlocks: boolean;
+    /** Markdownのテーブル（|...|）内も文法チェック対象にする */
+    analyzeTables: boolean;
   };
   /** 解析対象の言語 */
   targetLanguages: SupportedLanguage[];

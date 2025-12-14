@@ -29,6 +29,7 @@ interface Configuration {
   excludeTableDelimiters: boolean;
   markdown: {
     analyzeCodeBlocks: boolean;
+    analyzeTables: boolean;
   };
   targetLanguages: SupportedLanguage[];
   debounceDelay: number;
@@ -124,6 +125,7 @@ export class ExtensionClient {
       excludeTableDelimiters: true,
       markdown: {
         analyzeCodeBlocks: false,
+        analyzeTables: false,
       },
       targetLanguages: ['markdown', 'javascript', 'typescript', 'python', 'c', 'cpp', 'java', 'rust', 'plaintext'] as SupportedLanguage[],
       debounceDelay: 250,
@@ -142,6 +144,7 @@ export class ExtensionClient {
       excludeTableDelimiters: config.get<boolean>('excludeTableDelimiters') ?? this.configuration.excludeTableDelimiters,
       markdown: {
         analyzeCodeBlocks: config.get<boolean>('markdown.analyzeCodeBlocks') ?? this.configuration.markdown.analyzeCodeBlocks,
+        analyzeTables: config.get<boolean>('markdown.analyzeTables') ?? this.configuration.markdown.analyzeTables,
       },
       targetLanguages: config.get<SupportedLanguage[]>('targetLanguages') ?? this.configuration.targetLanguages,
       debounceDelay: config.get<number>('debounceDelay') ?? this.configuration.debounceDelay,
