@@ -236,6 +236,40 @@ describe('Hover Provider', () => {
         expect.any(Object)
       );
     });
+
+    it('should prefer longest glossary phrase match around position', async () => {
+      provider.setWikipediaEnabled(false);
+
+      const text = 'GitHub Actions';
+      const tokens = [
+        createToken('GitHub', 0, 6, '名詞', 'GitHub', 'GitHub')
+      ];
+
+      const result = await provider.provideHover(tokens, 1, text);
+
+      expect(result).not.toBeNull();
+      expect(result?.contents).toContain('**DevOps・CI/CD・リリース用語図鑑**');
+      expect(result?.contents).toContain('GitHub上でCI/CDワークフローを定義・実行する仕組み');
+      expect(result?.range).toEqual({ start: 0, end: text.length });
+    });
+
+    it('should return glossary-only hover when no token is available at position', async () => {
+      provider.setWikipediaEnabled(false);
+
+      const text = 'xxx otakLcp.hover.enableGlossary yyy';
+      const offset = text.indexOf('otakLcp.hover.enableGlossary') + 5;
+      const tokens = [
+        createToken('dummy', 0, 5, '名詞', 'dummy', 'dummy')
+      ];
+
+      const result = await provider.provideHover(tokens, offset, text);
+
+      expect(result).not.toBeNull();
+      expect(result?.contents).toContain('**otak-lcp設定用語図鑑**');
+      expect(result?.contents).toContain('ホバーに用語図鑑（オフライン）を表示する設定');
+      expect(result?.range.start).toBe(text.indexOf('otakLcp.hover.enableGlossary'));
+      expect(result?.range.end).toBe(text.indexOf('otakLcp.hover.enableGlossary') + 'otakLcp.hover.enableGlossary'.length);
+    });
   });
 
   describe('enableWikipedia', () => {

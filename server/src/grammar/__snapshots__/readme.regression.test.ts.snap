@@ -8,11 +8,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 13,
-        "line": 491,
+        "line": 492,
       },
       "start": {
         "character": 10,
-        "line": 488,
+        "line": 489,
       },
     },
   },
@@ -92,11 +92,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 22,
-        "line": 494,
+        "line": 495,
       },
       "start": {
         "character": 0,
-        "line": 494,
+        "line": 495,
       },
     },
   },
@@ -190,11 +190,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 4,
-        "line": 468,
+        "line": 469,
       },
       "start": {
         "character": 2,
-        "line": 468,
+        "line": 469,
       },
     },
   },
@@ -204,11 +204,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 20,
-        "line": 468,
+        "line": 469,
       },
       "start": {
         "character": 18,
-        "line": 468,
+        "line": 469,
       },
     },
   },
@@ -218,11 +218,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 3,
-        "line": 469,
+        "line": 470,
       },
       "start": {
         "character": 1,
-        "line": 469,
+        "line": 470,
       },
     },
   },
@@ -232,11 +232,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 3,
-        "line": 470,
+        "line": 471,
       },
       "start": {
         "character": 1,
-        "line": 470,
+        "line": 471,
       },
     },
   },
@@ -246,11 +246,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 26,
-        "line": 470,
+        "line": 471,
       },
       "start": {
         "character": 24,
-        "line": 470,
+        "line": 471,
       },
     },
   },
@@ -330,11 +330,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 25,
-        "line": 346,
+        "line": 347,
       },
       "start": {
         "character": 15,
-        "line": 346,
+        "line": 347,
       },
     },
   },
@@ -344,11 +344,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 8,
-        "line": 349,
+        "line": 350,
       },
       "start": {
         "character": 4,
-        "line": 349,
+        "line": 350,
       },
     },
   },
@@ -358,11 +358,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 9,
-        "line": 361,
+        "line": 362,
       },
       "start": {
         "character": 5,
-        "line": 361,
+        "line": 362,
       },
     },
   },
@@ -372,11 +372,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 7,
-        "line": 484,
+        "line": 485,
       },
       "start": {
         "character": 0,
-        "line": 484,
+        "line": 485,
       },
     },
   },
@@ -386,11 +386,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 12,
-        "line": 473,
+        "line": 474,
       },
       "start": {
         "character": 0,
-        "line": 473,
+        "line": 474,
       },
     },
   },
@@ -428,11 +428,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 7,
-        "line": 487,
+        "line": 488,
       },
       "start": {
         "character": 4,
-        "line": 487,
+        "line": 488,
       },
     },
   },
@@ -442,11 +442,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 7,
-        "line": 488,
+        "line": 489,
       },
       "start": {
         "character": 3,
-        "line": 488,
+        "line": 489,
       },
     },
   },
@@ -456,11 +456,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 16,
-        "line": 494,
+        "line": 495,
       },
       "start": {
         "character": 15,
-        "line": 494,
+        "line": 495,
       },
     },
   },
@@ -470,11 +470,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 9,
-        "line": 510,
+        "line": 511,
       },
       "start": {
         "character": 8,
-        "line": 510,
+        "line": 511,
       },
     },
   },
@@ -484,11 +484,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 11,
-        "line": 510,
+        "line": 511,
       },
       "start": {
         "character": 10,
-        "line": 510,
+        "line": 511,
       },
     },
   },
@@ -498,11 +498,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 5,
-        "line": 512,
+        "line": 513,
       },
       "start": {
         "character": 4,
-        "line": 512,
+        "line": 513,
       },
     },
   },
@@ -512,11 +512,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 7,
-        "line": 606,
+        "line": 607,
       },
       "start": {
         "character": 6,
-        "line": 606,
+        "line": 607,
       },
     },
   },
@@ -680,11 +680,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 27,
-        "line": 346,
+        "line": 347,
       },
       "start": {
         "character": 2,
-        "line": 346,
+        "line": 347,
       },
     },
   },
@@ -694,11 +694,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 11,
-        "line": 348,
+        "line": 349,
       },
       "start": {
         "character": 2,
-        "line": 348,
+        "line": 349,
       },
     },
   },
@@ -708,11 +708,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 25,
-        "line": 357,
+        "line": 358,
       },
       "start": {
         "character": 11,
-        "line": 357,
+        "line": 358,
       },
     },
   },
@@ -722,11 +722,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 13,
-        "line": 358,
+        "line": 359,
       },
       "start": {
         "character": 3,
-        "line": 358,
+        "line": 359,
       },
     },
   },
@@ -736,11 +736,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 79,
-        "line": 363,
+        "line": 364,
       },
       "start": {
         "character": 3,
-        "line": 363,
+        "line": 364,
       },
     },
   },
@@ -750,11 +750,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 26,
-        "line": 365,
+        "line": 366,
       },
       "start": {
         "character": 12,
-        "line": 365,
+        "line": 366,
       },
     },
   },
@@ -764,11 +764,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 24,
-        "line": 603,
+        "line": 604,
       },
       "start": {
         "character": 14,
-        "line": 603,
+        "line": 604,
       },
     },
   },
@@ -778,11 +778,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 30,
-        "line": 608,
+        "line": 609,
       },
       "start": {
         "character": 25,
-        "line": 608,
+        "line": 609,
       },
     },
   },
@@ -792,11 +792,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 40,
-        "line": 608,
+        "line": 609,
       },
       "start": {
         "character": 31,
-        "line": 608,
+        "line": 609,
       },
     },
   },
@@ -806,11 +806,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 29,
-        "line": 610,
+        "line": 611,
       },
       "start": {
         "character": 21,
-        "line": 610,
+        "line": 611,
       },
     },
   },
@@ -820,11 +820,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 55,
-        "line": 618,
+        "line": 619,
       },
       "start": {
         "character": 2,
-        "line": 618,
+        "line": 619,
       },
     },
   },
@@ -834,11 +834,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 73,
-        "line": 624,
+        "line": 625,
       },
       "start": {
         "character": 2,
-        "line": 624,
+        "line": 625,
       },
     },
   },
@@ -862,11 +862,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 31,
-        "line": 502,
+        "line": 503,
       },
       "start": {
         "character": 10,
-        "line": 502,
+        "line": 503,
       },
     },
   },
@@ -876,11 +876,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 26,
-        "line": 507,
+        "line": 508,
       },
       "start": {
         "character": 15,
-        "line": 507,
+        "line": 508,
       },
     },
   },
@@ -890,11 +890,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 70,
-        "line": 508,
+        "line": 509,
       },
       "start": {
         "character": 59,
-        "line": 508,
+        "line": 509,
       },
     },
   },
@@ -988,11 +988,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 12,
-        "line": 479,
+        "line": 480,
       },
       "start": {
         "character": 8,
-        "line": 479,
+        "line": 480,
       },
     },
   },
@@ -1002,11 +1002,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 23,
-        "line": 479,
+        "line": 480,
       },
       "start": {
         "character": 19,
-        "line": 479,
+        "line": 480,
       },
     },
   },
@@ -1058,11 +1058,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 6,
-        "line": 470,
+        "line": 471,
       },
       "start": {
         "character": 0,
-        "line": 470,
+        "line": 471,
       },
     },
   },
@@ -1072,11 +1072,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 88,
-        "line": 380,
+        "line": 381,
       },
       "start": {
         "character": 0,
-        "line": 380,
+        "line": 381,
       },
     },
   },
@@ -1086,11 +1086,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 83,
-        "line": 381,
+        "line": 382,
       },
       "start": {
         "character": 0,
-        "line": 381,
+        "line": 382,
       },
     },
   },
@@ -1128,11 +1128,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 15,
-        "line": 441,
+        "line": 442,
       },
       "start": {
         "character": 5,
-        "line": 441,
+        "line": 442,
       },
     },
   },
@@ -1142,11 +1142,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 15,
-        "line": 442,
+        "line": 443,
       },
       "start": {
         "character": 5,
-        "line": 442,
+        "line": 443,
       },
     },
   },
@@ -1156,11 +1156,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 10,
-        "line": 482,
+        "line": 483,
       },
       "start": {
         "character": 0,
-        "line": 482,
+        "line": 483,
       },
     },
   },
@@ -1170,11 +1170,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 3,
-        "line": 483,
+        "line": 484,
       },
       "start": {
         "character": 0,
-        "line": 483,
+        "line": 484,
       },
     },
   },
@@ -1184,11 +1184,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 7,
-        "line": 484,
+        "line": 485,
       },
       "start": {
         "character": 0,
-        "line": 484,
+        "line": 485,
       },
     },
   },
@@ -1198,11 +1198,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 38,
-        "line": 609,
+        "line": 610,
       },
       "start": {
         "character": 32,
-        "line": 609,
+        "line": 610,
       },
     },
   },
@@ -1212,11 +1212,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 12,
-        "line": 491,
+        "line": 492,
       },
       "start": {
         "character": 6,
-        "line": 491,
+        "line": 492,
       },
     },
   },

@@ -7,7 +7,7 @@
 
 import { GlossaryId, Token } from '../../../shared/src/types';
 import { WikipediaClient } from '../wikipedia/client';
-import { DEFAULT_ENABLED_GLOSSARIES, findGlossaryHit } from './glossary';
+import { DEFAULT_ENABLED_GLOSSARIES, findGlossaryHit, findGlossaryMatch } from './glossary';
 
 /**
  * ホバー結果
@@ -122,18 +122,18 @@ export class HoverProvider {
    * ホバー情報を提供
    * @param tokens トークンリスト
    * @param position 文字位置
+   * @param documentText ドキュメント全体（用語図鑑の複合語マッチ用）
    * @returns ホバー情報、または該当トークンがない場合はnull
    */
-  async provideHover(tokens: Token[], position: number): Promise<HoverResult | null> {
+  async provideHover(tokens: Token[], position: number, documentText?: string): Promise<HoverResult | null> {
     const token = this.getTokenAtPosition(tokens, position);
-    if (!token) {
-      return null;
+    let contents = '';
+    if (token) {
+      contents = this.formatMorphemeInfo(token);
     }
 
-    let contents = this.formatMorphemeInfo(token);
-
     // Wikipedia検索（有効かつ対象品詞の場合）
-    if (this.wikipediaEnabled && this.shouldFetchWikipedia(token)) {
+    if (token && this.wikipediaEnabled && this.shouldFetchWikipedia(token)) {
       const summary = await this.fetchWikipediaSummary(token);
       if (summary) {
         contents += '\n\n---\n\n**Wikipedia**:\n\n' + summary;
@@ -141,8 +141,11 @@ export class HoverProvider {
     }
 
     // 用語図鑑（オフライン）
+    let glossaryRange: { start: number; end: number } | null = null;
     if (this.glossaryEnabled) {
-      const hit = findGlossaryHit(token, this.enabledGlossaries);
+      const hitFromText = documentText ? findGlossaryMatch(documentText, position, this.enabledGlossaries) : null;
+      const hit = hitFromText?.hit ?? (token ? findGlossaryHit(token, this.enabledGlossaries) : null);
+      glossaryRange = hitFromText?.range ?? null;
       if (hit) {
         const extraLines: string[] = [];
         const normalize = (value: string): string => value.normalize('NFKC').trim().toLowerCase();
@@ -175,15 +178,35 @@ export class HoverProvider {
         }
 
         const extras = extraLines.length > 0 ? `\n\n${extraLines.join('\n\n')}` : '';
-        contents += `\n\n---\n\n**${hit.title}**:\n\n${hit.description}${extras}`;
+        const prefix = contents.length > 0 ? '\n\n---\n\n' : '';
+        contents += `${prefix}**${hit.title}**:\n\n${hit.description}${extras}`;
       }
+    }
+
+    if (contents.length === 0) {
+      return null;
+    }
+
+    let rangeStart = token?.start ?? glossaryRange?.start;
+    let rangeEnd = token?.end ?? glossaryRange?.end;
+    if (glossaryRange && token) {
+      const tokenLen = token.end - token.start;
+      const glossaryLen = glossaryRange.end - glossaryRange.start;
+      if (glossaryLen > tokenLen) {
+        rangeStart = glossaryRange.start;
+        rangeEnd = glossaryRange.end;
+      }
+    }
+
+    if (rangeStart === undefined || rangeEnd === undefined) {
+      return null;
     }
 
     return {
       contents,
       range: {
-        start: token.start,
-        end: token.end
+        start: rangeStart,
+        end: rangeEnd
       }
     };
   }

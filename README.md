@@ -310,6 +310,7 @@
 | ID | 名称 |
 |---|---|
 | `it` | IT用語図鑑 |
+| `otakLcpSettings` | otak-lcp設定用語図鑑 |
 | `cloud` | クラウド用語図鑑 |
 | `backend` | バックエンド用語図鑑 |
 | `frontend` | フロントエンド用語図鑑 |

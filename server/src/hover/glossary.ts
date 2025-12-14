@@ -15,6 +15,14 @@ export interface GlossaryHit {
   antonyms?: string[];
 }
 
+export interface GlossaryMatch {
+  hit: GlossaryHit;
+  range: {
+    start: number;
+    end: number;
+  };
+}
+
 interface GlossaryEntry {
   term: string;
   aliases?: string[];
@@ -52,6 +60,76 @@ const GLOSSARIES: ReadonlyArray<GlossaryDefinition> = [
       { term: 'Dependency', aliases: ['依存関係'], description: 'プログラムが利用する外部ライブラリやモジュール。' },
       { term: 'Versioning', aliases: ['バージョニング'], description: 'バージョン番号の付与と運用のルール。' },
       { term: 'SemVer', aliases: ['Semantic Versioning'], description: '互換性に基づくバージョン付与（MAJOR.MINOR.PATCH）。' },
+      { term: 'Markdown', description: 'プレーンテキストで構造を表現できる軽量マークアップ言語。' },
+      { term: 'LSP', aliases: ['Language Server Protocol', 'VSCode Language Server Protocol'], description: 'エディタとLanguage Server間で補完/診断/ホバー等をやり取りするための標準プロトコル。' },
+      { term: 'VS Code', aliases: ['Visual Studio Code', 'VSCode'], description: 'Microsoftのコードエディタ。拡張機能で機能を追加できる。' },
+      { term: 'VSIX', description: 'VS Code拡張の配布パッケージ形式。' },
+      { term: 'kuromoji.js', aliases: ['kuromoji'], description: 'JavaScriptで動く日本語形態素解析ライブラリ。' },
+      { term: 'MeCab', description: '日本語の形態素解析エンジン。' },
+      { term: 'IPA辞書', aliases: ['IPA'], description: 'MeCab/kuromoji系でよく使われる日本語形態素解析辞書（IPA辞書）。' },
+      { term: 'npm', description: 'Node.jsのパッケージマネージャ（エコシステム含む）。' },
+      { term: 'npm install', aliases: ['npm i'], description: 'npmで依存パッケージをインストールするコマンド。' },
+      { term: 'ts-node', description: 'TypeScriptをトランスパイルしながら直接実行するツール。' },
+      { term: 'esbuild', description: '高速なJavaScript/TypeScriptバンドラ・トランスパイラ。' },
+      { term: 'Jest', description: 'JavaScript/TypeScript向けのテストフレームワーク。' },
+      { term: 'fast-check', aliases: ['fastcheck'], description: 'JavaScript/TypeScript向けのプロパティベーステスト（PBT）ライブラリ。' },
+      { term: 'CPU', aliases: ['Central Processing Unit'], description: 'コンピュータの演算・制御を担う中核の処理装置。' },
+      { term: 'Wikipedia', description: '自由な百科事典プロジェクト。用語の概要取得などに利用される。' },
+      { term: 'vscode-languageserver', description: 'VS CodeのLanguage Server実装を支援するNode.jsライブラリ（LSPサーバ側）。' },
+      { term: 'otak-lcp', aliases: ['otakLcp'], description: '本プロジェクト/拡張機能の名称（日本語文法チェック＋ホバー等を提供）。' },
+      { term: 'Linux', description: 'OSカーネル/ディストリビューションの総称（サーバ/開発環境で広く使われる）。' },
+      { term: 'Ubuntu', description: 'Linuxディストリビューションの一つ（Debian系）。' },
+      { term: 'Windows', description: 'MicrosoftのOS。開発/運用で広く使われる。' },
+      { term: 'macOS', description: 'AppleのデスクトップOS。' },
+      { term: 'AtCoder', description: '日本の競技プログラミングプラットフォーム。' },
+      { term: 'iOS', description: 'AppleのモバイルOS。' },
+      { term: 'Android', description: 'Googleが中心となって開発するモバイルOS。' },
+      { term: 'Swift', description: 'Appleプラットフォーム向けのプログラミング言語。' },
+      { term: 'Kotlin', description: 'JVM上で動く言語。Android開発でもよく使われる。' },
+      { term: 'Unity', description: 'ゲーム開発向けの統合開発環境/ゲームエンジン。' },
+    ],
+  },
+  {
+    id: 'otakLcpSettings',
+    title: 'otak-lcp設定用語図鑑',
+    entries: [
+      { term: 'otakLcp.enableGrammarCheck', aliases: ['enableGrammarCheck'], description: '文法チェック機能の有効/無効。' },
+      { term: 'otakLcp.debounceDelay', aliases: ['debounceDelay'], description: 'テキスト編集後に解析を開始するまでの遅延時間（ミリ秒）。' },
+      { term: 'otakLcp.targetLanguages', aliases: ['targetLanguages'], description: '解析対象とする言語IDの一覧。' },
+      { term: 'otakLcp.markdown.analyzeTables', description: 'Markdownテーブル内も文法チェック対象にする設定。' },
+      { term: 'otakLcp.markdown.analyzeCodeBlocks', description: 'Markdownコードブロック内も文法チェック対象にする設定。' },
+      { term: 'otakLcp.hover.enableWikipedia', description: 'ホバーにWikipediaサマリーを表示する設定。' },
+      { term: 'otakLcp.hover.enableGlossary', description: 'ホバーに用語図鑑（オフライン）を表示する設定。' },
+      { term: 'otakLcp.hover.enabledGlossaries', description: 'ホバーで有効にする用語図鑑カテゴリ（ID）の一覧。' },
+      { term: 'otakLcp.advanced.enableStyleConsistency', description: '文体の混在検出（敬体/常体）を有効にする設定。' },
+      { term: 'otakLcp.advanced.enableRaNukiDetection', description: 'ら抜き言葉の検出を有効にする設定。' },
+      { term: 'otakLcp.advanced.enableDoubleNegation', description: '二重否定の検出を有効にする設定。' },
+      { term: 'otakLcp.advanced.enableParticleRepetition', description: '同じ助詞の連続使用検出を有効にする設定。' },
+      { term: 'otakLcp.advanced.enableConjunctionRepetition', description: '同じ接続詞の連続使用検出を有効にする設定。' },
+      { term: 'otakLcp.advanced.enableAdversativeGa', description: '逆接「が」の連続使用検出を有効にする設定。' },
+      { term: 'otakLcp.advanced.enableAlphabetWidth', description: '全角/半角アルファベット混在検出を有効にする設定。' },
+      { term: 'otakLcp.advanced.enableWeakExpression', description: '弱い表現の検出を有効にする設定。' },
+      { term: 'otakLcp.advanced.enableCommaCount', description: '読点数チェックを有効にする設定。' },
+      { term: 'otakLcp.advanced.enableTermNotation', description: '技術用語表記統一チェックを有効にする設定。' },
+      { term: 'otakLcp.advanced.enableKanjiOpening', description: '漢字開き（送り仮名/表記）チェックを有効にする設定。' },
+      { term: 'otakLcp.advanced.enableRedundantExpression', description: '冗長表現の検出を有効にする設定。' },
+      { term: 'otakLcp.advanced.enableTautology', description: '重複表現（同語反復）の検出を有効にする設定。' },
+      { term: 'otakLcp.advanced.enableNoParticleChain', description: '助詞「の」連続の検出を有効にする設定。' },
+      { term: 'otakLcp.advanced.enableMonotonousEnding', description: '文末表現の単調さ検出を有効にする設定。' },
+      { term: 'otakLcp.advanced.enableLongSentence', description: '長文検出を有効にする設定。' },
+      { term: 'otakLcp.advanced.enableSentenceEndingColon', description: '文末コロンを検出する設定。' },
+      { term: 'otakLcp.advanced.enableWebTechDictionary', description: 'ウェブ技術用語辞典を有効にする設定。' },
+      { term: 'otakLcp.advanced.enableGenerativeAIDictionary', description: '生成AI関連用語辞典を有効にする設定。' },
+      { term: 'otakLcp.advanced.enableAWSDictionary', description: 'AWS関連用語辞典を有効にする設定。' },
+      { term: 'otakLcp.advanced.enableAzureDictionary', description: 'Azure関連用語辞典を有効にする設定。' },
+      { term: 'otakLcp.advanced.enableOCIDictionary', description: 'OCI関連用語辞典を有効にする設定。' },
+      { term: 'otakLcp.advanced.commaCountThreshold', description: '読点数チェックの警告閾値。' },
+      { term: 'otakLcp.advanced.weakExpressionLevel', description: '弱い表現の検出レベル（strict/normal/loose）。' },
+      { term: 'otakLcp.advanced.noParticleChainThreshold', description: '助詞「の」連続と判定する閾値。' },
+      { term: 'otakLcp.advanced.monotonousEndingThreshold', description: '文末表現の単調さと判定する閾値。' },
+      { term: 'otakLcp.advanced.longSentenceThreshold', description: '長文と判定する文字数の閾値。' },
+      { term: 'Style Consistency', aliases: ['文体混在'], description: '敬体/常体など文体が混在していないかを検出するルール。' },
+      { term: 'Ra-nuki Detection', aliases: ['ら抜き言葉', 'ら抜き'], description: '「食べれる」などのら抜き言葉を検出するルール。' },
     ],
   },
   {
@@ -61,6 +139,8 @@ const GLOSSARIES: ReadonlyArray<GlossaryDefinition> = [
       { term: 'AWS', aliases: ['Amazon Web Services'], description: 'Amazonが提供するクラウドサービス群。' },
       { term: 'Azure', aliases: ['Microsoft Azure'], description: 'Microsoftが提供するクラウドサービス群。' },
       { term: 'GCP', aliases: ['Google Cloud', 'Google Cloud Platform'], description: 'Googleが提供するクラウドサービス群。' },
+      { term: 'Firebase', description: 'Googleが提供するBaaS（認証、DB、ホスティング等の統合サービス）。' },
+      { term: 'OCI', aliases: ['Oracle Cloud Infrastructure'], description: 'Oracleが提供するクラウドサービス群。' },
       { term: 'IAM', description: 'ユーザーや権限（アクセス制御）を管理する仕組み。' },
       { term: 'VPC', description: 'クラウド上に作る論理的に分離された仮想ネットワーク。' },
       { term: 'S3', description: 'AWSのオブジェクトストレージ。' },
@@ -319,6 +399,14 @@ const GLOSSARIES: ReadonlyArray<GlossaryDefinition> = [
       { term: 'ORM', description: 'オブジェクトとDBの表を対応付け、SQLを抽象化する仕組み。' },
       { term: 'REST', description: 'HTTPを前提に、リソース指向で設計するAPI設計スタイル。' },
       { term: 'gRPC', description: 'Protocol Buffersを使う高性能なRPCフレームワーク。' },
+      { term: 'Node.js', aliases: ['Node'], description: 'JavaScriptをサーバ側で動かす実行環境。' },
+      { term: 'Python', aliases: ['Python 3'], description: '汎用プログラミング言語。データ/自動化/バックエンドなどで広く使われる。' },
+      { term: 'Go', aliases: ['Golang'], description: 'Google発の言語。シンプルさと並行処理の扱いやすさが特徴。' },
+      { term: 'Ruby', description: '日本発の汎用プログラミング言語。' },
+      { term: 'Rails', aliases: ['Ruby on Rails'], description: 'Rubyの代表的なWebアプリフレームワーク。' },
+      { term: 'PHP', description: 'Web開発で広く使われるスクリプト言語。' },
+      { term: 'Laravel', description: 'PHPの代表的なWebアプリフレームワーク。' },
+      { term: 'Rust', description: '安全性と性能を両立するシステムプログラミング言語。' },
       { term: 'Cache', aliases: ['キャッシュ'], description: '再計算や再取得を減らすために結果を一時保存する仕組み。' },
       { term: 'Idempotency', aliases: ['冪等性'], description: '同じ操作を複数回実行しても結果が同じである性質。' },
       { term: 'Queue', aliases: ['キュー', 'Message Queue', 'MQ'], description: '非同期処理や負荷平準化に使うメッセージの待ち行列。' },
@@ -342,6 +430,11 @@ const GLOSSARIES: ReadonlyArray<GlossaryDefinition> = [
       { term: 'CSS', description: 'Webページの見た目（スタイル）を指定する言語。' },
       { term: 'JavaScript', aliases: ['JS'], description: 'Webブラウザ上で動くプログラミング言語（サーバでも利用される）。' },
       { term: 'TypeScript', aliases: ['TS'], description: 'JavaScriptに型を追加した言語。大規模開発で保守性を高める。' },
+      { term: 'React', description: 'UIをコンポーネントとして構築するためのJavaScriptライブラリ。' },
+      { term: 'Vue.js', aliases: ['Vue'], description: '段階的に導入できるUIフレームワーク。' },
+      { term: 'Flutter', description: 'Dartで書くクロスプラットフォームUIフレームワーク。' },
+      { term: 'Dart', description: 'Flutterで主に使われるプログラミング言語。' },
+      { term: 'SwiftUI', description: 'Swiftで宣言的にUIを構築するAppleのUIフレームワーク。' },
       { term: 'DOM', description: 'HTMLをプログラムから操作できるようにした木構造のモデル。' },
       { term: 'SPA', description: 'ページ遷移を最小化し、単一ページ上でUIを更新するアプリ方式。' },
       { term: 'SSR', description: 'サーバ側でHTMLを生成して返すレンダリング方式。' },
@@ -616,6 +709,7 @@ const GLOSSARIES: ReadonlyArray<GlossaryDefinition> = [
       { term: 'DevEx', aliases: ['開発者エクスペリエンス', 'Developer Experience'], description: '開発者が開発しやすい体験（ツール、手順、待ち時間等）を改善する観点。' },
       { term: 'Cognitive Load', aliases: ['認知的負荷'], description: '開発者が同時に抱えるべき複雑さ。下げると速度と品質が上がりやすい。' },
       { term: 'Pipeline', aliases: ['パイプライン'], description: 'ビルド/テスト/デプロイ等の一連の自動処理。' },
+      { term: 'GitHub Actions', aliases: ['Github Actions'], description: 'GitHub上でCI/CDワークフローを定義・実行する仕組み。' },
       { term: 'Artifact', aliases: ['成果物'], description: 'ビルド結果として生成される配布物（バイナリ、パッケージ等）。' },
       { term: 'Deployment', aliases: ['デプロイ'], description: '成果物を実行環境へ反映すること。' },
       { term: 'Deploy Strategy', aliases: ['デプロイ戦略'], description: '安全に変更を展開するための方式（カナリア/Blue-Green等）。' },
@@ -779,7 +873,9 @@ const GLOSSARIES: ReadonlyArray<GlossaryDefinition> = [
     id: 'aiLlm',
     title: 'AI/LLM用語図鑑',
     entries: [
-      { term: '生成AI', aliases: ['Generative AI'], description: '文章・画像等を生成するAIの総称。' },
+      { term: 'AI', aliases: ['Artificial Intelligence', '人工知能'], description: '知的な処理を機械で実現する技術領域の総称。' },
+      { term: '生成AI', aliases: ['Generative AI', '生成 AI'], description: '文章・画像等を生成するAIの総称。' },
+      { term: '機械学習', aliases: ['Machine Learning', 'ML'], description: 'データからパターンを学習し、予測や分類などを行う手法。' },
       { term: 'LLM', description: '大量のテキストで学習した大規模言語モデル。' },
       { term: 'OpenAI', description: 'ChatGPTやGPTシリーズなどを提供するAI企業。' },
       { term: 'Anthropic', description: 'Claudeシリーズなどを提供するAI企業。' },
@@ -848,7 +944,11 @@ export const DEFAULT_ENABLED_GLOSSARIES: ReadonlyArray<GlossaryId> = GLOSSARIES
   .sort((a, b) => Number(PROVIDER_SERVICE_GLOSSARIES.has(a)) - Number(PROVIDER_SERVICE_GLOSSARIES.has(b)));
 
 function normalizeKey(input: string): string {
-  return input.normalize('NFKC').trim().toLowerCase();
+  return input
+    .normalize('NFKC')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .toLowerCase();
 }
 
 const GLOSSARY_INDEX: ReadonlyMap<string, ReadonlyArray<GlossaryHit>> = (() => {
@@ -881,6 +981,28 @@ const GLOSSARY_INDEX: ReadonlyMap<string, ReadonlyArray<GlossaryHit>> = (() => {
   return index;
 })();
 
+function bestHitForCandidate(candidate: string, rank: ReadonlyMap<GlossaryId, number>): GlossaryHit | null {
+  const hits = GLOSSARY_INDEX.get(normalizeKey(candidate));
+  if (!hits || hits.length === 0) {
+    return null;
+  }
+
+  let best: GlossaryHit | null = null;
+  let bestRank = Number.POSITIVE_INFINITY;
+  for (const hit of hits) {
+    const r = rank.get(hit.id);
+    if (r === undefined) {
+      continue;
+    }
+    if (r < bestRank) {
+      bestRank = r;
+      best = hit;
+    }
+  }
+
+  return best;
+}
+
 export function findGlossaryHit(token: Token, enabledGlossaries: ReadonlyArray<GlossaryId>): GlossaryHit | null {
   const rank = new Map<GlossaryId, number>();
   enabledGlossaries.forEach((id, i) => rank.set(id, i));
@@ -910,4 +1032,137 @@ export function findGlossaryHit(token: Token, enabledGlossaries: ReadonlyArray<G
   }
 
   return null;
+}
+
+function expandRun(
+  text: string,
+  offset: number,
+  isTermChar: (ch: string) => boolean
+): { start: number; end: number } | null {
+  if (offset < 0 || offset >= text.length) {
+    return null;
+  }
+  if (!isTermChar(text[offset])) {
+    return null;
+  }
+
+  let start = offset;
+  let end = offset + 1;
+  while (start > 0 && isTermChar(text[start - 1])) {
+    start -= 1;
+  }
+  while (end < text.length && isTermChar(text[end])) {
+    end += 1;
+  }
+  return { start, end };
+}
+
+export function hasGlossaryEntry(candidate: string): boolean {
+  return GLOSSARY_INDEX.has(normalizeKey(candidate));
+}
+
+export function findGlossaryMatch(
+  text: string,
+  offset: number,
+  enabledGlossaries: ReadonlyArray<GlossaryId>
+): GlossaryMatch | null {
+  const rank = new Map<GlossaryId, number>();
+  enabledGlossaries.forEach((id, i) => rank.set(id, i));
+
+  const candidates: Array<{ value: string; start: number; end: number }> = [];
+  const seen = new Set<string>();
+
+  const windowSize = 80;
+  const windowStart = Math.max(0, offset - windowSize);
+  const windowEnd = Math.min(text.length, offset + windowSize);
+  const windowText = text.slice(windowStart, windowEnd);
+
+  const phraseRegex = /[A-Za-z][A-Za-z0-9.+#/_:-]*(?:\s+[A-Za-z][A-Za-z0-9.+#/_:-]*){0,5}/g;
+  for (const m of windowText.matchAll(phraseRegex)) {
+    if (m.index === undefined) {
+      continue;
+    }
+    const matchValue = m[0];
+    const absStart = windowStart + m.index;
+    const absEnd = absStart + matchValue.length;
+    if (offset < absStart || offset >= absEnd) {
+      continue;
+    }
+
+    const relOffset = offset - absStart;
+    const wordSegments: Array<{ start: number; end: number }> = [];
+    const wordRegex = /[A-Za-z0-9.+#/_:-]+/g;
+    for (const w of matchValue.matchAll(wordRegex)) {
+      if (w.index === undefined) {
+        continue;
+      }
+      wordSegments.push({ start: w.index, end: w.index + w[0].length });
+    }
+    if (wordSegments.length === 0) {
+      continue;
+    }
+
+    const centerIndex = wordSegments.findIndex((seg) => relOffset >= seg.start && relOffset < seg.end);
+    if (centerIndex === -1) {
+      continue;
+    }
+
+    for (let s = 0; s <= centerIndex; s += 1) {
+      for (let e = centerIndex; e < wordSegments.length; e += 1) {
+        const startRel = wordSegments[s].start;
+        const endRel = wordSegments[e].end;
+        const value = matchValue.slice(startRel, endRel);
+        const key = normalizeKey(value);
+        if (!key || seen.has(key)) {
+          continue;
+        }
+        seen.add(key);
+        candidates.push({ value, start: absStart + startRel, end: absStart + endRel });
+      }
+    }
+  }
+
+  const isAsciiTermChar = (ch: string): boolean => /[A-Za-z0-9.+#/_:-]/.test(ch);
+  const asciiRun = expandRun(text, offset, isAsciiTermChar);
+  if (asciiRun) {
+    const value = text.slice(asciiRun.start, asciiRun.end);
+    const key = normalizeKey(value);
+    if (key && !seen.has(key)) {
+      seen.add(key);
+      candidates.push({ value, start: asciiRun.start, end: asciiRun.end });
+    }
+  }
+
+  const isCjkTermChar = (ch: string): boolean => /[ぁ-ゔァ-ヶー一-龯々・]/.test(ch);
+  const cjkRun = expandRun(text, offset, isCjkTermChar);
+  if (cjkRun) {
+    const value = text.slice(cjkRun.start, cjkRun.end);
+    const key = normalizeKey(value);
+    if (key && !seen.has(key)) {
+      seen.add(key);
+      candidates.push({ value, start: cjkRun.start, end: cjkRun.end });
+    }
+  }
+
+  let best: GlossaryMatch | null = null;
+  let bestLen = -1;
+  let bestRank = Number.POSITIVE_INFINITY;
+  for (const candidate of candidates) {
+    const hit = bestHitForCandidate(candidate.value, rank);
+    if (!hit) {
+      continue;
+    }
+    const keyLen = normalizeKey(candidate.value).length;
+    const r = rank.get(hit.id) ?? Number.POSITIVE_INFINITY;
+    if (keyLen > bestLen || (keyLen === bestLen && r < bestRank)) {
+      bestLen = keyLen;
+      bestRank = r;
+      best = {
+        hit,
+        range: { start: candidate.start, end: candidate.end },
+      };
+    }
+  }
+
+  return best;
 }

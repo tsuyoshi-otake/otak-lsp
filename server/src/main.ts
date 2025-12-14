@@ -442,11 +442,7 @@ documents.onDidClose((event) => {
  */
 connection.onHover(async (params: TextDocumentPositionParams): Promise<Hover | null> => {
   const uri = params.textDocument.uri;
-  const tokens = documentTokens.get(uri);
-
-  if (!tokens || tokens.length === 0) {
-    return null;
-  }
+  const tokens = documentTokens.get(uri) ?? [];
 
   const document = documents.get(uri);
   if (!document) {
@@ -456,7 +452,8 @@ connection.onHover(async (params: TextDocumentPositionParams): Promise<Hover | n
   // Convert position to character offset
   const offset = document.offsetAt(params.position);
 
-  const hoverResult = await hoverProvider.provideHover(tokens, offset);
+  const documentText = documentTexts.get(uri) ?? document.getText();
+  const hoverResult = await hoverProvider.provideHover(tokens, offset, documentText);
   if (!hoverResult) {
     return null;
   }

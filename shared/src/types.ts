@@ -282,6 +282,7 @@ export interface CommentRange {
  */
 export type GlossaryId =
   | 'it'
+  | 'otakLcpSettings'
   | 'cloud'
   | 'awsServices'
   | 'azureServices'
