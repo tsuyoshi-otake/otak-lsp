@@ -217,6 +217,20 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "message": "名詞が連続して読みにくくなっています。名詞の間に助詞を挿入して読みやすくしてください",
     "range": {
       "end": {
+        "character": 56,
+        "line": 44,
+      },
+      "start": {
+        "character": 37,
+        "line": 44,
+      },
+    },
+  },
+  {
+    "code": "noun-chain",
+    "message": "名詞が連続して読みにくくなっています。名詞の間に助詞を挿入して読みやすくしてください",
+    "range": {
+      "end": {
         "character": 13,
         "line": 118,
       },
@@ -522,7 +536,7 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
   },
   {
     "code": "quotation-style-mix",
-    "message": "引用符のスタイルが混在しています。「」（42箇所）と""（4箇所）が使用されています。どれかに統一してください。",
+    "message": "引用符のスタイルが混在しています。「」（44箇所）と""（4箇所）が使用されています。どれかに統一してください。",
     "range": {
       "end": {
         "character": 13,
@@ -587,20 +601,6 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
       "start": {
         "character": 10,
         "line": 205,
-      },
-    },
-  },
-  {
-    "code": "table-column-mismatch",
-    "message": "テーブルの区切り行の列数が一致しません。ヘッダーは3列ですが、区切り行は2列です。",
-    "range": {
-      "end": {
-        "character": 100,
-        "line": 381,
-      },
-      "start": {
-        "character": 0,
-        "line": 381,
       },
     },
   },

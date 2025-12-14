@@ -42,7 +42,7 @@
 起きれる -> 起きられる
 ```
 
-※ Markdownのコードブロック（```）内も既定で解析対象（文法チェック/セマンティックハイライト）です。対象外にしたい場合は `otakLcp.markdown.analyzeCodeBlocks` を無効にしてください。
+※ Markdownのコードブロック（コードフェンス）内も既定で解析対象（文法チェック/セマンティックハイライト）です。ただし、接続詞連続（Conjunction Repetition）や逆接「が」連続（Adversative Ga）など、文脈依存で誤検出しやすい一部ルールはコードブロック内を対象外とします。コードブロック自体を対象外にしたい場合は `otakLcp.markdown.analyzeCodeBlocks` を無効にしてください。
 ※ Markdownのテーブル（`|...|`）内は既定では文法チェック対象外です。テーブル内も検出したい場合は `otakLcp.markdown.analyzeTables` を有効にしてください。
 
 #### 3. 二重否定の検出（Double Negation）
@@ -379,7 +379,7 @@
 | `otakLcp.enableGrammarCheck` | 文法チェックの有効/無効 | `true` |
 | `otakLcp.enableSemanticHighlight` | セマンティックハイライトの有効/無効 | `true` |
 | `otakLcp.excludeTableDelimiters` | Markdownテーブル内のセマンティックハイライトの有効/無効（falseでテーブル全体をハイライト対象外） | `true` |
-| `otakLcp.markdown.analyzeCodeBlocks` | Markdownのコードブロック（```）内も文法チェック/セマンティックハイライト対象にする | `true` |
+| `otakLcp.markdown.analyzeCodeBlocks` | Markdownのコードブロック（コードフェンス）内も文法チェック/セマンティックハイライト対象にする（※一部ルールは本文のみ） | `true` |
 | `otakLcp.markdown.analyzeTables` | Markdownのテーブル（|...|）内も文法チェック対象にする | `false` |
 | `otakLcp.targetLanguages` | 解析対象のファイルタイプ | `["markdown", "javascript", ...]` |
 | `otakLcp.debounceDelay` | 解析のデバウンス遅延（ミリ秒） | `250` |

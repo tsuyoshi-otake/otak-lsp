@@ -132,6 +132,7 @@ describe('Extension Client', () => {
       expect(options.documentSelector).toHaveLength(2);
       expect(options.outputChannel).toBe(mockOutputChannel);
       expect(options.synchronize).toBeDefined();
+      expect(options.synchronize?.configurationSection).toEqual(['otakLcp', 'otakLcp.advanced']);
     });
   });
 

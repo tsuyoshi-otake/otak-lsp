@@ -129,7 +129,7 @@ describe('Extension Integration Tests', () => {
       const options = createLanguageClientOptions(['markdown'], mockOutputChannel as unknown as import('vscode').OutputChannel);
 
       expect(options.synchronize).toBeDefined();
-      expect(options.synchronize?.configurationSection).toBe('otakLcp');
+      expect(options.synchronize?.configurationSection).toEqual(['otakLcp', 'otakLcp.advanced']);
     });
 
     it('should include output channel for logging', () => {
@@ -289,7 +289,7 @@ describe('Extension Lifecycle Integration', () => {
 
       // Verify synchronization is configured
       expect(options.synchronize).toBeDefined();
-      expect(options.synchronize?.configurationSection).toBe('otakLcp');
+      expect(options.synchronize?.configurationSection).toEqual(['otakLcp', 'otakLcp.advanced']);
     });
   });
 });

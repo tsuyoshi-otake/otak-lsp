@@ -182,6 +182,76 @@ export class AdvancedRulesManager {
     return chars.join('');
   }
 
+  /**
+   * 指定タイプの除外範囲内にある文を「境界」に置き換える
+   * - 非本文（コードブロック等）を丸ごと取り除くと、前後の本文が隣接して誤検出が増える可能性がある
+   * - そのため、除外区間は「本文セグメントの区切り」として扱う
+   */
+  private replaceSentencesOverlappingExcludedTypesWithBoundary(
+    sentences: Sentence[],
+    excludedRanges: ExcludedRange[] | undefined,
+    types: ExcludedRange['type'][]
+  ): Sentence[] {
+    if (!excludedRanges || excludedRanges.length === 0) {
+      return sentences;
+    }
+
+    const targets = excludedRanges.filter((r) => types.includes(r.type));
+    if (targets.length === 0) {
+      return sentences;
+    }
+
+    const overlaps = (sentence: Sentence): boolean => {
+      return targets.some((range) => sentence.start < range.end && sentence.end > range.start);
+    };
+
+    const replaced: Sentence[] = [];
+    let pendingBoundary = false;
+
+    for (const sentence of sentences) {
+      if (!overlaps(sentence)) {
+        pendingBoundary = false;
+        replaced.push(sentence);
+        continue;
+      }
+
+      if (pendingBoundary) {
+        continue;
+      }
+
+      const end = Math.min(sentence.end, sentence.start + 1);
+      replaced.push(new Sentence({
+        text: ' ',
+        tokens: [],
+        start: sentence.start,
+        end
+      }));
+      pendingBoundary = true;
+    }
+
+    return replaced;
+  }
+
+  /**
+   * ルールごとの文脈（RuleContext）調整
+   * - Markdownの非本文（コードブロック等）を「本文」として扱うと誤検出しやすいルールがあるため、ここで除外する
+   */
+  private buildRuleContextForRule(
+    rule: AdvancedGrammarRule,
+    baseContext: RuleContext,
+    excludedRanges?: ExcludedRange[]
+  ): RuleContext {
+    // Markdownコードブロック内の文を本文扱いしない（誤検出抑止）
+    if (rule.name === 'conjunction-repetition' || rule.name === 'adversative-ga') {
+      return {
+        ...baseContext,
+        sentences: this.replaceSentencesOverlappingExcludedTypesWithBoundary(baseContext.sentences, excludedRanges, ['code-block'])
+      };
+    }
+
+    return baseContext;
+  }
+
   constructor(config?: Partial<AdvancedRulesConfig>) {
     this.config = { ...DEFAULT_ADVANCED_RULES_CONFIG, ...config };
     this.rules = [
@@ -288,7 +358,7 @@ export class AdvancedRulesManager {
     const sentences = shouldExcludeTables && excludedRanges
       ? this.filterOutTableSentences(parsedSentences, excludedRanges)
       : parsedSentences;
-    const context: RuleContext = {
+    const baseContext: RuleContext = {
       documentText: effectiveText,
       sentences,
       config: this.config
@@ -299,7 +369,8 @@ export class AdvancedRulesManager {
 
     for (const rule of enabledRules) {
       try {
-        const ruleDiagnostics = rule.check(tokens, context);
+        const ruleContext = this.buildRuleContextForRule(rule, baseContext, excludedRanges);
+        const ruleDiagnostics = rule.check(tokens, ruleContext);
         diagnostics.push(...ruleDiagnostics);
       } catch (error) {
         console.error(`Error in rule ${rule.name}:`, error);
@@ -334,7 +405,7 @@ export class AdvancedRulesManager {
     const sentences = shouldExcludeTables && excludedRanges
       ? this.filterOutTableSentences(parsedSentences, excludedRanges)
       : parsedSentences;
-    const context: RuleContext = {
+    const baseContext: RuleContext = {
       documentText: effectiveText,
       sentences,
       config: this.config
@@ -345,7 +416,8 @@ export class AdvancedRulesManager {
 
     for (const rule of selectedRules) {
       try {
-        const ruleDiagnostics = rule.check(tokens, context);
+        const ruleContext = this.buildRuleContextForRule(rule, baseContext, excludedRanges);
+        const ruleDiagnostics = rule.check(tokens, ruleContext);
         diagnostics.push(...ruleDiagnostics);
       } catch (error) {
         console.error(`Error in rule ${rule.name}:`, error);

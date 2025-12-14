@@ -98,7 +98,7 @@ export function createLanguageClientOptions(
     documentSelector: createDocumentSelector(languages),
     outputChannel: channel,
     synchronize: {
-      configurationSection: 'otakLcp',
+      configurationSection: ['otakLcp', 'otakLcp.advanced'],
     },
   };
 }
@@ -279,15 +279,6 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     if (event.affectsConfiguration('otakLcp')) {
       extensionClient.loadConfiguration();
       outputChannel?.appendLine('Configuration changed');
-
-      // クライアントに設定変更を通知
-      if (client) {
-        client.sendNotification('workspace/didChangeConfiguration', {
-          settings: {
-            otakLcp: extensionClient.getConfiguration(),
-          },
-        });
-      }
     }
   });
   context.subscriptions.push(configDisposable);

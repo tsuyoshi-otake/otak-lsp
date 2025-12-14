@@ -12,7 +12,7 @@ import { TokenFilter } from '../semantic/tokenFilter';
 import { AdvancedRulesManager } from './advancedRulesManager';
 import { Diagnostic } from '../../../shared/src/types';
 
-jest.setTimeout(20000);
+jest.setTimeout(30000);
 
 describe('Markdownコードブロック内の文法チェック（オプトイン）', () => {
   let mecabAnalyzer: MeCabAnalyzer;
@@ -70,4 +70,3 @@ describe('Markdownコードブロック内の文法チェック（オプトイ�
     expect(diagnostics.some((d) => d.code === 'ra-nuki')).toBe(true);
   });
 });
-

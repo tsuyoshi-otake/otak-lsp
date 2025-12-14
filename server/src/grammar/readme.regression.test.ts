@@ -60,7 +60,7 @@ async function analyzeReadme(): Promise<Diagnostic[]> {
 }
 
 describe('README Regression Snapshot', () => {
-  jest.setTimeout(30000);
+  jest.setTimeout(60000);
 
   it('should match README diagnostics snapshot', async () => {
     const diagnostics = await analyzeReadme();

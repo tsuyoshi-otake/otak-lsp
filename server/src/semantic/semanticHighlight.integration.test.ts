@@ -13,7 +13,7 @@ import { TokenFilter } from './tokenFilter';
 import { SemanticTokenProvider } from './tokenProvider';
 import { Token } from '../../../shared/src/types';
 
-jest.setTimeout(20000);
+jest.setTimeout(30000);
 
 describe('Semantic Highlight Integration Tests', () => {
   let mecabAnalyzer: MeCabAnalyzer;

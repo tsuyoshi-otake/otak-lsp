@@ -71,7 +71,7 @@ describe('Extension Client 命名規則テスト', () => {
 
   describe('プロパティ5: 内部コードの命名統一', () => {
     it('configurationSectionは「otakLcp」である', () => {
-      expect(extensionSource).toMatch(/configurationSection:\s*['"]otakLcp['"]/);
+      expect(extensionSource).toMatch(/configurationSection:\s*\[\s*['"]otakLcp['"]\s*,\s*['"]otakLcp\.advanced['"]\s*\]/);
     });
 
     it('ステータスバーテキストには「otak-lcp」が使用されている', () => {
