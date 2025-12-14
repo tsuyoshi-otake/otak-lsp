@@ -21,6 +21,8 @@ export class ParticleRepetitionRule implements AdvancedGrammarRule {
   name = 'particle-repetition';
   description = '同じ助詞の連続使用を検出します';
 
+  private static readonly IGNORED_PARTICLES = new Set(['の']);
+
   private static readonly QUOTE_PAIRS: ReadonlyArray<[string, string]> = [
     ['「', '」'],
     ['『', '』'],
@@ -57,12 +59,28 @@ export class ParticleRepetitionRule implements AdvancedGrammarRule {
   ): Array<{ particle: string; positions: number[] }> {
     const particles: Map<string, number[]> = new Map();
 
-    for (const token of sentence.tokens) {
-      if (token.pos === '助詞' && !this.isQuotedToken(token, documentText)) {
+    for (let index = 0; index < sentence.tokens.length; index++) {
+      const token = sentence.tokens[index];
+      const prev = index > 0 ? sentence.tokens[index - 1] : undefined;
+
+      if (token.pos !== '助詞') {
+        continue;
+      }
+      if (ParticleRepetitionRule.IGNORED_PARTICLES.has(token.surface)) {
+        continue;
+      }
+      if (this.isQuotedToken(token, documentText)) {
+        continue;
+      }
+
+      // 「がが」「をを」などの二重助詞は基本ルールで検出するため、ここでは重複して報告しない
+      if (prev && prev.pos === '助詞' && prev.surface === token.surface) {
+        continue;
+      }
+
         const positions = particles.get(token.surface) || [];
         positions.push(token.start);
         particles.set(token.surface, positions);
-      }
     }
 
     const repetitions: Array<{ particle: string; positions: number[] }> = [];

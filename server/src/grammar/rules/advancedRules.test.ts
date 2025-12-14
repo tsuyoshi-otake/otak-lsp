@@ -85,9 +85,50 @@ describe('ParticleRepetitionRule', () => {
     const text = '助詞「を」を使う';
     const tokens = [
       createToken('助詞', '名詞', 0),
+      createToken('「', '記号', 2),
       createToken('を', '助詞', 3), // 「を」(引用) はカウント対象外
+      createToken('」', '記号', 4),
       createToken('を', '助詞', 5),
       createToken('使う', '動詞', 6)
+    ];
+    const sentence = new Sentence({ text, tokens, start: 0, end: text.length });
+    const context = createContext(text, [sentence]);
+    const diagnostics = rule.check(tokens, context);
+
+    expect(diagnostics).toHaveLength(0);
+  });
+
+  it('should not report double particles like がが as repetition', () => {
+    const text = '私がが行く';
+    const tokens = [
+      createToken('私', '名詞', 0),
+      createToken('が', '助詞', 1),
+      createToken('が', '助詞', 2),
+      createToken('行く', '動詞', 3)
+    ];
+    const sentence = new Sentence({ text, tokens, start: 0, end: text.length });
+    const context = createContext(text, [sentence]);
+    const diagnostics = rule.check(tokens, context);
+
+    expect(diagnostics).toHaveLength(0);
+  });
+
+  it('should not flag 「の」 in explanatory sentences like 「私がが行く」のような同じ助詞の重複', () => {
+    const text = '「私がが行く」のような同じ助詞の重複';
+    const tokens = [
+      createToken('「', '記号', 0),
+      createToken('私', '名詞', 1),
+      createToken('が', '助詞', 2),
+      createToken('が', '助詞', 3),
+      createToken('行く', '動詞', 4),
+      createToken('」', '記号', 6),
+      createToken('の', '助詞', 7),
+      createToken('よう', '名詞', 8),
+      createToken('な', '助動詞', 10),
+      createToken('同じ', '形容詞', 11),
+      createToken('助詞', '名詞', 13),
+      createToken('の', '助詞', 15),
+      createToken('重複', '名詞', 16)
     ];
     const sentence = new Sentence({ text, tokens, start: 0, end: text.length });
     const context = createContext(text, [sentence]);

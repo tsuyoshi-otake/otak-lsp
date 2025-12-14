@@ -480,20 +480,6 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
   },
   {
     "code": "particle-repetition",
-    "message": "同じ助詞「の」が2回使用されています。文の構造を見直してください。",
-    "range": {
-      "end": {
-        "character": 58,
-        "line": 14,
-      },
-      "start": {
-        "character": 0,
-        "line": 14,
-      },
-    },
-  },
-  {
-    "code": "particle-repetition",
     "message": "同じ助詞「を」が2回使用されています。文の構造を見直してください。",
     "range": {
       "end": {
@@ -503,48 +489,6 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
       "start": {
         "character": 0,
         "line": 14,
-      },
-    },
-  },
-  {
-    "code": "particle-repetition",
-    "message": "同じ助詞「が」が2回使用されています。文の構造を見直してください。",
-    "range": {
-      "end": {
-        "character": 30,
-        "line": 16,
-      },
-      "start": {
-        "character": 2,
-        "line": 16,
-      },
-    },
-  },
-  {
-    "code": "particle-repetition",
-    "message": "同じ助詞「の」が2回使用されています。文の構造を見直してください。",
-    "range": {
-      "end": {
-        "character": 30,
-        "line": 16,
-      },
-      "start": {
-        "character": 2,
-        "line": 16,
-      },
-    },
-  },
-  {
-    "code": "particle-repetition",
-    "message": "同じ助詞「の」が2回使用されています。文の構造を見直してください。",
-    "range": {
-      "end": {
-        "character": 32,
-        "line": 17,
-      },
-      "start": {
-        "character": 2,
-        "line": 17,
       },
     },
   },
@@ -620,20 +564,6 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
   },
   {
     "code": "particle-repetition",
-    "message": "同じ助詞「の」が2回使用されています。文の構造を見直してください。",
-    "range": {
-      "end": {
-        "character": 38,
-        "line": 77,
-      },
-      "start": {
-        "character": 5,
-        "line": 77,
-      },
-    },
-  },
-  {
-    "code": "particle-repetition",
     "message": "同じ助詞「を」が2回使用されています。文の構造を見直してください。",
     "range": {
       "end": {
@@ -648,20 +578,6 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
   },
   {
     "code": "particle-repetition",
-    "message": "同じ助詞「の」が2回使用されています。文の構造を見直してください。",
-    "range": {
-      "end": {
-        "character": 32,
-        "line": 107,
-      },
-      "start": {
-        "character": 0,
-        "line": 107,
-      },
-    },
-  },
-  {
-    "code": "particle-repetition",
     "message": "同じ助詞「を」が2回使用されています。文の構造を見直してください。",
     "range": {
       "end": {
@@ -671,20 +587,6 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
       "start": {
         "character": 0,
         "line": 116,
-      },
-    },
-  },
-  {
-    "code": "particle-repetition",
-    "message": "同じ助詞「の」が2回使用されています。文の構造を見直してください。",
-    "range": {
-      "end": {
-        "character": 34,
-        "line": 188,
-      },
-      "start": {
-        "character": 5,
-        "line": 188,
       },
     },
   },
@@ -802,20 +704,6 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
   },
   {
     "code": "particle-repetition",
-    "message": "同じ助詞「の」が2回使用されています。文の構造を見直してください。",
-    "range": {
-      "end": {
-        "character": 69,
-        "line": 267,
-      },
-      "start": {
-        "character": 31,
-        "line": 267,
-      },
-    },
-  },
-  {
-    "code": "particle-repetition",
     "message": "同じ助詞「は」が2回使用されています。文の構造を見直してください。",
     "range": {
       "end": {
@@ -825,20 +713,6 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
       "start": {
         "character": 31,
         "line": 267,
-      },
-    },
-  },
-  {
-    "code": "particle-repetition",
-    "message": "同じ助詞「の」が3回使用されています。文の構造を見直してください。",
-    "range": {
-      "end": {
-        "character": 38,
-        "line": 274,
-      },
-      "start": {
-        "character": 0,
-        "line": 274,
       },
     },
   },
