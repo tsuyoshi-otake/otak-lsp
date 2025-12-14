@@ -102,15 +102,29 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
   },
   {
     "code": "kanji-opening",
+    "message": "漢字「様」はひらがな「よう」で表記することが推奨されます。",
+    "range": {
+      "end": {
+        "character": 130,
+        "line": 510,
+      },
+      "start": {
+        "character": 129,
+        "line": 510,
+      },
+    },
+  },
+  {
+    "code": "kanji-opening",
     "message": "漢字「時」はひらがな「とき」で表記することが推奨されます。",
     "range": {
       "end": {
         "character": 9,
-        "line": 511,
+        "line": 518,
       },
       "start": {
         "character": 8,
-        "line": 511,
+        "line": 518,
       },
     },
   },
@@ -120,11 +134,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 11,
-        "line": 511,
+        "line": 518,
       },
       "start": {
         "character": 10,
-        "line": 511,
+        "line": 518,
       },
     },
   },
@@ -134,11 +148,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 5,
-        "line": 513,
+        "line": 520,
       },
       "start": {
         "character": 4,
-        "line": 513,
+        "line": 520,
       },
     },
   },
@@ -148,11 +162,25 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 7,
-        "line": 607,
+        "line": 614,
       },
       "start": {
         "character": 6,
-        "line": 607,
+        "line": 614,
+      },
+    },
+  },
+  {
+    "code": "long-sentence",
+    "message": "文が長すぎます（139文字、閾値: 120文字）。文の分割を検討してください。",
+    "range": {
+      "end": {
+        "character": 142,
+        "line": 510,
+      },
+      "start": {
+        "character": 3,
+        "line": 510,
       },
     },
   },
@@ -343,12 +371,26 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "message": "名詞が連続して読みにくくなっています。名詞の間に助詞を挿入して読みやすくしてください",
     "range": {
       "end": {
+        "character": 139,
+        "line": 510,
+      },
+      "start": {
+        "character": 128,
+        "line": 510,
+      },
+    },
+  },
+  {
+    "code": "noun-chain",
+    "message": "名詞が連続して読みにくくなっています。名詞の間に助詞を挿入して読みやすくしてください",
+    "range": {
+      "end": {
         "character": 24,
-        "line": 604,
+        "line": 611,
       },
       "start": {
         "character": 14,
-        "line": 604,
+        "line": 611,
       },
     },
   },
@@ -358,11 +400,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 30,
-        "line": 609,
+        "line": 616,
       },
       "start": {
         "character": 25,
-        "line": 609,
+        "line": 616,
       },
     },
   },
@@ -372,11 +414,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 40,
-        "line": 609,
+        "line": 616,
       },
       "start": {
         "character": 31,
-        "line": 609,
+        "line": 616,
       },
     },
   },
@@ -386,11 +428,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 29,
-        "line": 611,
+        "line": 618,
       },
       "start": {
         "character": 21,
-        "line": 611,
+        "line": 618,
       },
     },
   },
@@ -400,11 +442,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 55,
-        "line": 619,
+        "line": 626,
       },
       "start": {
         "character": 2,
-        "line": 619,
+        "line": 626,
       },
     },
   },
@@ -414,11 +456,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 73,
-        "line": 625,
+        "line": 632,
       },
       "start": {
         "character": 2,
-        "line": 625,
+        "line": 632,
       },
     },
   },
@@ -456,11 +498,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 26,
-        "line": 508,
+        "line": 515,
       },
       "start": {
         "character": 15,
-        "line": 508,
+        "line": 515,
       },
     },
   },
@@ -470,11 +512,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 70,
-        "line": 509,
+        "line": 516,
       },
       "start": {
         "character": 59,
-        "line": 509,
+        "line": 516,
       },
     },
   },
@@ -553,7 +595,7 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "message": "テーブルの区切り行の列数が一致しません。ヘッダーは3列ですが、区切り行は2列です。",
     "range": {
       "end": {
-        "character": 87,
+        "character": 100,
         "line": 381,
       },
       "start": {
@@ -610,11 +652,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 38,
-        "line": 610,
+        "line": 617,
       },
       "start": {
         "character": 32,
-        "line": 610,
+        "line": 617,
       },
     },
   },

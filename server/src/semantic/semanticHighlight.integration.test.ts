@@ -62,15 +62,25 @@ describe('Semantic Highlight Integration Tests', () => {
   /**
    * フルパイプライン: Markdown -> フィルタリング -> 解析 -> トークンフィルタリング -> セマンティックトークン
    */
-  const processMarkdown = async (text: string): Promise<{
+  const processMarkdown = async (
+    text: string,
+    options?: { analyzeCodeBlocks?: boolean }
+  ): Promise<{
     tokens: Token[];
     semanticTokens: { data: number[] };
     excludedRangesCount: number;
   }> => {
+    const analyzeCodeBlocks = options?.analyzeCodeBlocks ?? true;
+
     // 1. Markdownフィルタリング
-    const filterResult = markdownFilter.filter(text);
+    const filterResult = markdownFilter.filter(text, {
+      ...markdownFilter.getConfig(),
+      preserveCodeBlockContent: analyzeCodeBlocks
+    });
     const allExcludedRanges = filterResult.excludedRanges;
-    const semanticExcludedRanges = allExcludedRanges.filter((r) => r.type !== 'table');
+    const semanticExcludedRanges = allExcludedRanges
+      .filter((r) => r.type !== 'table')
+      .filter((r) => (analyzeCodeBlocks ? r.type !== 'code-block' : true));
 
     // 2. 形態素解析
     const allTokens = await mecabAnalyzer.analyze(filterResult.filteredText);
@@ -84,7 +94,7 @@ describe('Semantic Highlight Integration Tests', () => {
     return {
       tokens,
       semanticTokens,
-      excludedRangesCount: semanticExcludedRanges.length
+      excludedRangesCount: allExcludedRanges.length
     };
   };
 
@@ -121,8 +131,8 @@ describe('Semantic Highlight Integration Tests', () => {
     });
   });
 
-  describe('コードブロックの除外', () => {
-    it('コードブロック内のテキストがセマンティックハイライトされないこと', async () => {
+  describe('コードブロック内のセマンティックハイライト', () => {
+    it('既定でコードブロック内の日本語もハイライトされること', async () => {
       const markdown = `説明テキストです。
 
 \`\`\`javascript
@@ -136,12 +146,30 @@ const 日本語変数 = "これはコード内の日本語";
       // 除外範囲が検出されている
       expect(result.excludedRangesCount).toBeGreaterThan(0);
 
-      // コードブロック内の日本語がトークンに含まれていない
+      // コードブロック内の日本語がトークンに含まれている
+      const surfaces = result.tokens.map(t => t.surface);
+      expect(surfaces.join('')).toContain('日本語変数');
+      expect(surfaces.join('')).toContain('これはコード内の日本語');
+
+      // 説明テキストはハイライトされている
+      expect(surfaces.join('')).toContain('説明');
+      expect(surfaces.join('')).toContain('テキスト');
+    });
+
+    it('設定でコードブロック内を対象外にできること', async () => {
+      const markdown = `説明テキストです。
+
+\`\`\`javascript
+const 日本語変数 = "これはコード内の日本語";
+\`\`\`
+
+続きのテキストです。`;
+
+      const result = await processMarkdown(markdown, { analyzeCodeBlocks: false });
+
       const surfaces = result.tokens.map(t => t.surface);
       expect(surfaces.join('')).not.toContain('日本語変数');
       expect(surfaces.join('')).not.toContain('これはコード内の日本語');
-
-      // 説明テキストはハイライトされている
       expect(surfaces.join('')).toContain('説明');
       expect(surfaces.join('')).toContain('テキスト');
     });
@@ -252,9 +280,9 @@ npm install otak-lcp
       // トークンが生成されている
       expect(result.tokens.length).toBeGreaterThan(0);
 
-      // コードブロック内のテキストが除外されている
+      // 既定ではコードブロック内も対象
       const surfaces = result.tokens.map(t => t.surface);
-      expect(surfaces.join('')).not.toContain('npm install');
+      expect(surfaces.join('')).toContain('npm install');
 
       // インラインコード内のテキストが除外されている
       expect(surfaces.join('')).not.toContain('npm start');
@@ -339,8 +367,7 @@ const x = 1;
 
       const result = await processMarkdown(markdown);
 
-      // すべてのテキストが除外されているため、トークンは少ない
-      // （記号や空白のみが残る可能性がある）
+      // コードブロックのみでも処理できる（既定ではコードブロック内も対象）
       expect(result.excludedRangesCount).toBeGreaterThan(0);
     });
 

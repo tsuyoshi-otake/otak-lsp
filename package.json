@@ -77,7 +77,7 @@
         "otakLcp.markdown.analyzeCodeBlocks": {
           "type": "boolean",
           "default": true,
-          "description": "Markdownのコードブロック（```）内も文法チェック対象にします。",
+          "description": "Markdownのコードブロック（```）内も文法チェック/セマンティックハイライト対象にします。",
           "scope": "resource"
         },
         "otakLcp.markdown.analyzeTables": {

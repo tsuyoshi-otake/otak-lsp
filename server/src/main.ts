@@ -390,11 +390,16 @@ async function analyzeDocument(document: TextDocument): Promise<void> {
       textToAnalyze = filterResult.filteredText;
       excludedRanges = filterResult.excludedRanges;
 
-      // セマンティックハイライト用: table 範囲を除外せずにセル内テキストを残す（デフォルト）
-      const baseSemanticRanges = excludedRanges.filter((r) => r.type !== 'table');
-      semanticExcludedRanges = configuration.excludeTableDelimiters === false
-        ? excludedRanges
-        : baseSemanticRanges;
+      // セマンティックハイライト用:
+      // - table: 既定では table 範囲を除外せずにセル内テキストを残す
+      // - code-block: 既定ではコードブロック内もハイライト対象にする
+      semanticExcludedRanges = excludedRanges;
+      if (configuration.excludeTableDelimiters !== false) {
+        semanticExcludedRanges = semanticExcludedRanges.filter((r) => r.type !== 'table');
+      }
+      if (configuration.markdown.analyzeCodeBlocks) {
+        semanticExcludedRanges = semanticExcludedRanges.filter((r) => r.type !== 'code-block');
+      }
 
       // 文法チェック用: すべての除外範囲を使用（table 全体も含む）
       grammarExcludedRanges = configuration.markdown.analyzeCodeBlocks

@@ -42,7 +42,7 @@
 起きれる -> 起きられる
 ```
 
-※ Markdownのコードブロック（```）内も既定で解析対象です。対象外にしたい場合は `otakLcp.markdown.analyzeCodeBlocks` を無効にしてください。
+※ Markdownのコードブロック（```）内も既定で解析対象（文法チェック/セマンティックハイライト）です。対象外にしたい場合は `otakLcp.markdown.analyzeCodeBlocks` を無効にしてください。
 ※ Markdownのテーブル（`|...|`）内は既定では文法チェック対象外です。テーブル内も検出したい場合は `otakLcp.markdown.analyzeTables` を有効にしてください。
 
 #### 3. 二重否定の検出（Double Negation）
@@ -379,7 +379,7 @@
 | `otakLcp.enableGrammarCheck` | 文法チェックの有効/無効 | `true` |
 | `otakLcp.enableSemanticHighlight` | セマンティックハイライトの有効/無効 | `true` |
 | `otakLcp.excludeTableDelimiters` | Markdownテーブル内のセマンティックハイライトの有効/無効（falseでテーブル全体をハイライト対象外） | `true` |
-| `otakLcp.markdown.analyzeCodeBlocks` | Markdownのコードブロック（```）内も文法チェック対象にする | `true` |
+| `otakLcp.markdown.analyzeCodeBlocks` | Markdownのコードブロック（```）内も文法チェック/セマンティックハイライト対象にする | `true` |
 | `otakLcp.markdown.analyzeTables` | Markdownのテーブル（|...|）内も文法チェック対象にする | `false` |
 | `otakLcp.targetLanguages` | 解析対象のファイルタイプ | `["markdown", "javascript", ...]` |
 | `otakLcp.debounceDelay` | 解析のデバウンス遅延（ミリ秒） | `250` |
@@ -503,6 +503,13 @@ chatgptで文章を生成します。     <- 「ChatGPT」に修正
 1. `enableGrammarCheck` が `true` になっているか確認
 2. ファイルタイプが `targetLanguages` に含まれているか確認
 3. 出力パネル（表示 > 出力 > otak-lcp）でエラーを確認
+
+### セマンティックハイライトが表示されない
+
+1. `otakLcp.enableSemanticHighlight` が `true` になっているか確認
+2. VS Code の `editor.semanticHighlighting.enabled` が `true` になっているか確認（テーマによっては `configuredByTheme` だと無効になることがあります）
+3. Markdown の ``` コードブロック内も既定でハイライト対象です。対象外にしたい場合は `otakLcp.markdown.analyzeCodeBlocks` を `false` にしてください（インラインコード（`...`）/ URL は仕様上ハイライト対象外です）
+4. 出力パネル（表示 > 出力 > otak-lcp）や `otakLcp.showStatus` コマンドで言語サーバの状態を確認
 
 ### 特定のルールを無効にしたい
 
