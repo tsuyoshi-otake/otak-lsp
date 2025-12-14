@@ -81,8 +81,8 @@ describe('ParticleRepetitionRule', () => {
     expect(diagnostics).toHaveLength(0);
   });
 
-  it('should be disabled by default', () => {
-    expect(rule.isEnabled(DEFAULT_ADVANCED_RULES_CONFIG)).toBe(false);
+  it('should be enabled by default', () => {
+    expect(rule.isEnabled(DEFAULT_ADVANCED_RULES_CONFIG)).toBe(true);
   });
 });
 

@@ -259,8 +259,10 @@ describe('Grammar Checker Integration Tests', () => {
       expect(repetitionErrors.length).toBeGreaterThan(0);
     });
 
-    it('should not detect particle repetition when setting is false (default)', () => {
-      const checker = new IntegratedGrammarChecker(); // デフォルトではfalse
+    it('should not detect particle repetition when setting is false', () => {
+      const checker = new IntegratedGrammarChecker({
+        enableParticleRepetition: false
+      });
 
       const text = '私は本を彼は読む。';
       const tokens = [

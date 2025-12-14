@@ -130,7 +130,7 @@ describe('Advanced Grammar Types', () => {
       expect(config.enableStyleConsistency).toBe(true);
       expect(config.enableRaNukiDetection).toBe(true);
       expect(config.enableDoubleNegation).toBe(true);
-      expect(config.enableParticleRepetition).toBe(false); // 初期設定で無効
+      expect(config.enableParticleRepetition).toBe(true);
       expect(config.enableConjunctionRepetition).toBe(true);
       expect(config.enableAdversativeGa).toBe(true);
       expect(config.enableAlphabetWidth).toBe(true);

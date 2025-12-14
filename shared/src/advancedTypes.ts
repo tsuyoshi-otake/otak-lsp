@@ -527,7 +527,7 @@ export const DEFAULT_ADVANCED_RULES_CONFIG: AdvancedRulesConfig = {
   enableStyleConsistency: true,
   enableRaNukiDetection: true,
   enableDoubleNegation: true,
-  enableParticleRepetition: false, // 初期設定で無効
+  enableParticleRepetition: true,
   enableConjunctionRepetition: true,
   enableAdversativeGa: true,
   enableAlphabetWidth: true,

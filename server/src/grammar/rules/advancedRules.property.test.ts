@@ -44,13 +44,13 @@ describe('Property-Based Tests: Advanced Grammar Rules', () => {
   describe('Property 5: 助詞連続使用の設定依存検出', () => {
     const rule = new ParticleRepetitionRule();
 
-    it('should be disabled by default', () => {
+    it('should be enabled by default', () => {
       fc.assert(
         fc.property(
           fc.constantFrom('は', 'が', 'を', 'に', 'で'),
           (particle) => {
             const config = DEFAULT_ADVANCED_RULES_CONFIG;
-            expect(rule.isEnabled(config)).toBe(false);
+            expect(rule.isEnabled(config)).toBe(true);
           }
         ),
         { numRuns: 30 }

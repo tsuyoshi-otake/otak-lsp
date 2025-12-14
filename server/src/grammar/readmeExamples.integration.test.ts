@@ -64,17 +64,15 @@ describe('README Examples Integration', () => {
     });
   };
 
-  it('enableParticleRepetition=true のとき README 例「私は本を彼は読む」を検出できること', async () => {
+  it('README 例「私は本を彼は読む」を検出できること', async () => {
     const markdown = [
       '```markdown',
-      '私は本を彼は読む',
+      '私は本を彼は読む。',
       '```',
       ''
     ].join('\n');
 
-    const diagnostics = await analyzeMarkdown(markdown, {
-      advancedConfig: { enableParticleRepetition: true },
-    });
+    const diagnostics = await analyzeMarkdown(markdown);
 
     expect(diagnostics.some((d) => d.code === 'particle-repetition')).toBe(true);
   });

@@ -59,10 +59,10 @@
 同じ文中で同じ助詞が繰り返し使用されている場合に警告します。
 
 ```markdown
-私は本を彼は読む -> 「は」が2回使用されています
+私は本を彼は読む。
 ```
 
-**注意**: この機能は初期設定で無効化されています。
+（必要に応じて `otakLcp.advanced.enableParticleRepetition` で無効化できます）
 
 #### 5. 同じ接続詞の連続使用検出（Conjunction Repetition）
 
@@ -394,7 +394,7 @@
 | `otakLcp.advanced.enableStyleConsistency` | 文体混在チェック | `true` |
 | `otakLcp.advanced.enableRaNukiDetection` | ら抜き言葉チェック | `true` |
 | `otakLcp.advanced.enableDoubleNegation` | 二重否定チェック | `true` |
-| `otakLcp.advanced.enableParticleRepetition` | 助詞連続使用チェック | `false` |
+| `otakLcp.advanced.enableParticleRepetition` | 助詞連続使用チェック | `true` |
 | `otakLcp.advanced.enableConjunctionRepetition` | 接続詞連続使用チェック | `true` |
 | `otakLcp.advanced.enableAdversativeGa` | 逆接「が」連続使用チェック | `true` |
 | `otakLcp.advanced.enableAlphabetWidth` | 全角/半角混在チェック | `true` |
@@ -446,7 +446,7 @@
   "otakLcp.debounceDelay": 300,
   "otakLcp.advanced.enableStyleConsistency": true,
   "otakLcp.advanced.enableRaNukiDetection": true,
-  "otakLcp.advanced.enableParticleRepetition": false,
+  "otakLcp.advanced.enableParticleRepetition": true,
   "otakLcp.advanced.enableTermNotation": true,
   "otakLcp.advanced.enableGenerativeAIDictionary": true,
   "otakLcp.advanced.enableAWSDictionary": true,
