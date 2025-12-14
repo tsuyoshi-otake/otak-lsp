@@ -31,6 +31,78 @@ export class NounChainRule implements AdvancedGrammarRule {
   name = 'noun-chain';
   description = '名詞の連続による読みにくさを検出します';
 
+  private shouldIgnoreAsLabel(text: string, startOffset: number, endOffset: number): boolean {
+    const clamp = (n: number) => Math.max(0, Math.min(n, text.length));
+    const start = clamp(startOffset);
+    const end = clamp(endOffset);
+    if (end <= start) {
+      return false;
+    }
+
+    // 行頭（=箇条書きマーカー等がスペース置換された後）に現れる「ラベル: 説明」形式は許容する
+    // 例: **IPA辞書内蔵**: npm installだけですぐに使えます
+    const lineStart = Math.max(
+      text.lastIndexOf('\n', start - 1),
+      text.lastIndexOf('\r', start - 1)
+    ) + 1;
+    let lineEnd = text.indexOf('\n', start);
+    const crEnd = text.indexOf('\r', start);
+    if (lineEnd === -1 || (crEnd !== -1 && crEnd < lineEnd)) {
+      lineEnd = crEnd;
+    }
+    if (lineEnd === -1) {
+      lineEnd = text.length;
+    }
+
+    const line = text.slice(lineStart, lineEnd);
+    const firstNonWhitespace = line.search(/[^\t ]/);
+    if (firstNonWhitespace === -1) {
+      return false;
+    }
+    const contentStart = lineStart + firstNonWhitespace;
+
+    // チェーンが行頭ラベルの範囲外（途中から始まっている）なら対象外
+    if (start < contentStart) {
+      return false;
+    }
+
+    const restOfLine = text.slice(contentStart, lineEnd);
+    const colonMatch = /[:：]/.exec(restOfLine);
+    if (!colonMatch || colonMatch.index === undefined) {
+      return false;
+    }
+
+    const colonLocalIndex = colonMatch.index;
+    if (colonLocalIndex > 40) {
+      return false;
+    }
+
+    const colonOffset = contentStart + colonLocalIndex;
+    if (colonOffset + 1 < end) {
+      return false;
+    }
+
+    // チェーンがラベル範囲内に収まっていないなら対象外
+    if (start > colonOffset + 1) {
+      return false;
+    }
+
+    const label = restOfLine.slice(0, colonLocalIndex);
+    if (/[ \t]/.test(label)) {
+      return false;
+    }
+
+    let core = label;
+    if ((core.startsWith('**') && core.endsWith('**')) || (core.startsWith('__') && core.endsWith('__'))) {
+      core = core.slice(2, -2);
+    }
+    if (core.trim().length === 0) {
+      return false;
+    }
+
+    return true;
+  }
+
   /**
    * テキストから名詞連続を検出
    * @param text テキスト
@@ -134,6 +206,11 @@ export class NounChainRule implements AdvancedGrammarRule {
     const errors = this.detectNounChains(context.documentText, tokens, threshold);
 
     for (const error of errors) {
+      const startOffset = error.range.start.character;
+      const endOffset = error.range.end.character;
+      if (this.shouldIgnoreAsLabel(context.documentText, startOffset, endOffset)) {
+        continue;
+      }
       diagnostics.push(new AdvancedDiagnostic({
         range: error.range,
         message: `名詞が連続して読みにくくなっています。${error.suggestion}`,

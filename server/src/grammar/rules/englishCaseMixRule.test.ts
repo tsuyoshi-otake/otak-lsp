@@ -70,6 +70,14 @@ describe('EnglishCaseMixRule', () => {
     });
   });
 
+  describe('command context', () => {
+    it('should ignore CLI commands like "npm install"', () => {
+      context.documentText = 'Install手順: npm installを実行してください。';
+      const diagnostics = rule.check(emptyTokens, context);
+      expect(diagnostics.length).toBe(0);
+    });
+  });
+
   describe('edge cases', () => {
     it('should handle empty text', () => {
       context.documentText = '';

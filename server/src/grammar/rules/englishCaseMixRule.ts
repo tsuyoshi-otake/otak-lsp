@@ -27,6 +27,25 @@ export class EnglishCaseMixRule extends MixDetectionRule {
   // Minimum length of English word to check
   private readonly minWordLength = 2;
 
+  // コマンド文脈は表記揺れチェックの対象外（例: npm install / git commit）
+  private readonly cliCommandHeads = new Set([
+    'npm',
+    'npx',
+    'pnpm',
+    'yarn',
+    'git',
+    'docker',
+    'kubectl',
+    'cargo',
+    'python',
+    'python3',
+    'pip',
+    'pip3',
+    'node',
+    'deno',
+    'bun'
+  ]);
+
   /**
    * Override check to provide more specific diagnostics per word
    */
@@ -80,6 +99,9 @@ export class EnglishCaseMixRule extends MixDetectionRule {
 
     while ((match = wordRegex.exec(text)) !== null) {
       const word = match[0];
+      if (this.isInCliCommand(text, match.index)) {
+        continue;
+      }
       const normalizedWord = word.toLowerCase();
 
       if (!wordVariants.has(normalizedWord)) {
@@ -94,6 +116,74 @@ export class EnglishCaseMixRule extends MixDetectionRule {
     }
 
     return wordVariants;
+  }
+
+  private isInCliCommand(text: string, offset: number): boolean {
+    if (offset < 0 || offset >= text.length) {
+      return false;
+    }
+
+    const lineStart = Math.max(text.lastIndexOf('\n', offset - 1), text.lastIndexOf('\r', offset - 1)) + 1;
+    let lineEnd = text.indexOf('\n', offset);
+    const crEnd = text.indexOf('\r', offset);
+    if (lineEnd === -1 || (crEnd !== -1 && crEnd < lineEnd)) {
+      lineEnd = crEnd;
+    }
+    if (lineEnd === -1) {
+      lineEnd = text.length;
+    }
+
+    const line = text.slice(lineStart, lineEnd);
+    const localOffset = offset - lineStart;
+
+    for (const segment of this.findCliCommandSegments(line)) {
+      if (localOffset >= segment.start && localOffset < segment.end) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  private findCliCommandSegments(line: string): Array<{ start: number; end: number }> {
+    const segments: Array<{ start: number; end: number }> = [];
+
+    // Find known command heads and consume subsequent "command-ish" tokens until a non-command character.
+    const headRegex = /\b[a-zA-Z][a-zA-Z0-9]{0,15}\b/g;
+    let match: RegExpExecArray | null;
+    while ((match = headRegex.exec(line)) !== null) {
+      const head = match[0];
+      const normalizedHead = head.toLowerCase();
+      if (!this.cliCommandHeads.has(normalizedHead)) {
+        continue;
+      }
+
+      const headStart = match.index;
+      const headEnd = headStart + head.length;
+
+      // Require at least one whitespace + one command token after the head.
+      let i = headEnd;
+      if (i >= line.length || !/[ \t]/.test(line[i])) {
+        continue;
+      }
+      while (i < line.length && /[ \t]/.test(line[i])) {
+        i++;
+      }
+      if (i >= line.length) {
+        continue;
+      }
+
+      const isAllowedTokenChar = (ch: string) => /[A-Za-z0-9@._/:-]/.test(ch) || ch === '-' || ch === '+';
+      const isAllowedInSegment = (ch: string) => isAllowedTokenChar(ch) || /[ \t]/.test(ch);
+
+      let end = i;
+      while (end < line.length && isAllowedInSegment(line[end])) {
+        end++;
+      }
+
+      segments.push({ start: headStart, end });
+    }
+
+    return segments;
   }
 
   /**
