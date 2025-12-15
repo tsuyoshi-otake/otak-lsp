@@ -80,298 +80,295 @@ const CONSOLE_TERM_DEFINITION_INDEX: ReadonlyMap<string, ConsoleGlossaryDefiniti
   return index;
 })();
 
-function fallbackConsoleTermDescription(term: string, provider: ConsoleProviderId | null): string {
+type FallbackConsoleTermDescription = Readonly<{ description: string; isGeneric: boolean }>;
+
+function fallbackConsoleTermDescription(term: string, provider: ConsoleProviderId | null): FallbackConsoleTermDescription {
   const key = normalizeKey(term);
 
   const contains = (needle: string): boolean => key.includes(normalizeKey(needle));
   const endsWith = (suffix: string): boolean => key.endsWith(normalizeKey(suffix));
 
   if (endsWith('ポリシー') || endsWith('policy')) {
-    return '許可/禁止や動作条件を定義するルールの集合。';
+    return { description: '許可/禁止や動作条件を定義するルールの集合。', isGeneric: false };
   }
   if (endsWith('ルール') || endsWith('rule')) {
-    return '条件とアクションを定義して挙動を制御する設定。';
+    return { description: '条件とアクションを定義して挙動を制御する設定。', isGeneric: false };
   }
   if (endsWith('グループ') || endsWith('group')) {
-    return '関連する対象をまとめて扱うための単位。';
+    return { description: '関連する対象をまとめて扱うための単位。', isGeneric: false };
   }
   if (endsWith('クラスター') || endsWith('cluster')) {
-    return '複数ノードを1つのまとまりとして運用する単位。';
+    return { description: '複数ノードを1つのまとまりとして運用する単位。', isGeneric: false };
   }
   if (endsWith('ワークスペース') || endsWith('workspace')) {
-    return '設定・メンバー・データなどをまとめる作業単位。';
+    return { description: '設定・メンバー・データなどをまとめる作業単位。', isGeneric: false };
   }
   if (endsWith('プロジェクト') || endsWith('project')) {
-    return '設定や作業対象をまとめる論理単位。';
+    return { description: '設定や作業対象をまとめる論理単位。', isGeneric: false };
   }
   if (endsWith('ジョブ') || endsWith('job')) {
-    return '実行単位（バッチ、ビルド、学習などのまとまり）。';
+    return { description: '実行単位（バッチ、ビルド、学習などのまとまり）。', isGeneric: false };
   }
   if (endsWith('タスク') || endsWith('task')) {
-    return 'ジョブを構成する個々の処理、または実行単位。';
+    return { description: 'ジョブを構成する個々の処理、または実行単位。', isGeneric: false };
   }
   if (endsWith('パイプライン') || endsWith('pipeline')) {
-    return '処理を段階的に実行する一連の流れ。';
+    return { description: '処理を段階的に実行する一連の流れ。', isGeneric: false };
   }
   if (endsWith('キュー') || endsWith('queue')) {
-    return '非同期処理のためにメッセージやジョブを蓄える待ち行列。';
+    return { description: '非同期処理のためにメッセージやジョブを蓄える待ち行列。', isGeneric: false };
   }
   if (endsWith('トリガー') || endsWith('trigger')) {
-    return '処理の起動条件（イベント、スケジュール等）。';
+    return { description: '処理の起動条件（イベント、スケジュール等）。', isGeneric: false };
   }
   if (contains('インスタンス') || contains('instance')) {
-    return 'サービス上の実体（実行単位）。文脈によりVM/DB/アプリ等を指す。';
+    return { description: 'サービス上の実体（実行単位）。文脈によりVM/DB/アプリ等を指す。', isGeneric: false };
   }
   if (contains('エンドポイント') || contains('endpoint')) {
-    return 'サービスや機能へ接続するための接続先（URL、DNS名、IPなど）。';
+    return { description: 'サービスや機能へ接続するための接続先（URL、DNS名、IPなど）。', isGeneric: false };
   }
   if (contains('ゲートウェイ') || contains('gateway')) {
-    return 'ネットワーク境界で中継・接続を行うコンポーネント。';
+    return { description: 'ネットワーク境界で中継・接続を行うコンポーネント。', isGeneric: false };
   }
   if (contains('リスナー') || contains('listener')) {
-    return '受信設定。ポート/プロトコルなどの受け口を定義する。';
+    return { description: '受信設定。ポート/プロトコルなどの受け口を定義する。', isGeneric: false };
   }
   if (contains('ターゲット') || contains('target')) {
-    return 'ルール/ルーティングの対象や転送先（宛先）を指す。';
+    return { description: 'ルール/ルーティングの対象や転送先（宛先）を指す。', isGeneric: false };
   }
   if (contains('スナップショット') || contains('snapshot')) {
-    return 'ある時点の状態を保存したもの（復元や複製に利用）。';
+    return { description: 'ある時点の状態を保存したもの（復元や複製に利用）。', isGeneric: false };
   }
   if (contains('バックアップ') || contains('backup')) {
-    return '障害や誤操作に備えた復旧用コピー。';
+    return { description: '障害や誤操作に備えた復旧用コピー。', isGeneric: false };
   }
   if (contains('リカバリーポイント') || contains('recovery point')) {
-    return 'バックアップ/保護の復元可能な世代（復旧点）。';
+    return { description: 'バックアップ/保護の復元可能な世代（復旧点）。', isGeneric: false };
   }
   if (contains('ボリューム') || contains('volume') || contains('ディスク') || contains('disk')) {
-    return 'ブロックストレージ（ディスク）。インスタンス等にアタッチして利用する。';
+    return { description: 'ブロックストレージ（ディスク）。インスタンス等にアタッチして利用する。', isGeneric: false };
   }
   if (contains('ファイルシステム') || contains('file system') || contains('filesystem')) {
-    return 'ディレクトリ階層で共有/利用するファイルストレージの単位。';
+    return { description: 'ディレクトリ階層で共有/利用するファイルストレージの単位。', isGeneric: false };
   }
   if (contains('アクセスポイント') || contains('access point') || contains('accesspoint')) {
-    return 'アクセスの入口となる論理リソース（権限/経路/設定の単位）。';
+    return { description: 'アクセスの入口となる論理リソース（権限/経路/設定の単位）。', isGeneric: false };
   }
   if (contains('ログ') || contains('log')) {
-    return 'システムの出来事を時系列に記録したデータ。';
+    return { description: 'システムの出来事を時系列に記録したデータ。', isGeneric: false };
   }
   if (contains('メトリクス') || contains('metrics')) {
-    return '監視対象の数値指標（CPU、レイテンシ、エラー率など）。';
+    return { description: '監視対象の数値指標（CPU、レイテンシ、エラー率など）。', isGeneric: false };
   }
   if (contains('ダッシュボード') || contains('dashboard')) {
-    return '指標や状況を可視化する画面。';
+    return { description: '指標や状況を可視化する画面。', isGeneric: false };
   }
   if (contains('アラート') || contains('alert')) {
-    return '異常や条件成立を知らせる通知/イベント。';
+    return { description: '異常や条件成立を知らせる通知/イベント。', isGeneric: false };
   }
   if (contains('証明書') || contains('certificate')) {
-    return 'TLS等で用いる証明書（公開鍵証明書）。';
+    return { description: 'TLS等で用いる証明書（公開鍵証明書）。', isGeneric: false };
   }
   if (contains('ヘルスチェック') || contains('health check')) {
-    return '対象の稼働状態を確認する仕組み（疎通/応答などの監視）。';
+    return { description: '対象の稼働状態を確認する仕組み（疎通/応答などの監視）。', isGeneric: false };
   }
   if (contains('ロードバランサ') || contains('load balancer') || contains('load balancing')) {
-    return '複数の転送先へリクエストを分散する仕組み（負荷分散）。';
+    return { description: '複数の転送先へリクエストを分散する仕組み（負荷分散）。', isGeneric: false };
   }
   if (contains('ディストリビューション') || contains('distribution')) {
-    return '配信設定の単位（CDN等で配信元/キャッシュ/ルールを束ねる）。';
+    return { description: '配信設定の単位（CDN等で配信元/キャッシュ/ルールを束ねる）。', isGeneric: false };
   }
   if (contains('オリジン') || contains('origin')) {
-    return 'CDN等でコンテンツ取得元となるバックエンド（配信元）。';
+    return { description: 'CDN等でコンテンツ取得元となるバックエンド（配信元）。', isGeneric: false };
   }
   if (contains('ビヘイビア') || contains('behavior') || contains('behaviour')) {
-    return 'パス条件などに応じた動作設定（キャッシュ/転送/ヘッダ等）。';
+    return { description: 'パス条件などに応じた動作設定（キャッシュ/転送/ヘッダ等）。', isGeneric: false };
   }
   if (contains('シークレット') || contains('secret')) {
-    return 'APIキー等の機密情報。安全な保管と参照制御が重要。';
+    return { description: 'APIキー等の機密情報。安全な保管と参照制御が重要。', isGeneric: false };
   }
   if (contains('ローテーション') || contains('rotation')) {
-    return 'シークレット等を定期的に更新（入れ替え）する仕組み。';
+    return { description: 'シークレット等を定期的に更新（入れ替え）する仕組み。', isGeneric: false };
   }
   if (contains('グラント') || contains('grant')) {
-    return '権限の付与/委任を表す概念（暗号鍵の利用権付与など）。';
+    return { description: '権限の付与/委任を表す概念（暗号鍵の利用権付与など）。', isGeneric: false };
   }
   if (contains('セッション') || contains('session')) {
-    return '一定期間の接続/認証状態、またはその識別子。';
+    return { description: '一定期間の接続/認証状態、またはその識別子。', isGeneric: false };
   }
   if (contains('キー') || contains('key')) {
-    return '識別子や秘密情報（暗号鍵/アクセストークン等）を指すことが多い。';
+    return { description: '識別子や秘密情報（暗号鍵/アクセストークン等）を指すことが多い。', isGeneric: false };
   }
   if (contains('タグ') || contains('tag')) {
-    return 'リソースに付与するキー/値のメタデータ（整理、課金集計、制御等）。';
+    return { description: 'リソースに付与するキー/値のメタデータ（整理、課金集計、制御等）。', isGeneric: false };
   }
   if (contains('クエリ') || contains('query')) {
-    return 'データ検索・集計の問い合わせ（問い合わせ文）。';
+    return { description: 'データ検索・集計の問い合わせ（問い合わせ文）。', isGeneric: false };
   }
   if (contains('フィルタ') || contains('filter')) {
-    return '条件で対象を絞り込む仕組み。';
+    return { description: '条件で対象を絞り込む仕組み。', isGeneric: false };
   }
   if (contains('インデックス') || contains('index')) {
-    return '検索を高速化するための補助データ構造、または検索対象の集合（文脈依存）。';
+    return { description: '検索を高速化するための補助データ構造、または検索対象の集合（文脈依存）。', isGeneric: false };
   }
   if (contains('マッピング') || contains('mapping')) {
-    return '対応関係を定義する設定（例: イベント→処理、属性→値など）。';
+    return { description: '対応関係を定義する設定（例: イベント→処理、属性→値など）。', isGeneric: false };
   }
   if (contains('定義') || contains('definition')) {
-    return 'ルールや仕様、構成などの定義情報（ひな形/設定）。';
+    return { description: 'ルールや仕様、構成などの定義情報（ひな形/設定）。', isGeneric: false };
   }
   if (contains('リポジトリ') || contains('repository') || contains('repo')) {
-    return '成果物やソース、イメージ等を保管・配布する格納庫。';
+    return { description: '成果物やソース、イメージ等を保管・配布する格納庫。', isGeneric: false };
   }
   if (contains('イメージ') || contains('image')) {
-    return '起動元/配布用のひな形（OS/アプリ/コンテナ等）。';
+    return { description: '起動元/配布用のひな形（OS/アプリ/コンテナ等）。', isGeneric: false };
   }
   if (contains('レイヤー') || contains('layer')) {
-    return '共通コードや依存関係を切り出して再利用する単位。';
+    return { description: '共通コードや依存関係を切り出して再利用する単位。', isGeneric: false };
   }
   if (contains('エイリアス') || contains('alias')) {
-    return '参照用の別名。実体の切り替えや互換のために使われる。';
+    return { description: '参照用の別名。実体の切り替えや互換のために使われる。', isGeneric: false };
   }
   if (contains('ステートマシン') || contains('state machine')) {
-    return '状態遷移で処理フローを表現する仕組み（ワークフロー）。';
+    return { description: '状態遷移で処理フローを表現する仕組み（ワークフロー）。', isGeneric: false };
   }
   if (contains('アクティビティ') || contains('activity')) {
-    return 'ワークフロー等を構成する作業単位（手動/外部処理の受け皿など）。';
+    return { description: 'ワークフロー等を構成する作業単位（手動/外部処理の受け皿など）。', isGeneric: false };
   }
   if (contains('実行') || contains('execution') || contains('run')) {
-    return '処理を開始して動かした結果（実行そのもの、または実行履歴）。';
+    return { description: '処理を開始して動かした結果（実行そのもの、または実行履歴）。', isGeneric: false };
   }
   if (contains('API') || contains('api')) {
-    return 'システム間連携のためのインターフェースや仕様。';
+    return { description: 'システム間連携のためのインターフェースや仕様。', isGeneric: false };
   }
   if (contains('ステージ') || contains('stage')) {
-    return '環境/公開単位（開発・検証・本番など）や、そのための設定区分。';
+    return { description: '環境/公開単位（開発・検証・本番など）や、そのための設定区分。', isGeneric: false };
   }
   if (contains('統合') || contains('integration')) {
-    return '外部サービス等と接続して連携するための設定。';
+    return { description: '外部サービス等と接続して連携するための設定。', isGeneric: false };
   }
   if (contains('使用量プラン') || contains('usage plan')) {
-    return 'API等の利用量（クォータ/スロットリング）を管理するプラン。';
+    return { description: 'API等の利用量（クォータ/スロットリング）を管理するプラン。', isGeneric: false };
   }
   if (contains('イベントバス') || contains('event bus')) {
-    return 'イベントを受け渡すためのハブ（集約ポイント）。';
+    return { description: 'イベントを受け渡すためのハブ（集約ポイント）。', isGeneric: false };
   }
   if (contains('デッドレター') || contains('dead letter')) {
-    return '処理できなかったメッセージを退避する仕組み（DLQ）。';
+    return { description: '処理できなかったメッセージを退避する仕組み（DLQ）。', isGeneric: false };
   }
   if (contains('ストリーム') || contains('stream')) {
-    return '時系列に流れるデータ列（イベントやログなど）。';
+    return { description: '時系列に流れるデータ列（イベントやログなど）。', isGeneric: false };
   }
   if (contains('アドオン') || contains('add-on') || contains('addon')) {
-    return '既存機能に追加する拡張機能/オプション。';
+    return { description: '既存機能に追加する拡張機能/オプション。', isGeneric: false };
   }
   if (contains('コンピュート') || contains('compute')) {
-    return '計算資源（CPU/メモリ等）を提供する領域/サービス。';
+    return { description: '計算資源（CPU/メモリ等）を提供する領域/サービス。', isGeneric: false };
   }
   if (contains('テンプレート') || contains('template')) {
-    return '設定や構成のひな形。';
+    return { description: '設定や構成のひな形。', isGeneric: false };
   }
   if (contains('スタック') || contains('stack')) {
-    return 'まとめて作成/更新/削除するリソースの集合（IaC等の管理単位）。';
+    return { description: 'まとめて作成/更新/削除するリソースの集合（IaC等の管理単位）。', isGeneric: false };
   }
   if (contains('証跡') || contains('trail')) {
-    return '監査目的でAPI呼び出し等を記録する仕組み/記録単位。';
+    return { description: '監査目的でAPI呼び出し等を記録する仕組み/記録単位。', isGeneric: false };
   }
   if (contains('履歴') || contains('history')) {
-    return '過去の記録（イベント、実行、変更などの履歴）。';
+    return { description: '過去の記録（イベント、実行、変更などの履歴）。', isGeneric: false };
   }
   if (contains('レコーダー') || contains('recorder')) {
-    return '設定/状態を収集して記録するコンポーネント。';
+    return { description: '設定/状態を収集して記録するコンポーネント。', isGeneric: false };
   }
   if (contains('デリバリー') || contains('delivery')) {
-    return 'データや通知を配送（配信）するための経路/設定。';
+    return { description: 'データや通知を配送（配信）するための経路/設定。', isGeneric: false };
   }
   if (contains('ボールト') || contains('vault')) {
-    return '保管庫/格納単位（バックアップやアーカイブ等の保管先）。';
+    return { description: '保管庫/格納単位（バックアップやアーカイブ等の保管先）。', isGeneric: false };
   }
   if (contains('アーカイブ') || contains('archive')) {
-    return '低頻度アクセス向けの長期保管（アーカイブ）を指す。';
+    return { description: '低頻度アクセス向けの長期保管（アーカイブ）を指す。', isGeneric: false };
   }
   if (contains('ストア') || contains('store')) {
-    return 'データや設定を保存する格納場所（ストア）。';
+    return { description: 'データや設定を保存する格納場所（ストア）。', isGeneric: false };
   }
   if (contains('チャネル') || contains('channel')) {
-    return '配信/配送/通知などの経路（チャンネル）設定。';
+    return { description: '配信/配送/通知などの経路（チャンネル）設定。', isGeneric: false };
   }
   if (contains('エージェント') || contains('agent')) {
-    return '処理を実行したり接続を中継したりする常駐コンポーネント。';
+    return { description: '処理を実行したり接続を中継したりする常駐コンポーネント。', isGeneric: false };
   }
   if (contains('ロケーション') || contains('location')) {
-    return '接続先/配置場所の指定単位。';
+    return { description: '接続先/配置場所の指定単位。', isGeneric: false };
   }
   if (contains('サーバー') || contains('server')) {
-    return 'サービスを提供するホスト/接続先（またはその論理単位）。';
+    return { description: 'サービスを提供するホスト/接続先（またはその論理単位）。', isGeneric: false };
   }
   if (contains('ワークフロー') || contains('workflow')) {
-    return '複数ステップの処理手順を定義して実行する仕組み。';
+    return { description: '複数ステップの処理手順を定義して実行する仕組み。', isGeneric: false };
   }
   if (contains('レプリケーション') || contains('replication')) {
-    return 'データを複数箇所へ複製し可用性/性能を高める仕組み。';
+    return { description: 'データを複数箇所へ複製し可用性/性能を高める仕組み。', isGeneric: false };
   }
   if (contains('組織') || contains('organization') || contains('organisation')) {
-    return '複数アカウントを束ねる管理単位（ガバナンス/請求/ポリシー）。';
+    return { description: '複数アカウントを束ねる管理単位（ガバナンス/請求/ポリシー）。', isGeneric: false };
   }
   if (contains('ou') || contains('organizational unit')) {
-    return '組織内の階層単位（アカウントをグルーピングして管理）。';
+    return { description: '組織内の階層単位（アカウントをグルーピングして管理）。', isGeneric: false };
   }
   if (contains('アカウント') || contains('account')) {
-    return '利用主体の管理単位（課金/権限/リソースの境界）。';
+    return { description: '利用主体の管理単位（課金/権限/リソースの境界）。', isGeneric: false };
   }
   if (contains('一時認証情報') || contains('temporary credentials')) {
-    return '期限付きの認証情報（短時間だけ有効なキー/トークン）。';
+    return { description: '期限付きの認証情報（短時間だけ有効なキー/トークン）。', isGeneric: false };
   }
   if (contains('acl')) {
-    return 'アクセス制御リスト（許可/拒否を列挙する設定）。';
+    return { description: 'アクセス制御リスト（許可/拒否を列挙する設定）。', isGeneric: false };
   }
   if (contains('ディテクタ') || contains('detector')) {
-    return '検知ロジックの設定単位（不審イベント等を検出する）。';
+    return { description: '検知ロジックの設定単位（不審イベント等を検出する）。', isGeneric: false };
   }
   if (contains('検出結果') || contains('finding') || contains('findings')) {
-    return '検知/スキャンの結果として得られる指摘事項。';
+    return { description: '検知/スキャンの結果として得られる指摘事項。', isGeneric: false };
   }
   if (contains('標準') || contains('standard')) {
-    return '評価基準/ベストプラクティス等の標準セット。';
+    return { description: '評価基準/ベストプラクティス等の標準セット。', isGeneric: false };
   }
   if (contains('パラメータ') || contains('parameter')) {
-    return '動作に影響する設定値（パラメータ）。';
+    return { description: '動作に影響する設定値（パラメータ）。', isGeneric: false };
   }
   if (contains('ドキュメント') || contains('document')) {
-    return '手順や定義をまとめたドキュメント（自動化手順等の定義）。';
+    return { description: '手順や定義をまとめたドキュメント（自動化手順等の定義）。', isGeneric: false };
   }
   if (contains('メンテナンス') || contains('maintenance')) {
-    return '保守作業（更新、パッチ適用等）に関する設定/実行単位。';
+    return { description: '保守作業（更新、パッチ適用等）に関する設定/実行単位。', isGeneric: false };
   }
   if (contains('ウィンドウ') || contains('window')) {
-    return '作業や適用を行う時間帯（メンテナンスウィンドウ等）。';
+    return { description: '作業や適用を行う時間帯（メンテナンスウィンドウ等）。', isGeneric: false };
   }
   if (contains('パッチ') || contains('patch')) {
-    return 'ソフトウェアの更新差分（脆弱性修正など）。';
+    return { description: 'ソフトウェアの更新差分（脆弱性修正など）。', isGeneric: false };
   }
   if (contains('ベースライン') || contains('baseline')) {
-    return '基準となる設定/状態（準拠判定の基準）。';
+    return { description: '基準となる設定/状態（準拠判定の基準）。', isGeneric: false };
   }
   if (contains('ホスティング') || contains('hosting')) {
-    return 'コンテンツやアプリを公開・配信する機能（ホスティング）。';
+    return { description: 'コンテンツやアプリを公開・配信する機能（ホスティング）。', isGeneric: false };
   }
   if (contains('スコープ') || contains('scope')) {
-    return '適用範囲（どこまで有効か）を表す概念。';
+    return { description: '適用範囲（どこまで有効か）を表す概念。', isGeneric: false };
   }
   if (contains('名前空間') || contains('namespace')) {
-    return '名前の衝突を避けるための区画（論理的な名前の範囲）。';
+    return { description: '名前の衝突を避けるための区画（論理的な名前の範囲）。', isGeneric: false };
   }
   if (contains('データベース') || contains('database')) {
-    return 'データを永続化し検索できる基盤。';
+    return { description: 'データを永続化し検索できる基盤。', isGeneric: false };
   }
   if (contains('バケット') || contains('bucket')) {
-    return 'オブジェクトストレージの格納単位（コンテナ）。';
+    return { description: 'オブジェクトストレージの格納単位（コンテナ）。', isGeneric: false };
   }
   if (contains('オブジェクト') || contains('object')) {
-    return 'オブジェクトストレージに格納されるデータ（ファイル）とメタデータ。';
-  }
-
-  const display = normalizeWhitespace(term);
-  if (!provider) {
-    return `一般的な用語。「${display}」はコンソール上のリソース名/設定項目として使われる。`;
+    return { description: 'オブジェクトストレージに格納されるデータ（ファイル）とメタデータ。', isGeneric: false };
   }
 
   const providerHint: Record<ConsoleProviderId, string> = {
@@ -381,7 +378,17 @@ function fallbackConsoleTermDescription(term: string, provider: ConsoleProviderI
     cloudflare: 'Cloudflare',
   };
 
-  return `${providerHint[provider]}の用語。「${display}」はコンソール上のリソース名/設定項目として使われる。`;
+  if (!provider) {
+    return {
+      description: 'コンソール用語。画面上の項目名（リソース/設定/操作など）で、意味は関連するサービス/機能によって異なる。',
+      isGeneric: true,
+    };
+  }
+
+  return {
+    description: `${providerHint[provider]}コンソール用語。画面上の項目名（リソース/設定/操作など）で、意味は関連するサービス/機能によって異なる。`,
+    isGeneric: true,
+  };
 }
 
 function resolveConsoleTermDefinition(term: string, provider: ConsoleProviderId): ConsoleGlossaryDefinition {
@@ -389,7 +396,8 @@ function resolveConsoleTermDefinition(term: string, provider: ConsoleProviderId)
   if (found) {
     return found;
   }
-  return { term, description: fallbackConsoleTermDescription(term, provider) };
+  const fallback = fallbackConsoleTermDescription(term, provider);
+  return { term, description: fallback.description };
 }
 
 function movedConsoleTermFallbackCategory(destination: GlossaryId): string {
@@ -416,13 +424,12 @@ function resolveConsoleTermDefinitionForMoved(term: string, destination: Glossar
   }
 
   const fallback = fallbackConsoleTermDescription(term, null);
-  if (!fallback.startsWith('一般的な用語。')) {
-    return { term, description: fallback };
+  if (!fallback.isGeneric) {
+    return { term, description: fallback.description };
   }
 
-  const display = normalizeWhitespace(term);
   const category = movedConsoleTermFallbackCategory(destination);
-  return { term, description: `${category}の用語。「${display}」はコンソール上のリソース名/設定項目として使われる。` };
+  return { term, description: `${category}の用語（コンソール表記）。画面上の項目名（リソース/設定/操作など）で、意味は文脈によって異なる。` };
 }
 
 function mergeStringArrays(

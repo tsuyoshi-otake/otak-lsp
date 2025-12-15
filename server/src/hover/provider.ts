@@ -34,6 +34,10 @@ export class HoverProvider {
   // Wikipedia検索をスキップする品詞
   private static readonly SKIP_WIKIPEDIA_POS = ['助詞', '助動詞', '記号', '接続詞'];
 
+  // C++ / C# / Node.js など「英数字+記号」の用語抽出用
+  private static readonly TECH_TERM_CHAR_REGEX = /[A-Za-z0-9+#.\-_]/;
+  private static readonly TECH_TERM_HAS_ALNUM_REGEX = /[A-Za-z0-9]/;
+
   constructor(wikipediaClient: WikipediaClient) {
     this.wikipediaClient = wikipediaClient;
   }
@@ -151,14 +155,32 @@ export class HoverProvider {
    */
   async provideHover(tokens: Token[], position: number, documentText?: string): Promise<HoverResult | null> {
     const token = this.getTokenAtPosition(tokens, position);
+    const techTerm = documentText ? this.extractTechTermAtPosition(documentText, position) : null;
     let contents = '';
+
+    const shouldShowTechTerm = !!(
+      techTerm
+      && (!token || token.pos === '記号' || techTerm.term.length > (token.end - token.start))
+    );
+    if (shouldShowTechTerm) {
+      contents = `**用語**: ${techTerm!.term}`;
+    }
+
     if (token) {
-      contents = this.formatMorphemeInfo(token);
+      const morphemeInfo = this.formatMorphemeInfo(token);
+      if (contents.length > 0) {
+        if (token.pos !== '記号') {
+          contents += '\n\n---\n\n' + morphemeInfo;
+        }
+      } else {
+        contents = morphemeInfo;
+      }
     }
 
     // Wikipedia検索（有効かつ対象品詞の場合）
-    if (token && this.wikipediaEnabled && this.shouldFetchWikipedia(token)) {
-      const summary = await this.fetchWikipediaSummary(token);
+    if (this.wikipediaEnabled) {
+      const search = this.getWikipediaSearch(token, techTerm);
+      const summary = search ? await this.wikipediaClient.getSummary(search.term) : null;
       if (summary) {
         contents += '\n\n---\n\n**Wikipedia**:\n\n' + summary;
       }
@@ -211,26 +233,39 @@ export class HoverProvider {
       return null;
     }
 
-    let rangeStart = token?.start ?? glossaryRange?.start;
-    let rangeEnd = token?.end ?? glossaryRange?.end;
-    if (glossaryRange && token) {
-      const tokenLen = token.end - token.start;
-      const glossaryLen = glossaryRange.end - glossaryRange.start;
-      if (glossaryLen > tokenLen) {
-        rangeStart = glossaryRange.start;
-        rangeEnd = glossaryRange.end;
+    const candidates: Array<{ start: number; end: number }> = [];
+    if (token) {
+      candidates.push({ start: token.start, end: token.end });
+    }
+    if (glossaryRange) {
+      candidates.push({ start: glossaryRange.start, end: glossaryRange.end });
+    }
+    if (techTerm) {
+      candidates.push({ start: techTerm.start, end: techTerm.end });
+    }
+
+    let selectedRange = candidates[0] ?? null;
+    for (const c of candidates) {
+      if (!selectedRange) {
+        selectedRange = c;
+        continue;
+      }
+      const currentLen = selectedRange.end - selectedRange.start;
+      const nextLen = c.end - c.start;
+      if (nextLen > currentLen) {
+        selectedRange = c;
       }
     }
 
-    if (rangeStart === undefined || rangeEnd === undefined) {
+    if (!selectedRange) {
       return null;
     }
 
     return {
       contents,
       range: {
-        start: rangeStart,
-        end: rangeEnd
+        start: selectedRange.start,
+        end: selectedRange.end
       }
     };
   }
@@ -243,14 +278,77 @@ export class HoverProvider {
   }
 
   /**
-   * Wikipediaサマリーを取得
+   * Wikipedia検索用の用語（と範囲）を決定
    */
-  private async fetchWikipediaSummary(token: Token): Promise<string | null> {
-    // 原形があれば原形で検索、なければ表層形で検索
-    const searchTerm = (token.baseForm && token.baseForm !== '*')
-      ? token.baseForm
-      : token.surface;
+  private getWikipediaSearch(
+    token: Token | null,
+    techTerm: { term: string; start: number; end: number } | null
+  ): { term: string; start: number; end: number } | null {
+    if (techTerm) {
+      if (!token) {
+        return techTerm;
+      }
+      if (!this.shouldFetchWikipedia(token)) {
+        return techTerm;
+      }
+      const tokenSurface = token.surface ?? '';
+      if (techTerm.term.length > tokenSurface.length) {
+        return techTerm;
+      }
+    }
 
-    return this.wikipediaClient.getSummary(searchTerm);
+    if (!token || !this.shouldFetchWikipedia(token)) {
+      return null;
+    }
+
+    const searchTerm = (token.baseForm && token.baseForm !== '*') ? token.baseForm : token.surface;
+    return { term: searchTerm, start: token.start, end: token.end };
+  }
+
+  /**
+   * ドキュメント中の指定位置から「英数字+記号」の用語を抽出（例: C++, C#, Node.js）
+   */
+  private extractTechTermAtPosition(text: string, position: number): { term: string; start: number; end: number } | null {
+    if (!text || position < 0) {
+      return null;
+    }
+
+    let index = position;
+    if (index >= text.length) {
+      index = text.length - 1;
+    }
+    if (index < 0) {
+      return null;
+    }
+
+    const isAllowed = (ch: string): boolean => HoverProvider.TECH_TERM_CHAR_REGEX.test(ch);
+
+    if (!isAllowed(text[index]) && index > 0 && isAllowed(text[index - 1])) {
+      index -= 1;
+    }
+
+    if (!isAllowed(text[index])) {
+      return null;
+    }
+
+    let start = index;
+    while (start > 0 && isAllowed(text[start - 1])) {
+      start -= 1;
+    }
+
+    let end = index + 1;
+    while (end < text.length && isAllowed(text[end])) {
+      end += 1;
+    }
+
+    const term = text.slice(start, end);
+    if (term.length < 2 || term.length > 80) {
+      return null;
+    }
+    if (!HoverProvider.TECH_TERM_HAS_ALNUM_REGEX.test(term)) {
+      return null;
+    }
+
+    return { term, start, end };
   }
 }

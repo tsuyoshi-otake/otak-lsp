@@ -28,7 +28,11 @@ function parseArgs(argv: string[]): Options {
 function isFallbackDescription(description: string): boolean {
   const d = description.trim();
   if (d.startsWith('一般的な用語。')) return true;
-  if (d.includes('の用語。「') && d.includes('」はコンソール上のリソース名/設定項目として使われる。')) return true;
+  if (d.startsWith('AWSコンソール用語。')) return true;
+  if (d.startsWith('Azureコンソール用語。')) return true;
+  if (d.startsWith('OCIコンソール用語。')) return true;
+  if (d.startsWith('Cloudflareコンソール用語。')) return true;
+  if (d.includes('用語（コンソール表記）。')) return true;
   return false;
 }
 
@@ -98,4 +102,3 @@ main().catch((error) => {
   console.error(error);
   process.exit(1);
 });
-

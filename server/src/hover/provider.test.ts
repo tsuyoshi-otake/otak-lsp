@@ -251,6 +251,59 @@ describe('Hover Provider', () => {
       );
     });
 
+    it('should treat technical term with symbols as one word for Wikipedia lookup (e.g., C++)', async () => {
+      const text = 'C++';
+      const tokens = [
+        createToken('C', 0, 1, '名詞', 'C', 'C'),
+        createToken('++', 1, 3, '記号', '++', '++')
+      ];
+
+      const mockFetch = jest.fn().mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve({
+          extract: 'C++は汎用プログラミング言語である。'
+        })
+      });
+      mockWikipediaClient.setFetch(mockFetch);
+
+      const result = await provider.provideHover(tokens, 2, text);
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.stringContaining('C%2B%2B'),
+        expect.any(Object)
+      );
+      expect(result).not.toBeNull();
+      expect(result?.contents).toContain('**用語**: C++');
+      expect(result?.contents).toContain('C++は汎用プログラミング言語である。');
+      expect(result?.range).toEqual({ start: 0, end: 3 });
+    });
+
+    it('should prefer extracted technical term over shorter token for Wikipedia lookup (e.g., C -> C++)', async () => {
+      const text = 'C++';
+      const tokens = [
+        createToken('C', 0, 1, '名詞', 'C', 'C'),
+        createToken('++', 1, 3, '記号', '++', '++')
+      ];
+
+      const mockFetch = jest.fn().mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve({
+          extract: 'C++サマリー'
+        })
+      });
+      mockWikipediaClient.setFetch(mockFetch);
+
+      const result = await provider.provideHover(tokens, 0, text);
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.stringContaining('C%2B%2B'),
+        expect.any(Object)
+      );
+      expect(result).not.toBeNull();
+      expect(result?.contents).toContain('**用語**: C++');
+      expect(result?.range).toEqual({ start: 0, end: 3 });
+    });
+
     it('should prefer longest glossary phrase match around position', async () => {
       provider.setWikipediaEnabled(false);
 

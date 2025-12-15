@@ -309,40 +309,40 @@
 
 `otakLcp.hover.enabledGlossaries` で表示するカテゴリを選べます。
 
-| ID | 名称 |
-|---|---|
-| `it` | IT用語図鑑 |
-| `otakLcpSettings` | otak-lcp設定用語図鑑 |
-| `cloud` | クラウド用語図鑑 |
-| `backend` | バックエンド用語図鑑 |
-| `frontend` | フロントエンド用語図鑑 |
-| `ddd` | DDD用語図鑑 |
-| `tdd` | TDD用語図鑑 |
-| `pmbok` | PMBOK用語図鑑 |
-| `java` | Java用語図鑑 |
-| `nextjs` | Next.js用語図鑑 |
-| `dotnet` | .NET用語図鑑 |
-| `security` | セキュリティ用語図鑑 |
-| `networkHttp` | ネットワーク・HTTP用語図鑑 |
-| `authIam` | 認証認可・IAM用語図鑑 |
-| `dbSqlTx` | DB・SQL・トランザクション用語図鑑 |
-| `apiDesign` | API設計用語図鑑 |
-| `devopsCicd` | DevOps・CI/CD・リリース用語図鑑 |
-| `containersK8s` | コンテナ・Kubernetes用語図鑑 |
-| `observabilitySre` | 監視・Observability・SRE用語図鑑 |
-| `distributedSystems` | 分散システム用語図鑑 |
-| `messagingEda` | メッセージング・イベント駆動用語図鑑 |
-| `performanceCache` | パフォーマンス・キャッシュ用語図鑑 |
-| `architecturePatterns` | 設計パターン・アーキテクチャ用語図鑑 |
-| `agileProduct` | アジャイル・Scrum・プロダクト用語図鑑 |
-| `aiLlm` | AI/LLM用語図鑑 |
-| `contractLegal` | 契約・法務（準委任・請負・SLA等）用語図鑑 |
-| `iotEmbedded` | IoT・組み込み用語図鑑 |
-| `awsServices` | AWSサービス用語図鑑 |
-| `azureServices` | Azureサービス用語図鑑 |
-| `gcpServices` | GCPサービス用語図鑑 |
-| `ociServices` | OCIサービス用語図鑑 |
-| `cloudflareServices` | Cloudflareサービス用語図鑑 |
+| ID | 名称 | 説明 |
+|---|---|---|
+| `it` | IT用語図鑑 | 開発・運用の基本IT用語（ツール/プロトコル/手法など）。 |
+| `otakLcpSettings` | otak-lcp設定用語図鑑 | 拡張機能の設定キー/挙動に関する用語。 |
+| `cloud` | クラウド用語図鑑 | クラウド全般の概念（IaaS/PaaS、リージョン/AZ、ネットワーク等）。 |
+| `backend` | バックエンド用語図鑑 | サーバ/API/バッチ/分散処理などバックエンド実装の用語。 |
+| `frontend` | フロントエンド用語図鑑 | ブラウザ/DOM/CSS/ビルドなどフロントエンド実装の用語。 |
+| `ddd` | DDD用語図鑑 | ドメイン駆動設計（ユビキタス言語、境界づけられたコンテキスト等）。 |
+| `tdd` | TDD用語図鑑 | テスト手法（TDD、モック、テストピラミッド等）。 |
+| `pmbok` | PMBOK用語図鑑 | プロジェクト管理（スコープ/品質/リスク/調達など）。 |
+| `java` | Java用語図鑑 | Java言語/エコシステム（JVM、Spring等）の用語。 |
+| `nextjs` | Next.js用語図鑑 | Next.js固有の概念（ルーティング、RSC等）の用語。 |
+| `dotnet` | .NET用語図鑑 | .NET/ASP.NET/CLRなど .NET エコシステムの用語。 |
+| `security` | セキュリティ用語図鑑 | 脅威/対策の基本（暗号、脆弱性、攻撃手法など）。 |
+| `networkHttp` | ネットワーク・HTTP用語図鑑 | ネットワーク/HTTPの基礎（DNS、TLS、ヘッダ等）。 |
+| `authIam` | 認証認可・IAM用語図鑑 | 認証/認可/IAM（SSO、OIDC、ロール等）の用語。 |
+| `dbSqlTx` | DB・SQL・トランザクション用語図鑑 | DB/SQL/トランザクション/インデックス等の用語。 |
+| `apiDesign` | API設計用語図鑑 | API設計の用語（REST、エラーハンドリング、バージョニング等）。 |
+| `devopsCicd` | DevOps・CI/CD・リリース用語図鑑 | CI/CD、リリース、運用改善（DevOps）の用語。 |
+| `containersK8s` | コンテナ・Kubernetes用語図鑑 | コンテナとKubernetes（Pod、Service、Ingress等）の用語。 |
+| `observabilitySre` | 監視・Observability・SRE用語図鑑 | 監視/ログ/トレースとSRE（SLI/SLO等）の用語。 |
+| `distributedSystems` | 分散システム用語図鑑 | 分散システムの基礎（整合性、レプリケーション等）の用語。 |
+| `messagingEda` | メッセージング・イベント駆動用語図鑑 | キュー/ストリーム等のメッセージングとEDAの用語。 |
+| `performanceCache` | パフォーマンス・キャッシュ用語図鑑 | 性能/キャッシュ（レイテンシ、スループット等）の用語。 |
+| `architecturePatterns` | 設計パターン・アーキテクチャ用語図鑑 | 設計パターン/アーキテクチャ（レイヤード、CQRS等）の用語。 |
+| `agileProduct` | アジャイル・Scrum・プロダクト用語図鑑 | アジャイル/Scrum/プロダクト開発（Backlog等）の用語。 |
+| `aiLlm` | AI/LLM用語図鑑 | AI/LLMの基礎用語（プロンプト、埋め込み等）。 |
+| `contractLegal` | 契約・法務（準委任・請負・SLA等）用語図鑑 | 開発委託/契約・法務（SLA、責任分界等）の用語。 |
+| `iotEmbedded` | IoT・組み込み用語図鑑 | IoT/組み込み（センサ、通信、MCU等）の用語。 |
+| `awsServices` | AWSサービス用語図鑑 | AWSのサービス名と代表的なコンソール用語（リソース/設定項目等）。 |
+| `azureServices` | Azureサービス用語図鑑 | Azureのサービス名と代表的なコンソール用語（リソース/設定項目等）。 |
+| `gcpServices` | GCPサービス用語図鑑 | GCPのサービス名と代表的なコンソール用語（リソース/設定項目等）。 |
+| `ociServices` | OCIサービス用語図鑑 | OCIのサービス名と代表的なコンソール用語（リソース/設定項目等）。 |
+| `cloudflareServices` | Cloudflareサービス用語図鑑 | Cloudflareの機能名とコンソール用語（画面項目/設定等）。 |
 
 ### 対応ファイル形式
 
