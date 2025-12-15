@@ -4,6 +4,16 @@
  */
 
 import { GlossaryId, Token } from '../../../shared/src/types';
+import { TERM_NOTATION_DICTIONARIES, TermNotationDictionaryId } from '../dictionaries/termNotationDictionary';
+import { AWS_CONSOLE_GLOSSARY, AZURE_CONSOLE_GLOSSARY, CLOUDFLARE_CONSOLE_GLOSSARY, OCI_CONSOLE_GLOSSARY } from './consoleGlossaryData';
+import { CONSOLE_TERM_DEFINITIONS, ConsoleGlossaryDefinition } from './consoleGlossaryDefinitions';
+
+const PHRASE_REGEX = /[A-Za-z][A-Za-z0-9.+#/_:-]*(?:\s+[A-Za-z][A-Za-z0-9.+#/_:-]*){0,5}/g;
+const WORD_REGEX = /[A-Za-z0-9.+#/_:-]+/g;
+const ASCII_TERM_CHAR_RE = /[A-Za-z0-9.+#/_:-]/;
+const CJK_TERM_CHAR_RE = /[ぁ-ゔァ-ヶー一-\u9FAF々・]/;
+const MIXED_ASCII_TERM_CHAR_RE = /[A-Za-z0-9.+#/_:@-]/;
+const MIXED_CJK_TERM_CHAR_RE = /[\p{Script=Katakana}\p{Script=Han}々ー・]/u;
 
 export interface GlossaryHit {
   id: GlossaryId;
@@ -37,7 +47,1044 @@ interface GlossaryDefinition {
   entries: ReadonlyArray<GlossaryEntry>;
 }
 
-const GLOSSARIES: ReadonlyArray<GlossaryDefinition> = [
+type ConsoleProviderId = 'aws' | 'azure' | 'oci' | 'cloudflare';
+
+function normalizeWhitespace(value: string): string {
+  return value.normalize('NFKC').replace(/\s+/g, ' ').trim();
+}
+
+const CONSOLE_TERM_DEFINITION_INDEX: ReadonlyMap<string, ConsoleGlossaryDefinition> = (() => {
+  const index = new Map<string, ConsoleGlossaryDefinition>();
+
+  const register = (definition: ConsoleGlossaryDefinition, candidate: string): void => {
+    const key = normalizeKey(candidate);
+    if (!key) {
+      return;
+    }
+    // 先勝ち（後から上書きしない）
+    if (!index.has(key)) {
+      index.set(key, definition);
+    }
+  };
+
+  for (const definition of CONSOLE_TERM_DEFINITIONS) {
+    register(definition, definition.term);
+    for (const v of definition.aliases ?? []) {
+      register(definition, v);
+    }
+    for (const v of definition.synonyms ?? []) {
+      register(definition, v);
+    }
+  }
+
+  return index;
+})();
+
+function fallbackConsoleTermDescription(term: string, provider: ConsoleProviderId): string {
+  const key = normalizeKey(term);
+
+  const contains = (needle: string): boolean => key.includes(normalizeKey(needle));
+  const endsWith = (suffix: string): boolean => key.endsWith(normalizeKey(suffix));
+
+  if (endsWith('ポリシー') || endsWith('policy')) {
+    return '許可/禁止や動作条件を定義するルールの集合。';
+  }
+  if (endsWith('ルール') || endsWith('rule')) {
+    return '条件とアクションを定義して挙動を制御する設定。';
+  }
+  if (endsWith('グループ') || endsWith('group')) {
+    return '関連する対象をまとめて扱うための単位。';
+  }
+  if (endsWith('クラスター') || endsWith('cluster')) {
+    return '複数ノードを1つのまとまりとして運用する単位。';
+  }
+  if (endsWith('ワークスペース') || endsWith('workspace')) {
+    return '設定・メンバー・データなどをまとめる作業単位。';
+  }
+  if (endsWith('プロジェクト') || endsWith('project')) {
+    return '設定や作業対象をまとめる論理単位。';
+  }
+  if (endsWith('ジョブ') || endsWith('job')) {
+    return '実行単位（バッチ、ビルド、学習などのまとまり）。';
+  }
+  if (endsWith('タスク') || endsWith('task')) {
+    return 'ジョブを構成する個々の処理、または実行単位。';
+  }
+  if (endsWith('パイプライン') || endsWith('pipeline')) {
+    return '処理を段階的に実行する一連の流れ。';
+  }
+  if (endsWith('キュー') || endsWith('queue')) {
+    return '非同期処理のためにメッセージやジョブを蓄える待ち行列。';
+  }
+  if (endsWith('トリガー') || endsWith('trigger')) {
+    return '処理の起動条件（イベント、スケジュール等）。';
+  }
+  if (contains('インスタンス') || contains('instance')) {
+    return 'サービス上の実体（実行単位）。文脈によりVM/DB/アプリ等を指す。';
+  }
+  if (contains('エンドポイント') || contains('endpoint')) {
+    return 'サービスや機能へ接続するための接続先（URL、DNS名、IPなど）。';
+  }
+  if (contains('ゲートウェイ') || contains('gateway')) {
+    return 'ネットワーク境界で中継・接続を行うコンポーネント。';
+  }
+  if (contains('リスナー') || contains('listener')) {
+    return '受信設定。ポート/プロトコルなどの受け口を定義する。';
+  }
+  if (contains('ターゲット') || contains('target')) {
+    return 'ルール/ルーティングの対象や転送先（宛先）を指す。';
+  }
+  if (contains('スナップショット') || contains('snapshot')) {
+    return 'ある時点の状態を保存したもの（復元や複製に利用）。';
+  }
+  if (contains('バックアップ') || contains('backup')) {
+    return '障害や誤操作に備えた復旧用コピー。';
+  }
+  if (contains('リカバリーポイント') || contains('recovery point')) {
+    return 'バックアップ/保護の復元可能な世代（復旧点）。';
+  }
+  if (contains('ボリューム') || contains('volume') || contains('ディスク') || contains('disk')) {
+    return 'ブロックストレージ（ディスク）。インスタンス等にアタッチして利用する。';
+  }
+  if (contains('ファイルシステム') || contains('file system') || contains('filesystem')) {
+    return 'ディレクトリ階層で共有/利用するファイルストレージの単位。';
+  }
+  if (contains('アクセスポイント') || contains('access point') || contains('accesspoint')) {
+    return 'アクセスの入口となる論理リソース（権限/経路/設定の単位）。';
+  }
+  if (contains('ログ') || contains('log')) {
+    return 'システムの出来事を時系列に記録したデータ。';
+  }
+  if (contains('メトリクス') || contains('metrics')) {
+    return '監視対象の数値指標（CPU、レイテンシ、エラー率など）。';
+  }
+  if (contains('ダッシュボード') || contains('dashboard')) {
+    return '指標や状況を可視化する画面。';
+  }
+  if (contains('アラート') || contains('alert')) {
+    return '異常や条件成立を知らせる通知/イベント。';
+  }
+  if (contains('証明書') || contains('certificate')) {
+    return 'TLS等で用いる証明書（公開鍵証明書）。';
+  }
+  if (contains('ヘルスチェック') || contains('health check')) {
+    return '対象の稼働状態を確認する仕組み（疎通/応答などの監視）。';
+  }
+  if (contains('ロードバランサ') || contains('load balancer') || contains('load balancing')) {
+    return '複数の転送先へリクエストを分散する仕組み（負荷分散）。';
+  }
+  if (contains('ディストリビューション') || contains('distribution')) {
+    return '配信設定の単位（CDN等で配信元/キャッシュ/ルールを束ねる）。';
+  }
+  if (contains('オリジン') || contains('origin')) {
+    return 'CDN等でコンテンツ取得元となるバックエンド（配信元）。';
+  }
+  if (contains('ビヘイビア') || contains('behavior') || contains('behaviour')) {
+    return 'パス条件などに応じた動作設定（キャッシュ/転送/ヘッダ等）。';
+  }
+  if (contains('シークレット') || contains('secret')) {
+    return 'APIキー等の機密情報。安全な保管と参照制御が重要。';
+  }
+  if (contains('ローテーション') || contains('rotation')) {
+    return 'シークレット等を定期的に更新（入れ替え）する仕組み。';
+  }
+  if (contains('グラント') || contains('grant')) {
+    return '権限の付与/委任を表す概念（暗号鍵の利用権付与など）。';
+  }
+  if (contains('セッション') || contains('session')) {
+    return '一定期間の接続/認証状態、またはその識別子。';
+  }
+  if (contains('キー') || contains('key')) {
+    return '識別子や秘密情報（暗号鍵/アクセストークン等）を指すことが多い。';
+  }
+  if (contains('タグ') || contains('tag')) {
+    return 'リソースに付与するキー/値のメタデータ（整理、課金集計、制御等）。';
+  }
+  if (contains('クエリ') || contains('query')) {
+    return 'データ検索・集計の問い合わせ（問い合わせ文）。';
+  }
+  if (contains('フィルタ') || contains('filter')) {
+    return '条件で対象を絞り込む仕組み。';
+  }
+  if (contains('インデックス') || contains('index')) {
+    return '検索を高速化するための補助データ構造、または検索対象の集合（文脈依存）。';
+  }
+  if (contains('マッピング') || contains('mapping')) {
+    return '対応関係を定義する設定（例: イベント→処理、属性→値など）。';
+  }
+  if (contains('定義') || contains('definition')) {
+    return 'ルールや仕様、構成などの定義情報（ひな形/設定）。';
+  }
+  if (contains('リポジトリ') || contains('repository') || contains('repo')) {
+    return '成果物やソース、イメージ等を保管・配布する格納庫。';
+  }
+  if (contains('イメージ') || contains('image')) {
+    return '起動元/配布用のひな形（OS/アプリ/コンテナ等）。';
+  }
+  if (contains('レイヤー') || contains('layer')) {
+    return '共通コードや依存関係を切り出して再利用する単位。';
+  }
+  if (contains('エイリアス') || contains('alias')) {
+    return '参照用の別名。実体の切り替えや互換のために使われる。';
+  }
+  if (contains('ステートマシン') || contains('state machine')) {
+    return '状態遷移で処理フローを表現する仕組み（ワークフロー）。';
+  }
+  if (contains('アクティビティ') || contains('activity')) {
+    return 'ワークフロー等を構成する作業単位（手動/外部処理の受け皿など）。';
+  }
+  if (contains('実行') || contains('execution') || contains('run')) {
+    return '処理を開始して動かした結果（実行そのもの、または実行履歴）。';
+  }
+  if (contains('API') || contains('api')) {
+    return 'システム間連携のためのインターフェースや仕様。';
+  }
+  if (contains('ステージ') || contains('stage')) {
+    return '環境/公開単位（開発・検証・本番など）や、そのための設定区分。';
+  }
+  if (contains('統合') || contains('integration')) {
+    return '外部サービス等と接続して連携するための設定。';
+  }
+  if (contains('使用量プラン') || contains('usage plan')) {
+    return 'API等の利用量（クォータ/スロットリング）を管理するプラン。';
+  }
+  if (contains('イベントバス') || contains('event bus')) {
+    return 'イベントを受け渡すためのハブ（集約ポイント）。';
+  }
+  if (contains('デッドレター') || contains('dead letter')) {
+    return '処理できなかったメッセージを退避する仕組み（DLQ）。';
+  }
+  if (contains('ストリーム') || contains('stream')) {
+    return '時系列に流れるデータ列（イベントやログなど）。';
+  }
+  if (contains('アドオン') || contains('add-on') || contains('addon')) {
+    return '既存機能に追加する拡張機能/オプション。';
+  }
+  if (contains('コンピュート') || contains('compute')) {
+    return '計算資源（CPU/メモリ等）を提供する領域/サービス。';
+  }
+  if (contains('テンプレート') || contains('template')) {
+    return '設定や構成のひな形。';
+  }
+  if (contains('スタック') || contains('stack')) {
+    return 'まとめて作成/更新/削除するリソースの集合（IaC等の管理単位）。';
+  }
+  if (contains('証跡') || contains('trail')) {
+    return '監査目的でAPI呼び出し等を記録する仕組み/記録単位。';
+  }
+  if (contains('履歴') || contains('history')) {
+    return '過去の記録（イベント、実行、変更などの履歴）。';
+  }
+  if (contains('レコーダー') || contains('recorder')) {
+    return '設定/状態を収集して記録するコンポーネント。';
+  }
+  if (contains('デリバリー') || contains('delivery')) {
+    return 'データや通知を配送（配信）するための経路/設定。';
+  }
+  if (contains('ボールト') || contains('vault')) {
+    return '保管庫/格納単位（バックアップやアーカイブ等の保管先）。';
+  }
+  if (contains('アーカイブ') || contains('archive')) {
+    return '低頻度アクセス向けの長期保管（アーカイブ）を指す。';
+  }
+  if (contains('ストア') || contains('store')) {
+    return 'データや設定を保存する格納場所（ストア）。';
+  }
+  if (contains('チャネル') || contains('channel')) {
+    return '配信/配送/通知などの経路（チャンネル）設定。';
+  }
+  if (contains('エージェント') || contains('agent')) {
+    return '処理を実行したり接続を中継したりする常駐コンポーネント。';
+  }
+  if (contains('ロケーション') || contains('location')) {
+    return '接続先/配置場所の指定単位。';
+  }
+  if (contains('サーバー') || contains('server')) {
+    return 'サービスを提供するホスト/接続先（またはその論理単位）。';
+  }
+  if (contains('ワークフロー') || contains('workflow')) {
+    return '複数ステップの処理手順を定義して実行する仕組み。';
+  }
+  if (contains('レプリケーション') || contains('replication')) {
+    return 'データを複数箇所へ複製し可用性/性能を高める仕組み。';
+  }
+  if (contains('組織') || contains('organization') || contains('organisation')) {
+    return '複数アカウントを束ねる管理単位（ガバナンス/請求/ポリシー）。';
+  }
+  if (contains('ou') || contains('organizational unit')) {
+    return '組織内の階層単位（アカウントをグルーピングして管理）。';
+  }
+  if (contains('アカウント') || contains('account')) {
+    return '利用主体の管理単位（課金/権限/リソースの境界）。';
+  }
+  if (contains('一時認証情報') || contains('temporary credentials')) {
+    return '期限付きの認証情報（短時間だけ有効なキー/トークン）。';
+  }
+  if (contains('acl')) {
+    return 'アクセス制御リスト（許可/拒否を列挙する設定）。';
+  }
+  if (contains('ディテクタ') || contains('detector')) {
+    return '検知ロジックの設定単位（不審イベント等を検出する）。';
+  }
+  if (contains('検出結果') || contains('finding') || contains('findings')) {
+    return '検知/スキャンの結果として得られる指摘事項。';
+  }
+  if (contains('標準') || contains('standard')) {
+    return '評価基準/ベストプラクティス等の標準セット。';
+  }
+  if (contains('パラメータ') || contains('parameter')) {
+    return '動作に影響する設定値（パラメータ）。';
+  }
+  if (contains('ドキュメント') || contains('document')) {
+    return '手順や定義をまとめたドキュメント（自動化手順等の定義）。';
+  }
+  if (contains('メンテナンス') || contains('maintenance')) {
+    return '保守作業（更新、パッチ適用等）に関する設定/実行単位。';
+  }
+  if (contains('ウィンドウ') || contains('window')) {
+    return '作業や適用を行う時間帯（メンテナンスウィンドウ等）。';
+  }
+  if (contains('パッチ') || contains('patch')) {
+    return 'ソフトウェアの更新差分（脆弱性修正など）。';
+  }
+  if (contains('ベースライン') || contains('baseline')) {
+    return '基準となる設定/状態（準拠判定の基準）。';
+  }
+  if (contains('ホスティング') || contains('hosting')) {
+    return 'コンテンツやアプリを公開・配信する機能（ホスティング）。';
+  }
+  if (contains('スコープ') || contains('scope')) {
+    return '適用範囲（どこまで有効か）を表す概念。';
+  }
+  if (contains('名前空間') || contains('namespace')) {
+    return '名前の衝突を避けるための区画（論理的な名前の範囲）。';
+  }
+  if (contains('データベース') || contains('database')) {
+    return 'データを永続化し検索できる基盤。';
+  }
+  if (contains('バケット') || contains('bucket')) {
+    return 'オブジェクトストレージの格納単位（コンテナ）。';
+  }
+  if (contains('オブジェクト') || contains('object')) {
+    return 'オブジェクトストレージに格納されるデータ（ファイル）とメタデータ。';
+  }
+
+  const providerHint: Record<ConsoleProviderId, string> = {
+    aws: 'AWS',
+    azure: 'Azure',
+    oci: 'OCI',
+    cloudflare: 'Cloudflare',
+  };
+
+  const display = normalizeWhitespace(term);
+  return `${providerHint[provider]}の用語。「${display}」はコンソール上のリソース名/設定項目として使われる。`;
+}
+
+function resolveConsoleTermDefinition(term: string, provider: ConsoleProviderId): ConsoleGlossaryDefinition {
+  const found = CONSOLE_TERM_DEFINITION_INDEX.get(normalizeKey(term));
+  if (found) {
+    return found;
+  }
+  return { term, description: fallbackConsoleTermDescription(term, provider) };
+}
+
+function mergeStringArrays(
+  base: ReadonlyArray<string> | undefined,
+  extra: ReadonlyArray<string> | undefined,
+  term: string
+): string[] | undefined {
+  const a = base ?? [];
+  const b = extra ?? [];
+  if (a.length === 0 && b.length === 0) {
+    return undefined;
+  }
+
+  const termKey = normalizeKey(term);
+  const seen = new Set<string>();
+  const merged: string[] = [];
+
+  for (const v of [...a, ...b]) {
+    const normalized = normalizeKey(v);
+    if (!normalized || normalized === termKey || seen.has(normalized)) {
+      continue;
+    }
+    seen.add(normalized);
+    merged.push(v);
+  }
+
+  return merged.length > 0 ? merged : undefined;
+}
+
+function mergeGlossaryEntries(existing: ReadonlyArray<GlossaryEntry>, additions: ReadonlyArray<GlossaryEntry>): GlossaryEntry[] {
+  const byKey = new Map<string, GlossaryEntry>();
+  const order: string[] = [];
+
+  const put = (entry: GlossaryEntry): void => {
+    const key = normalizeKey(entry.term);
+    if (!key) {
+      return;
+    }
+
+    const current = byKey.get(key);
+    if (!current) {
+      byKey.set(key, { ...entry });
+      order.push(key);
+      return;
+    }
+
+    byKey.set(key, {
+      ...current,
+      description: current.description || entry.description,
+      aliases: mergeStringArrays(current.aliases, entry.aliases, current.term),
+      synonyms: mergeStringArrays(current.synonyms, entry.synonyms, current.term),
+      antonyms: mergeStringArrays(current.antonyms, entry.antonyms, current.term),
+    });
+  };
+
+  existing.forEach(put);
+  additions.forEach(put);
+
+  return order.map((k) => byKey.get(k)!).filter(Boolean);
+}
+
+function parseParens(value: string): { base: string; parens: string | null } {
+  const normalized = normalizeWhitespace(value);
+  const match = normalized.match(/^(.*?)[(（]([^）)]+)[)）]\s*$/);
+  if (!match) {
+    return { base: normalized, parens: null };
+  }
+  return { base: match[1].trim(), parens: match[2].trim() };
+}
+
+function extractAcronymAliases(parens: string): string[] {
+  const candidates = parens
+    .split(/[\/,]/g)
+    .map((v) => v.trim())
+    .filter((v) => v.length > 0);
+
+  const aliases: string[] = [];
+  for (const v of candidates) {
+    if (v.length < 2) {
+      continue;
+    }
+
+    // 例: ALB/NLB, REST/HTTP, AAAA, CNAME
+    if (/^[A-Z0-9][A-Z0-9@._-]{1,20}$/.test(v)) {
+      aliases.push(v);
+      continue;
+    }
+
+    // 例: Azure AD, Network Security Group, Private Endpoint（英字/数字+スペースあり、ただし全小文字は除外）
+    if (/^[A-Za-z0-9][A-Za-z0-9 @._-]{1,30}$/.test(v) && /[A-Z0-9]/.test(v)) {
+      aliases.push(v);
+      continue;
+    }
+
+    // 例: 旧Azure AD, 旧 AWS SSO, 日本語+英字の混在（括弧内の補足としてよく出る）
+    if (/^[\p{Script=Han}\p{Script=Katakana}々ー・A-Za-z0-9 @._-]{2,30}$/u.test(v) && /[\p{Script=Han}A-Z0-9]/u.test(v)) {
+      aliases.push(v);
+      continue;
+    }
+
+    // 例: オレンジクラウド, スクリプト（カナ/漢字のみ）
+    if (/^[\p{Script=Katakana}\p{Script=Han}々ー・]{2,20}$/u.test(v)) {
+      aliases.push(v);
+      continue;
+    }
+  }
+
+  return aliases;
+}
+
+function buildAwsConsoleGlossaryEntries(): GlossaryEntry[] {
+  const serviceToTerms = new Map(AWS_CONSOLE_GLOSSARY.map(({ service, terms }) => [service, terms] as const));
+
+  const entries: GlossaryEntry[] = [];
+  const resourceToServices = new Map<string, Set<string>>();
+  const resourceToAliases = new Map<string, Set<string>>();
+  const resourceToSynonyms = new Map<string, Set<string>>();
+  const resourceToDisplay = new Map<string, string>();
+
+  for (const [service, terms] of serviceToTerms.entries()) {
+    const preview = terms.slice(0, 8).join('、');
+    const suffix = terms.length > 8 ? ' など。' : '。';
+    entries.push({
+      term: service,
+      description: terms.length > 0 ? `AWSサービス。代表リソース/用語: ${preview}${suffix}` : 'AWSサービス。'
+    });
+
+    for (const rawTerm of terms) {
+      const { base, parens } = parseParens(rawTerm);
+      if (!base) {
+        continue;
+      }
+
+      const key = normalizeKey(base);
+      if (!resourceToDisplay.has(key)) {
+        resourceToDisplay.set(key, base);
+      }
+      const services = resourceToServices.get(key) ?? new Set<string>();
+      services.add(service);
+      resourceToServices.set(key, services);
+
+      const aliasSet = resourceToAliases.get(key) ?? new Set<string>();
+      if (rawTerm !== base) {
+        aliasSet.add(rawTerm);
+      }
+      resourceToAliases.set(key, aliasSet);
+
+      if (parens) {
+        const synonymSet = resourceToSynonyms.get(key) ?? new Set<string>();
+        for (const synonym of extractAcronymAliases(parens)) {
+          synonymSet.add(synonym);
+        }
+        resourceToSynonyms.set(key, synonymSet);
+      }
+    }
+  }
+
+  const resourceEntries: GlossaryEntry[] = [];
+  for (const [termKey, services] of resourceToServices.entries()) {
+    const serviceList = [...services].sort((a, b) => a.localeCompare(b, 'ja'));
+    const servicePreview = serviceList.slice(0, 8).join(', ');
+    const serviceSuffix = serviceList.length > 8 ? '…' : '';
+    const displayTerm = resourceToDisplay.get(termKey) ?? termKey;
+    const aliases = [...(resourceToAliases.get(termKey) ?? new Set<string>())].filter((v) => normalizeKey(v) !== termKey);
+    const synonyms = [...(resourceToSynonyms.get(termKey) ?? new Set<string>())].filter((v) => normalizeKey(v) !== termKey);
+
+    const def = resolveConsoleTermDefinition(displayTerm, 'aws');
+    const mergedAliases = mergeStringArrays(def.aliases, aliases, displayTerm);
+    const mergedSynonyms = mergeStringArrays(def.synonyms, synonyms, displayTerm);
+    const mergedAntonyms = mergeStringArrays(def.antonyms, undefined, displayTerm);
+
+    resourceEntries.push({
+      term: displayTerm,
+      aliases: mergedAliases,
+      synonyms: mergedSynonyms,
+      antonyms: mergedAntonyms,
+      description: `${def.description}\n\n主な関連サービス: ${servicePreview}${serviceSuffix}。`
+    });
+  }
+
+  // 先にサービス→後にリソース（見た目上の優先度）
+  return [...entries, ...resourceEntries];
+}
+
+function buildCloudflareConsoleGlossaryEntries(): GlossaryEntry[] {
+  const serviceToTerms = new Map(CLOUDFLARE_CONSOLE_GLOSSARY.map(({ service, terms }) => [service, terms] as const));
+
+  const entries: GlossaryEntry[] = [];
+  const resourceToServices = new Map<string, Set<string>>();
+  const resourceToAliases = new Map<string, Set<string>>();
+  const resourceToDisplay = new Map<string, string>();
+
+  for (const [rawService, terms] of serviceToTerms.entries()) {
+    const { base: service, parens } = parseParens(rawService);
+    const serviceAliases: string[] = [];
+    if (rawService !== service) {
+      serviceAliases.push(rawService);
+    }
+    if (parens) {
+      serviceAliases.push(...extractAcronymAliases(parens));
+    }
+
+    const preview = terms.slice(0, 8).join('、');
+    const suffix = terms.length > 8 ? ' など。' : '。';
+    entries.push({
+      term: service,
+      aliases: serviceAliases.length > 0 ? serviceAliases : undefined,
+      description: terms.length > 0
+        ? `Cloudflareの機能/画面。代表リソース/用語: ${preview}${suffix}`
+        : 'Cloudflareの機能/画面。'
+    });
+
+    for (const rawTerm of terms) {
+      const { base, parens: termParens } = parseParens(rawTerm);
+      if (!base) {
+        continue;
+      }
+
+      const key = normalizeKey(base);
+      if (!resourceToDisplay.has(key)) {
+        resourceToDisplay.set(key, base);
+      }
+
+      const services = resourceToServices.get(key) ?? new Set<string>();
+      services.add(service);
+      resourceToServices.set(key, services);
+
+      const aliasSet = resourceToAliases.get(key) ?? new Set<string>();
+      if (rawTerm !== base) {
+        aliasSet.add(rawTerm);
+      }
+      if (termParens) {
+        for (const alias of extractAcronymAliases(termParens)) {
+          aliasSet.add(alias);
+        }
+      }
+      resourceToAliases.set(key, aliasSet);
+    }
+  }
+
+  const resourceEntries: GlossaryEntry[] = [];
+  for (const [termKey, services] of resourceToServices.entries()) {
+    const serviceList = [...services].sort((a, b) => a.localeCompare(b, 'ja'));
+    const servicePreview = serviceList.slice(0, 8).join(', ');
+    const serviceSuffix = serviceList.length > 8 ? '…' : '';
+    const displayTerm = resourceToDisplay.get(termKey) ?? termKey;
+    const aliases = [...(resourceToAliases.get(termKey) ?? new Set<string>())].filter((v) => normalizeKey(v) !== termKey);
+    const def = resolveConsoleTermDefinition(displayTerm, 'cloudflare');
+
+    resourceEntries.push({
+      term: displayTerm,
+      aliases: mergeStringArrays(def.aliases, aliases, displayTerm),
+      synonyms: mergeStringArrays(def.synonyms, undefined, displayTerm),
+      antonyms: mergeStringArrays(def.antonyms, undefined, displayTerm),
+      description: `${def.description}\n\n主な関連機能: ${servicePreview}${serviceSuffix}。`
+    });
+  }
+
+  return [...entries, ...resourceEntries];
+}
+
+function buildAzureConsoleGlossaryEntries(): GlossaryEntry[] {
+  const serviceToTerms = new Map(AZURE_CONSOLE_GLOSSARY.map(({ service, terms }) => [service, terms] as const));
+
+  const entries: GlossaryEntry[] = [];
+  const resourceToServices = new Map<string, Set<string>>();
+  const resourceToAliases = new Map<string, Set<string>>();
+  const resourceToSynonyms = new Map<string, Set<string>>();
+  const resourceToDisplay = new Map<string, string>();
+
+  for (const [rawService, terms] of serviceToTerms.entries()) {
+    const { base: service, parens } = parseParens(rawService);
+    const serviceAliases: string[] = [];
+    const serviceSynonyms: string[] = [];
+    if (rawService !== service) {
+      serviceAliases.push(rawService);
+    }
+    if (parens) {
+      serviceSynonyms.push(...extractAcronymAliases(parens));
+    }
+
+    const preview = terms.slice(0, 8).join('、');
+    const suffix = terms.length > 8 ? ' など。' : '。';
+    entries.push({
+      term: service,
+      aliases: serviceAliases.length > 0 ? serviceAliases : undefined,
+      synonyms: serviceSynonyms.length > 0 ? serviceSynonyms : undefined,
+      description: terms.length > 0 ? `Azureのサービス/機能。代表リソース/用語: ${preview}${suffix}` : 'Azureのサービス/機能。'
+    });
+
+    for (const rawTerm of terms) {
+      const { base, parens: termParens } = parseParens(rawTerm);
+      if (!base) {
+        continue;
+      }
+
+      const key = normalizeKey(base);
+      if (!resourceToDisplay.has(key)) {
+        resourceToDisplay.set(key, base);
+      }
+
+      const services = resourceToServices.get(key) ?? new Set<string>();
+      services.add(service);
+      resourceToServices.set(key, services);
+
+      const aliasSet = resourceToAliases.get(key) ?? new Set<string>();
+      if (rawTerm !== base) {
+        aliasSet.add(rawTerm);
+      }
+      resourceToAliases.set(key, aliasSet);
+
+      if (termParens) {
+        const synonymSet = resourceToSynonyms.get(key) ?? new Set<string>();
+        for (const synonym of extractAcronymAliases(termParens)) {
+          synonymSet.add(synonym);
+        }
+        resourceToSynonyms.set(key, synonymSet);
+      }
+    }
+  }
+
+  const resourceEntries: GlossaryEntry[] = [];
+  for (const [termKey, services] of resourceToServices.entries()) {
+    const serviceList = [...services].sort((a, b) => a.localeCompare(b, 'ja'));
+    const servicePreview = serviceList.slice(0, 8).join(', ');
+    const serviceSuffix = serviceList.length > 8 ? '…' : '';
+    const displayTerm = resourceToDisplay.get(termKey) ?? termKey;
+    const aliases = [...(resourceToAliases.get(termKey) ?? new Set<string>())].filter((v) => normalizeKey(v) !== termKey);
+    const synonyms = [...(resourceToSynonyms.get(termKey) ?? new Set<string>())].filter((v) => normalizeKey(v) !== termKey);
+
+    const def = resolveConsoleTermDefinition(displayTerm, 'azure');
+    const mergedAliases = mergeStringArrays(def.aliases, aliases, displayTerm);
+    const mergedSynonyms = mergeStringArrays(def.synonyms, synonyms, displayTerm);
+    const mergedAntonyms = mergeStringArrays(def.antonyms, undefined, displayTerm);
+
+    resourceEntries.push({
+      term: displayTerm,
+      aliases: mergedAliases,
+      synonyms: mergedSynonyms,
+      antonyms: mergedAntonyms,
+      description: `${def.description}\n\n主な関連サービス: ${servicePreview}${serviceSuffix}。`
+    });
+  }
+
+  return [...entries, ...resourceEntries];
+}
+
+function buildOciConsoleGlossaryEntries(): GlossaryEntry[] {
+  const serviceToTerms = new Map(OCI_CONSOLE_GLOSSARY.map(({ service, terms }) => [service, terms] as const));
+
+  const entries: GlossaryEntry[] = [];
+  const resourceToServices = new Map<string, Set<string>>();
+  const resourceToAliases = new Map<string, Set<string>>();
+  const resourceToSynonyms = new Map<string, Set<string>>();
+  const resourceToDisplay = new Map<string, string>();
+
+  for (const [rawService, terms] of serviceToTerms.entries()) {
+    const { base: service, parens } = parseParens(rawService);
+    const serviceAliases: string[] = [];
+    const serviceSynonyms: string[] = [];
+    if (rawService !== service) {
+      serviceAliases.push(rawService);
+    }
+    if (parens) {
+      serviceSynonyms.push(...extractAcronymAliases(parens));
+    }
+
+    const preview = terms.slice(0, 8).join('、');
+    const suffix = terms.length > 8 ? ' など。' : '。';
+    entries.push({
+      term: service,
+      aliases: serviceAliases.length > 0 ? serviceAliases : undefined,
+      synonyms: serviceSynonyms.length > 0 ? serviceSynonyms : undefined,
+      description: terms.length > 0 ? `OCIのサービス/機能。代表リソース/用語: ${preview}${suffix}` : 'OCIのサービス/機能。'
+    });
+
+    for (const rawTerm of terms) {
+      const { base, parens: termParens } = parseParens(rawTerm);
+      if (!base) {
+        continue;
+      }
+
+      const key = normalizeKey(base);
+      if (!resourceToDisplay.has(key)) {
+        resourceToDisplay.set(key, base);
+      }
+
+      const services = resourceToServices.get(key) ?? new Set<string>();
+      services.add(service);
+      resourceToServices.set(key, services);
+
+      const aliasSet = resourceToAliases.get(key) ?? new Set<string>();
+      if (rawTerm !== base) {
+        aliasSet.add(rawTerm);
+      }
+      resourceToAliases.set(key, aliasSet);
+
+      if (termParens) {
+        const synonymSet = resourceToSynonyms.get(key) ?? new Set<string>();
+        for (const synonym of extractAcronymAliases(termParens)) {
+          synonymSet.add(synonym);
+        }
+        resourceToSynonyms.set(key, synonymSet);
+      }
+    }
+  }
+
+  const resourceEntries: GlossaryEntry[] = [];
+  for (const [termKey, services] of resourceToServices.entries()) {
+    const serviceList = [...services].sort((a, b) => a.localeCompare(b, 'ja'));
+    const servicePreview = serviceList.slice(0, 8).join(', ');
+    const serviceSuffix = serviceList.length > 8 ? '…' : '';
+    const displayTerm = resourceToDisplay.get(termKey) ?? termKey;
+    const aliases = [...(resourceToAliases.get(termKey) ?? new Set<string>())].filter((v) => normalizeKey(v) !== termKey);
+    const synonyms = [...(resourceToSynonyms.get(termKey) ?? new Set<string>())].filter((v) => normalizeKey(v) !== termKey);
+
+    const def = resolveConsoleTermDefinition(displayTerm, 'oci');
+    const mergedAliases = mergeStringArrays(def.aliases, aliases, displayTerm);
+    const mergedSynonyms = mergeStringArrays(def.synonyms, synonyms, displayTerm);
+    const mergedAntonyms = mergeStringArrays(def.antonyms, undefined, displayTerm);
+
+    resourceEntries.push({
+      term: displayTerm,
+      aliases: mergedAliases,
+      synonyms: mergedSynonyms,
+      antonyms: mergedAntonyms,
+      description: `${def.description}\n\n主な関連サービス: ${servicePreview}${serviceSuffix}。`
+    });
+  }
+
+  return [...entries, ...resourceEntries];
+}
+
+type CloudflareConsoleGlossarySplit = {
+  cloudflare: ReadonlyArray<GlossaryEntry>;
+  moved: Partial<Record<GlossaryId, ReadonlyArray<GlossaryEntry>>>;
+};
+
+function splitCloudflareConsoleGlossaryEntries(): CloudflareConsoleGlossarySplit {
+  const serviceToTerms = new Map(CLOUDFLARE_CONSOLE_GLOSSARY.map(({ service, terms }) => [service, terms] as const));
+
+  const keepServiceInCloudflare = (serviceKey: string): boolean => {
+    void serviceKey;
+    return true;
+  };
+
+  const serviceBucket: GlossaryEntry[] = [];
+  const cloudflareResourceBucket = new Map<string, GlossaryEntry>();
+  const moved: Partial<Record<GlossaryId, GlossaryEntry[]>> = {};
+
+  const pushMoved = (id: GlossaryId, entry: GlossaryEntry): void => {
+    const bucket = (moved[id] ??= []);
+    bucket.push(entry);
+  };
+
+  const destinationForResource = (serviceKey: string, termKey: string, display: string, termParens: string | null): GlossaryId | null => {
+    const neverMove = new Set<string>([
+      'ルール',
+      '設定',
+      'フィルタ',
+      'アクション',
+      'ポリシー',
+      'セッション',
+      'アプリケーション',
+      'ユーザー',
+      'グループ',
+      'ログ',
+      'クエリ',
+      'キー',
+      '値',
+      'インデックス',
+      'ドメイン',
+      'バケット',
+      'データベース',
+      'スキーマ',
+      'モデル',
+    ].map((v) => normalizeKey(v)));
+
+    if (neverMove.has(termKey)) {
+      return null;
+    }
+
+    // Cloudflare固有（またはCloudflare固有に近い）
+    const cloudflareSpecific = new Set<string>([
+      'オレンジクラウド',
+      'workers.dev',
+      'sitekey',
+      'secret key',
+      'cloudflared',
+      'turnstile',
+      'r2',
+      'd1',
+      'vectorize',
+      'durable object',
+    ].map((v) => normalizeKey(v)));
+    if (cloudflareSpecific.has(termKey)) {
+      return null;
+    }
+    if (termParens && cloudflareSpecific.has(normalizeKey(termParens))) {
+      return null;
+    }
+
+    // DNS/HTTP/TLS
+    if (
+      serviceKey.includes('dns') ||
+      termKey.includes('dns') ||
+      new Set<string>([
+        'zone',
+        'internal zone',
+        'reference zone',
+        'record',
+        'dnsレコード',
+        'レコード',
+        'レコードタイプ',
+        'ttl',
+        'a',
+        'aaaa',
+        'cname',
+        'mx',
+        'txt',
+        'doh',
+        'ネームサーバー',
+      ].map((v) => normalizeKey(v))).has(termKey)
+    ) {
+      return 'networkHttp';
+    }
+
+    if (
+      serviceKey.includes('ssl') ||
+      serviceKey.includes('tls') ||
+      termKey.includes('tls') ||
+      termKey.includes('mtls') ||
+      termKey.includes('certificate') ||
+      termKey.includes('証明書') ||
+      termKey === normalizeKey('ca')
+    ) {
+      return 'networkHttp';
+    }
+
+    // キャッシュ
+    if (
+      serviceKey.includes('cache') ||
+      termKey.includes('cache') ||
+      termKey.includes('キャッシュ') ||
+      termKey.includes('purge')
+    ) {
+      return 'performanceCache';
+    }
+
+    // セキュリティ
+    if (
+      serviceKey.includes('waf') ||
+      serviceKey.includes('firewall') ||
+      serviceKey.includes('ddos') ||
+      serviceKey.includes('bot') ||
+      serviceKey.includes('dlp') ||
+      serviceKey.includes('casb') ||
+      serviceKey.includes('rbi') ||
+      termKey.includes('waf') ||
+      termKey.includes('ddos') ||
+      termKey.includes('bot') ||
+      termKey.includes('レート') ||
+      termKey.includes('rate limiting') ||
+      termKey.includes('mitigation') ||
+      termKey.includes('phishing') ||
+      termKey.includes('malware')
+    ) {
+      return 'security';
+    }
+
+    // 認証認可
+    if (
+      serviceKey.includes('zero trust') ||
+      serviceKey.includes('access') ||
+      serviceKey.includes('gateway') ||
+      serviceKey.includes('ztna') ||
+      termKey.includes('idp') ||
+      termKey.includes('otp') ||
+      termKey.includes('token') ||
+      termKey.includes('service token') ||
+      termKey.includes('client secret') ||
+      termKey.includes('client id')
+    ) {
+      return 'authIam';
+    }
+
+    // 監視/トレーシング/分析
+    if (
+      serviceKey.includes('analytics') ||
+      serviceKey.includes('tracing') ||
+      serviceKey.includes('audit') ||
+      termKey.includes('request') ||
+      termKey.includes('trace') ||
+      termKey.includes('dashboard') ||
+      termKey.includes('メトリクス') ||
+      termKey.includes('監査') ||
+      termKey.includes('監査ログ')
+    ) {
+      return 'observabilitySre';
+    }
+
+    // ここまでで移動対象にならない場合はCloudflareに残す
+    void display;
+    return null;
+  };
+
+  const mergeEntry = (bucket: Map<string, GlossaryEntry>, entry: GlossaryEntry): void => {
+    const key = normalizeKey(entry.term);
+    if (!key) {
+      return;
+    }
+    const existing = bucket.get(key);
+    if (!existing) {
+      bucket.set(key, entry);
+      return;
+    }
+    bucket.set(key, {
+      ...existing,
+      description: existing.description || entry.description,
+      aliases: mergeStringArrays(existing.aliases, entry.aliases, existing.term),
+      synonyms: mergeStringArrays(existing.synonyms, entry.synonyms, existing.term),
+      antonyms: mergeStringArrays(existing.antonyms, entry.antonyms, existing.term),
+    });
+  };
+
+  for (const [rawService, terms] of serviceToTerms.entries()) {
+    const { base: service, parens } = parseParens(rawService);
+    const serviceKey = normalizeKey(service);
+
+    if (keepServiceInCloudflare(serviceKey)) {
+      const serviceAliases: string[] = [];
+      const serviceSynonyms: string[] = [];
+      if (rawService !== service) {
+        serviceAliases.push(rawService);
+      }
+      if (parens) {
+        serviceSynonyms.push(...extractAcronymAliases(parens));
+      }
+
+      const preview = terms.slice(0, 8).join('、');
+      const suffix = terms.length > 8 ? ' など。' : '。';
+      serviceBucket.push({
+        term: `Cloudflare ${service}`,
+        aliases: serviceAliases.length > 0 ? serviceAliases : undefined,
+        synonyms: serviceSynonyms.length > 0 ? serviceSynonyms : undefined,
+        description: terms.length > 0
+          ? `Cloudflareの機能/画面。代表リソース/用語: ${preview}${suffix}`
+          : 'Cloudflareの機能/画面。'
+      });
+    }
+
+    for (const rawTerm of terms) {
+      const { base, parens: termParens } = parseParens(rawTerm);
+      if (!base) {
+        continue;
+      }
+
+      const termKey = normalizeKey(base);
+      const aliases: string[] = [];
+      const synonyms: string[] = [];
+      if (rawTerm !== base) {
+        aliases.push(rawTerm);
+      }
+      if (termParens) {
+        synonyms.push(...extractAcronymAliases(termParens));
+      }
+
+      const relatedServices = new Set<string>([service]);
+      const dest = destinationForResource(serviceKey, termKey, base, termParens);
+      const def = resolveConsoleTermDefinition(base, 'cloudflare');
+      const description = dest ? def.description : `${def.description}\n\n関連機能: ${[...relatedServices].join(', ')}。`;
+      const entry: GlossaryEntry = {
+        term: base,
+        aliases: mergeStringArrays(def.aliases, aliases, base),
+        synonyms: mergeStringArrays(def.synonyms, synonyms, base),
+        antonyms: mergeStringArrays(def.antonyms, undefined, base),
+        description
+      };
+
+      if (dest) {
+        pushMoved(dest, entry);
+      } else {
+        mergeEntry(cloudflareResourceBucket, entry);
+      }
+    }
+  }
+
+  const cloudflareResources = [...cloudflareResourceBucket.values()];
+  const cloudflare = [...serviceBucket, ...cloudflareResources];
+
+  return {
+    cloudflare,
+    moved,
+  };
+}
+
+const CLOUDFLARE_CONSOLE_SPLIT = splitCloudflareConsoleGlossaryEntries();
+
+const BASE_GLOSSARIES: ReadonlyArray<GlossaryDefinition> = [
   {
     id: 'it',
     title: 'IT用語図鑑',
@@ -161,7 +1208,7 @@ const GLOSSARIES: ReadonlyArray<GlossaryDefinition> = [
   {
     id: 'awsServices',
     title: 'AWSサービス用語図鑑',
-    entries: [
+    entries: mergeGlossaryEntries([
       { term: 'EC2', description: '仮想マシンを提供するコンピュートサービス（Elastic Compute Cloud）。' },
       { term: 'Lambda', description: 'イベント駆動でコードを実行するサーバレス実行環境。' },
       { term: 'RDS', description: 'マネージドなリレーショナルデータベースサービス。' },
@@ -192,12 +1239,12 @@ const GLOSSARIES: ReadonlyArray<GlossaryDefinition> = [
       { term: 'OpenSearch Service', description: '検索/ログ分析（OpenSearch）のマネージドサービス。' },
       { term: 'GuardDuty', description: '脅威検知（不審な振る舞い検出）のサービス。' },
       { term: 'Security Hub', description: 'セキュリティ状況の集約と可視化を行うサービス。' },
-    ],
+    ], buildAwsConsoleGlossaryEntries()),
   },
   {
     id: 'azureServices',
     title: 'Azureサービス用語図鑑',
-    entries: [
+    entries: mergeGlossaryEntries([
       { term: 'Azure Virtual Machines', aliases: ['Azure VM'], description: '仮想マシンを提供するコンピュートサービス。' },
       { term: 'Azure App Service', aliases: ['App Service'], description: 'Webアプリ/APIのマネージド実行基盤。' },
       { term: 'Azure Functions', aliases: ['Functions'], description: 'イベント駆動でコードを実行するサーバレス基盤。' },
@@ -228,7 +1275,7 @@ const GLOSSARIES: ReadonlyArray<GlossaryDefinition> = [
       { term: 'Azure Synapse Analytics', aliases: ['Synapse'], description: 'DWH/分析基盤（SQL/Spark等）を統合するサービス。' },
       { term: 'Azure Cache for Redis', aliases: ['Azure Redis', 'Redis Cache'], description: 'Redisのマネージドキャッシュ。' },
       { term: 'Azure AI Services', aliases: ['Cognitive Services'], description: '画像/音声/言語などのAI APIを提供するサービス群。' },
-    ],
+    ], buildAzureConsoleGlossaryEntries()),
   },
   {
     id: 'gcpServices',
@@ -269,7 +1316,7 @@ const GLOSSARIES: ReadonlyArray<GlossaryDefinition> = [
   {
     id: 'ociServices',
     title: 'OCIサービス用語図鑑',
-    entries: [
+    entries: mergeGlossaryEntries([
       { term: 'OCI Compute', aliases: ['Compute'], description: '仮想マシン/ベアメタル等のコンピュートサービス。' },
       { term: 'VCN', aliases: ['Virtual Cloud Network'], description: 'OCIの仮想ネットワーク。' },
       { term: 'OCI Object Storage', aliases: ['Object Storage'], description: 'オブジェクトストレージ。' },
@@ -300,15 +1347,15 @@ const GLOSSARIES: ReadonlyArray<GlossaryDefinition> = [
       { term: 'Data Integration', description: 'データ連携（ETL/ELT）サービス。' },
       { term: 'GoldenGate', description: 'データレプリケーション/CDCのサービス。' },
       { term: 'Data Science', description: '機械学習の開発・運用を支援するサービス。' },
-    ],
+    ], buildOciConsoleGlossaryEntries()),
   },
   {
     id: 'cloudflareServices',
     title: 'Cloudflareサービス用語図鑑',
-    entries: [
-      { term: 'Cloudflare DNS', aliases: ['DNS'], description: 'DNSホスティングサービス。' },
-      { term: 'Cloudflare CDN', aliases: ['CDN'], description: 'エッジ配信によるCDNサービス。' },
-      { term: 'Cloudflare WAF', aliases: ['WAF'], description: 'Webアプリケーションファイアウォール。' },
+    entries: mergeGlossaryEntries([
+      { term: 'Cloudflare DNS', description: 'DNSホスティングサービス。' },
+      { term: 'Cloudflare CDN', description: 'エッジ配信によるCDNサービス。' },
+      { term: 'Cloudflare WAF', description: 'Webアプリケーションファイアウォール。' },
       { term: 'Cloudflare Workers', aliases: ['Workers'], description: 'エッジで動くサーバレス実行環境。' },
       { term: 'Cloudflare Pages', aliases: ['Pages'], description: '静的サイト/フロントエンドのホスティング。' },
       { term: 'Cloudflare R2', aliases: ['R2'], description: 'S3互換APIを持つオブジェクトストレージ。' },
@@ -319,24 +1366,24 @@ const GLOSSARIES: ReadonlyArray<GlossaryDefinition> = [
       { term: 'Workers AI', description: 'Workers上でAI推論などを提供する機能群。' },
       { term: 'Vectorize', description: 'ベクトル検索（埋め込み）向けのサービス。' },
       { term: 'Hyperdrive', description: 'DB接続を最適化するプロキシ/キャッシュ機能。' },
-      { term: 'Cloudflare Stream', aliases: ['Stream'], description: '動画配信と管理のサービス。' },
-      { term: 'Cloudflare Images', aliases: ['Images'], description: '画像の保存・変換・配信のサービス。' },
+      { term: 'Cloudflare Stream', description: '動画配信と管理のサービス。' },
+      { term: 'Cloudflare Images', description: '画像の保存・変換・配信のサービス。' },
       { term: 'Turnstile', description: 'CAPTCHA代替のボット対策ウィジェット。' },
-      { term: 'Cloudflare Zero Trust', aliases: ['Zero Trust'], description: 'ゼロトラストを実現する製品群。' },
-      { term: 'Cloudflare Access', aliases: ['Access'], description: 'アプリへのアクセス制御（ZTNA）。' },
-      { term: 'Cloudflare Gateway', aliases: ['Gateway'], description: 'セキュアWebゲートウェイ/フィルタリング。' },
+      { term: 'Cloudflare Zero Trust', description: 'ゼロトラストを実現する製品群。' },
+      { term: 'Cloudflare Access', description: 'アプリへのアクセス制御（ZTNA）。' },
+      { term: 'Cloudflare Gateway', description: 'セキュアWebゲートウェイ/フィルタリング。' },
       { term: 'WARP', description: 'クライアント接続（VPN/プロキシ）系の機能。' },
-      { term: 'Cloudflare Tunnel', aliases: ['Tunnel'], description: 'インバウンド公開を安全に行うトンネル機能。' },
-      { term: 'Load Balancing', description: 'グローバル負荷分散サービス。' },
-      { term: 'Argo Smart Routing', aliases: ['Argo'], description: 'ネットワーク経路を最適化して遅延を下げる機能。' },
-      { term: 'Bot Management', description: 'ボット判定と対策の機能。' },
-      { term: 'Rate Limiting', description: 'リクエスト頻度の制限機能。' },
-      { term: 'Rulesets', description: '各種ルール（WAF/リダイレクト等）を統合管理する仕組み。' },
-      { term: 'Firewall Rules', description: 'トラフィック制御ルール（現在はRulesetsへ統合される場合あり）。' },
-      { term: 'DDoS Protection', description: 'DDoS攻撃の防御機能。' },
-      { term: 'Logpush', description: 'ログを外部ストレージ等へ転送する機能。' },
-      { term: 'Magic WAN', description: 'グローバルWANを構築するネットワーク製品。' },
-    ],
+      { term: 'Cloudflare Tunnel', description: 'インバウンド公開を安全に行うトンネル機能。' },
+      { term: 'Cloudflare Load Balancing', description: 'グローバル負荷分散サービス。' },
+      { term: 'Cloudflare Argo Smart Routing', description: 'ネットワーク経路を最適化して遅延を下げる機能。' },
+      { term: 'Cloudflare Bot Management', description: 'ボット判定と対策の機能。' },
+      { term: 'Cloudflare Rate Limiting', description: 'リクエスト頻度の制限機能。' },
+      { term: 'Cloudflare Rulesets', description: '各種ルール（WAF/リダイレクト等）を統合管理する仕組み。' },
+      { term: 'Cloudflare Firewall Rules', description: 'トラフィック制御ルール（現在はRulesetsへ統合される場合あり）。' },
+      { term: 'Cloudflare DDoS Protection', description: 'DDoS攻撃の防御機能。' },
+      { term: 'Cloudflare Logpush', description: 'ログを外部ストレージ等へ転送する機能。' },
+      { term: 'Cloudflare Magic WAN', description: 'グローバルWANを構築するネットワーク製品。' },
+    ], CLOUDFLARE_CONSOLE_SPLIT.cloudflare),
   },
   {
     id: 'iotEmbedded',
@@ -605,7 +1652,7 @@ const GLOSSARIES: ReadonlyArray<GlossaryDefinition> = [
   {
     id: 'security',
     title: 'セキュリティ用語図鑑',
-    entries: [
+    entries: mergeGlossaryEntries([
       { term: 'OWASP', description: 'Webアプリセキュリティの知見を提供するコミュニティ。' },
       { term: 'Software Supply Chain Security', aliases: ['ソフトウェアサプライチェーンセキュリティ'], description: '依存関係やビルド/配布経路を狙う攻撃に備える考え方。' },
       { term: 'SBOM', aliases: ['Software Bill of Materials', 'ソフトウェア部品表'], description: 'ソフトウェアに含まれる部品（依存関係）一覧。' },
@@ -625,12 +1672,12 @@ const GLOSSARIES: ReadonlyArray<GlossaryDefinition> = [
       { term: 'Least Privilege', aliases: ['最小権限'], description: '必要最小限の権限だけを付与する原則。' },
       { term: 'Prompt Injection', aliases: ['プロンプトインジェクション'], description: 'プロンプトを悪用して意図しない指示を実行させる攻撃。' },
       { term: 'AI Firewall', aliases: ['AIファイアウォール'], description: 'LLMへの入出力を検査・制御してリスクを下げる仕組み。' },
-    ],
+    ], CLOUDFLARE_CONSOLE_SPLIT.moved.security ?? []),
   },
   {
     id: 'networkHttp',
     title: 'ネットワーク・HTTP用語図鑑',
-    entries: [
+    entries: mergeGlossaryEntries([
       { term: 'TCP', description: '信頼性のあるストリーム通信を提供するトランスポート層プロトコル。' },
       { term: 'UDP', description: '軽量で到達保証のないデータグラム通信を提供するプロトコル。' },
       { term: 'TLS', description: '通信を暗号化し、盗聴や改ざんを防ぐ仕組み。' },
@@ -643,12 +1690,12 @@ const GLOSSARIES: ReadonlyArray<GlossaryDefinition> = [
       { term: 'ETag', description: 'キャッシュ検証に使うリソースの識別子。' },
       { term: 'Cache-Control', description: 'HTTPキャッシュの制御指示を表すヘッダ。' },
       { term: 'Cookie', aliases: ['クッキー'], description: 'ブラウザに保存される小さなデータ（セッション等で利用）。' },
-    ],
+    ], CLOUDFLARE_CONSOLE_SPLIT.moved.networkHttp ?? []),
   },
   {
     id: 'authIam',
     title: '認証認可・IAM用語図鑑',
-    entries: [
+    entries: mergeGlossaryEntries([
       { term: 'Authentication', aliases: ['認証', 'AuthN'], description: '利用者が誰かを確認すること。' },
       { term: 'Authorization', aliases: ['認可', 'AuthZ'], description: '何をしてよいか（権限）を決めること。' },
       { term: 'OAuth 2.0', aliases: ['OAuth2'], description: '第三者アクセス委譲のためのプロトコル。' },
@@ -661,7 +1708,7 @@ const GLOSSARIES: ReadonlyArray<GlossaryDefinition> = [
       { term: 'ABAC', description: '属性に基づいて権限を判断する方式。' },
       { term: 'MFA', description: '複数要素（知識/所持/生体）で認証する方式。' },
       { term: 'SSO', description: '一度のログインで複数サービスを利用できる仕組み。' },
-    ],
+    ], CLOUDFLARE_CONSOLE_SPLIT.moved.authIam ?? []),
   },
   {
     id: 'dbSqlTx',
@@ -747,7 +1794,7 @@ const GLOSSARIES: ReadonlyArray<GlossaryDefinition> = [
   {
     id: 'observabilitySre',
     title: '監視・Observability・SRE用語図鑑',
-    entries: [
+    entries: mergeGlossaryEntries([
       { term: 'Observability', aliases: ['可観測性'], description: '外部出力から内部状態を推測できる度合い。' },
       { term: 'Telemetry', aliases: ['テレメトリ'], description: '観測のために収集・送信されるデータ（メトリクス/ログ/トレース等）。' },
       { term: 'OpenTelemetry', aliases: ['OTel', 'Open Telemetry'], description: 'メトリクス/ログ/トレースの標準化と収集のための仕様・実装群。' },
@@ -762,7 +1809,7 @@ const GLOSSARIES: ReadonlyArray<GlossaryDefinition> = [
       { term: 'Incident', aliases: ['インシデント'], description: 'サービス品質に影響する出来事。' },
       { term: 'Postmortem', aliases: ['ポストモーテム'], description: 'インシデントの振り返りと再発防止の記録。' },
       { term: 'MTTR', description: '平均復旧時間（Mean Time To Recovery）。' },
-    ],
+    ], CLOUDFLARE_CONSOLE_SPLIT.moved.observabilitySre ?? []),
   },
   {
     id: 'distributedSystems',
@@ -803,7 +1850,7 @@ const GLOSSARIES: ReadonlyArray<GlossaryDefinition> = [
   {
     id: 'performanceCache',
     title: 'パフォーマンス・キャッシュ用語図鑑',
-    entries: [
+    entries: mergeGlossaryEntries([
       { term: 'Latency', aliases: ['レイテンシ'], description: '処理や通信の遅延時間。' },
       { term: 'Throughput', aliases: ['スループット'], description: '単位時間あたりに処理できる量。' },
       { term: 'QPS', description: '1秒あたりのクエリ数（Queries Per Second）。' },
@@ -816,7 +1863,7 @@ const GLOSSARIES: ReadonlyArray<GlossaryDefinition> = [
       { term: 'LRU', description: '最終アクセスが古いものから追い出すキャッシュ戦略。' },
       { term: 'Benchmark', aliases: ['ベンチマーク'], description: '性能を計測・比較するための測定。' },
       { term: 'Backoff', aliases: ['バックオフ'], description: 'リトライ間隔を伸ばしながら再試行する戦略。' },
-    ],
+    ], CLOUDFLARE_CONSOLE_SPLIT.moved.performanceCache ?? []),
   },
   {
     id: 'architecturePatterns',
@@ -931,6 +1978,8 @@ const GLOSSARIES: ReadonlyArray<GlossaryDefinition> = [
   },
 ];
 
+const GLOSSARIES: ReadonlyArray<GlossaryDefinition> = mergeTermNotationIntoGlossaries(BASE_GLOSSARIES);
+
 const PROVIDER_SERVICE_GLOSSARIES: ReadonlySet<GlossaryId> = new Set([
   'awsServices',
   'azureServices',
@@ -951,14 +2000,152 @@ function normalizeKey(input: string): string {
     .toLowerCase();
 }
 
+function mergeTermNotationIntoGlossaries(glossaries: ReadonlyArray<GlossaryDefinition>): ReadonlyArray<GlossaryDefinition> {
+  type EntryRef = { glossaryIndex: number; entryIndex: number };
+
+  type MutableGlossaryDefinition = {
+    id: GlossaryId;
+    title: string;
+    entries: GlossaryEntry[];
+  };
+
+  const targets: Readonly<Record<TermNotationDictionaryId, GlossaryId>> = {
+    webTech: 'it',
+    generativeAI: 'aiLlm',
+    aws: 'awsServices',
+    azure: 'azureServices',
+    oci: 'ociServices'
+  };
+
+  const mergedGlossaries: MutableGlossaryDefinition[] = glossaries.map((glossary) => ({
+    id: glossary.id,
+    title: glossary.title,
+    entries: [...glossary.entries]
+  }));
+
+  const refsByTermKey = new Map<string, EntryRef[]>();
+  for (let glossaryIndex = 0; glossaryIndex < mergedGlossaries.length; glossaryIndex += 1) {
+    const entries = mergedGlossaries[glossaryIndex].entries;
+    for (let entryIndex = 0; entryIndex < entries.length; entryIndex += 1) {
+      const key = normalizeKey(entries[entryIndex].term);
+      const bucket = refsByTermKey.get(key) ?? [];
+      bucket.push({ glossaryIndex, entryIndex });
+      refsByTermKey.set(key, bucket);
+    }
+  }
+
+  interface TermNotationGroup {
+    correct: string;
+    kind: TermNotationDictionaryId;
+    aliases: Set<string>;
+  }
+
+  const groups = new Map<string, TermNotationGroup>();
+  for (const [kind, rules] of Object.entries(TERM_NOTATION_DICTIONARIES) as Array<
+    [TermNotationDictionaryId, ReadonlyArray<readonly [string, string]>]
+  >) {
+    for (const [incorrect, correct] of rules) {
+      const correctKey = normalizeKey(correct);
+      const group = groups.get(correctKey) ?? {
+        correct,
+        kind,
+        aliases: new Set<string>()
+      };
+
+      if (normalizeKey(incorrect) !== correctKey) {
+        group.aliases.add(incorrect);
+      }
+
+      groups.set(correctKey, group);
+    }
+  }
+
+  const mergeAliases = (
+    term: string,
+    existing: ReadonlyArray<string> | undefined,
+    additions: ReadonlyArray<string>
+  ): string[] | undefined => {
+    if (additions.length === 0) {
+      return existing ? [...existing] : undefined;
+    }
+
+    const termKey = normalizeKey(term);
+    const base = [...(existing ?? [])];
+    const seen = new Set<string>(base.map((v) => normalizeKey(v)));
+    const extra: string[] = [];
+
+    for (const value of additions) {
+      const key = normalizeKey(value);
+      if (!key || key === termKey || seen.has(key)) {
+        continue;
+      }
+      seen.add(key);
+      extra.push(value);
+    }
+
+    if (extra.length === 0) {
+      return existing ? [...existing] : undefined;
+    }
+
+    return [...base, ...extra];
+  };
+
+  for (const group of groups.values()) {
+    const correctKey = normalizeKey(group.correct);
+    const refs = refsByTermKey.get(correctKey);
+
+    if (refs && refs.length > 0) {
+      if (group.aliases.size === 0) {
+        continue;
+      }
+
+      const additions = [...group.aliases];
+      for (const ref of refs) {
+        const glossary = mergedGlossaries[ref.glossaryIndex];
+        const entry = glossary.entries[ref.entryIndex];
+        const merged = mergeAliases(entry.term, entry.aliases, additions);
+        if (merged) {
+          glossary.entries[ref.entryIndex] = { ...entry, aliases: merged };
+        }
+      }
+      continue;
+    }
+
+    const targetId = targets[group.kind];
+    const targetIndex = mergedGlossaries.findIndex((g) => g.id === targetId);
+    if (targetIndex === -1) {
+      continue;
+    }
+
+    const aliases = [...group.aliases];
+    const newEntry: GlossaryEntry = {
+      term: group.correct,
+      aliases: aliases.length > 0 ? aliases : undefined,
+      description: `技術用語の推奨表記は「${group.correct}」です。`
+    };
+
+    const newGlossary = mergedGlossaries[targetIndex];
+    mergedGlossaries[targetIndex] = {
+      ...newGlossary,
+      entries: [...newGlossary.entries, newEntry]
+    };
+
+    refsByTermKey.set(correctKey, [
+      { glossaryIndex: targetIndex, entryIndex: mergedGlossaries[targetIndex].entries.length - 1 }
+    ]);
+  }
+
+  return mergedGlossaries;
+}
+
 const GLOSSARY_INDEX: ReadonlyMap<string, ReadonlyArray<GlossaryHit>> = (() => {
   const index = new Map<string, GlossaryHit[]>();
 
   for (const glossary of GLOSSARIES) {
     for (const entry of glossary.entries) {
-      const aliases = [entry.term, ...(entry.aliases ?? [])];
-      for (const alias of aliases) {
-        const key = normalizeKey(alias);
+      const candidates = [entry.term, ...(entry.aliases ?? []), ...(entry.synonyms ?? [])];
+      for (const candidate of candidates) {
+        const key = normalizeKey(candidate);
         if (!key) {
           continue;
         }
@@ -1003,9 +2190,13 @@ function bestHitForCandidate(candidate: string, rank: ReadonlyMap<GlossaryId, nu
   return best;
 }
 
-export function findGlossaryHit(token: Token, enabledGlossaries: ReadonlyArray<GlossaryId>): GlossaryHit | null {
+export function createGlossaryRank(enabledGlossaries: ReadonlyArray<GlossaryId>): ReadonlyMap<GlossaryId, number> {
   const rank = new Map<GlossaryId, number>();
   enabledGlossaries.forEach((id, i) => rank.set(id, i));
+  return rank;
+}
+
+export function findGlossaryHitWithRank(token: Token, rank: ReadonlyMap<GlossaryId, number>): GlossaryHit | null {
   const candidates = [token.baseForm, token.surface].filter((v): v is string => !!v && v !== '*');
 
   for (const candidate of candidates) {
@@ -1061,13 +2252,15 @@ export function hasGlossaryEntry(candidate: string): boolean {
   return GLOSSARY_INDEX.has(normalizeKey(candidate));
 }
 
-export function findGlossaryMatch(
+export function getGlossaryEntryCount(): number {
+  return GLOSSARIES.reduce((sum, glossary) => sum + glossary.entries.length, 0);
+}
+
+export function findGlossaryMatchWithRank(
   text: string,
   offset: number,
-  enabledGlossaries: ReadonlyArray<GlossaryId>
+  rank: ReadonlyMap<GlossaryId, number>
 ): GlossaryMatch | null {
-  const rank = new Map<GlossaryId, number>();
-  enabledGlossaries.forEach((id, i) => rank.set(id, i));
 
   const candidates: Array<{ value: string; start: number; end: number }> = [];
   const seen = new Set<string>();
@@ -1077,8 +2270,8 @@ export function findGlossaryMatch(
   const windowEnd = Math.min(text.length, offset + windowSize);
   const windowText = text.slice(windowStart, windowEnd);
 
-  const phraseRegex = /[A-Za-z][A-Za-z0-9.+#/_:-]*(?:\s+[A-Za-z][A-Za-z0-9.+#/_:-]*){0,5}/g;
-  for (const m of windowText.matchAll(phraseRegex)) {
+  PHRASE_REGEX.lastIndex = 0;
+  for (const m of windowText.matchAll(PHRASE_REGEX)) {
     if (m.index === undefined) {
       continue;
     }
@@ -1091,8 +2284,8 @@ export function findGlossaryMatch(
 
     const relOffset = offset - absStart;
     const wordSegments: Array<{ start: number; end: number }> = [];
-    const wordRegex = /[A-Za-z0-9.+#/_:-]+/g;
-    for (const w of matchValue.matchAll(wordRegex)) {
+    WORD_REGEX.lastIndex = 0;
+    for (const w of matchValue.matchAll(WORD_REGEX)) {
       if (w.index === undefined) {
         continue;
       }
@@ -1102,9 +2295,25 @@ export function findGlossaryMatch(
       continue;
     }
 
-    const centerIndex = wordSegments.findIndex((seg) => relOffset >= seg.start && relOffset < seg.end);
+    let centerIndex = wordSegments.findIndex((seg) => relOffset >= seg.start && relOffset < seg.end);
     if (centerIndex === -1) {
-      continue;
+      // カーソルが語と語の間（スペース等）にある場合、最も近い語を中心として扱う
+      let leftIndex = -1;
+      for (let i = 0; i < wordSegments.length; i += 1) {
+        if (wordSegments[i].end <= relOffset) {
+          leftIndex = i;
+        }
+      }
+      if (leftIndex !== -1) {
+        centerIndex = leftIndex;
+      } else {
+        const rightIndex = wordSegments.findIndex((seg) => seg.start > relOffset);
+        if (rightIndex !== -1) {
+          centerIndex = rightIndex;
+        } else {
+          continue;
+        }
+      }
     }
 
     for (let s = 0; s <= centerIndex; s += 1) {
@@ -1122,7 +2331,7 @@ export function findGlossaryMatch(
     }
   }
 
-  const isAsciiTermChar = (ch: string): boolean => /[A-Za-z0-9.+#/_:-]/.test(ch);
+  const isAsciiTermChar = (ch: string): boolean => ASCII_TERM_CHAR_RE.test(ch);
   const asciiRun = expandRun(text, offset, isAsciiTermChar);
   if (asciiRun) {
     const value = text.slice(asciiRun.start, asciiRun.end);
@@ -1133,7 +2342,7 @@ export function findGlossaryMatch(
     }
   }
 
-  const isCjkTermChar = (ch: string): boolean => /[ぁ-ゔァ-ヶー一-龯々・]/.test(ch);
+  const isCjkTermChar = (ch: string): boolean => CJK_TERM_CHAR_RE.test(ch);
   const cjkRun = expandRun(text, offset, isCjkTermChar);
   if (cjkRun) {
     const value = text.slice(cjkRun.start, cjkRun.end);
@@ -1141,6 +2350,19 @@ export function findGlossaryMatch(
     if (key && !seen.has(key)) {
       seen.add(key);
       candidates.push({ value, start: cjkRun.start, end: cjkRun.end });
+    }
+  }
+
+  // 例: VPCエンドポイント / DBインスタンス のような混在語（英数字+日本語）を拾う
+  const isMixedTermChar = (ch: string): boolean =>
+    MIXED_ASCII_TERM_CHAR_RE.test(ch) || MIXED_CJK_TERM_CHAR_RE.test(ch);
+  const mixedRun = expandRun(text, offset, isMixedTermChar);
+  if (mixedRun) {
+    const value = text.slice(mixedRun.start, mixedRun.end);
+    const key = normalizeKey(value);
+    if (key && !seen.has(key)) {
+      seen.add(key);
+      candidates.push({ value, start: mixedRun.start, end: mixedRun.end });
     }
   }
 
@@ -1165,4 +2387,16 @@ export function findGlossaryMatch(
   }
 
   return best;
+}
+
+export function findGlossaryHit(token: Token, enabledGlossaries: ReadonlyArray<GlossaryId>): GlossaryHit | null {
+  return findGlossaryHitWithRank(token, createGlossaryRank(enabledGlossaries));
+}
+
+export function findGlossaryMatch(
+  text: string,
+  offset: number,
+  enabledGlossaries: ReadonlyArray<GlossaryId>
+): GlossaryMatch | null {
+  return findGlossaryMatchWithRank(text, offset, createGlossaryRank(enabledGlossaries));
 }

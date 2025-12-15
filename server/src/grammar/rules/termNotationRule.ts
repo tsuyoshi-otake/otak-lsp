@@ -5,127 +5,20 @@
  * 要件: 10.1, 10.2, 10.3, 10.4, 10.5, 12.1, 12.2, 12.3, 12.4, 12.5, 13.4
  */
 
-import { Token, Range } from '../../../../shared/src/types';
+import { Token } from '../../../../shared/src/types';
 import {
   AdvancedGrammarRule,
   AdvancedRulesConfig,
   RuleContext,
   AdvancedDiagnostic
 } from '../../../../shared/src/advancedTypes';
-
-/**
- * 基本的なウェブ技術用語
- */
-const WEB_TECH_NOTATION_RULES: Map<string, string> = new Map([
-  ['Javascript', 'JavaScript'],
-  ['javascript', 'JavaScript'],
-  ['Typescript', 'TypeScript'],
-  ['typescript', 'TypeScript'],
-  ['Github', 'GitHub'],
-  ['github', 'GitHub'],
-  ['Nodejs', 'Node.js'],
-  ['nodejs', 'Node.js'],
-  ['NodeJs', 'Node.js'],
-  ['Vscode', 'VS Code'],
-  ['vscode', 'VS Code'],
-  ['VScode', 'VS Code'],
-  ['Webpack', 'webpack'],
-  ['ReactJs', 'React'],
-  ['Reactjs', 'React'],
-  ['VueJs', 'Vue.js'],
-  ['Vuejs', 'Vue.js'],
-  ['vuejs', 'Vue.js'],
-  ['AngularJs', 'Angular'],
-  ['Angularjs', 'Angular'],
-  ['Nextjs', 'Next.js'],
-  ['nextjs', 'Next.js'],
-  ['NextJs', 'Next.js']
-]);
-
-/**
- * 生成AI関連用語
- */
-const GENERATIVE_AI_NOTATION_RULES: Map<string, string> = new Map([
-  ['chatgpt', 'ChatGPT'],
-  ['Chatgpt', 'ChatGPT'],
-  ['chat-gpt', 'ChatGPT'],
-  ['openai', 'OpenAI'],
-  ['Openai', 'OpenAI'],
-  ['Open AI', 'OpenAI'],
-  ['claude', 'Claude'],
-  ['gpt-4', 'GPT-4'],
-  ['gpt4', 'GPT-4'],
-  ['GPT4', 'GPT-4'],
-  ['llm', 'LLM'],
-  ['Llm', 'LLM'],
-  ['rag', 'RAG'],
-  ['Rag', 'RAG'],
-  ['gemini', 'Gemini'],
-  ['copilot', 'Copilot'],
-  ['Co-pilot', 'Copilot'],
-  ['midjourney', 'Midjourney'],
-  ['Mid Journey', 'Midjourney'],
-  ['stable diffusion', 'Stable Diffusion'],
-  ['StableDiffusion', 'Stable Diffusion'],
-  ['anthropic', 'Anthropic']
-]);
-
-/**
- * AWS関連用語
- */
-const AWS_NOTATION_RULES: Map<string, string> = new Map([
-  ['aws', 'AWS'],
-  ['Aws', 'AWS'],
-  ['ec2', 'EC2'],
-  ['s3', 'S3'],
-  ['lambda', 'Lambda'],
-  ['dynamodb', 'DynamoDB'],
-  ['Dynamodb', 'DynamoDB'],
-  ['rds', 'RDS'],
-  ['cloudformation', 'CloudFormation'],
-  ['Cloud Formation', 'CloudFormation'],
-  ['cloudwatch', 'CloudWatch'],
-  ['Cloud Watch', 'CloudWatch'],
-  ['ecs', 'ECS'],
-  ['eks', 'EKS'],
-  ['fargate', 'Fargate'],
-  ['sagemaker', 'SageMaker'],
-  ['Sagemaker', 'SageMaker'],
-  ['Sage Maker', 'SageMaker'],
-  ['bedrock', 'Bedrock']
-]);
-
-/**
- * Azure関連用語
- */
-const AZURE_NOTATION_RULES: Map<string, string> = new Map([
-  ['azure', 'Azure'],
-  ['AZURE', 'Azure'],
-  ['azure functions', 'Azure Functions'],
-  ['azure devops', 'Azure DevOps'],
-  ['AzureDevOps', 'Azure DevOps'],
-  ['azure ad', 'Azure AD'],
-  ['AzureAD', 'Azure AD'],
-  ['cosmos db', 'Cosmos DB'],
-  ['CosmosDB', 'Cosmos DB'],
-  ['app service', 'App Service'],
-  ['azure openai', 'Azure OpenAI'],
-  ['AzureOpenAI', 'Azure OpenAI']
-]);
-
-/**
- * OCI関連用語
- */
-const OCI_NOTATION_RULES: Map<string, string> = new Map([
-  ['oci', 'OCI'],
-  ['Oci', 'OCI'],
-  ['oracle cloud infrastructure', 'Oracle Cloud Infrastructure'],
-  ['oracle cloud', 'Oracle Cloud'],
-  ['compute instance', 'Compute Instance'],
-  ['object storage', 'Object Storage'],
-  ['autonomous database', 'Autonomous Database'],
-  ['oci generative ai', 'OCI Generative AI']
-]);
+import {
+  AWS_NOTATION_RULES,
+  AZURE_NOTATION_RULES,
+  GENERATIVE_AI_NOTATION_RULES,
+  OCI_NOTATION_RULES,
+  WEB_TECH_NOTATION_RULES
+} from '../../dictionaries/termNotationDictionary';
 
 /**
  * 技術用語表記統一ルール
@@ -143,19 +36,29 @@ export class TermNotationRule implements AdvancedGrammarRule {
     const combined = new Map<string, string>();
 
     if (config.enableWebTechDictionary) {
-      WEB_TECH_NOTATION_RULES.forEach((v, k) => combined.set(k, v));
+      for (const [incorrect, correct] of WEB_TECH_NOTATION_RULES) {
+        combined.set(incorrect, correct);
+      }
     }
     if (config.enableGenerativeAIDictionary) {
-      GENERATIVE_AI_NOTATION_RULES.forEach((v, k) => combined.set(k, v));
+      for (const [incorrect, correct] of GENERATIVE_AI_NOTATION_RULES) {
+        combined.set(incorrect, correct);
+      }
     }
     if (config.enableAWSDictionary) {
-      AWS_NOTATION_RULES.forEach((v, k) => combined.set(k, v));
+      for (const [incorrect, correct] of AWS_NOTATION_RULES) {
+        combined.set(incorrect, correct);
+      }
     }
     if (config.enableAzureDictionary) {
-      AZURE_NOTATION_RULES.forEach((v, k) => combined.set(k, v));
+      for (const [incorrect, correct] of AZURE_NOTATION_RULES) {
+        combined.set(incorrect, correct);
+      }
     }
     if (config.enableOCIDictionary) {
-      OCI_NOTATION_RULES.forEach((v, k) => combined.set(k, v));
+      for (const [incorrect, correct] of OCI_NOTATION_RULES) {
+        combined.set(incorrect, correct);
+      }
     }
 
     // カスタムルールを追加
@@ -186,33 +89,119 @@ export class TermNotationRule implements AdvancedGrammarRule {
    * テキスト内の誤った表記を検出
    */
   detectIncorrectNotation(text: string, config: AdvancedRulesConfig): Array<{ incorrect: string; correct: string; index: number }> {
-    const results: Array<{ incorrect: string; correct: string; index: number }> = [];
+    type PhraseTrieNode = {
+      correct?: string;
+      children: Map<string, PhraseTrieNode>;
+    };
+
     const dictionaries = this.getActiveDictionaries(config);
 
-    for (const [incorrect, correct] of dictionaries) {
-      // 既に正しい表記の場合はスキップ
-      if (incorrect === correct) continue;
+    const singleWord = new Map<string, string>();
+    const phraseTrieRoot: PhraseTrieNode = { children: new Map() };
+    let maxPhraseWords = 1;
 
-      // 大文字小文字を区別して検索
-      const regex = new RegExp(`\\b${this.escapeRegex(incorrect)}\\b`, 'g');
-      let match;
-      while ((match = regex.exec(text)) !== null) {
+    for (const [incorrect, correct] of dictionaries) {
+      if (incorrect === correct) {
+        continue;
+      }
+
+      const parts = incorrect.trim().split(/\s+/g).filter((v) => v.length > 0);
+      if (parts.length <= 1) {
+        singleWord.set(incorrect, correct);
+        continue;
+      }
+
+      maxPhraseWords = Math.max(maxPhraseWords, parts.length);
+      let node = phraseTrieRoot;
+      for (const part of parts) {
+        const next = node.children.get(part) ?? { children: new Map() };
+        node.children.set(part, next);
+        node = next;
+      }
+      node.correct = correct;
+    }
+
+    const termTokenRegex = /[A-Za-z0-9.+#/_:-]+/g;
+    const tokens: Array<{ value: string; start: number; end: number }> = [];
+    let m: RegExpExecArray | null;
+    while ((m = termTokenRegex.exec(text)) !== null) {
+      const value = m[0];
+      const start = m.index;
+      tokens.push({ value, start, end: start + value.length });
+    }
+
+    const isWhitespaceOnly = (between: string): boolean => /^\s+$/.test(between);
+
+    const results: Array<{ incorrect: string; correct: string; index: number }> = [];
+
+    for (let i = 0; i < tokens.length; ) {
+      let node: PhraseTrieNode | null = phraseTrieRoot;
+      let best: { endIndex: number; correct: string } | null = null;
+
+      for (let j = i; j < tokens.length && j < i + maxPhraseWords; j += 1) {
+        if (j > i) {
+          const between = text.slice(tokens[j - 1].end, tokens[j].start);
+          if (!isWhitespaceOnly(between)) {
+            break;
+          }
+        }
+
+        node = node.children.get(tokens[j].value) ?? null;
+        if (!node) {
+          break;
+        }
+
+        if (node.correct) {
+          best = { endIndex: j, correct: node.correct };
+        }
+      }
+
+      if (best) {
+        const start = tokens[i].start;
+        const end = tokens[best.endIndex].end;
         results.push({
-          incorrect: match[0],
+          incorrect: text.slice(start, end),
+          correct: best.correct,
+          index: start
+        });
+        i = best.endIndex + 1;
+        continue;
+      }
+
+      const token = tokens[i];
+      const correct = singleWord.get(token.value);
+      if (correct) {
+        results.push({
+          incorrect: token.value,
           correct,
-          index: match.index
+          index: token.start
+        });
+        i += 1;
+        continue;
+      }
+
+      // vscode-languageclient のような複合語に対して、区切り文字（-/.など）で分割して部分一致も拾う。
+      // 既存実装（正規表現 + \\b）と同等の検出を目指す。
+      const segmentRegex = /[A-Za-z0-9_]+/g;
+      let segment: RegExpExecArray | null;
+      while ((segment = segmentRegex.exec(token.value)) !== null) {
+        const part = segment[0];
+        const partCorrect = singleWord.get(part);
+        if (!partCorrect) {
+          continue;
+        }
+
+        results.push({
+          incorrect: part,
+          correct: partCorrect,
+          index: token.start + segment.index
         });
       }
+
+      i += 1;
     }
 
     return results;
-  }
-
-  /**
-   * 正規表現のエスケープ
-   */
-  private escapeRegex(str: string): string {
-    return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   }
 
   /**

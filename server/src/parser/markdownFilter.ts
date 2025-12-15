@@ -90,22 +90,31 @@ export class MarkdownFilter implements IMarkdownFilter {
       return ranges;
     }
 
+    // 先に軽量な存在チェックを行い、不要な重い走査（split/正規表現）を避ける
+    const hasBacktick = text.indexOf('`') !== -1;
+    const hasCodeFence = text.indexOf('```') !== -1 || text.indexOf('~~~') !== -1;
+    const hasUrlLike = text.indexOf('http') !== -1 || text.indexOf('://') !== -1 || text.indexOf('www.') !== -1;
+    const hasConfigKeyLike =
+      text.indexOf('otakLcp.') !== -1 || text.indexOf('config.') !== -1 || text.indexOf('settings.') !== -1;
+    const hasPipe = text.indexOf('|') !== -1;
+    const hasHeadingMarker = text.indexOf('#') !== -1;
+
     // 各フィルタリング処理を優先順位順に実行
     // 優先順位: コードブロック > インラインコード > URL > 設定キー > カスタムパターン > テーブル
 
-    if (effectiveConfig.excludeCodeBlocks) {
+    if (effectiveConfig.excludeCodeBlocks && hasCodeFence) {
       ranges.push(...this.findCodeBlocks(text));
     }
 
-    if (effectiveConfig.excludeInlineCode) {
+    if (effectiveConfig.excludeInlineCode && hasBacktick) {
       ranges.push(...this.findInlineCode(text, ranges));
     }
 
-    if (effectiveConfig.excludeUrls) {
+    if (effectiveConfig.excludeUrls && hasUrlLike) {
       ranges.push(...this.findUrls(text, ranges));
     }
 
-    if (effectiveConfig.excludeConfigKeys) {
+    if (effectiveConfig.excludeConfigKeys && hasConfigKeyLike) {
       ranges.push(...this.findConfigKeys(text, ranges));
     }
 
@@ -113,11 +122,11 @@ export class MarkdownFilter implements IMarkdownFilter {
       ranges.push(...this.findCustomPatterns(text, effectiveConfig.customExcludePatterns, ranges));
     }
 
-    if (effectiveConfig.excludeTables) {
+    if (effectiveConfig.excludeTables && hasPipe) {
       ranges.push(...this.findTables(text, ranges));
     }
 
-    if (effectiveConfig.excludeHeadings) {
+    if (effectiveConfig.excludeHeadings && hasHeadingMarker) {
       ranges.push(...this.findHeadings(text, ranges));
     }
 

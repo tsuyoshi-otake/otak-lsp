@@ -7,7 +7,7 @@
 
 import { GlossaryId, Token } from '../../../shared/src/types';
 import { WikipediaClient } from '../wikipedia/client';
-import { DEFAULT_ENABLED_GLOSSARIES, findGlossaryHit, findGlossaryMatch } from './glossary';
+import { createGlossaryRank, DEFAULT_ENABLED_GLOSSARIES, findGlossaryHitWithRank, findGlossaryMatchWithRank } from './glossary';
 
 /**
  * ホバー結果
@@ -29,12 +29,17 @@ export class HoverProvider {
   private wikipediaEnabled: boolean = true;
   private glossaryEnabled: boolean = true;
   private enabledGlossaries: GlossaryId[] = [...DEFAULT_ENABLED_GLOSSARIES];
+  private glossaryRank: ReadonlyMap<GlossaryId, number> = createGlossaryRank(DEFAULT_ENABLED_GLOSSARIES);
 
   // Wikipedia検索をスキップする品詞
   private static readonly SKIP_WIKIPEDIA_POS = ['助詞', '助動詞', '記号', '接続詞'];
 
   constructor(wikipediaClient: WikipediaClient) {
     this.wikipediaClient = wikipediaClient;
+  }
+
+  private refreshGlossaryRank(): void {
+    this.glossaryRank = createGlossaryRank(this.enabledGlossaries);
   }
 
   /**
@@ -56,6 +61,7 @@ export class HoverProvider {
    */
   setEnabledGlossaries(glossaries: GlossaryId[]): void {
     this.enabledGlossaries = Array.isArray(glossaries) ? [...glossaries] : [...DEFAULT_ENABLED_GLOSSARIES];
+    this.refreshGlossaryRank();
   }
 
   /**
@@ -69,6 +75,24 @@ export class HoverProvider {
       return null;
     }
 
+    // tokens は通常 start 昇順なので二分探索で高速化（ホバーは高頻度で呼ばれる）
+    let low = 0;
+    let high = tokens.length - 1;
+    while (low <= high) {
+      const mid = (low + high) >> 1;
+      const token = tokens[mid];
+      if (position < token.start) {
+        high = mid - 1;
+        continue;
+      }
+      if (position >= token.end) {
+        low = mid + 1;
+        continue;
+      }
+      return token;
+    }
+
+    // 念のためフォールバック（万一ソートされていない場合）
     for (const token of tokens) {
       if (position >= token.start && position < token.end) {
         return token;
@@ -143,8 +167,8 @@ export class HoverProvider {
     // 用語図鑑（オフライン）
     let glossaryRange: { start: number; end: number } | null = null;
     if (this.glossaryEnabled) {
-      const hitFromText = documentText ? findGlossaryMatch(documentText, position, this.enabledGlossaries) : null;
-      const hit = hitFromText?.hit ?? (token ? findGlossaryHit(token, this.enabledGlossaries) : null);
+      const hitFromText = documentText ? findGlossaryMatchWithRank(documentText, position, this.glossaryRank) : null;
+      const hit = hitFromText?.hit ?? (token ? findGlossaryHitWithRank(token, this.glossaryRank) : null);
       glossaryRange = hitFromText?.range ?? null;
       if (hit) {
         const extraLines: string[] = [];

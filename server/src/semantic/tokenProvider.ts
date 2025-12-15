@@ -7,6 +7,8 @@
 
 import { Token, SemanticTokens } from '../../../shared/src/types';
 
+const ASCII_ONLY_RE = /^[\x00-\x7F]+$/;
+
 /**
  * セマンティックトークンタイプ
  */
@@ -61,6 +63,16 @@ const POS_TO_TOKEN_TYPE: Record<string, TokenType> = {
  * セマンティックトークンプロバイダー
  */
 export class SemanticTokenProvider {
+  private computeLineStarts(text: string): number[] {
+    const lineStarts: number[] = [0];
+    for (let i = 0; i < text.length; i++) {
+      if (text.charCodeAt(i) === 10) {
+        lineStarts.push(i + 1);
+      }
+    }
+    return lineStarts;
+  }
+
   /**
    * 品詞からTokenTypeへのマッピング
    */
@@ -103,7 +115,7 @@ export class SemanticTokenProvider {
     }
 
     // ASCIIのみのトークンは日本語品詞としての色分けがノイズになりやすい
-    if (/^[\x00-\x7F]+$/.test(token.surface)) {
+    if (ASCII_ONLY_RE.test(token.surface)) {
       return TokenType.Other;
     }
 
@@ -115,18 +127,12 @@ export class SemanticTokenProvider {
    * 形式: [line, startChar, length, tokenType, tokenModifiers]
    * 位置情報は相対位置で表現される
    */
-  provideSemanticTokens(tokens: Token[], text: string): SemanticTokens {
+  provideSemanticTokens(tokens: Token[], text: string, lineStarts?: number[]): SemanticTokens {
     if (!tokens || tokens.length === 0) {
       return { data: [] };
     }
 
-    // テキストから行ごとの開始位置を計算
-    const lineStarts: number[] = [0];
-    for (let i = 0; i < text.length; i++) {
-      if (text.charCodeAt(i) === 10) {
-        lineStarts.push(i + 1);
-      }
-    }
+    const effectiveLineStarts = lineStarts ?? this.computeLineStarts(text);
 
     const isSortedByStart = (() => {
       for (let i = 1; i < tokens.length; i++) {
@@ -139,11 +145,11 @@ export class SemanticTokenProvider {
 
     const findLineForOffset = (offset: number): number => {
       let low = 0;
-      let high = lineStarts.length - 1;
+      let high = effectiveLineStarts.length - 1;
       while (low <= high) {
         const mid = (low + high) >> 1;
-        const start = lineStarts[mid];
-        const nextStart = mid + 1 < lineStarts.length ? lineStarts[mid + 1] : Number.POSITIVE_INFINITY;
+        const start = effectiveLineStarts[mid];
+        const nextStart = mid + 1 < effectiveLineStarts.length ? effectiveLineStarts[mid + 1] : Number.POSITIVE_INFINITY;
         if (start <= offset && offset < nextStart) {
           return mid;
         }
@@ -168,14 +174,14 @@ export class SemanticTokenProvider {
       // 現在のトークンの行と文字位置を計算
       const line = isSortedByStart
         ? (() => {
-          while (nextLineStartIndex < lineStarts.length && token.start >= lineStarts[nextLineStartIndex]) {
+          while (nextLineStartIndex < effectiveLineStarts.length && token.start >= effectiveLineStarts[nextLineStartIndex]) {
             currentLine = nextLineStartIndex;
             nextLineStartIndex++;
           }
           return currentLine;
         })()
         : findLineForOffset(token.start);
-      const char = token.start - lineStarts[line];
+      const char = token.start - effectiveLineStarts[line];
 
       // 相対位置を計算
       const deltaLine = line - prevLine;

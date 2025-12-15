@@ -115,6 +115,8 @@
 #### 10. 技術用語の表記統一（Term Notation）
 
 技術用語の誤った表記を検出し、正しい表記を提案します。
+※ この辞書の表記ゆれはホバーの用語図鑑（オフライン）にも反映されます（例: `Nodejs` → `Node.js`）。
+※ 辞書は継続的に拡充しており、READMEの表は代表例の抜粋です（全件は `server/src/dictionaries/termNotationDictionary.ts` を参照）。
 
 **基本ウェブ技術用語**
 
@@ -418,6 +420,7 @@
 | `otakLcp.advanced.enableAWSDictionary` | AWS用語辞典 | `true` |
 | `otakLcp.advanced.enableAzureDictionary` | Azure用語辞典 | `true` |
 | `otakLcp.advanced.enableOCIDictionary` | OCI用語辞典 | `true` |
+| `otakLcp.advanced.customNotationRules` | 技術用語表記統一のカスタム辞書（`{ "誤表記": "正表記" }`） | `{}` |
 
 ### その他の設定
 

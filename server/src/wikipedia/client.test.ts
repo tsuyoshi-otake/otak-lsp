@@ -132,6 +132,7 @@ describe('Wikipedia API Client', () => {
     });
 
     it('should respect cache TTL', async () => {
+      jest.useFakeTimers({ now: 0 });
       const mockFetch = jest.fn()
         .mockResolvedValueOnce({
           ok: true,
@@ -148,20 +149,24 @@ describe('Wikipedia API Client', () => {
       client.setFetch(mockFetch);
       client.setCacheTTL(100); // 100msのTTL
 
-      // 1回目のリクエスト
-      const result1 = await client.getSummary('テスト');
-      expect(result1).toBe('古いサマリー');
+      try {
+        // 1回目のリクエスト
+        const result1 = await client.getSummary('テスト');
+        expect(result1).toBe('古いサマリー');
 
-      // TTL期限前
-      const result2 = await client.getSummary('テスト');
-      expect(result2).toBe('古いサマリー');
-      expect(mockFetch).toHaveBeenCalledTimes(1);
+        // TTL期限前
+        const result2 = await client.getSummary('テスト');
+        expect(result2).toBe('古いサマリー');
+        expect(mockFetch).toHaveBeenCalledTimes(1);
 
-      // TTL期限後
-      await new Promise(resolve => setTimeout(resolve, 150));
-      const result3 = await client.getSummary('テスト');
-      expect(result3).toBe('新しいサマリー');
-      expect(mockFetch).toHaveBeenCalledTimes(2);
+        // TTL期限後
+        jest.advanceTimersByTime(150);
+        const result3 = await client.getSummary('テスト');
+        expect(result3).toBe('新しいサマリー');
+        expect(mockFetch).toHaveBeenCalledTimes(2);
+      } finally {
+        jest.useRealTimers();
+      }
     });
 
     it('should limit cache size', async () => {

@@ -39,6 +39,8 @@ import { AdvancedRulesConfig, SentenceSplitMode, WeakExpressionLevel } from '../
 // Create connection
 const connection = createConnection(ProposedFeatures.all);
 
+const DEBUG_LOGS = process.env.OTAK_LCP_DEBUG === '1';
+
 // Create document manager
 const documents: TextDocuments<TextDocument> = new TextDocuments(TextDocument);
 
@@ -57,6 +59,8 @@ let wikipediaClient: WikipediaClient;
 const documentTokens: Map<string, Token[]> = new Map();
 const documentTexts: Map<string, string> = new Map();
 const documentExcludedRanges: Map<string, ExcludedRange[]> = new Map();
+const documentLineStarts: Map<string, number[]> = new Map();
+const documentSemanticTokensCache: Map<string, { tokens: Token[]; lineStarts: number[]; semanticTokens: SemanticTokens }> = new Map();
 
 // Configuration
 let configuration: Configuration = {
@@ -78,6 +82,16 @@ let configuration: Configuration = {
 
 // Debounce timers
 const debounceTimers: Map<string, NodeJS.Timeout> = new Map();
+
+function computeLineStarts(text: string): number[] {
+  const lineStarts: number[] = [0];
+  for (let i = 0; i < text.length; i++) {
+    if (text.charCodeAt(i) === 10) {
+      lineStarts.push(i + 1);
+    }
+  }
+  return lineStarts;
+}
 
 function getSetting(config: unknown, keyPath: string): unknown {
   if (!config || typeof config !== 'object') {
@@ -118,11 +132,36 @@ function applyAdvancedConfigFromSettings(settings: unknown): void {
   const patch: Partial<AdvancedRulesConfig> = {};
 
   for (const [key, currentValue] of Object.entries(current)) {
+    const incoming = getSetting(settings, `advanced.${key}`);
+
     if (key === 'customNotationRules') {
+      if (incoming && typeof incoming === 'object' && !Array.isArray(incoming)) {
+        const record = incoming as Record<string, unknown>;
+        const entries: Array<[string, string]> = [];
+        for (const [k, v] of Object.entries(record)) {
+          if (typeof v === 'string') {
+            entries.push([k, v]);
+          }
+        }
+        patch.customNotationRules = new Map(entries);
+      } else if (incoming && Array.isArray(incoming)) {
+        // 互換: [{ incorrect, correct }] 形式も受け付ける
+        const entries: Array<[string, string]> = [];
+        for (const item of incoming) {
+          if (!item || typeof item !== 'object') {
+            continue;
+          }
+          const asRecord = item as Record<string, unknown>;
+          const incorrect = asRecord.incorrect;
+          const correct = asRecord.correct;
+          if (typeof incorrect === 'string' && typeof correct === 'string') {
+            entries.push([incorrect, correct]);
+          }
+        }
+        patch.customNotationRules = new Map(entries);
+      }
       continue;
     }
-
-    const incoming = getSetting(settings, `advanced.${key}`);
 
     if (typeof currentValue === 'boolean' && typeof incoming === 'boolean') {
       (patch as any)[key] = incoming;
@@ -312,6 +351,8 @@ connection.onDidChangeConfiguration(async (change) => {
     documentTokens.clear();
     documentTexts.clear();
     documentExcludedRanges.clear();
+    documentLineStarts.clear();
+    documentSemanticTokensCache.clear();
     connection.sendRequest('workspace/semanticTokens/refresh').catch(() => {});
   }
 
@@ -360,13 +401,17 @@ async function analyzeDocument(document: TextDocument): Promise<void> {
   const text = document.getText();
   const languageId = document.languageId as SupportedLanguage;
 
-  connection.console.log(`[DEBUG] Analyzing document: ${uri}`);
-  connection.console.log(`[DEBUG] Language ID: ${languageId}`);
-  connection.console.log(`[DEBUG] Text length: ${text.length}`);
+  if (DEBUG_LOGS) {
+    connection.console.log(`[DEBUG] Analyzing document: ${uri}`);
+    connection.console.log(`[DEBUG] Language ID: ${languageId}`);
+    connection.console.log(`[DEBUG] Text length: ${text.length}`);
+  }
 
   // Check if language is supported
   if (!configuration.targetLanguages.includes(languageId)) {
-    connection.console.log(`[DEBUG] Language ${languageId} not in target languages, skipping`);
+    if (DEBUG_LOGS) {
+      connection.console.log(`[DEBUG] Language ${languageId} not in target languages, skipping`);
+    }
     return;
   }
 
@@ -374,13 +419,13 @@ async function analyzeDocument(document: TextDocument): Promise<void> {
     // Extract text to analyze (comments for code, full text for markdown/plaintext)
     let textToAnalyze = text;
     let excludedRanges: ExcludedRange[] = [];
-    let semanticExcludedRanges: ExcludedRange[] = [];
-    let grammarExcludedRanges: ExcludedRange[] = [];
 
     if (languageId !== 'markdown' && languageId !== 'plaintext') {
       const comments = commentExtractor.extract(text, languageId);
       textToAnalyze = comments.map((c) => c.text).join('\n');
-      connection.console.log(`[DEBUG] Extracted ${comments.length} comments`);
+      if (DEBUG_LOGS) {
+        connection.console.log(`[DEBUG] Extracted ${comments.length} comments`);
+      }
     } else if (languageId === 'markdown') {
       // Apply markdown filtering to exclude code blocks, URLs, table delimiters, etc.
       const filterResult = markdownFilter.filter(textToAnalyze, {
@@ -390,60 +435,89 @@ async function analyzeDocument(document: TextDocument): Promise<void> {
       textToAnalyze = filterResult.filteredText;
       excludedRanges = filterResult.excludedRanges;
 
-      // セマンティックハイライト用:
-      // - table: 既定では table 範囲を除外せずにセル内テキストを残す
-      // - code-block: 既定ではコードブロック内もハイライト対象にする
-      semanticExcludedRanges = excludedRanges;
-      if (configuration.excludeTableDelimiters !== false) {
-        semanticExcludedRanges = semanticExcludedRanges.filter((r) => r.type !== 'table');
-      }
-      if (configuration.markdown.analyzeCodeBlocks) {
-        semanticExcludedRanges = semanticExcludedRanges.filter((r) => r.type !== 'code-block');
-      }
-
-      // 文法チェック用: すべての除外範囲を使用（table 全体も含む）
-      grammarExcludedRanges = configuration.markdown.analyzeCodeBlocks
-        ? excludedRanges.filter((r) => r.type !== 'code-block')
-        : excludedRanges;
-      if (configuration.markdown.analyzeTables) {
-        grammarExcludedRanges = grammarExcludedRanges.filter((r) => r.type !== 'table');
-      }
-
       documentExcludedRanges.set(uri, excludedRanges);
-      connection.console.log(`[DEBUG] Markdown filtered: ${excludedRanges.length} ranges excluded`);
+      if (DEBUG_LOGS) {
+        connection.console.log(`[DEBUG] Markdown filtered: ${excludedRanges.length} ranges excluded`);
+      }
     }
 
     // Skip if no text to analyze
     if (!textToAnalyze.trim()) {
-      connection.console.log(`[DEBUG] No text to analyze, skipping`);
+      if (DEBUG_LOGS) {
+        connection.console.log(`[DEBUG] No text to analyze, skipping`);
+      }
       documentTokens.set(uri, []);
       connection.sendDiagnostics({ uri, diagnostics: [] });
       return;
     }
 
-    connection.console.log(`[DEBUG] Text to analyze (first 100 chars): ${textToAnalyze.substring(0, 100)}`);
+    if (DEBUG_LOGS) {
+      connection.console.log(`[DEBUG] Text to analyze (first 100 chars): ${textToAnalyze.substring(0, 100)}`);
+    }
 
     // Analyze with kuromoji
-    connection.console.log(`[DEBUG] Starting morphological analysis...`);
+    if (DEBUG_LOGS) {
+      connection.console.log(`[DEBUG] Starting morphological analysis...`);
+    }
     const allTokens = await mecabAnalyzer.analyze(textToAnalyze);
-    let semanticTokensList = allTokens;
-    let grammarTokensList = allTokens;
-    connection.console.log(`[DEBUG] Analysis complete, ${allTokens.length} tokens found`);
+    if (DEBUG_LOGS) {
+      connection.console.log(`[DEBUG] Analysis complete, ${allTokens.length} tokens found`);
+    }
+
+    let semanticTokensList: Token[] | null = configuration.enableSemanticHighlight ? allTokens : null;
+    let grammarTokensList: Token[] | null = configuration.enableGrammarCheck ? allTokens : null;
 
     // Filter tokens that fall within excluded ranges (for Markdown files)
     if (languageId === 'markdown') {
-      if (semanticExcludedRanges.length > 0) {
-        semanticTokensList = tokenFilter.filterTokens(allTokens, semanticExcludedRanges);
-      }
-      if (grammarExcludedRanges.length > 0) {
-        grammarTokensList = tokenFilter.filterTokens(allTokens, grammarExcludedRanges);
+      if (configuration.enableSemanticHighlight) {
+        // セマンティックハイライト用:
+        // - table: 既定では table 範囲を除外せずにセル内テキストを残す
+        // - code-block: 既定ではコードブロック内もハイライト対象にする
+        let semanticExcludedRanges = excludedRanges;
+        if (configuration.excludeTableDelimiters !== false) {
+          semanticExcludedRanges = semanticExcludedRanges.filter((r) => r.type !== 'table');
+        }
+        if (configuration.markdown.analyzeCodeBlocks) {
+          semanticExcludedRanges = semanticExcludedRanges.filter((r) => r.type !== 'code-block');
+        }
+
+        if (semanticExcludedRanges.length > 0) {
+          semanticTokensList = tokenFilter.filterTokens(allTokens, semanticExcludedRanges);
+        }
+
+        if (DEBUG_LOGS && semanticTokensList) {
+          connection.console.log(
+            `[DEBUG] Token filtering (semantic): ${allTokens.length} -> ${semanticTokensList.length} tokens (${allTokens.length - semanticTokensList.length} filtered out)`
+          );
+        }
+
+        documentTokens.set(uri, semanticTokensList ?? []);
+      } else {
+        // セマンティックハイライトが無効でも Hover ではトークンが必要なため保持する
+        documentTokens.set(uri, allTokens);
       }
 
-      connection.console.log(`[DEBUG] Token filtering (semantic): ${allTokens.length} -> ${semanticTokensList.length} tokens (${allTokens.length - semanticTokensList.length} filtered out)`);
-      connection.console.log(`[DEBUG] Token filtering (grammar): ${allTokens.length} -> ${grammarTokensList.length} tokens (${allTokens.length - grammarTokensList.length} filtered out)`);
+      if (configuration.enableGrammarCheck) {
+        // 文法チェック用: すべての除外範囲を使用（table 全体も含む）
+        let grammarExcludedRanges = configuration.markdown.analyzeCodeBlocks
+          ? excludedRanges.filter((r) => r.type !== 'code-block')
+          : excludedRanges;
+        if (configuration.markdown.analyzeTables) {
+          grammarExcludedRanges = grammarExcludedRanges.filter((r) => r.type !== 'table');
+        }
 
-      documentTokens.set(uri, semanticTokensList);
+        if (grammarExcludedRanges.length > 0) {
+          grammarTokensList = tokenFilter.filterTokens(allTokens, grammarExcludedRanges);
+        }
+
+        if (DEBUG_LOGS && grammarTokensList) {
+          connection.console.log(
+            `[DEBUG] Token filtering (grammar): ${allTokens.length} -> ${grammarTokensList.length} tokens (${allTokens.length - grammarTokensList.length} filtered out)`
+          );
+        }
+      }
     } else {
+      // セマンティックハイライトが無効でも Hover ではトークンが必要なため保持する
       documentTokens.set(uri, allTokens);
       semanticTokensList = allTokens;
       grammarTokensList = allTokens;
@@ -451,14 +525,22 @@ async function analyzeDocument(document: TextDocument): Promise<void> {
     // Store the original text for semantic token generation
     // (MarkdownFilter uses space replacement, so positions are preserved)
     documentTexts.set(uri, text);
+    if (configuration.enableSemanticHighlight) {
+      documentLineStarts.set(uri, computeLineStarts(text));
+      documentSemanticTokensCache.delete(uri);
+    }
 
     // Grammar check
     const diagnostics: Diagnostic[] = [];
     if (configuration.enableGrammarCheck) {
       // Basic grammar rules
-      connection.console.log(`[DEBUG] Running basic grammar check...`);
-      const grammarDiagnostics = grammarChecker.check(grammarTokensList, textToAnalyze);
-      connection.console.log(`[DEBUG] Basic grammar check found ${grammarDiagnostics.length} issues`);
+      if (DEBUG_LOGS) {
+        connection.console.log(`[DEBUG] Running basic grammar check...`);
+      }
+      const grammarDiagnostics = grammarChecker.check(grammarTokensList ?? [], textToAnalyze);
+      if (DEBUG_LOGS) {
+        connection.console.log(`[DEBUG] Basic grammar check found ${grammarDiagnostics.length} issues`);
+      }
       for (const diag of grammarDiagnostics) {
         let range = {
           start: { line: diag.range.start.line, character: diag.range.start.character },
@@ -475,13 +557,17 @@ async function analyzeDocument(document: TextDocument): Promise<void> {
       }
 
       // Advanced grammar rules
-      connection.console.log(`[DEBUG] Running advanced grammar check...`);
+      if (DEBUG_LOGS) {
+        connection.console.log(`[DEBUG] Running advanced grammar check...`);
+      }
       const advancedDiagnostics = languageId === 'markdown'
-        ? advancedRulesManager.checkText(textToAnalyze, grammarTokensList, excludedRanges, {
+        ? advancedRulesManager.checkText(textToAnalyze, grammarTokensList ?? [], excludedRanges, {
           analyzeTables: configuration.markdown.analyzeTables,
         })
-        : advancedRulesManager.checkText(textToAnalyze, grammarTokensList);
-      connection.console.log(`[DEBUG] Advanced grammar check found ${advancedDiagnostics.length} issues`);
+        : advancedRulesManager.checkText(textToAnalyze, grammarTokensList ?? []);
+      if (DEBUG_LOGS) {
+        connection.console.log(`[DEBUG] Advanced grammar check found ${advancedDiagnostics.length} issues`);
+      }
       for (const diag of advancedDiagnostics) {
         let range = {
           start: { line: diag.range.start.line, character: diag.range.start.character },
@@ -499,12 +585,16 @@ async function analyzeDocument(document: TextDocument): Promise<void> {
     }
 
     // Send diagnostics
-    connection.console.log(`[DEBUG] Sending ${diagnostics.length} diagnostics`);
+    if (DEBUG_LOGS) {
+      connection.console.log(`[DEBUG] Sending ${diagnostics.length} diagnostics`);
+    }
     connection.sendDiagnostics({ uri, diagnostics });
 
     // Request semantic tokens refresh
     if (configuration.enableSemanticHighlight) {
-      connection.console.log(`[DEBUG] Requesting semantic tokens refresh`);
+      if (DEBUG_LOGS) {
+        connection.console.log(`[DEBUG] Requesting semantic tokens refresh`);
+      }
       connection.sendRequest('workspace/semanticTokens/refresh').catch(() => {
         // Client might not support this request
       });
@@ -513,6 +603,8 @@ async function analyzeDocument(document: TextDocument): Promise<void> {
     connection.console.error(`[ERROR] Analysis failed for ${uri}: ${error}`);
     documentTokens.delete(uri);
     documentTexts.delete(uri);
+    documentLineStarts.delete(uri);
+    documentSemanticTokensCache.delete(uri);
     connection.sendDiagnostics({ uri, diagnostics: [] });
   }
 }
@@ -571,6 +663,8 @@ documents.onDidClose((event) => {
   documentTokens.delete(uri);
   documentTexts.delete(uri);
   documentExcludedRanges.delete(uri);
+  documentLineStarts.delete(uri);
+  documentSemanticTokensCache.delete(uri);
 
   // Clear diagnostics
   connection.sendDiagnostics({ uri, diagnostics: [] });
@@ -627,9 +721,24 @@ connection.onRequest(
       return { data: [] };
     }
 
-    connection.console.log(`[DEBUG] Providing semantic tokens for ${tokens.length} tokens`);
-    const semanticTokens = semanticTokenProvider.provideSemanticTokens(tokens, text);
-    connection.console.log(`[DEBUG] Semantic tokens data length: ${semanticTokens.data.length}`);
+    if (DEBUG_LOGS) {
+      connection.console.log(`[DEBUG] Providing semantic tokens for ${tokens.length} tokens`);
+    }
+    const lineStarts = documentLineStarts.get(uri) ?? computeLineStarts(text);
+    if (!documentLineStarts.has(uri)) {
+      documentLineStarts.set(uri, lineStarts);
+    }
+
+    const cached = documentSemanticTokensCache.get(uri);
+    if (cached && cached.tokens === tokens && cached.lineStarts === lineStarts) {
+      return cached.semanticTokens;
+    }
+
+    const semanticTokens = semanticTokenProvider.provideSemanticTokens(tokens, text, lineStarts);
+    documentSemanticTokensCache.set(uri, { tokens, lineStarts, semanticTokens });
+    if (DEBUG_LOGS) {
+      connection.console.log(`[DEBUG] Semantic tokens data length: ${semanticTokens.data.length}`);
+    }
     return semanticTokens;
   }
 );

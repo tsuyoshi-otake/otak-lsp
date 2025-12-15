@@ -70,13 +70,23 @@ export class GrammarChecker {
    * オフセットから行と文字位置を取得
    */
   getLineAndChar(offset: number): { line: number; character: number } {
-    let line = 0;
-    for (let i = 1; i < this.lineStarts.length; i++) {
-      if (offset < this.lineStarts[i]) {
-        break;
-      }
-      line = i;
+    if (this.lineStarts.length === 0) {
+      return { line: 0, character: offset };
     }
+
+    // lineStarts は昇順。offset 以下の最大の index を二分探索で求める
+    let low = 0;
+    let high = this.lineStarts.length - 1;
+    while (low <= high) {
+      const mid = (low + high) >> 1;
+      if (this.lineStarts[mid] <= offset) {
+        low = mid + 1;
+      } else {
+        high = mid - 1;
+      }
+    }
+
+    const line = Math.max(0, high);
     return { line, character: offset - this.lineStarts[line] };
   }
 
