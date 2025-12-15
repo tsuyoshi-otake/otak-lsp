@@ -315,6 +315,22 @@ describe('Hover Provider', () => {
       expect(result?.range).toEqual({ start: text.indexOf(term), end: text.indexOf(term) + term.length });
     });
 
+    it('should not label moved Cloudflare terms as Cloudflare (e.g., ビュー)', async () => {
+      provider.setWikipediaEnabled(false);
+
+      const term = 'ビュー';
+      const text = `${term}を切り替える`;
+      const offset = text.indexOf(term) + 1;
+
+      const result = await provider.provideHover([], offset, text);
+
+      expect(result).not.toBeNull();
+      expect(result?.contents).toContain('**ネットワーク・HTTP用語図鑑**');
+      expect(result?.contents).toContain('見え方を分けて扱う');
+      expect(result?.contents).not.toContain('Cloudflareの用語');
+      expect(result?.range).toEqual({ start: text.indexOf(term), end: text.indexOf(term) + term.length });
+    });
+
     it('should match Azure console term from document text (e.g., コンテナグループ)', async () => {
       provider.setWikipediaEnabled(false);
 

@@ -80,7 +80,7 @@ const CONSOLE_TERM_DEFINITION_INDEX: ReadonlyMap<string, ConsoleGlossaryDefiniti
   return index;
 })();
 
-function fallbackConsoleTermDescription(term: string, provider: ConsoleProviderId): string {
+function fallbackConsoleTermDescription(term: string, provider: ConsoleProviderId | null): string {
   const key = normalizeKey(term);
 
   const contains = (needle: string): boolean => key.includes(normalizeKey(needle));
@@ -369,6 +369,11 @@ function fallbackConsoleTermDescription(term: string, provider: ConsoleProviderI
     return 'オブジェクトストレージに格納されるデータ（ファイル）とメタデータ。';
   }
 
+  const display = normalizeWhitespace(term);
+  if (!provider) {
+    return `一般的な用語。「${display}」はコンソール上のリソース名/設定項目として使われる。`;
+  }
+
   const providerHint: Record<ConsoleProviderId, string> = {
     aws: 'AWS',
     azure: 'Azure',
@@ -376,7 +381,6 @@ function fallbackConsoleTermDescription(term: string, provider: ConsoleProviderI
     cloudflare: 'Cloudflare',
   };
 
-  const display = normalizeWhitespace(term);
   return `${providerHint[provider]}の用語。「${display}」はコンソール上のリソース名/設定項目として使われる。`;
 }
 
@@ -386,6 +390,39 @@ function resolveConsoleTermDefinition(term: string, provider: ConsoleProviderId)
     return found;
   }
   return { term, description: fallbackConsoleTermDescription(term, provider) };
+}
+
+function movedConsoleTermFallbackCategory(destination: GlossaryId): string {
+  switch (destination) {
+    case 'networkHttp':
+      return 'ネットワーク・HTTP';
+    case 'security':
+      return 'セキュリティ';
+    case 'authIam':
+      return '認証認可・IAM';
+    case 'observabilitySre':
+      return '監視・Observability・SRE';
+    case 'performanceCache':
+      return 'パフォーマンス・キャッシュ';
+    default:
+      return '一般';
+  }
+}
+
+function resolveConsoleTermDefinitionForMoved(term: string, destination: GlossaryId): ConsoleGlossaryDefinition {
+  const found = CONSOLE_TERM_DEFINITION_INDEX.get(normalizeKey(term));
+  if (found) {
+    return found;
+  }
+
+  const fallback = fallbackConsoleTermDescription(term, null);
+  if (!fallback.startsWith('一般的な用語。')) {
+    return { term, description: fallback };
+  }
+
+  const display = normalizeWhitespace(term);
+  const category = movedConsoleTermFallbackCategory(destination);
+  return { term, description: `${category}の用語。「${display}」はコンソール上のリソース名/設定項目として使われる。` };
 }
 
 function mergeStringArrays(
@@ -1055,7 +1092,7 @@ function splitCloudflareConsoleGlossaryEntries(): CloudflareConsoleGlossarySplit
 
       const relatedServices = new Set<string>([service]);
       const dest = destinationForResource(serviceKey, termKey, base, termParens);
-      const def = resolveConsoleTermDefinition(base, 'cloudflare');
+      const def = dest ? resolveConsoleTermDefinitionForMoved(base, dest) : resolveConsoleTermDefinition(base, 'cloudflare');
       const description = dest ? def.description : `${def.description}\n\n関連機能: ${[...relatedServices].join(', ')}。`;
       const entry: GlossaryEntry = {
         term: base,
@@ -1120,6 +1157,7 @@ const BASE_GLOSSARIES: ReadonlyArray<GlossaryDefinition> = [
       { term: 'esbuild', description: '高速なJavaScript/TypeScriptバンドラ・トランスパイラ。' },
       { term: 'Jest', description: 'JavaScript/TypeScript向けのテストフレームワーク。' },
       { term: 'fast-check', aliases: ['fastcheck'], description: 'JavaScript/TypeScript向けのプロパティベーステスト（PBT）ライブラリ。' },
+      { term: 'URL', synonyms: ['Uniform Resource Locator'], description: 'Web上のリソースの場所を表す文字列（https://... など）。' },
       { term: 'CPU', aliases: ['Central Processing Unit'], description: 'コンピュータの演算・制御を担う中核の処理装置。' },
       { term: 'Wikipedia', description: '自由な百科事典プロジェクト。用語の概要取得などに利用される。' },
       { term: 'vscode-languageserver', description: 'VS CodeのLanguage Server実装を支援するNode.jsライブラリ（LSPサーバ側）。' },
@@ -1140,9 +1178,12 @@ const BASE_GLOSSARIES: ReadonlyArray<GlossaryDefinition> = [
     id: 'otakLcpSettings',
     title: 'otak-lcp設定用語図鑑',
     entries: [
-      { term: 'otakLcp.enableGrammarCheck', aliases: ['enableGrammarCheck'], description: '文法チェック機能の有効/無効。' },
+      { term: 'otakLcp.enableGrammarCheck', aliases: ['enableGrammarCheck', '.enableGrammarCheck'], description: '文法チェック機能の有効/無効。' },
+      { term: 'otakLcp.enableSemanticHighlight', aliases: ['enableSemanticHighlight', '.enableSemanticHighlight'], description: '品詞ベースのセマンティックハイライト機能の有効/無効。' },
+      { term: 'otakLcp.excludeTableDelimiters', aliases: ['excludeTableDelimiters', '.excludeTableDelimiters'], description: 'Markdownテーブルの区切り記号（|---|）をハイライト対象に含めるかの設定。' },
       { term: 'otakLcp.debounceDelay', aliases: ['debounceDelay'], description: 'テキスト編集後に解析を開始するまでの遅延時間（ミリ秒）。' },
       { term: 'otakLcp.targetLanguages', aliases: ['targetLanguages'], description: '解析対象とする言語IDの一覧。' },
+      { term: 'otakLcp.showStatus', aliases: ['showStatus', '.showStatus'], description: '拡張コマンド。言語サーバの状態を表示する。' },
       { term: 'otakLcp.markdown.analyzeTables', description: 'Markdownテーブル内も文法チェック対象にする設定。' },
       { term: 'otakLcp.markdown.analyzeCodeBlocks', description: 'Markdownコードブロック内も文法チェック対象にする設定。' },
       { term: 'otakLcp.hover.enableWikipedia', description: 'ホバーにWikipediaサマリーを表示する設定。' },
@@ -1177,6 +1218,8 @@ const BASE_GLOSSARIES: ReadonlyArray<GlossaryDefinition> = [
       { term: 'otakLcp.advanced.longSentenceThreshold', description: '長文と判定する文字数の閾値。' },
       { term: 'Style Consistency', aliases: ['文体混在'], description: '敬体/常体など文体が混在していないかを検出するルール。' },
       { term: 'Ra-nuki Detection', aliases: ['ら抜き言葉', 'ら抜き'], description: '「食べれる」などのら抜き言葉を検出するルール。' },
+      { term: 'Conjunction Repetition', aliases: ['接続詞連続'], description: '同じ接続詞の連続使用（例: 「そして、そして」）を検出するルール。' },
+      { term: 'Adversative Ga', aliases: ['逆接が連続', '逆接「が」連続'], description: '逆接の「が」の連続使用（例: 「…だが、…だが」）を検出するルール。' },
     ],
   },
   {
@@ -2254,6 +2297,20 @@ export function hasGlossaryEntry(candidate: string): boolean {
 
 export function getGlossaryEntryCount(): number {
   return GLOSSARIES.reduce((sum, glossary) => sum + glossary.entries.length, 0);
+}
+
+export function getGlossaryDefinitions(): ReadonlyArray<{
+  id: GlossaryId;
+  title: string;
+  entries: ReadonlyArray<{
+    term: string;
+    aliases?: ReadonlyArray<string>;
+    synonyms?: ReadonlyArray<string>;
+    antonyms?: ReadonlyArray<string>;
+    description: string;
+  }>;
+}> {
+  return GLOSSARIES;
 }
 
 export function findGlossaryMatchWithRank(

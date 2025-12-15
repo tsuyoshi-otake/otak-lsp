@@ -352,6 +352,30 @@ export const CONSOLE_TERM_DEFINITIONS: ReadonlyArray<ConsoleGlossaryDefinition> 
     description: 'キャッシュキーやTTLなどキャッシュ動作を定義するポリシー。'
   },
   {
+    term: 'キャッシュキー',
+    description: 'キャッシュを識別するキー（URL/ヘッダ/クッキー/クエリ等の組み合わせで決まる）。'
+  },
+  {
+    term: 'キャッシュルール',
+    synonyms: ['Cache rule', 'Cache Rules'],
+    description: '条件に応じてキャッシュ動作を制御するルール（キャッシュ有効化/TTL/キー等）。'
+  },
+  {
+    term: '条件式',
+    synonyms: ['Expression'],
+    description: 'ルールの適用条件を記述する式（パス/ヘッダ/クエリ等を参照して真偽を判定）。'
+  },
+  {
+    term: 'キャッシュ適格',
+    synonyms: ['Eligibility'],
+    description: 'リクエスト/レスポンスがキャッシュ対象になり得るか（キャッシュ可否）の判定。'
+  },
+  {
+    term: 'ビュー',
+    synonyms: ['View'],
+    description: '対象や設定の見え方を分けて扱うための区分（文脈により表示/適用単位）。'
+  },
+  {
     term: 'オリジンリクエストポリシー',
     synonyms: ['Origin request policy'],
     description: 'オリジンへ転送するヘッダ/クッキー/クエリ等を定義するポリシー。'
