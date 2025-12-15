@@ -67,4 +67,38 @@ describe('NounChainRule', () => {
     expect(diagnostics.length).toBe(1);
     expect(diagnostics[0].code).toBe('noun-chain');
   });
+
+  it('should not count pure symbols even if tokenizer marks them as nouns', () => {
+    context.documentText = '**基本ウェブ技術用語**';
+
+    // 旧挙動では「**」などが名詞扱いになると 5 連続名詞になり得るが、
+    // 記号のみのトークンは名詞連続のカウントから除外する。
+    const tokens = [
+      nounToken('**', 0, 2),
+      nounToken('基本', 2, 4),
+      nounToken('ウェブ', 4, 7),
+      nounToken('技術', 7, 9),
+      nounToken('用語', 9, 11),
+      nounToken('**', 11, 13)
+    ];
+
+    const diagnostics = rule.check(tokens, context);
+    expect(diagnostics.length).toBe(0);
+  });
+
+  it('should ignore noun chains inside Markdown links', () => {
+    context.documentText = '[IPA辞書内蔵形態素解析](https://example.com)';
+
+    const tokens = [
+      nounToken('IPA', 1, 4),
+      nounToken('辞', 4, 5),
+      nounToken('書', 5, 6),
+      nounToken('内', 6, 7),
+      nounToken('蔵', 7, 8),
+      nounToken('形態素解析', 8, 13)
+    ];
+
+    const diagnostics = rule.check(tokens, context);
+    expect(diagnostics.length).toBe(0);
+  });
 });

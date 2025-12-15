@@ -31,6 +31,55 @@ export class NounChainRule implements AdvancedGrammarRule {
   name = 'noun-chain';
   description = '名詞の連続による読みにくさを検出します';
 
+  private hasWordChars(text: string): boolean {
+    // ASCII英数、ひらがな/カタカナ、CJK（漢字）を「単語っぽい文字」として扱う
+    return /[0-9A-Za-z\u3040-\u30FF\u3400-\u9FFF]/.test(text);
+  }
+
+  private isSymbolLikeNounToken(token: Token): boolean {
+    return token.isNoun() && !this.hasWordChars(token.surface);
+  }
+
+  private shouldIgnoreInMarkdownLink(text: string, startOffset: number, endOffset: number): boolean {
+    const clamp = (n: number) => Math.max(0, Math.min(n, text.length));
+    const start = clamp(startOffset);
+    const end = clamp(endOffset);
+    if (end <= start) {
+      return false;
+    }
+
+    // 1行内のインラインリンク `[text](url)` / 参照リンク `[text][id]` は名詞連続の対象外とする
+    const lineStart = Math.max(text.lastIndexOf('\n', start - 1), text.lastIndexOf('\r', start - 1)) + 1;
+    let lineEnd = text.indexOf('\n', start);
+    const crEnd = text.indexOf('\r', start);
+    if (lineEnd === -1 || (crEnd !== -1 && crEnd < lineEnd)) {
+      lineEnd = crEnd;
+    }
+    if (lineEnd === -1) {
+      lineEnd = text.length;
+    }
+
+    const line = text.slice(lineStart, lineEnd);
+
+    const inlineLinkRe = /\[[^\]\r\n]+\]\((?:\\.|[^)\r\n])+\)/g;
+    const refLinkRe = /\[[^\]\r\n]+\]\[[^\]\r\n]+\]/g;
+
+    const overlapsAny = (re: RegExp): boolean => {
+      re.lastIndex = 0;
+      let match: RegExpExecArray | null;
+      while ((match = re.exec(line))) {
+        const mStart = lineStart + (match.index ?? 0);
+        const mEnd = mStart + match[0].length;
+        if (start < mEnd && end > mStart) {
+          return true;
+        }
+      }
+      return false;
+    };
+
+    return overlapsAny(inlineLinkRe) || overlapsAny(refLinkRe);
+  }
+
   private shouldIgnoreAsLabel(text: string, startOffset: number, endOffset: number): boolean {
     const clamp = (n: number) => Math.max(0, Math.min(n, text.length));
     const start = clamp(startOffset);
@@ -154,7 +203,7 @@ export class NounChainRule implements AdvancedGrammarRule {
       for (let i = 0; i < tokens.length; i++) {
         const token = tokens[i];
 
-        if (token.isNoun()) {
+        if (token.isNoun() && !this.isSymbolLikeNounToken(token)) {
           consecutiveNouns.push(token);
         } else {
           // 名詞連続が終了
@@ -226,6 +275,9 @@ export class NounChainRule implements AdvancedGrammarRule {
       const startOffset = error.range.start.character;
       const endOffset = error.range.end.character;
       if (this.shouldIgnoreAsLabel(context.documentText, startOffset, endOffset)) {
+        continue;
+      }
+      if (this.shouldIgnoreInMarkdownLink(context.documentText, startOffset, endOffset)) {
         continue;
       }
       diagnostics.push(new AdvancedDiagnostic({
