@@ -95,7 +95,7 @@ export class MarkdownFilter implements IMarkdownFilter {
     const hasCodeFence = text.indexOf('```') !== -1 || text.indexOf('~~~') !== -1;
     const hasUrlLike = text.indexOf('http') !== -1 || text.indexOf('://') !== -1 || text.indexOf('www.') !== -1;
     const hasConfigKeyLike =
-      text.indexOf('otakLcp.') !== -1 || text.indexOf('config.') !== -1 || text.indexOf('settings.') !== -1;
+      text.indexOf('otakLsp.') !== -1 || text.indexOf('config.') !== -1 || text.indexOf('settings.') !== -1;
     const hasPipe = text.indexOf('|') !== -1;
     const hasHeadingMarker = text.indexOf('#') !== -1;
 
@@ -495,8 +495,8 @@ export class MarkdownFilter implements IMarkdownFilter {
    */
   private findConfigKeys(text: string, existingRanges: ExcludedRange[]): ExcludedRange[] {
     const ranges: ExcludedRange[] = [];
-    // otakLcp.*, config.*, settings.* などのパターン
-    const configKeyPattern = /\b(?:otakLcp|config|settings)\.[a-zA-Z0-9_.]+/g;
+    // otakLsp.*, config.*, settings.* などのパターン
+    const configKeyPattern = /\b(?:otakLsp|config|settings)\.[a-zA-Z0-9_.]+/g;
     let match;
 
     while ((match = configKeyPattern.exec(text)) !== null) {

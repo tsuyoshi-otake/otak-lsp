@@ -56,7 +56,7 @@ Project memory keeps persistent guidance (steering, specs notes, component docs)
 ## プロジェクト技術メモ（今後の実装のために）
 
 ### 全体構成
-- VS Code 拡張 `otak-lcp` の LSP 構成。`client/` が拡張ホスト側、`server/` が language server、共通型は `shared/`。
+- VS Code 拡張 `otak-lsp` の LSP 構成。`client/` が拡張ホスト側、`server/` が language server、共通型は `shared/`。
 - 主要機能は「日本語形態素解析（kuromoji.js）」「文法チェック」「品詞ベースのセマンティックハイライト」「Hover で辞書/ Wikipedia 情報」。
 
 ### 実行フロー（サーバ側）
@@ -90,7 +90,7 @@ Project memory keeps persistent guidance (steering, specs notes, component docs)
 - 高度ルール:
   - 実装は `server/src/grammar/advancedRulesManager.ts` が `shared/src/advancedTypes.ts` の `AdvancedGrammarRule` を実行。
   - ルール本体は `server/src/grammar/rules/` に追加し、`server/src/grammar/rules/index.ts` と `AdvancedRulesManager` の `this.rules` に登録。
-  - ルールのON/OFFや閾値は `shared/src/advancedTypes.ts` の `AdvancedRulesConfig` / `DEFAULT_ADVANCED_RULES_CONFIG` と、`package.json` の `contributes.configuration`（`otakLcp.advanced.*`）で管理。
+  - ルールのON/OFFや閾値は `shared/src/advancedTypes.ts` の `AdvancedRulesConfig` / `DEFAULT_ADVANCED_RULES_CONFIG` と、`package.json` の `contributes.configuration`（`otakLsp.advanced.*`）で管理。
   - ルール側は `RuleContext`（全文テキスト/文分割結果/設定）を受け取り、`AdvancedDiagnostic` を返す。
 
 ### Evals / 品質評価
@@ -100,7 +100,7 @@ Project memory keeps persistent guidance (steering, specs notes, component docs)
 
 ### クライアント側の要点
 - クライアント入口は `client/src/extension.ts`。`vscode-languageclient` で `server/out/main.js` を起動。
-- 設定は VS Code の `otakLcp.*` を `configurationSection` で同期しつつ、変更時に `workspace/didChangeConfiguration` 通知でサーバに反映。
+- 設定は VS Code の `otakLsp.*` を `configurationSection` で同期しつつ、変更時に `workspace/didChangeConfiguration` 通知でサーバに反映。
 - セマンティックトークンの凡例は `server/src/semantic/tokenProvider.ts` の `tokenTypes`/`tokenModifiers` と `package.json` の `contributes.semanticTokenTypes`/`semanticTokenScopes` が一致している必要がある（新タイプ追加時は両方更新）。
 
 ### テスト

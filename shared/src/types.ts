@@ -258,7 +258,7 @@ export class GrammarError {
       severity: DiagnosticSeverity.Warning,
       message: this.message,
       code: this.type,
-      source: 'otak-lcp'
+      source: 'otak-lsp'
     };
   }
 }
@@ -282,7 +282,7 @@ export interface CommentRange {
  */
 export type GlossaryId =
   | 'it'
-  | 'otakLcpSettings'
+  | 'otakLspSettings'
   | 'cloud'
   | 'awsServices'
   | 'azureServices'

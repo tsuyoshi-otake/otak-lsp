@@ -19,14 +19,14 @@ describe('Extension Client 命名規則テスト', () => {
   });
 
   describe('プロパティ2: ログメッセージの命名統一', () => {
-    it('Output Channel名は「otak-lcp」である', () => {
-      // createOutputChannel('otak-lcp') の呼び出しを検証
-      expect(extensionSource).toMatch(/createOutputChannel\s*\(\s*['"]otak-lcp['"]\s*\)/);
+    it('Output Channel名は「otak-lsp」である', () => {
+      // createOutputChannel('otak-lsp') の呼び出しを検証
+      expect(extensionSource).toMatch(/createOutputChannel\s*\(\s*['"]otak-lsp['"]\s*\)/);
     });
 
-    it('ログメッセージには「otak-lcp」が使用されている', () => {
-      // appendLineに "otak-lcp" が含まれる
-      expect(extensionSource).toMatch(/appendLine\s*\([^)]*otak-lcp/);
+    it('ログメッセージには「otak-lsp」が使用されている', () => {
+      // appendLineに "otak-lsp" が含まれる
+      expect(extensionSource).toMatch(/appendLine\s*\([^)]*otak-lsp/);
     });
 
     it('古いログ識別子「Japanese Grammar Analyzer」は使用されていない', () => {
@@ -43,40 +43,40 @@ describe('Extension Client 命名規則テスト', () => {
   });
 
   describe('プロパティ3: コマンド識別子の形式統一', () => {
-    it('コマンド登録は「otakLcp.」形式を使用する', () => {
-      // registerCommand('otakLcp.xxx') の呼び出しを検証
+    it('コマンド登録は「otakLsp.」形式を使用する', () => {
+      // registerCommand('otakLsp.xxx') の呼び出しを検証
       const commandRegistrations = extensionSource.match(/registerCommand\s*\(\s*['"][^'"]+['"]/g) || [];
       expect(commandRegistrations.length).toBeGreaterThan(0);
 
       for (const reg of commandRegistrations) {
-        expect(reg).toMatch(/['"]otakLcp\./);
+        expect(reg).toMatch(/['"]otakLsp\./);
       }
     });
 
-    it('ステータスバーのコマンドは「otakLcp.」形式である', () => {
-      // statusBarItem.command = 'otakLcp.xxx' を検証
-      expect(extensionSource).toMatch(/statusBarItem\.command\s*=\s*['"]otakLcp\./);
+    it('ステータスバーのコマンドは「otakLsp.」形式である', () => {
+      // statusBarItem.command = 'otakLsp.xxx' を検証
+      expect(extensionSource).toMatch(/statusBarItem\.command\s*=\s*['"]otakLsp\./);
     });
 
-    it('設定読み込みは「otakLcp」セクションを使用する', () => {
-      // getConfiguration('otakLcp') を検証
-      expect(extensionSource).toMatch(/getConfiguration\s*\(\s*['"]otakLcp['"]\s*\)/);
+    it('設定読み込みは「otakLsp」セクションを使用する', () => {
+      // getConfiguration('otakLsp') を検証
+      expect(extensionSource).toMatch(/getConfiguration\s*\(\s*['"]otakLsp['"]\s*\)/);
     });
 
-    it('Language Client識別子は「otakLcp」である', () => {
-      // new LanguageClient('otakLcp', ...) を検証
-      expect(extensionSource).toMatch(/new\s+LanguageClient\s*\(\s*['"]otakLcp['"]/);
+    it('Language Client識別子は「otakLsp」である', () => {
+      // new LanguageClient('otakLsp', ...) を検証
+      expect(extensionSource).toMatch(/new\s+LanguageClient\s*\(\s*['"]otakLsp['"]/);
     });
   });
 
   describe('プロパティ5: 内部コードの命名統一', () => {
-    it('configurationSectionは「otakLcp」である', () => {
-      expect(extensionSource).toMatch(/configurationSection:\s*\[\s*['"]otakLcp['"]\s*,\s*['"]otakLcp\.advanced['"]\s*\]/);
+    it('configurationSectionは「otakLsp」である', () => {
+      expect(extensionSource).toMatch(/configurationSection:\s*\[\s*['"]otakLsp['"]\s*,\s*['"]otakLsp\.advanced['"]\s*\]/);
     });
 
-    it('ステータスバーテキストには「otak-lcp」が使用されている', () => {
-      // ステータスバーのテキストとして otak-lcp を使用
-      expect(extensionSource).toMatch(/statusBarItem\.text\s*=\s*[^;]*otak-lcp/);
+    it('ステータスバーテキストには「otak-lsp」が使用されている', () => {
+      // ステータスバーのテキストとして otak-lsp を使用
+      expect(extensionSource).toMatch(/statusBarItem\.text\s*=\s*[^;]*otak-lsp/);
     });
   });
 

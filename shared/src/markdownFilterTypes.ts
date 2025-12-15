@@ -33,7 +33,7 @@ export interface FilterConfig {
   excludeTables: boolean;
   /** URLを除外 */
   excludeUrls: boolean;
-  /** 設定キー名（otakLcp.*など）を除外 */
+  /** 設定キー名（otakLsp.*など）を除外 */
   excludeConfigKeys: boolean;
   /** マークダウン見出し（# で始まる行）を除外 */
   excludeHeadings: boolean;

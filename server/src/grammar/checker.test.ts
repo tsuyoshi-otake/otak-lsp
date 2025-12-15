@@ -246,7 +246,7 @@ describe('Grammar Checker', () => {
       expect(diagnostics[0].severity).toBe(1); // Warning
     });
 
-    it('should include source as otak-lcp', () => {
+    it('should include source as otak-lsp', () => {
       const tokens = [
         createToken('私', '名詞', 0),
         createToken('が', '助詞', 1, '格助詞'),
@@ -254,7 +254,7 @@ describe('Grammar Checker', () => {
       ];
       const diagnostics = checker.check(tokens);
 
-      expect(diagnostics[0].source).toBe('otak-lcp');
+      expect(diagnostics[0].source).toBe('otak-lsp');
     });
   });
 

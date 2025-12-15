@@ -19,22 +19,22 @@ describe('Language Server 命名規則テスト', () => {
   });
 
   describe('プロパティ2: ログメッセージの命名統一', () => {
-    it('初期化ログメッセージには「otak-lcp」が使用されている', () => {
-      expect(serverSource).toMatch(/console\.log\s*\([^)]*otak-lcp[^)]*\)/);
+    it('初期化ログメッセージには「otak-lsp」が使用されている', () => {
+      expect(serverSource).toMatch(/console\.log\s*\([^)]*otak-lsp[^)]*\)/);
     });
 
-    it('Language Server識別子には「otak-lcp」が使用されている', () => {
-      expect(serverSource).toMatch(/otak-lcp Language Server/);
+    it('Language Server識別子には「otak-lsp」が使用されている', () => {
+      expect(serverSource).toMatch(/otak-lsp Language Server/);
     });
   });
 
   describe('プロパティ5: 内部コードの命名統一', () => {
-    it('設定読み込みは「otakLcp」を使用する', () => {
-      expect(serverSource).toMatch(/settings\?\.otakLcp/);
+    it('設定読み込みは「otakLsp」を使用する', () => {
+      expect(serverSource).toMatch(/settings\?\.otakLsp/);
     });
 
-    it('診断情報のソースは「otak-lcp」を使用する', () => {
-      expect(serverSource).toMatch(/source:\s*['"]otak-lcp['"]/);
+    it('診断情報のソースは「otak-lsp」を使用する', () => {
+      expect(serverSource).toMatch(/source:\s*['"]otak-lsp['"]/);
     });
   });
 

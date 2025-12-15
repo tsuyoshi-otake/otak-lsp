@@ -15,7 +15,7 @@ const mockOutputChannel = {
   dispose: jest.fn(),
   show: jest.fn(),
   hide: jest.fn(),
-  name: 'otak-lcp',
+  name: 'otak-lsp',
   replace: jest.fn(),
 };
 
@@ -129,7 +129,7 @@ describe('Extension Integration Tests', () => {
       const options = createLanguageClientOptions(['markdown'], mockOutputChannel as unknown as import('vscode').OutputChannel);
 
       expect(options.synchronize).toBeDefined();
-      expect(options.synchronize?.configurationSection).toEqual(['otakLcp', 'otakLcp.advanced']);
+      expect(options.synchronize?.configurationSection).toEqual(['otakLsp', 'otakLsp.advanced']);
     });
 
     it('should include output channel for logging', () => {
@@ -289,7 +289,7 @@ describe('Extension Lifecycle Integration', () => {
 
       // Verify synchronization is configured
       expect(options.synchronize).toBeDefined();
-      expect(options.synchronize?.configurationSection).toEqual(['otakLcp', 'otakLcp.advanced']);
+      expect(options.synchronize?.configurationSection).toEqual(['otakLsp', 'otakLsp.advanced']);
     });
   });
 });

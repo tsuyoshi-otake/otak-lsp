@@ -628,7 +628,7 @@ export class AdvancedDiagnostic {
     this.severity = params.severity ?? DiagnosticSeverity.Warning;
     this.message = params.message;
     this.code = params.code;
-    this.source = 'otak-lcp-advanced';
+    this.source = 'otak-lsp-advanced';
     this.ruleName = params.ruleName;
     this.suggestions = params.suggestions ?? [];
   }

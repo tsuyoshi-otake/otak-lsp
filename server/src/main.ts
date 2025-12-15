@@ -1,6 +1,6 @@
 /**
  * Language Server Entry Point
- * otak-lcp - Japanese Grammar Analyzer
+ * otak-lsp - Japanese Grammar Analyzer
  * kuromoji.jsを使用した日本語形態素解析
  * Feature: package-name-refactoring
  */
@@ -240,11 +240,11 @@ function applyBaseConfigFromSettings(settings: unknown): void {
   hoverProvider.setEnabledGlossaries(configuration.hover.enabledGlossaries);
 }
 
-async function getWorkspaceOtakLcpSettings(): Promise<unknown> {
+async function getWorkspaceOtakLspSettings(): Promise<unknown> {
   try {
     const [base, advanced] = await Promise.all([
-      connection.workspace.getConfiguration({ section: 'otakLcp' } as any),
-      connection.workspace.getConfiguration({ section: 'otakLcp.advanced' } as any),
+      connection.workspace.getConfiguration({ section: 'otakLsp' } as any),
+      connection.workspace.getConfiguration({ section: 'otakLsp.advanced' } as any),
     ]);
 
     if (base && typeof base === 'object') {
@@ -270,7 +270,7 @@ async function getWorkspaceOtakLcpSettings(): Promise<unknown> {
  * Initialize server
  */
 connection.onInitialize((params: InitializeParams): InitializeResult => {
-  connection.console.log('otak-lcp Language Server initializing...');
+  connection.console.log('otak-lsp Language Server initializing...');
 
   // Initialize components (kuromoji.js - no external dependencies)
   mecabAnalyzer = new MeCabAnalyzer();
@@ -305,14 +305,14 @@ connection.onInitialize((params: InitializeParams): InitializeResult => {
  * Server initialized
  */
 connection.onInitialized(() => {
-  connection.console.log('otak-lcp Language Server initialized');
+  connection.console.log('otak-lsp Language Server initialized');
 
   // Register for configuration changes
   connection.client.register(DidChangeConfigurationNotification.type, undefined);
 
   // Load initial configuration (VS Code は起動時に didChangeConfiguration を送らないことがある)
   void (async () => {
-    const settings = await getWorkspaceOtakLcpSettings();
+    const settings = await getWorkspaceOtakLspSettings();
     if (settings) {
       applyBaseConfigFromSettings(settings);
       applyAdvancedConfigFromSettings(settings);
@@ -327,7 +327,7 @@ connection.onDidChangeConfiguration(async (change) => {
   const wasGrammarEnabled = configuration.enableGrammarCheck;
   const wasSemanticEnabled = configuration.enableSemanticHighlight;
 
-  const incomingSettings = change.settings?.otakLcp ?? await getWorkspaceOtakLcpSettings();
+  const incomingSettings = change.settings?.otakLsp ?? await getWorkspaceOtakLspSettings();
   if (!incomingSettings) {
     return;
   }
@@ -551,7 +551,7 @@ async function analyzeDocument(document: TextDocument): Promise<void> {
           severity: convertSeverity(diag.severity),
           range,
           message: diag.message,
-          source: 'otak-lcp',
+          source: 'otak-lsp',
           code: diag.code,
         });
       }
@@ -578,7 +578,7 @@ async function analyzeDocument(document: TextDocument): Promise<void> {
           severity: convertSeverity(diag.severity),
           range,
           message: diag.message,
-          source: 'otak-lcp',
+          source: 'otak-lsp',
           code: diag.code,
         });
       }
@@ -749,4 +749,4 @@ documents.listen(connection);
 // Start server
 connection.listen();
 
-connection.console.log('otak-lcp Language Server started');
+connection.console.log('otak-lsp Language Server started');

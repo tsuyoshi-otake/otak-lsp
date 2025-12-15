@@ -1,4 +1,4 @@
-# otak-lcp
+# otak-lsp
 
 日本語形態素解析VSCode拡張機能です。**外部依存なし**で、文法チェック、セマンティックハイライト、ホバー情報表示などの機能を提供します。
 
@@ -42,8 +42,8 @@
 起きれる -> 起きられる
 ```
 
-※ Markdownのコードブロック（コードフェンス）内も既定で解析対象（文法チェック/セマンティックハイライト）です。接続詞連続（Conjunction Repetition）や逆接「が」連続（Adversative Ga）など、文脈依存で誤検出しやすい一部ルールは「コード（例: ` ```javascript `）」では対象外としますが、` ```markdown ` / ` ```text ` のような「例文」コードブロックでは検出対象になります。コードブロック自体を対象外にしたい場合は `otakLcp.markdown.analyzeCodeBlocks` を無効にしてください。
-※ Markdownのテーブル（`|...|`）内は既定では文法チェック対象外です（ただし、弱い表現（Weak Expression）/ 技術用語表記（Term Notation）/ 漢字開き（Kanji Opening）/ 冗長表現（Redundant Expression）/ 重複表現（Tautology）は対象）。テーブル内も幅広く検出したい場合は `otakLcp.markdown.analyzeTables` を有効にしてください。
+※ Markdownのコードブロック（コードフェンス）内も既定で解析対象（文法チェック/セマンティックハイライト）です。接続詞連続（Conjunction Repetition）や逆接「が」連続（Adversative Ga）など、文脈依存で誤検出しやすい一部ルールは「コード（例: ` ```javascript `）」では対象外としますが、` ```markdown ` / ` ```text ` のような「例文」コードブロックでは検出対象になります。コードブロック自体を対象外にしたい場合は `otakLsp.markdown.analyzeCodeBlocks` を無効にしてください。
+※ Markdownのテーブル（`|...|`）内は既定では文法チェック対象外です（ただし、弱い表現（Weak Expression）/ 技術用語表記（Term Notation）/ 漢字開き（Kanji Opening）/ 冗長表現（Redundant Expression）/ 重複表現（Tautology）は対象）。テーブル内も幅広く検出したい場合は `otakLsp.markdown.analyzeTables` を有効にしてください。
 
 #### 3. 二重否定の検出（Double Negation）
 
@@ -62,7 +62,7 @@
 私は本を彼は読む。
 ```
 
-（必要に応じて `otakLcp.advanced.enableParticleRepetition` で無効化できます）
+（必要に応じて `otakLsp.advanced.enableParticleRepetition` で無効化できます）
 
 #### 5. 同じ接続詞の連続使用検出（Conjunction Repetition）
 
@@ -307,12 +307,12 @@
 
 #### 用語図鑑カテゴリ（オフライン）
 
-`otakLcp.hover.enabledGlossaries` で表示するカテゴリを選べます。
+`otakLsp.hover.enabledGlossaries` で表示するカテゴリを選べます。
 
 | ID | 名称 | 説明 |
 |---|---|---|
 | `it` | IT用語図鑑 | 開発・運用の基本IT用語（ツール/プロトコル/手法など）。 |
-| `otakLcpSettings` | otak-lcp設定用語図鑑 | 拡張機能の設定キー/挙動に関する用語。 |
+| `otakLspSettings` | otak-lsp設定用語図鑑 | 拡張機能の設定キー/挙動に関する用語。 |
 | `cloud` | クラウド用語図鑑 | クラウド全般の概念（IaaS/PaaS、リージョン/AZ、ネットワーク等）。 |
 | `backend` | バックエンド用語図鑑 | サーバ/API/バッチ/分散処理などバックエンド実装の用語。 |
 | `frontend` | フロントエンド用語図鑑 | ブラウザ/DOM/CSS/ビルドなどフロントエンド実装の用語。 |
@@ -359,7 +359,7 @@
 
 1. VSCodeを開く
 2. 拡張機能ビュー (Ctrl+Shift+X) を開く
-3. "otak-lcp" を検索
+3. "otak-lsp" を検索
 4. 「インストール」をクリック
 
 ### .vsix ファイルから
@@ -378,82 +378,82 @@
 
 | 設定項目 | 説明 | デフォルト値 |
 |---------|------|-------------|
-| `otakLcp.enableGrammarCheck` | 文法チェックの有効/無効 | `true` |
-| `otakLcp.enableSemanticHighlight` | セマンティックハイライトの有効/無効 | `true` |
-| `otakLcp.excludeTableDelimiters` | Markdownテーブル内のセマンティックハイライトの有効/無効（falseでテーブル全体をハイライト対象外） | `true` |
-| `otakLcp.markdown.analyzeCodeBlocks` | Markdownのコードブロック（コードフェンス）内も文法チェック/セマンティックハイライト対象にする（※一部ルールは本文のみ） | `true` |
-| `otakLcp.markdown.analyzeTables` | Markdownのテーブル（|...|）内も文法チェック対象にする | `false` |
-| `otakLcp.targetLanguages` | 解析対象のファイルタイプ | `["markdown", "javascript", ...]` |
-| `otakLcp.debounceDelay` | 解析のデバウンス遅延（ミリ秒） | `250` |
-| `otakLcp.hover.enableWikipedia` | ホバーにWikipediaサマリーを表示 | `true` |
-| `otakLcp.hover.enableGlossary` | ホバーに用語図鑑（オフライン）を表示（Wikipediaの下に表示） | `true` |
-| `otakLcp.hover.enabledGlossaries` | ホバーで表示する用語図鑑カテゴリ（デフォルトは全カテゴリ） | `["it", "cloud", ...]` |
+| `otakLsp.enableGrammarCheck` | 文法チェックの有効/無効 | `true` |
+| `otakLsp.enableSemanticHighlight` | セマンティックハイライトの有効/無効 | `true` |
+| `otakLsp.excludeTableDelimiters` | Markdownテーブル内のセマンティックハイライトの有効/無効（falseでテーブル全体をハイライト対象外） | `true` |
+| `otakLsp.markdown.analyzeCodeBlocks` | Markdownのコードブロック（コードフェンス）内も文法チェック/セマンティックハイライト対象にする（※一部ルールは本文のみ） | `true` |
+| `otakLsp.markdown.analyzeTables` | Markdownのテーブル（|...|）内も文法チェック対象にする | `false` |
+| `otakLsp.targetLanguages` | 解析対象のファイルタイプ | `["markdown", "javascript", ...]` |
+| `otakLsp.debounceDelay` | 解析のデバウンス遅延（ミリ秒） | `250` |
+| `otakLsp.hover.enableWikipedia` | ホバーにWikipediaサマリーを表示 | `true` |
+| `otakLsp.hover.enableGlossary` | ホバーに用語図鑑（オフライン）を表示（Wikipediaの下に表示） | `true` |
+| `otakLsp.hover.enabledGlossaries` | ホバーで表示する用語図鑑カテゴリ（デフォルトは全カテゴリ） | `["it", "cloud", ...]` |
 
 ### 高度な文法ルール設定
 
 | 設定項目 | 説明 | デフォルト値 |
 |---------|------|-------------|
-| `otakLcp.advanced.enableStyleConsistency` | 文体混在チェック | `true` |
-| `otakLcp.advanced.enableRaNukiDetection` | ら抜き言葉チェック | `true` |
-| `otakLcp.advanced.enableDoubleNegation` | 二重否定チェック | `true` |
-| `otakLcp.advanced.enableParticleRepetition` | 助詞連続使用チェック | `true` |
-| `otakLcp.advanced.enableConjunctionRepetition` | 接続詞連続使用チェック | `true` |
-| `otakLcp.advanced.enableAdversativeGa` | 逆接「が」連続使用チェック | `true` |
-| `otakLcp.advanced.enableAlphabetWidth` | 全角/半角混在チェック | `true` |
-| `otakLcp.advanced.enableWeakExpression` | 弱い表現チェック | `true` |
-| `otakLcp.advanced.enableCommaCount` | 読点数チェック | `true` |
-| `otakLcp.advanced.enableTermNotation` | 技術用語表記チェック | `true` |
-| `otakLcp.advanced.enableKanjiOpening` | 漢字開きチェック | `true` |
-| `otakLcp.advanced.enableRedundantExpression` | 冗長表現チェック | `true` |
-| `otakLcp.advanced.enableTautology` | 重複表現（同語反復）チェック | `true` |
-| `otakLcp.advanced.enableNoParticleChain` | 助詞「の」連続チェック | `true` |
-| `otakLcp.advanced.enableMonotonousEnding` | 文末単調さチェック | `true` |
-| `otakLcp.advanced.enableLongSentence` | 長文チェック | `true` |
-| `otakLcp.advanced.enableSentenceEndingColon` | 文末コロン検出 | `true` |
+| `otakLsp.advanced.enableStyleConsistency` | 文体混在チェック | `true` |
+| `otakLsp.advanced.enableRaNukiDetection` | ら抜き言葉チェック | `true` |
+| `otakLsp.advanced.enableDoubleNegation` | 二重否定チェック | `true` |
+| `otakLsp.advanced.enableParticleRepetition` | 助詞連続使用チェック | `true` |
+| `otakLsp.advanced.enableConjunctionRepetition` | 接続詞連続使用チェック | `true` |
+| `otakLsp.advanced.enableAdversativeGa` | 逆接「が」連続使用チェック | `true` |
+| `otakLsp.advanced.enableAlphabetWidth` | 全角/半角混在チェック | `true` |
+| `otakLsp.advanced.enableWeakExpression` | 弱い表現チェック | `true` |
+| `otakLsp.advanced.enableCommaCount` | 読点数チェック | `true` |
+| `otakLsp.advanced.enableTermNotation` | 技術用語表記チェック | `true` |
+| `otakLsp.advanced.enableKanjiOpening` | 漢字開きチェック | `true` |
+| `otakLsp.advanced.enableRedundantExpression` | 冗長表現チェック | `true` |
+| `otakLsp.advanced.enableTautology` | 重複表現（同語反復）チェック | `true` |
+| `otakLsp.advanced.enableNoParticleChain` | 助詞「の」連続チェック | `true` |
+| `otakLsp.advanced.enableMonotonousEnding` | 文末単調さチェック | `true` |
+| `otakLsp.advanced.enableLongSentence` | 長文チェック | `true` |
+| `otakLsp.advanced.enableSentenceEndingColon` | 文末コロン検出 | `true` |
 
 ### 技術用語辞典設定
 
 | 設定項目 | 説明 | デフォルト値 |
 |---------|------|-------------|
-| `otakLcp.advanced.enableWebTechDictionary` | ウェブ技術用語辞典 | `true` |
-| `otakLcp.advanced.enableGenerativeAIDictionary` | 生成AI用語辞典 | `true` |
-| `otakLcp.advanced.enableAWSDictionary` | AWS用語辞典 | `true` |
-| `otakLcp.advanced.enableAzureDictionary` | Azure用語辞典 | `true` |
-| `otakLcp.advanced.enableOCIDictionary` | OCI用語辞典 | `true` |
-| `otakLcp.advanced.customNotationRules` | 技術用語表記統一のカスタム辞書（`{ "誤表記": "正表記" }`） | `{}` |
+| `otakLsp.advanced.enableWebTechDictionary` | ウェブ技術用語辞典 | `true` |
+| `otakLsp.advanced.enableGenerativeAIDictionary` | 生成AI用語辞典 | `true` |
+| `otakLsp.advanced.enableAWSDictionary` | AWS用語辞典 | `true` |
+| `otakLsp.advanced.enableAzureDictionary` | Azure用語辞典 | `true` |
+| `otakLsp.advanced.enableOCIDictionary` | OCI用語辞典 | `true` |
+| `otakLsp.advanced.customNotationRules` | 技術用語表記統一のカスタム辞書（`{ "誤表記": "正表記" }`） | `{}` |
 
 ### その他の設定
 
 | 設定項目 | 説明 | デフォルト値 |
 |---------|------|-------------|
-| `otakLcp.advanced.commaCountThreshold` | 読点の警告閾値 | `4` |
-| `otakLcp.advanced.weakExpressionLevel` | 弱い表現の検出レベル（strict/normal/loose） | `normal` |
-| `otakLcp.advanced.noParticleChainThreshold` | 助詞「の」連続の閾値 | `3` |
-| `otakLcp.advanced.monotonousEndingThreshold` | 文末表現連続の閾値 | `3` |
-| `otakLcp.advanced.longSentenceThreshold` | 長文と判定する文字数 | `120` |
+| `otakLsp.advanced.commaCountThreshold` | 読点の警告閾値 | `4` |
+| `otakLsp.advanced.weakExpressionLevel` | 弱い表現の検出レベル（strict/normal/loose） | `normal` |
+| `otakLsp.advanced.noParticleChainThreshold` | 助詞「の」連続の閾値 | `3` |
+| `otakLsp.advanced.monotonousEndingThreshold` | 文末表現連続の閾値 | `3` |
+| `otakLsp.advanced.longSentenceThreshold` | 長文と判定する文字数 | `120` |
 
 ### 設定例
 
 ```json
 {
-  "otakLcp.enableGrammarCheck": true,
-  "otakLcp.enableSemanticHighlight": true,
-  "otakLcp.excludeTableDelimiters": true,
-  "otakLcp.markdown.analyzeCodeBlocks": true,
-  "otakLcp.markdown.analyzeTables": false,
-  "otakLcp.targetLanguages": [
+  "otakLsp.enableGrammarCheck": true,
+  "otakLsp.enableSemanticHighlight": true,
+  "otakLsp.excludeTableDelimiters": true,
+  "otakLsp.markdown.analyzeCodeBlocks": true,
+  "otakLsp.markdown.analyzeTables": false,
+  "otakLsp.targetLanguages": [
     "markdown",
     "javascript",
     "typescript"
   ],
-  "otakLcp.debounceDelay": 300,
-  "otakLcp.advanced.enableStyleConsistency": true,
-  "otakLcp.advanced.enableRaNukiDetection": true,
-  "otakLcp.advanced.enableParticleRepetition": true,
-  "otakLcp.advanced.enableTermNotation": true,
-  "otakLcp.advanced.enableGenerativeAIDictionary": true,
-  "otakLcp.advanced.enableAWSDictionary": true,
-  "otakLcp.advanced.commaCountThreshold": 5
+  "otakLsp.debounceDelay": 300,
+  "otakLsp.advanced.enableStyleConsistency": true,
+  "otakLsp.advanced.enableRaNukiDetection": true,
+  "otakLsp.advanced.enableParticleRepetition": true,
+  "otakLsp.advanced.enableTermNotation": true,
+  "otakLsp.advanced.enableGenerativeAIDictionary": true,
+  "otakLsp.advanced.enableAWSDictionary": true,
+  "otakLsp.advanced.commaCountThreshold": 5
 }
 ```
 
@@ -505,19 +505,19 @@ chatgptで文章を生成します。     <- 「ChatGPT」に修正
 
 1. `enableGrammarCheck` が `true` になっているか確認
 2. ファイルタイプが `targetLanguages` に含まれているか確認
-3. 出力パネル（表示 > 出力 > otak-lcp）でエラーを確認
+3. 出力パネル（表示 > 出力 > otak-lsp）でエラーを確認
 
 ### セマンティックハイライトが表示されない
 
-1. `otakLcp.enableSemanticHighlight` が `true` になっているか確認
+1. `otakLsp.enableSemanticHighlight` が `true` になっているか確認
 2. VS Code の `editor.semanticHighlighting.enabled` が `true` になっているか確認（テーマによっては `configuredByTheme` だと無効になることがあります）
-3. Markdown の ``` コードブロック内も既定でハイライト対象です。対象外にしたい場合は `otakLcp.markdown.analyzeCodeBlocks` を `false` にしてください（インラインコード（`...`）/ URL は仕様上ハイライト対象外です）
-4. 出力パネル（表示 > 出力 > otak-lcp）や `otakLcp.showStatus` コマンドで言語サーバの状態を確認
+3. Markdown の ``` コードブロック内も既定でハイライト対象です。対象外にしたい場合は `otakLsp.markdown.analyzeCodeBlocks` を `false` にしてください（インラインコード（`...`）/ URL は仕様上ハイライト対象外です）
+4. 出力パネル（表示 > 出力 > otak-lsp）や `otakLsp.showStatus` コマンドで言語サーバの状態を確認
 
 ### 特定のルールを無効にしたい
 
 設定画面で対応するルールの設定を `false` に変更してください。
-例: 技術用語チェックを無効にする場合は `otakLcp.advanced.enableTermNotation` を `false` に設定
+例: 技術用語チェックを無効にする場合は `otakLsp.advanced.enableTermNotation` を `false` に設定
 
 ### 初回起動時に時間がかかる
 

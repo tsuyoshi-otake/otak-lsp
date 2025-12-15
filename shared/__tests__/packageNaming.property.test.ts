@@ -28,38 +28,38 @@ describe('パッケージ名リファクタリング - プロパティテスト'
   });
 
   describe('プロパティ1: パッケージ表示名の一貫性', () => {
-    it('パッケージ名は「otak-lcp」である', () => {
-      expect(packageJson.name).toBe('otak-lcp');
+    it('パッケージ名は「otak-lsp」である', () => {
+      expect(packageJson.name).toBe('otak-lsp');
     });
 
-    it('表示名は「otak-lcp - Japanese Grammar Analyzer」形式である', () => {
-      expect(packageJson.displayName).toBe('otak-lcp - Japanese Grammar Analyzer');
+    it('表示名は「otak-lsp - Japanese Grammar Analyzer」形式である', () => {
+      expect(packageJson.displayName).toBe('otak-lsp - Japanese Grammar Analyzer');
     });
 
-    it('表示名は「otak-lcp」で始まる', () => {
-      expect(packageJson.displayName.startsWith('otak-lcp')).toBe(true);
+    it('表示名は「otak-lsp」で始まる', () => {
+      expect(packageJson.displayName.startsWith('otak-lsp')).toBe(true);
     });
   });
 
   describe('プロパティ3: コマンド識別子の形式統一', () => {
-    it('すべてのコマンド識別子は「otakLcp.」で始まる', () => {
+    it('すべてのコマンド識別子は「otakLsp.」で始まる', () => {
       const commands = packageJson.contributes.commands;
       for (const cmd of commands) {
-        expect(cmd.command).toMatch(/^otakLcp\./);
+        expect(cmd.command).toMatch(/^otakLsp\./);
       }
     });
 
-    it('すべてのコマンドタイトルは「otak-lcp:」で始まる', () => {
+    it('すべてのコマンドタイトルは「otak-lsp:」で始まる', () => {
       const commands = packageJson.contributes.commands;
       for (const cmd of commands) {
-        expect(cmd.title).toMatch(/^otak-lcp:/);
+        expect(cmd.title).toMatch(/^otak-lsp:/);
       }
     });
 
     it('コマンド識別子はcamelCase形式である', () => {
       const commands = packageJson.contributes.commands;
       for (const cmd of commands) {
-        const suffix = cmd.command.replace('otakLcp.', '');
+        const suffix = cmd.command.replace('otakLsp.', '');
         // camelCaseパターン: 小文字で始まり、アンダースコアやハイフンを含まない
         expect(suffix).toMatch(/^[a-z][a-zA-Z]*$/);
       }
@@ -67,22 +67,22 @@ describe('パッケージ名リファクタリング - プロパティテスト'
   });
 
   describe('プロパティ4: 設定キーの形式統一', () => {
-    it('設定カテゴリは「otak-lcp」である', () => {
-      expect(packageJson.contributes.configuration.title).toBe('otak-lcp');
+    it('設定カテゴリは「otak-lsp」である', () => {
+      expect(packageJson.contributes.configuration.title).toBe('otak-lsp');
     });
 
-    it('すべての設定キーは「otakLcp.」で始まる', () => {
+    it('すべての設定キーは「otakLsp.」で始まる', () => {
       const properties = packageJson.contributes.configuration.properties;
       for (const key of Object.keys(properties)) {
-        expect(key).toMatch(/^otakLcp\./);
+        expect(key).toMatch(/^otakLsp\./);
       }
     });
 
     it('設定キーはドット区切りのcamelCase形式である', () => {
       const keys = Object.keys(packageJson.contributes.configuration.properties);
       for (const key of keys) {
-        // otakLcp.xxx または otakLcp.category.xxx 形式
-        expect(key).toMatch(/^otakLcp(\.[a-z][a-zA-Z]*)+$/);
+        // otakLsp.xxx または otakLsp.category.xxx 形式
+        expect(key).toMatch(/^otakLsp(\.[a-z][a-zA-Z]*)+$/);
       }
     });
   });

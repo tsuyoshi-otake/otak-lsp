@@ -60,6 +60,20 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
   },
   {
     "code": "english-case-mix",
+    "message": "英語表記「lsp」の大文字小文字が統一されていません。lsp、LSPが混在しています。",
+    "range": {
+      "end": {
+        "character": 10,
+        "line": 0,
+      },
+      "start": {
+        "character": 7,
+        "line": 0,
+      },
+    },
+  },
+  {
+    "code": "english-case-mix",
     "message": "英語表記「vscode」の大文字小文字が統一されていません。VSCode、vscodeが混在しています。",
     "range": {
       "end": {

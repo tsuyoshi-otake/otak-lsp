@@ -286,7 +286,7 @@ describe('Property-Based Tests: Markdown Filter', () => {
     it('should exclude config keys in any position', () => {
       fc.assert(
         fc.property(
-          fc.constantFrom('otakLcp', 'config', 'settings'),
+          fc.constantFrom('otakLsp', 'config', 'settings'),
           fc.string({ minLength: 1, maxLength: 20 }).filter((s) => /^[a-zA-Z0-9_]+$/.test(s)),
           (prefix, suffix) => {
             const configKey = `${prefix}.${suffix}`;

@@ -418,8 +418,8 @@ describe('Hover Provider', () => {
     it('should return glossary-only hover when no token is available at position', async () => {
       provider.setWikipediaEnabled(false);
 
-      const text = 'xxx otakLcp.hover.enableGlossary yyy';
-      const offset = text.indexOf('otakLcp.hover.enableGlossary') + 5;
+      const text = 'xxx otakLsp.hover.enableGlossary yyy';
+      const offset = text.indexOf('otakLsp.hover.enableGlossary') + 5;
       const tokens = [
         createToken('dummy', 0, 5, '名詞', 'dummy', 'dummy')
       ];
@@ -427,10 +427,10 @@ describe('Hover Provider', () => {
       const result = await provider.provideHover(tokens, offset, text);
 
       expect(result).not.toBeNull();
-      expect(result?.contents).toContain('**otak-lcp設定用語図鑑**');
+      expect(result?.contents).toContain('**otak-lsp設定用語図鑑**');
       expect(result?.contents).toContain('ホバーに用語図鑑（オフライン）を表示する設定');
-      expect(result?.range.start).toBe(text.indexOf('otakLcp.hover.enableGlossary'));
-      expect(result?.range.end).toBe(text.indexOf('otakLcp.hover.enableGlossary') + 'otakLcp.hover.enableGlossary'.length);
+      expect(result?.range.start).toBe(text.indexOf('otakLsp.hover.enableGlossary'));
+      expect(result?.range.end).toBe(text.indexOf('otakLsp.hover.enableGlossary') + 'otakLsp.hover.enableGlossary'.length);
     });
   });
 

@@ -469,14 +469,14 @@ describe('Table Structure Processing (Task 4.2)', () => {
     it('should detect config keys in table cells', () => {
       const text = `| Setting | Description |
 |---------|-------------|
-| otakLcp.enableGrammarCheck | Enable grammar check |`;
+| otakLsp.enableGrammarCheck | Enable grammar check |`;
       const result = filter.filter(text);
 
       expect(result.excludedRanges.some((r) => r.type === 'config-key')).toBe(true);
     });
 
     it('should detect multiple config keys', () => {
-      const text = `| otakLcp.setting1 | otakLcp.setting2 |`;
+      const text = `| otakLsp.setting1 | otakLsp.setting2 |`;
       const result = filter.filter(text);
 
       const configKeys = result.excludedRanges.filter((r) => r.type === 'config-key');

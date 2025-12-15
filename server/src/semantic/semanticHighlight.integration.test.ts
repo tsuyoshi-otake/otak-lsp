@@ -266,7 +266,7 @@ const 日本語変数 = "これはコード内の日本語";
 ## インストール
 
 \`\`\`bash
-npm install otak-lcp
+npm install otak-lsp
 \`\`\`
 
 ## 使い方

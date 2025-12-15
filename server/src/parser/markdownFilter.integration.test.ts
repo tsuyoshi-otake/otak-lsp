@@ -92,7 +92,7 @@ console.log(greeting);
 
 | 設定キー | 説明 |
 |----------|------|
-| otakLcp.enable | 機能を有効化 |
+| otakLsp.enable | 機能を有効化 |
 | config.debug | デバッグモード |
 
 ## リンクセクション
