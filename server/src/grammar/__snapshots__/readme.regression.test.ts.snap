@@ -438,14 +438,14 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
   },
   {
     "code": "long-sentence",
-    "message": "文が長すぎます（161文字、閾値: 120文字）。文の分割を検討してください。",
+    "message": "文が長すぎます（188文字、閾値: 120文字）。文の分割を検討してください。",
     "range": {
       "end": {
-        "character": 161,
+        "character": 228,
         "line": 45,
       },
       "start": {
-        "character": 0,
+        "character": 40,
         "line": 45,
       },
     },
@@ -531,20 +531,6 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
       "start": {
         "character": 60,
         "line": 44,
-      },
-    },
-  },
-  {
-    "code": "particle-repetition",
-    "message": "同じ助詞「は」が3回使用されています。文の構造を見直してください。",
-    "range": {
-      "end": {
-        "character": 161,
-        "line": 45,
-      },
-      "start": {
-        "character": 0,
-        "line": 45,
       },
     },
   },
@@ -811,20 +797,6 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
       "start": {
         "character": 28,
         "line": 298,
-      },
-    },
-  },
-  {
-    "code": "table-column-mismatch",
-    "message": "テーブルの区切り行の列数が一致しません。ヘッダーは3列ですが、区切り行は5列です。",
-    "range": {
-      "end": {
-        "character": 83,
-        "line": 384,
-      },
-      "start": {
-        "character": 0,
-        "line": 384,
       },
     },
   },
