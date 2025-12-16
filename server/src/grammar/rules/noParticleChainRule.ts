@@ -11,7 +11,8 @@ import {
   AdvancedRulesConfig,
   RuleContext,
   AdvancedDiagnostic,
-  NoParticleChain
+  NoParticleChain,
+  Sentence
 } from '../../../../shared/src/advancedTypes';
 
 /**
@@ -22,49 +23,56 @@ export class NoParticleChainRule implements AdvancedGrammarRule {
   description = '助詞「の」の連続使用を検出します';
 
   /**
+   * 連続判定で「境界」として扱う文字
+   * - 括弧内は補足情報であることが多く、本文と同一チェーンにすると誤検知が増えるため
+   */
+  private static readonly CHAIN_BOUNDARY_PATTERN = /[（）()]/;
+
+  /**
+   * 「の」同士を同一チェーンとして扱う最大距離（文字オフセット差）
+   */
+  private static readonly DEFAULT_MAX_GAP = 20;
+
+  /**
    * テキストから助詞「の」の連続を検出
-   * @param text テキスト
+   * @param text テキスト（documentText）
+   * @param sentences 文リスト（SentenceParserの結果）
    * @param threshold 閾値
    * @returns 検出された連続使用のリスト
    */
-  detectNoChains(text: string, threshold: number): NoParticleChain[] {
+  detectNoChains(text: string, sentences: Sentence[], threshold: number): NoParticleChain[] {
     const results: NoParticleChain[] = [];
 
-    // 「の」で分割してカウント
-    // 例: "東京の会社の部長の息子" → ["東京", "会社", "部長", "息子"] (4パート = 3回の「の」)
-    const sentences = text.split(/[。！？!?\n]/);
-
     for (const sentence of sentences) {
-      if (!sentence.trim()) continue;
+      if (!sentence.text.trim()) continue;
 
-      // 「の」の出現位置を取得
-      const noPositions: number[] = [];
-      let searchIndex = 0;
-      const sentenceStart = text.indexOf(sentence);
+      const noTokens = sentence.tokens
+        .filter((t) => t.surface === 'の')
+        .sort((a, b) => a.start - b.start);
 
-      while (true) {
-        const index = sentence.indexOf('の', searchIndex);
-        if (index === -1) break;
-        noPositions.push(sentenceStart + index);
-        searchIndex = index + 1;
-      }
-
-      if (noPositions.length < threshold) continue;
+      if (noTokens.length < threshold) continue;
 
       // 連続した「の」を検出
       let chainStart = 0;
       let chainCount = 1;
 
-      for (let i = 1; i < noPositions.length; i++) {
-        const gap = noPositions[i] - noPositions[i - 1];
+      for (let i = 1; i < noTokens.length; i++) {
+        const prev = noTokens[i - 1];
+        const current = noTokens[i];
+        const gap = current.start - prev.start;
+        const between = text.slice(prev.end, current.start);
+
         // 「の」の間に他のテキストがある場合（最大20文字程度）
-        if (gap <= 20) {
+        // ただし括弧をまたぐ場合は補足情報として扱い、チェーンを分断する
+        if (gap <= NoParticleChainRule.DEFAULT_MAX_GAP && !NoParticleChainRule.CHAIN_BOUNDARY_PATTERN.test(between)) {
           chainCount++;
         } else {
           // 連続が途切れた
           if (chainCount >= threshold) {
-            const chainText = text.substring(noPositions[chainStart], noPositions[i - 1] + 1);
-            results.push(this.createChain(chainText, chainCount, noPositions[chainStart], noPositions[i - 1] + 1));
+            const startOffset = noTokens[chainStart].start;
+            const endOffset = noTokens[i - 1].end;
+            const chainText = text.substring(startOffset, endOffset);
+            results.push(this.createChain(chainText, chainCount, startOffset, endOffset));
           }
           chainStart = i;
           chainCount = 1;
@@ -73,8 +81,10 @@ export class NoParticleChainRule implements AdvancedGrammarRule {
 
       // 最後のチェーンを確認
       if (chainCount >= threshold) {
-        const chainText = text.substring(noPositions[chainStart], noPositions[noPositions.length - 1] + 1);
-        results.push(this.createChain(chainText, chainCount, noPositions[chainStart], noPositions[noPositions.length - 1] + 1));
+        const startOffset = noTokens[chainStart].start;
+        const endOffset = noTokens[noTokens.length - 1].end;
+        const chainText = text.substring(startOffset, endOffset);
+        results.push(this.createChain(chainText, chainCount, startOffset, endOffset));
       }
     }
 
@@ -116,7 +126,13 @@ export class NoParticleChainRule implements AdvancedGrammarRule {
   check(tokens: Token[], context: RuleContext): AdvancedDiagnostic[] {
     const diagnostics: AdvancedDiagnostic[] = [];
     const threshold = context.config.noParticleChainThreshold || 3;
-    const chains = this.detectNoChains(context.documentText, threshold);
+
+    const sentences =
+      context.sentences.length > 0
+        ? context.sentences
+        : [new Sentence({ text: context.documentText, tokens, start: 0, end: context.documentText.length })];
+
+    const chains = this.detectNoChains(context.documentText, sentences, threshold);
 
     for (const chain of chains) {
       diagnostics.push(new AdvancedDiagnostic({

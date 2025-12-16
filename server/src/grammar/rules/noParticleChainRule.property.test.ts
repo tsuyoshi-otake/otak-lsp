@@ -9,6 +9,7 @@ import * as fc from 'fast-check';
 import { NoParticleChainRule } from './noParticleChainRule';
 import { Token } from '../../../../shared/src/types';
 import { DEFAULT_ADVANCED_RULES_CONFIG, RuleContext } from '../../../../shared/src/advancedTypes';
+import { SentenceParser } from '../sentenceParser';
 
 describe('Property-Based Tests: NoParticleChainRule', () => {
   const rule = new NoParticleChainRule();
@@ -30,9 +31,37 @@ describe('Property-Based Tests: NoParticleChainRule', () => {
     });
   };
 
-  const createContext = (text: string, threshold?: number): RuleContext => ({
+  const createTokens = (text: string): Token[] => {
+    const tokens: Token[] = [];
+    let segmentStart = 0;
+
+    for (let i = 0; i < text.length; i++) {
+      if (text[i] !== 'の') continue;
+
+      if (segmentStart < i) {
+        const segment = text.substring(segmentStart, i);
+        if (segment.trim().length > 0) {
+          tokens.push(createToken(segment, '名詞', '*', segmentStart));
+        }
+      }
+
+      tokens.push(createToken('の', '助詞', '*', i));
+      segmentStart = i + 1;
+    }
+
+    if (segmentStart < text.length) {
+      const segment = text.substring(segmentStart);
+      if (segment.trim().length > 0) {
+        tokens.push(createToken(segment, '名詞', '*', segmentStart));
+      }
+    }
+
+    return tokens;
+  };
+
+  const createContext = (text: string, tokens: Token[], threshold?: number): RuleContext => ({
     documentText: text,
-    sentences: [],
+    sentences: SentenceParser.parseSentences(text, tokens),
     config: {
       ...DEFAULT_ADVANCED_RULES_CONFIG,
       noParticleChainThreshold: threshold ?? 3
@@ -58,8 +87,8 @@ describe('Property-Based Tests: NoParticleChainRule', () => {
             { text: '日本の東京の渋谷の店の商品', count: 4 }
           ),
           ({ text, count }) => {
-            const tokens = [createToken(text, '名詞', '*', 0)];
-            const context = createContext(text, 3);
+            const tokens = createTokens(text);
+            const context = createContext(text, tokens, 3);
             const diagnostics = rule.check(tokens, context);
 
             expect(diagnostics.length).toBeGreaterThan(0);
@@ -81,8 +110,8 @@ describe('Property-Based Tests: NoParticleChainRule', () => {
             '会社の名前'
           ),
           (text) => {
-            const tokens = [createToken(text, '名詞', '*', 0)];
-            const context = createContext(text, 3);
+            const tokens = createTokens(text);
+            const context = createContext(text, tokens, 3);
             const diagnostics = rule.check(tokens, context);
 
             expect(diagnostics).toHaveLength(0);
@@ -100,8 +129,8 @@ describe('Property-Based Tests: NoParticleChainRule', () => {
             '彼の家の庭の花'
           ),
           (text) => {
-            const tokens = [createToken(text, '名詞', '*', 0)];
-            const context = createContext(text, 3);
+            const tokens = createTokens(text);
+            const context = createContext(text, tokens, 3);
             const diagnostics = rule.check(tokens, context);
 
             expect(diagnostics.length).toBeGreaterThan(0);
@@ -118,8 +147,8 @@ describe('Property-Based Tests: NoParticleChainRule', () => {
           fc.integer({ min: 2, max: 5 }),
           (threshold) => {
             const text = '東京の会社の部長の息子の友達';
-            const tokens = [createToken(text, '名詞', '*', 0)];
-            const context = createContext(text, threshold);
+            const tokens = createTokens(text);
+            const context = createContext(text, tokens, threshold);
             const diagnostics = rule.check(tokens, context);
 
             // 4回の「の」があるので、閾値が4以下なら検出される
