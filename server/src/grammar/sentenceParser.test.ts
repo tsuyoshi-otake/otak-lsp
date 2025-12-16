@@ -177,6 +177,31 @@ describe('SentenceParser', () => {
         expect(['1', '2']).toContain(sentences[2].text.trim());
         expect(sentences[3].text.trim()).toBe('後文です。');
       });
+
+      it('should extract last table cell even without trailing pipe', () => {
+        const markdown = `前文です
+| ルール | 結果 | 例 |
+|---|---|---|
+| 読点過多 | PASS | 私は、今日、朝、昼、夜、と、食事をしました。
+後文です。`;
+        const { filteredText, excludedRanges } = markdownFilter.filter(markdown);
+        const sentences = SentenceParser.parseSentences(filteredText, [], excludedRanges);
+
+        expect(sentences.some(s => s.text.includes('私は、今日、朝'))).toBe(true);
+      });
+
+      it('should split sentences within selected table cell', () => {
+        const markdown = `| ルール | 結果 | 例 |
+|---|---|---|
+| 例 | PASS | Aです。Bです。Cです。Dです。 |`;
+        const { filteredText, excludedRanges } = markdownFilter.filter(markdown);
+        const sentences = SentenceParser.parseSentences(filteredText, [], excludedRanges);
+
+        const texts = sentences.map(s => s.text.trim());
+        const startIndex = texts.indexOf('Aです。');
+        expect(startIndex).toBeGreaterThanOrEqual(0);
+        expect(texts.slice(startIndex, startIndex + 4)).toEqual(['Aです。', 'Bです。', 'Cです。', 'Dです。']);
+      });
     });
   });
 

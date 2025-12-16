@@ -279,6 +279,30 @@ const aws = require('aws-sdk');
       expect(filterByCode(diagnostics, 'long-sentence').length).toBeGreaterThan(0);
     });
 
+    it('should detect comma-count in table cell even without trailing pipe', async () => {
+      const markdown = `# 例
+
+| ルール | 結果 | 例 |
+|---|---|---|
+| 読点過多 | PASS | 私は、今日、朝、昼、夜、と、食事をしました。
+`;
+
+      const diagnostics = await analyzeMarkdown(markdown);
+      expect(filterByCode(diagnostics, 'comma-count').length).toBeGreaterThan(0);
+    });
+
+    it('should detect monotonous-ending in table cell with multiple sentences', async () => {
+      const markdown = `# 例
+
+| ルール | 結果 | 例 |
+|---|---|---|
+| 受身の多用 | PASS | 報告書が作成された。結果が分析された。結論が導かれた。 |
+`;
+
+      const diagnostics = await analyzeMarkdown(markdown);
+      expect(filterByCode(diagnostics, 'monotonous-ending').length).toBeGreaterThan(0);
+    });
+
     it('should detect double-particle in table content by default', async () => {
       const markdown = `# 例
 

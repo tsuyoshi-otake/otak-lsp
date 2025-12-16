@@ -80,6 +80,11 @@ export class SentenceParser {
 
       // 文の終端記号をチェック
       if (SENTENCE_TERMINATORS.test(text[i])) {
+        // Markdownテーブル内は行単位で扱う（セル抽出のため、終端記号では分割しない）
+        if (SentenceParser.isOffsetInsideExcludedType(i, excludedRanges, 'table')) {
+          continue;
+        }
+
         // 連続する終端記号をスキップ
         while (i + 1 < text.length && SENTENCE_TERMINATORS.test(text[i + 1])) {
           i++;
@@ -324,17 +329,7 @@ export class SentenceParser {
       if (!selected) {
         return;
       }
-      const cellText = text.substring(selected.start, selected.end);
-      if (cellText.trim().length === 0) {
-        return;
-      }
-      const cellTokens = SentenceParser.getTokensInRange(tokens, selected.start, selected.end);
-      sentences.push(new Sentence({
-        text: cellText,
-        tokens: cellTokens,
-        start: selected.start,
-        end: selected.end
-      }));
+      SentenceParser.pushSentencesFromRange(sentences, text, tokens, selected.start, selected.end);
       return;
     }
 
@@ -345,6 +340,60 @@ export class SentenceParser {
       start: effectiveStart,
       end
     }));
+  }
+
+  private static pushPlainSentence(
+    sentences: Sentence[],
+    text: string,
+    tokens: Token[],
+    start: number,
+    end: number
+  ): void {
+    if (end <= start) {
+      return;
+    }
+    const sentenceText = text.substring(start, end);
+    if (sentenceText.trim().length === 0) {
+      return;
+    }
+
+    const sentenceTokens = SentenceParser.getTokensInRange(tokens, start, end);
+    sentences.push(new Sentence({
+      text: sentenceText,
+      tokens: sentenceTokens,
+      start,
+      end
+    }));
+  }
+
+  private static pushSentencesFromRange(
+    sentences: Sentence[],
+    text: string,
+    tokens: Token[],
+    start: number,
+    end: number
+  ): void {
+    if (end <= start) {
+      return;
+    }
+
+    let currentStart = start;
+    for (let i = start; i < end; i++) {
+      if (!SENTENCE_TERMINATORS.test(text[i])) {
+        continue;
+      }
+
+      while (i + 1 < end && SENTENCE_TERMINATORS.test(text[i + 1])) {
+        i++;
+      }
+
+      SentenceParser.pushPlainSentence(sentences, text, tokens, currentStart, i + 1);
+      currentStart = i + 1;
+    }
+
+    if (currentStart < end) {
+      SentenceParser.pushPlainSentence(sentences, text, tokens, currentStart, end);
+    }
   }
 
   private static isMarkdownTableRowLine(lineText: string): boolean {
@@ -400,9 +449,15 @@ export class SentenceParser {
     }
 
     const ranges: Array<{ start: number; end: number }> = [];
-    for (let i = 0; i < pipePositions.length - 1; i++) {
-      const left = pipePositions[i];
-      const right = pipePositions[i + 1];
+    const delimiters = pipePositions.slice();
+    // 末尾の '|' は省略可能なため、無い場合は行末を区切りとして扱う
+    if (delimiters[delimiters.length - 1] !== trimmed.length - 1) {
+      delimiters.push(trimmed.length);
+    }
+
+    for (let i = 0; i < delimiters.length - 1; i++) {
+      const left = delimiters[i];
+      const right = delimiters[i + 1];
       let contentStart = left + 1;
       let contentEnd = right;
 
