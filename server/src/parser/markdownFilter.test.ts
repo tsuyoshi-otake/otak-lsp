@@ -468,8 +468,8 @@ describe('Table Structure Processing (Task 4.2)', () => {
   describe('config key detection in tables', () => {
     it('should detect config keys in table cells', () => {
       const text = `| Setting | Description |
-|---------|-------------|
-| otakLsp.enableGrammarCheck | Enable grammar check |`;
+ |---------|-------------|
+ | otakLsp.enableGrammarCheck | Enable grammar check |`;
       const result = filter.filter(text);
 
       expect(result.excludedRanges.some((r) => r.type === 'config-key')).toBe(true);
@@ -481,6 +481,30 @@ describe('Table Structure Processing (Task 4.2)', () => {
 
       const configKeys = result.excludedRanges.filter((r) => r.type === 'config-key');
       expect(configKeys.length).toBeGreaterThanOrEqual(2);
+    });
+  });
+
+  describe('inline code in tables', () => {
+    it('should preserve Japanese inline code in table cells', () => {
+      const text = `| 表記 |
+|------|
+| \`食べれる\` |`;
+      const result = filter.filter(text);
+
+      expect(result.excludedRanges.some((r) => r.type === 'table')).toBe(true);
+      expect(result.excludedRanges.some((r) => r.type === 'inline-code')).toBe(false);
+      expect(result.filteredText).toContain('食べれる');
+    });
+
+    it('should still exclude ASCII inline code in table cells', () => {
+      const text = `| Key |
+|-----|
+| \`otakLsp.markdown.analyzeTables\` |`;
+      const result = filter.filter(text);
+
+      expect(result.excludedRanges.some((r) => r.type === 'table')).toBe(true);
+      expect(result.excludedRanges.some((r) => r.type === 'inline-code')).toBe(true);
+      expect(result.filteredText).not.toContain('otakLsp.markdown.analyzeTables');
     });
   });
 

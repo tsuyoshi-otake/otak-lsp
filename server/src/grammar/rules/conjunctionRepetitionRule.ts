@@ -44,13 +44,37 @@ export class ConjunctionRepetitionRule implements AdvancedGrammarRule {
   /**
    * 文の先頭にある接続詞を取得
    */
-  getLeadingConjunction(sentence: Sentence): string | null {
-    const text = sentence.text.trim();
-    for (const conj of COMMON_CONJUNCTIONS) {
-      if (text.startsWith(conj)) {
-        return conj;
+  getLeadingConjunction(sentence: Sentence): { conjunction: string; index: number } | null {
+    const text = sentence.text;
+    const candidateStarts: number[] = [0];
+
+    // Markdownテーブル（|）のセル開始位置も候補に含める。
+    for (let i = 0; i < text.length; i++) {
+      if (text[i] === '|') {
+        candidateStarts.push(i + 1);
       }
     }
+
+    for (const start of candidateStarts) {
+      let index = start;
+
+      while (index < text.length && (text[index] === ' ' || text[index] === '\t')) {
+        index++;
+      }
+      while (index < text.length && text[index] === '`') {
+        index++;
+      }
+      while (index < text.length && (text[index] === ' ' || text[index] === '\t')) {
+        index++;
+      }
+
+      for (const conj of COMMON_CONJUNCTIONS) {
+        if (text.startsWith(conj, index)) {
+          return { conjunction: conj, index };
+        }
+      }
+    }
+
     return null;
   }
 
@@ -72,14 +96,14 @@ export class ConjunctionRepetitionRule implements AdvancedGrammarRule {
       const currentConj = this.getLeadingConjunction(sentences[i]);
       const prevConj = this.getLeadingConjunction(sentences[i - 1]);
 
-      if (currentConj && currentConj === prevConj) {
-        const alternatives = this.getAlternatives(currentConj);
+      if (currentConj && prevConj && currentConj.conjunction === prevConj.conjunction) {
+        const alternatives = this.getAlternatives(currentConj.conjunction);
         diagnostics.push(new AdvancedDiagnostic({
           range: {
-            start: { line: 0, character: sentences[i].start },
-            end: { line: 0, character: sentences[i].start + currentConj.length }
+            start: { line: 0, character: sentences[i].start + currentConj.index },
+            end: { line: 0, character: sentences[i].start + currentConj.index + currentConj.conjunction.length }
           },
-          message: `接続詞「${currentConj}」が連続して使用されています。`,
+          message: `接続詞「${currentConj.conjunction}」が連続して使用されています。`,
           code: 'conjunction-repetition',
           ruleName: this.name,
           suggestions: alternatives.map(alt => `「${alt}」に変更する`)

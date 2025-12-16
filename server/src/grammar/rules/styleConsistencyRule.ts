@@ -30,7 +30,11 @@ export class StyleConsistencyRule implements AdvancedGrammarRule {
    * @returns 文体タイプ
    */
   detectStyle(sentence: Sentence): StyleType {
-    const text = sentence.text.trim().replace(/[。！？!?]$/, '');
+    const text = sentence.text
+      .trim()
+      .replace(/^[\s|`]+/, '')
+      .replace(/[\s|`]+$/, '')
+      .replace(/[。！？!?]$/, '');
 
     // 敬体（です・ます）
     if (/です$/.test(text) || /ます$/.test(text)) {

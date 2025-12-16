@@ -29,6 +29,9 @@ export class MarkdownFilter implements IMarkdownFilter {
   private config: FilterConfig;
   private logs: string[] = [];
 
+  private static readonly INLINE_CODE_PRESERVE_IN_TABLE_REGEX =
+    /[\u3040-\u30FF\u3400-\u4DBF\u4E00-\u9FFF\u3005\uFF10-\uFF19\uFF21-\uFF3A\uFF41-\uFF5A]/;
+
   constructor(config?: FilterConfig) {
     this.config = config ? { ...DEFAULT_FILTER_CONFIG, ...config } : { ...DEFAULT_FILTER_CONFIG };
   }
@@ -134,8 +137,35 @@ export class MarkdownFilter implements IMarkdownFilter {
       ranges.push(...this.findListMarkers(text, ranges));
     }
 
+    const adjustedRanges =
+      effectiveConfig.excludeInlineCode && effectiveConfig.excludeTables
+        ? this.restoreInlineCodeInTables(ranges)
+        : ranges;
+
     // 範囲をソート（開始位置順）
-    return ranges.sort((a, b) => a.start - b.start);
+    return adjustedRanges.sort((a, b) => a.start - b.start);
+  }
+
+  private restoreInlineCodeInTables(ranges: ExcludedRange[]): ExcludedRange[] {
+    const tableRanges = ranges.filter((r) => r.type === 'table');
+    if (tableRanges.length === 0) {
+      return ranges;
+    }
+
+    const shouldPreserveInlineCode = (inlineCode: ExcludedRange): boolean => {
+      const stripped = inlineCode.content.replace(/^`+/, '').replace(/`+$/, '');
+      return MarkdownFilter.INLINE_CODE_PRESERVE_IN_TABLE_REGEX.test(stripped);
+    };
+
+    return ranges.filter((range) => {
+      if (range.type !== 'inline-code') {
+        return true;
+      }
+      if (!shouldPreserveInlineCode(range)) {
+        return true;
+      }
+      return !tableRanges.some((table) => range.start >= table.start && range.end <= table.end);
+    });
   }
 
   /**

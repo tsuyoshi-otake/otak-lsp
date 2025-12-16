@@ -213,6 +213,43 @@ const aws = require('aws-sdk');
       expect(raNukiErrors.length).toBeGreaterThan(0);
     });
 
+    it('should detect grammar errors in inline code inside table cells', async () => {
+      const markdown = `# テーブル例
+
+| ルール | 例 |
+|---|---|
+| 二重助詞 | \`私がが行く\` |
+| 助詞連続 | \`彼がを見た\` |
+| 動詞-助詞不整合 | \`を行く\` |
+| 冗長な助動詞 | \`でです\` |
+| 文体 | \`これはテストです\` |
+| 文体 | \`これはテストである\` |
+| ら抜き言葉 | \`食べれる\` |
+| 二重否定 | \`できないわけではない\` |
+| 助詞連続使用 | \`私は本を彼は読む\` |
+| 接続詞連続 | \`しかし、Aです\` |
+| 接続詞連続 | \`しかし、Bです\` |
+| 逆接が連続 | \`行きますが、Aです\` |
+| 逆接が連続 | \`行きますが、Bです\` |
+| 全角半角混在 | \`これはＡＢＣとabcの混在です\` |
+`;
+
+      const diagnostics = await analyzeMarkdown(markdown);
+
+      expect(filterByCode(diagnostics, 'double-particle').length).toBeGreaterThan(0);
+      expect(filterByCode(diagnostics, 'particle-sequence').length).toBeGreaterThan(0);
+      expect(hasMessageContaining(filterByCode(diagnostics, 'particle-sequence'), 'でです')).toBe(true);
+      expect(filterByCode(diagnostics, 'verb-particle-mismatch').length).toBeGreaterThan(0);
+
+      expect(filterByCode(diagnostics, 'ra-nuki').length).toBeGreaterThan(0);
+      expect(filterByCode(diagnostics, 'double-negation').length).toBeGreaterThan(0);
+      expect(filterByCode(diagnostics, 'particle-repetition').length).toBeGreaterThan(0);
+      expect(filterByCode(diagnostics, 'conjunction-repetition').length).toBeGreaterThan(0);
+      expect(filterByCode(diagnostics, 'adversative-ga').length).toBeGreaterThan(0);
+      expect(filterByCode(diagnostics, 'alphabet-width').length).toBeGreaterThan(0);
+      expect(filterByCode(diagnostics, 'style-inconsistency').length).toBeGreaterThan(0);
+    });
+
     it('should detect double-particle in table content by default', async () => {
       const markdown = `# 例
 
