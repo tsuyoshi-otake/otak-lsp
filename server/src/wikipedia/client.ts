@@ -34,6 +34,8 @@ type FetchFunction = (url: string, options: RequestInit) => Promise<Response>;
  */
 export class WikipediaClient {
   private cache: Map<string, CacheEntry> = new Map();
+  private inFlight: Map<string, Promise<string | null>> = new Map();
+  private cacheGeneration: number = 0;
   private fetchFn: FetchFunction;
   private timeoutMs: number = 5000;
   private cacheTTL: number = 24 * 60 * 60 * 1000; // 24時間
@@ -87,6 +89,43 @@ export class WikipediaClient {
    */
   clearCache(): void {
     this.cache.clear();
+    this.cacheGeneration += 1;
+    this.inFlight.clear();
+  }
+
+  /**
+   * キャッシュ済みのWikipediaサマリーを取得（同期）
+   * - ホバーなど「即時応答が必要」な用途向け
+   * - キャッシュが無い場合はnull
+   */
+  getCachedSummary(term: string): string | null {
+    if (!term || term.trim() === '') {
+      return null;
+    }
+    return this.getFromCache(term.trim());
+  }
+
+  /**
+   * Wikipediaサマリーをバックグラウンドで事前取得
+   * - 取得完了後にキャッシュへ保存（成功時のみ）
+   * - 既にキャッシュ済み/取得中の場合は何もしない
+   */
+  prefetchSummary(term: string): void {
+    if (!term || term.trim() === '') {
+      return;
+    }
+
+    const normalizedTerm = term.trim();
+    const cached = this.getFromCache(normalizedTerm);
+    if (cached !== null) {
+      return;
+    }
+
+    if (this.inFlight.has(normalizedTerm)) {
+      return;
+    }
+
+    this.startFetch(normalizedTerm);
   }
 
   /**
@@ -108,15 +147,35 @@ export class WikipediaClient {
       return cached;
     }
 
-    try {
-      const summary = await this.fetchSummary(normalizedTerm);
-      if (summary !== null) {
-        this.setToCache(normalizedTerm, summary);
-      }
-      return summary;
-    } catch {
-      return null;
+    const existing = this.inFlight.get(normalizedTerm);
+    if (existing) {
+      return await existing;
     }
+
+    return await this.startFetch(normalizedTerm);
+  }
+
+  private startFetch(term: string): Promise<string | null> {
+    const generation = this.cacheGeneration;
+
+    let promise: Promise<string | null>;
+    promise = this.fetchSummary(term)
+      .then((summary) => {
+        if (summary !== null && generation === this.cacheGeneration) {
+          this.setToCache(term, summary);
+        }
+        return summary;
+      })
+      .catch(() => null)
+      .finally(() => {
+        const current = this.inFlight.get(term);
+        if (current === promise) {
+          this.inFlight.delete(term);
+        }
+      });
+
+    this.inFlight.set(term, promise);
+    return promise;
   }
 
   /**

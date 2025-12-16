@@ -312,7 +312,16 @@ export type GlossaryId =
   | 'architecturePatterns'
   | 'agileProduct'
   | 'aiLlm'
-  | 'contractLegal';
+  | 'contractLegal'
+  | 'git'
+  | 'npm'
+  | 'yarn'
+  | 'pnpm'
+  | 'pip'
+  | 'docker'
+  | 'linux'
+  | 'windows'
+  | 'powershell';
 
 export interface Configuration {
   /** 文法チェックの有効/無効 */

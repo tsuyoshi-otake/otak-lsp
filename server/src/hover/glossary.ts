@@ -7,6 +7,15 @@ import { GlossaryId, Token } from '../../../shared/src/types';
 import { TERM_NOTATION_DICTIONARIES, TermNotationDictionaryId } from '../dictionaries/termNotationDictionary';
 import { AWS_CONSOLE_GLOSSARY, AZURE_CONSOLE_GLOSSARY, CLOUDFLARE_CONSOLE_GLOSSARY, OCI_CONSOLE_GLOSSARY } from './consoleGlossaryData';
 import { CONSOLE_TERM_DEFINITIONS, ConsoleGlossaryDefinition } from './consoleGlossaryDefinitions';
+import { GIT_GLOSSARY } from './gitGlossary';
+import { NPM_GLOSSARY } from './npmGlossary';
+import { YARN_GLOSSARY } from './yarnGlossary';
+import { PNPM_GLOSSARY } from './pnpmGlossary';
+import { PIP_GLOSSARY } from './pipGlossary';
+import { DOCKER_GLOSSARY } from './dockerGlossary';
+import { LINUX_GLOSSARY } from './linuxGlossary';
+import { WINDOWS_GLOSSARY } from './windowsGlossary';
+import { POWERSHELL_GLOSSARY } from './powershellGlossary';
 
 const PHRASE_REGEX = /[A-Za-z][A-Za-z0-9.+#/_:-]*(?:\s+[A-Za-z][A-Za-z0-9.+#/_:-]*){0,5}/g;
 const WORD_REGEX = /[A-Za-z0-9.+#/_:-]+/g;
@@ -2025,6 +2034,52 @@ const BASE_GLOSSARIES: ReadonlyArray<GlossaryDefinition> = [
       { term: '損害賠償', description: '契約違反等による損害を賠償する責任。' },
       { term: '再委託', description: '受託者が第三者へ業務を委ねること（許諾や条件が重要）。' },
     ],
+  },
+  // === CLI用語集 ===
+  {
+    id: 'git',
+    title: 'Git用語図鑑',
+    entries: GIT_GLOSSARY as unknown as GlossaryEntry[],
+  },
+  {
+    id: 'npm',
+    title: 'npm用語図鑑',
+    entries: NPM_GLOSSARY as unknown as GlossaryEntry[],
+  },
+  {
+    id: 'yarn',
+    title: 'yarn用語図鑑',
+    entries: YARN_GLOSSARY as unknown as GlossaryEntry[],
+  },
+  {
+    id: 'pnpm',
+    title: 'pnpm用語図鑑',
+    entries: PNPM_GLOSSARY as unknown as GlossaryEntry[],
+  },
+  {
+    id: 'pip',
+    title: 'pip/Python用語図鑑',
+    entries: PIP_GLOSSARY as unknown as GlossaryEntry[],
+  },
+  {
+    id: 'docker',
+    title: 'Docker用語図鑑',
+    entries: DOCKER_GLOSSARY as unknown as GlossaryEntry[],
+  },
+  {
+    id: 'linux',
+    title: 'Linuxコマンド用語図鑑',
+    entries: LINUX_GLOSSARY as unknown as GlossaryEntry[],
+  },
+  {
+    id: 'windows',
+    title: 'Windowsコマンド用語図鑑',
+    entries: WINDOWS_GLOSSARY as unknown as GlossaryEntry[],
+  },
+  {
+    id: 'powershell',
+    title: 'PowerShell用語図鑑',
+    entries: POWERSHELL_GLOSSARY as unknown as GlossaryEntry[],
   },
 ];
 
