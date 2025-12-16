@@ -128,7 +128,7 @@ export class LanguageServer {
       enableSemanticHighlight: true,
       markdown: {
         analyzeCodeBlocks: false,
-        analyzeTables: false,
+        analyzeTables: true,
       },
       targetLanguages: ['markdown', 'javascript', 'typescript', 'python', 'c', 'cpp', 'java', 'rust'],
       debounceDelay: 250,

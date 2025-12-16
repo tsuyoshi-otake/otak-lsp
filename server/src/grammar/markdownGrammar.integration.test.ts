@@ -8,7 +8,7 @@
  * 検証項目:
  * 1. コードブロック内のサンプルテキストが検出されないこと
  * 2. 見出しやリスト内の日本語テキストが正しくチェックされること
- * 3. テーブル内のテキストが除外されること
+ * 3. テーブル内のテキストもチェックされること
  * 4. URLが除外されること
  */
 
@@ -36,12 +36,13 @@ async function analyzeMarkdown(text: string): Promise<Diagnostic[]> {
 
   // 2. Morphological analysis with kuromoji
   const allTokens = await mecabAnalyzer.analyze(textToAnalyze);
-  const grammarTokens = excludedRanges.length > 0 ? tokenFilter.filterTokens(allTokens, excludedRanges) : allTokens;
+  const grammarExcludedRanges = excludedRanges.filter((r) => r.type !== 'table');
+  const grammarTokens = grammarExcludedRanges.length > 0 ? tokenFilter.filterTokens(allTokens, grammarExcludedRanges) : allTokens;
 
   // 3. Grammar check (basic + advanced)
   const basicDiagnostics = grammarChecker.check(grammarTokens, textToAnalyze);
   const advancedDiagnostics = advancedRulesManager.checkText(textToAnalyze, grammarTokens, excludedRanges, {
-    analyzeTables: false,
+    analyzeTables: true,
   });
 
   return [...basicDiagnostics, ...advancedDiagnostics];
@@ -194,8 +195,8 @@ const aws = require('aws-sdk');
     });
   });
 
-  describe('Table Exclusion', () => {
-    it('should NOT detect ra-nuki in table content by default', async () => {
+  describe('Table Analysis', () => {
+    it('should detect ra-nuki in table content by default', async () => {
       const markdown = `# 設定一覧
 
 | 設定キー | 説明 |
@@ -208,8 +209,21 @@ const aws = require('aws-sdk');
       const diagnostics = await analyzeMarkdown(markdown);
       const raNukiErrors = filterByCode(diagnostics, 'ra-nuki');
 
-      // テーブル内の「食べれる」は既定では検出されない
-      expect(raNukiErrors.length).toBe(0);
+      // テーブル内の「食べれる」も検出される
+      expect(raNukiErrors.length).toBeGreaterThan(0);
+    });
+
+    it('should detect double-particle in table content by default', async () => {
+      const markdown = `# 例
+
+| 文章 |
+|------|
+| 私がが行く |
+`;
+
+      const diagnostics = await analyzeMarkdown(markdown);
+      const doubleParticle = filterByCode(diagnostics, 'double-particle');
+      expect(doubleParticle.length).toBeGreaterThan(0);
     });
 
     it('should detect weak-expression in table content by default', async () => {

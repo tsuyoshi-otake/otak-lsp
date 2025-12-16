@@ -50,7 +50,7 @@ export class ConfigurationManager {
       excludeTableDelimiters: true,
       markdown: {
         analyzeCodeBlocks: true,
-        analyzeTables: false,
+        analyzeTables: true,
       },
       targetLanguages: ['c', 'cpp', 'java', 'python', 'javascript', 'typescript', 'rust', 'markdown'],
       debounceDelay: 250,

@@ -69,7 +69,7 @@ let configuration: Configuration = {
   excludeTableDelimiters: true,
   markdown: {
     analyzeCodeBlocks: true,
-    analyzeTables: false,
+    analyzeTables: true,
   },
   targetLanguages: ['markdown', 'javascript', 'typescript', 'python', 'c', 'cpp', 'java', 'rust', 'plaintext'] as SupportedLanguage[],
   debounceDelay: 250,
