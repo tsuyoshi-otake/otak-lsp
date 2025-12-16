@@ -23,6 +23,21 @@ const PARAGRAPH_BREAK = /\n\s*\n/;
  * テキストを文単位に分割し、各文にトークンを割り当てる
  */
 export class SentenceParser {
+  private static isOffsetInsideRange(offset: number, range: ExcludedRange): boolean {
+    return offset >= range.start && offset < range.end;
+  }
+
+  private static isOffsetInsideExcludedType(
+    offset: number,
+    excludedRanges: ExcludedRange[] | undefined,
+    type: ExcludedRange['type']
+  ): boolean {
+    if (!excludedRanges || excludedRanges.length === 0) {
+      return false;
+    }
+    return excludedRanges.some((range) => range.type === type && SentenceParser.isOffsetInsideRange(offset, range));
+  }
+
   /**
    * テキストを文に分割
    * @param text 解析対象のテキスト
@@ -78,6 +93,13 @@ export class SentenceParser {
       else if (text[i] === '\n') {
         // CRLF (\r\n) の場合、\r の位置を基準にする
         const newlineStart = (i > 0 && text[i - 1] === '\r') ? i - 1 : i;
+
+        // Markdownテーブル内は1行=1単位として扱う（セル単位に分割して解析しやすくする）
+        if (SentenceParser.isOffsetInsideExcludedType(newlineStart, excludedRanges, 'table')) {
+          SentenceParser.pushSentence(sentences, text, tokens, currentStart, newlineStart, excludedRanges);
+          currentStart = i + 1;
+          continue;
+        }
         
         // 段落区切り（空行）をチェック
         // 空行かどうかをチェック（次の非空白文字までに改行があるか）
@@ -294,6 +316,28 @@ export class SentenceParser {
       return;
     }
 
+    // テーブル行はセル単位に分割して Sentence を作る（range を行全体にしないため）
+    const insideTable = SentenceParser.isOffsetInsideExcludedType(effectiveStart, excludedRanges, 'table');
+    if (insideTable && SentenceParser.isMarkdownTableRowLine(sentenceText)) {
+      const cellRanges = SentenceParser.extractMarkdownTableCellRanges(text, effectiveStart, end);
+      const selected = SentenceParser.selectBestTableCellRange(text, cellRanges);
+      if (!selected) {
+        return;
+      }
+      const cellText = text.substring(selected.start, selected.end);
+      if (cellText.trim().length === 0) {
+        return;
+      }
+      const cellTokens = SentenceParser.getTokensInRange(tokens, selected.start, selected.end);
+      sentences.push(new Sentence({
+        text: cellText,
+        tokens: cellTokens,
+        start: selected.start,
+        end: selected.end
+      }));
+      return;
+    }
+
     const sentenceTokens = SentenceParser.getTokensInRange(tokens, effectiveStart, end);
     sentences.push(new Sentence({
       text: sentenceText,
@@ -301,6 +345,141 @@ export class SentenceParser {
       start: effectiveStart,
       end
     }));
+  }
+
+  private static isMarkdownTableRowLine(lineText: string): boolean {
+    const trimmed = lineText.trim();
+    if (trimmed.length === 0) {
+      return false;
+    }
+    // blockquote table (`> | a | b |`) も許容
+    const withoutQuote = trimmed.replace(/^(?:>\s*)+/, '');
+    if (!withoutQuote.includes('|')) {
+      return false;
+    }
+    // 先頭に "|" が無いテーブルもあるが、誤判定を避けるためここでは "|" 起点のみ扱う
+    return withoutQuote.startsWith('|');
+  }
+
+  private static isEscapedPipe(text: string, index: number): boolean {
+    if (index <= 0 || text[index] !== '|') {
+      return false;
+    }
+    let backslashes = 0;
+    for (let i = index - 1; i >= 0 && text[i] === '\\'; i--) {
+      backslashes++;
+    }
+    return backslashes % 2 === 1;
+  }
+
+  private static extractMarkdownTableCellRanges(text: string, lineStart: number, lineEnd: number): Array<{ start: number; end: number }> {
+    const line = text.substring(lineStart, lineEnd);
+    const trimmed = line.trimEnd();
+    if (trimmed.length === 0) {
+      return [];
+    }
+
+    // blockquote prefix を飛ばして最初の "|" を探す
+    const quotePrefixMatch = trimmed.match(/^(?:\s*(?:>\s*)+)?/);
+    const quotePrefixLength = quotePrefixMatch ? quotePrefixMatch[0].length : 0;
+
+    const firstPipeLocal = trimmed.indexOf('|', quotePrefixLength);
+    if (firstPipeLocal < 0) {
+      return [];
+    }
+
+    const pipePositions: number[] = [];
+    for (let i = firstPipeLocal; i < trimmed.length; i++) {
+      if (trimmed[i] !== '|') continue;
+      if (SentenceParser.isEscapedPipe(trimmed, i)) continue;
+      pipePositions.push(i);
+    }
+
+    if (pipePositions.length < 2) {
+      return [];
+    }
+
+    const ranges: Array<{ start: number; end: number }> = [];
+    for (let i = 0; i < pipePositions.length - 1; i++) {
+      const left = pipePositions[i];
+      const right = pipePositions[i + 1];
+      let contentStart = left + 1;
+      let contentEnd = right;
+
+      // trim spaces/tabs inside the cell but keep original offsets
+      while (contentStart < contentEnd && (trimmed[contentStart] === ' ' || trimmed[contentStart] === '\t')) {
+        contentStart++;
+      }
+      while (contentEnd > contentStart && (trimmed[contentEnd - 1] === ' ' || trimmed[contentEnd - 1] === '\t')) {
+        contentEnd--;
+      }
+
+      const absStart = lineStart + contentStart;
+      const absEnd = lineStart + contentEnd;
+      if (absEnd > absStart) {
+        ranges.push({ start: absStart, end: absEnd });
+      }
+    }
+
+    return ranges;
+  }
+
+  private static scoreTableCell(text: string): number {
+    const trimmed = text.trim();
+    if (trimmed.length === 0) {
+      return -1;
+    }
+
+    // backticks only -> low value
+    const withoutTicks = trimmed.replace(/`/g, '');
+    const normalized = withoutTicks.trim();
+
+    // "PASS"/"FAIL" などは基本的に解析対象として弱い
+    if (/^(?:PASS|FAIL|OK|NG)$/i.test(normalized)) {
+      return 0;
+    }
+
+    let score = 0;
+    if (/[ぁ-んァ-ン一-龠]/.test(normalized)) {
+      score += 100;
+    }
+    if (/[。！？!?]/.test(normalized)) {
+      score += 40;
+    }
+    if (/、/.test(normalized)) {
+      score += 20;
+    }
+    // 例文になりやすい: 助詞/述語らしき終端
+    if (/(?:です|ます|である|だ|た|ない)$/.test(normalized.replace(/[。！？!?]$/, ''))) {
+      score += 10;
+    }
+    score += Math.min(normalized.length, 200);
+    return score;
+  }
+
+  private static selectBestTableCellRange(
+    text: string,
+    ranges: Array<{ start: number; end: number }>
+  ): { start: number; end: number } | null {
+    if (ranges.length === 0) {
+      return null;
+    }
+
+    let best = ranges[0];
+    let bestScore = SentenceParser.scoreTableCell(text.substring(best.start, best.end));
+
+    for (const range of ranges.slice(1)) {
+      const score = SentenceParser.scoreTableCell(text.substring(range.start, range.end));
+      if (score > bestScore) {
+        best = range;
+        bestScore = score;
+      }
+    }
+
+    if (bestScore <= 0) {
+      return null;
+    }
+    return best;
   }
 
   private static isMarkdownTableSeparatorLine(lineText: string): boolean {

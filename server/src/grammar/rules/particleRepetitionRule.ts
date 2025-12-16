@@ -23,6 +23,7 @@ export class ParticleRepetitionRule implements AdvancedGrammarRule {
 
   private static readonly IGNORED_PARTICLES = new Set(['の']);
   private static readonly PREDICATE_BOUNDARY_POS = new Set(['動詞', '形容詞', '助動詞']);
+  private static readonly TABLE_ROW_PREFIX = /^\s*\|/;
 
   private static readonly QUOTE_PAIRS: ReadonlyArray<[string, string]> = [
     ['「', '」'],
@@ -49,6 +50,55 @@ export class ParticleRepetitionRule implements AdvancedGrammarRule {
     return ParticleRepetitionRule.QUOTE_PAIRS.some(
       ([open, close]) => before === open && after === close
     );
+  }
+
+  private extractInlineCodeFromTableRow(text: string): { text: string; start: number; end: number } | null {
+    if (!ParticleRepetitionRule.TABLE_ROW_PREFIX.test(text) || !text.includes('|')) {
+      return null;
+    }
+
+    const matches = Array.from(text.matchAll(/`([^`]+)`/g));
+    if (matches.length === 0) {
+      return null;
+    }
+
+    // 例文っぽいもの（日本語を含む/長いもの）を優先
+    let best = matches[0];
+    for (const m of matches) {
+      const candidate = m[1] ?? '';
+      const bestCandidate = best[1] ?? '';
+      const candidateLooksJapanese = /[ぁ-んァ-ン一-龠]/.test(candidate);
+      const bestLooksJapanese = /[ぁ-んァ-ン一-龠]/.test(bestCandidate);
+      if (candidateLooksJapanese && !bestLooksJapanese) {
+        best = m;
+        continue;
+      }
+      if (candidateLooksJapanese === bestLooksJapanese && candidate.length > bestCandidate.length) {
+        best = m;
+      }
+    }
+
+    const fullMatch = best[0] ?? '';
+    const inner = best[1] ?? '';
+    const index = typeof best.index === 'number' ? best.index : text.indexOf(fullMatch);
+    if (index < 0) {
+      return null;
+    }
+
+    const start = index + 1;
+    const end = start + inner.length;
+    return { text: inner, start, end };
+  }
+
+  private buildSentenceForInlineCode(sentence: Sentence, inline: { text: string; start: number; end: number }): Sentence {
+    const startOffset = sentence.start + Math.max(0, inline.start);
+    const endOffset = sentence.start + Math.max(Math.max(0, inline.start), inline.end);
+    return new Sentence({
+      text: inline.text,
+      tokens: sentence.tokens.filter((t) => t.start >= startOffset && t.end <= endOffset),
+      start: startOffset,
+      end: endOffset
+    });
   }
 
   /**
@@ -121,13 +171,25 @@ export class ParticleRepetitionRule implements AdvancedGrammarRule {
     const diagnostics: AdvancedDiagnostic[] = [];
 
     for (const sentence of context.sentences) {
-      const repetitions = this.findRepeatedParticles(sentence, context.documentText);
+      let sentenceToCheck = sentence;
+      const isTableRow = ParticleRepetitionRule.TABLE_ROW_PREFIX.test(sentence.text) && sentence.text.includes('|');
+      if (isTableRow) {
+        const inline = this.extractInlineCodeFromTableRow(sentence.text);
+        if (!inline) {
+          continue;
+        }
+        sentenceToCheck = this.buildSentenceForInlineCode(sentence, inline);
+      }
+
+      const repetitions = this.findRepeatedParticles(sentenceToCheck, context.documentText);
 
       for (const rep of repetitions) {
+        const startChar = Math.min(...rep.positions);
+        const endChar = Math.max(...rep.positions) + rep.particle.length;
         diagnostics.push(new AdvancedDiagnostic({
           range: {
-            start: { line: 0, character: sentence.start },
-            end: { line: 0, character: sentence.end }
+            start: { line: 0, character: startChar },
+            end: { line: 0, character: endChar }
           },
           message: `同じ助詞「${rep.particle}」が${rep.positions.length}回使用されています。文の構造を見直してください。`,
           code: 'particle-repetition',

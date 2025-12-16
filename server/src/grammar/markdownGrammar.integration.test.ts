@@ -250,6 +250,35 @@ const aws = require('aws-sdk');
       expect(filterByCode(diagnostics, 'style-inconsistency').length).toBeGreaterThan(0);
     });
 
+    it('should NOT detect style-inconsistency for non-inline-code table rows', async () => {
+      const markdown = `# レポート
+
+これはテストです。
+
+| ルール | 結果 | 例 |
+|---|---|---|
+| 助詞連続 | PASS | 彼がを見た |
+
+これもテストです。
+`;
+
+      const diagnostics = await analyzeMarkdown(markdown);
+      expect(filterByCode(diagnostics, 'style-inconsistency')).toHaveLength(0);
+    });
+
+    it('should detect long-sentence in table cell even without terminator', async () => {
+      const longText = 'あ'.repeat(130);
+      const markdown = `# 例
+
+| 文章 |
+|---|
+| ${longText} |
+`;
+
+      const diagnostics = await analyzeMarkdown(markdown);
+      expect(filterByCode(diagnostics, 'long-sentence').length).toBeGreaterThan(0);
+    });
+
     it('should detect double-particle in table content by default', async () => {
       const markdown = `# 例
 

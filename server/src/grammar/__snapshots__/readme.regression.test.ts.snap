@@ -525,11 +525,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "message": "同じ助詞「は」が3回使用されています。文の構造を見直してください。",
     "range": {
       "end": {
-        "character": 229,
+        "character": 219,
         "line": 44,
       },
       "start": {
-        "character": 60,
+        "character": 133,
         "line": 44,
       },
     },

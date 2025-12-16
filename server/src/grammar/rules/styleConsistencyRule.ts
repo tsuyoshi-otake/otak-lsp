@@ -25,12 +25,63 @@ export class StyleConsistencyRule implements AdvancedGrammarRule {
   description = '文体の混在（敬体/常体）を検出します';
 
   /**
+   * Markdownテーブル行から、文体判定に使う「例文」部分（インラインコード）を抽出する。
+   * - `| ... | \`例文\` |` のような行だけを対象にする
+   * - インラインコードが無いテーブル行は、文体チェックの対象外（neutral）として扱う
+   */
+  private extractInlineCodeFromTableRow(text: string): { text: string; start: number; end: number } | null {
+    // テーブル行らしさの軽い判定（誤爆防止）
+    if (!/^\s*\|/.test(text) || !text.includes('|')) {
+      return null;
+    }
+
+    const matches = Array.from(text.matchAll(/`([^`]+)`/g));
+    if (matches.length === 0) {
+      return null;
+    }
+
+    // 最も「文っぽい」候補を優先（日本語を含む/長いもの）
+    let best = matches[0];
+    for (const m of matches) {
+      const candidate = m[1] ?? '';
+      const bestCandidate = best[1] ?? '';
+      const candidateLooksJapanese = /[ぁ-んァ-ン一-龠]/.test(candidate);
+      const bestLooksJapanese = /[ぁ-んァ-ン一-龠]/.test(bestCandidate);
+      if (candidateLooksJapanese && !bestLooksJapanese) {
+        best = m;
+        continue;
+      }
+      if (candidateLooksJapanese === bestLooksJapanese && candidate.length > bestCandidate.length) {
+        best = m;
+      }
+    }
+
+    const fullMatch = best[0] ?? '';
+    const inner = best[1] ?? '';
+    const index = typeof best.index === 'number' ? best.index : text.indexOf(fullMatch);
+    if (index < 0) {
+      return null;
+    }
+
+    // backtick 内側のみを range 対象にする
+    const start = index + 1;
+    const end = start + inner.length;
+    return { text: inner, start, end };
+  }
+
+  /**
    * 文の文体を判定
    * @param sentence 文
    * @returns 文体タイプ
    */
   detectStyle(sentence: Sentence): StyleType {
-    const text = sentence.text
+    const inline = this.extractInlineCodeFromTableRow(sentence.text);
+    if (/^\s*\|/.test(sentence.text) && sentence.text.includes('|') && !inline) {
+      // テーブル行（インラインコードなし）は文体判定の対象外にする
+      return 'neutral';
+    }
+
+    const text = (inline ? inline.text : sentence.text)
       .trim()
       .replace(/^[\s|`]+/, '')
       .replace(/[\s|`]+$/, '')
@@ -49,11 +100,6 @@ export class StyleConsistencyRule implements AdvancedGrammarRule {
 
     // 「〜ている」「〜てある」も常体として扱う
     if (/ている$/.test(text) || /てある$/.test(text)) {
-      return 'joutai';
-    }
-
-    // 「〜た」で終わる場合も常体（ただし「ました」は除外）
-    if (/[^し]た$/.test(text)) {
       return 'joutai';
     }
 
@@ -113,11 +159,12 @@ export class StyleConsistencyRule implements AdvancedGrammarRule {
 
       // 敬体と常体の混在のみを検出（中立は無視）
       if (detectedStyle !== 'neutral' && detectedStyle !== dominantStyle) {
+        const inline = this.extractInlineCodeFromTableRow(sentence.text);
         inconsistencies.push({
           sentence,
           detectedStyle,
           dominantStyle,
-          range: this.createRange(sentence)
+          range: inline ? this.createRange(sentence, inline.start, inline.end) : this.createRange(sentence)
         });
       }
     }
@@ -166,11 +213,14 @@ export class StyleConsistencyRule implements AdvancedGrammarRule {
    * @param sentence 文
    * @returns 範囲
    */
-  private createRange(sentence: Sentence): Range {
-    // 簡易的な行計算（実際の実装では行番号を考慮）
+  private createRange(sentence: Sentence, localStart = 0, localEnd = sentence.text.length): Range {
+    const safeStart = Math.max(0, localStart);
+    const safeEnd = Math.max(safeStart, localEnd);
+    const startOffset = sentence.start + safeStart;
+    const endOffset = sentence.start + safeEnd;
     return {
-      start: { line: 0, character: sentence.start },
-      end: { line: 0, character: sentence.end }
+      start: { line: 0, character: startOffset },
+      end: { line: 0, character: endOffset }
     };
   }
 }

@@ -173,8 +173,8 @@ describe('SentenceParser', () => {
 
         expect(sentences).toHaveLength(4);
         expect(sentences[0].text.trim()).toBe('前文です');
-        expect(sentences[1].text).toContain('A');
-        expect(sentences[2].text).toContain('1');
+        expect(['A', 'B']).toContain(sentences[1].text.trim());
+        expect(['1', '2']).toContain(sentences[2].text.trim());
         expect(sentences[3].text.trim()).toBe('後文です。');
       });
     });
