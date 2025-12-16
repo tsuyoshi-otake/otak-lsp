@@ -5,26 +5,23 @@
  * 要件: 9.1, 9.2, 9.3
  */
 
-import { Token, Range } from '../../../../shared/src/types';
+import { Token } from '../../../../shared/src/types';
 import {
   AdvancedGrammarRule,
   AdvancedRulesConfig,
   RuleContext,
   AdvancedDiagnostic,
-  PassiveOveruse
+  PassiveOveruse,
+  Sentence
 } from '../../../../shared/src/advancedTypes';
 
 /**
- * 受身表現のパターン
+ * 受身（れる/られる）を表すトークンの原形
+ * NOTE: kuromoji は「れ/られ」を助動詞ではなく動詞として返す場合があるため baseForm で判定する。
  */
-const PASSIVE_PATTERNS: RegExp[] = [
-  /れた[。、]/g,
-  /られた[。、]/g,
-  /された[。、]/g,
-  /されました[。、]/g,
-  /れました[。、]/g,
-  /られました[。、]/g
-];
+const PASSIVE_AUX_BASE_FORMS = new Set(['れる', 'られる']);
+const PAST_AUX_BASE_FORM = 'た';
+const POLITE_AUX_BASE_FORM = 'ます';
 
 /**
  * 受身表現多用検出ルール
@@ -33,66 +30,105 @@ export class PassiveOveruseRule implements AdvancedGrammarRule {
   name = 'passive-overuse';
   description = '受身表現の多用を検出します';
 
-  /**
-   * テキストから受身表現の多用を検出
-   * @param text テキスト
-   * @param threshold 閾値
-   * @returns 検出された受身表現多用のリスト
-   */
-  detectPassiveOveruse(text: string, threshold: number): PassiveOveruse[] {
-    const results: PassiveOveruse[] = [];
-    const passiveExpressions: string[] = [];
+  private getPassiveOccurrencesInSentence(
+    sentence: Sentence
+  ): Array<{ start: number; end: number }> {
+    const occurrences: Array<{ start: number; end: number }> = [];
+    const tokens = sentence.tokens;
+    if (!tokens || tokens.length === 0) {
+      return occurrences;
+    }
 
-    // 受身表現を検出
-    for (const pattern of PASSIVE_PATTERNS) {
-      const matches = text.match(pattern);
-      if (matches) {
-        passiveExpressions.push(...matches);
+    for (let i = 0; i < tokens.length; i++) {
+      const token = tokens[i];
+      if (!PASSIVE_AUX_BASE_FORMS.has(token.baseForm)) {
+        continue;
+      }
+
+      const next = tokens[i + 1];
+      const nextNext = tokens[i + 2];
+
+      // 受身の過去形: 〜れ + た
+      if (next && next.baseForm === PAST_AUX_BASE_FORM) {
+        occurrences.push({ start: token.start, end: next.end });
+        continue;
+      }
+
+      // 受身の丁寧過去: 〜れ + ます + た（「まし」も baseForm は「ます」）
+      if (next && nextNext && next.baseForm === POLITE_AUX_BASE_FORM && nextNext.baseForm === PAST_AUX_BASE_FORM) {
+        occurrences.push({ start: token.start, end: nextNext.end });
       }
     }
 
-    // 閾値を超えている場合
-    if (passiveExpressions.length >= threshold) {
-      results.push({
-        passiveExpressions,
-        count: passiveExpressions.length,
-        threshold,
-        range: {
-          start: { line: 0, character: 0 },
-          end: { line: 0, character: text.length }
-        },
-        suggestions: ['能動態への書き換えを検討してください']
-      });
-    }
-
-    return results;
+    return occurrences;
   }
 
   /**
-   * 連続する受身表現を検出
-   * @param text テキスト
-   * @returns 検出結果
+   * 文の列から受身表現の多用を検出（連続する文を対象）
+   * @param sentences 文のリスト
+   * @param threshold 閾値
+   * @returns 検出された受身表現多用のリスト
    */
-  detectConsecutivePassive(text: string): PassiveOveruse | null {
-    // 連続する受身文を検出
-    const consecutivePattern = /[^。]*された[。][^。]*された[。][^。]*された[。]/;
-    const match = text.match(consecutivePattern);
-
-    if (match) {
-      const index = match.index || 0;
-      return {
-        passiveExpressions: ['された', 'された', 'された'],
-        count: 3,
-        threshold: 3,
-        range: {
-          start: { line: 0, character: index },
-          end: { line: 0, character: index + match[0].length }
-        },
-        suggestions: ['能動態に書き換えることを検討してください']
-      };
+  detectPassiveOveruse(sentences: Sentence[], threshold: number): PassiveOveruse[] {
+    const results: PassiveOveruse[] = [];
+    if (!sentences || sentences.length === 0) {
+      return results;
     }
 
-    return null;
+    let sequenceStartIndex: number | null = null;
+    let sequenceOccurrences: Array<{ start: number; end: number }> = [];
+
+    const flushSequence = (endIndexExclusive: number): void => {
+      if (sequenceStartIndex === null) {
+        return;
+      }
+      if (sequenceOccurrences.length < threshold) {
+        sequenceStartIndex = null;
+        sequenceOccurrences = [];
+        return;
+      }
+
+      const startSentence = sentences[sequenceStartIndex];
+      const endSentence = sentences[endIndexExclusive - 1];
+      if (!startSentence || !endSentence) {
+        sequenceStartIndex = null;
+        sequenceOccurrences = [];
+        return;
+      }
+
+      results.push({
+        passiveExpressions: sequenceOccurrences.map(() => '受身'),
+        count: sequenceOccurrences.length,
+        threshold,
+        range: {
+          start: { line: 0, character: startSentence.start },
+          end: { line: 0, character: endSentence.end }
+        },
+        suggestions: ['能動態への書き換えを検討してください']
+      });
+
+      sequenceStartIndex = null;
+      sequenceOccurrences = [];
+    };
+
+    for (let i = 0; i < sentences.length; i++) {
+      const sentence = sentences[i];
+      const occurrences = this.getPassiveOccurrencesInSentence(sentence);
+
+      if (occurrences.length === 0) {
+        flushSequence(i);
+        continue;
+      }
+
+      if (sequenceStartIndex === null) {
+        sequenceStartIndex = i;
+      }
+      sequenceOccurrences.push(...occurrences);
+    }
+
+    flushSequence(sentences.length);
+
+    return results;
   }
 
   /**
@@ -105,31 +141,15 @@ export class PassiveOveruseRule implements AdvancedGrammarRule {
     const diagnostics: AdvancedDiagnostic[] = [];
     const threshold = context.config.passiveOveruseThreshold;
 
-    // 連続受身文の検出
-    const consecutiveError = this.detectConsecutivePassive(context.documentText);
-    if (consecutiveError) {
+    const overuseErrors = this.detectPassiveOveruse(context.sentences, threshold);
+    for (const error of overuseErrors) {
       diagnostics.push(new AdvancedDiagnostic({
-        range: consecutiveError.range,
-        message: `受身表現が${consecutiveError.count}回連続で使用されています。能動態への書き換えを検討してください。`,
+        range: error.range,
+        message: `受身表現が${error.count}回使用されています（閾値: ${error.threshold}回）。能動態への書き換えを検討してください。`,
         code: 'passive-overuse',
         ruleName: this.name,
-        suggestions: consecutiveError.suggestions
+        suggestions: error.suggestions
       }));
-    }
-
-    // 全体的な受身多用の検出
-    const overuseErrors = this.detectPassiveOveruse(context.documentText, threshold);
-    for (const error of overuseErrors) {
-      // 連続エラーと重複しない場合のみ追加
-      if (!consecutiveError) {
-        diagnostics.push(new AdvancedDiagnostic({
-          range: error.range,
-          message: `受身表現が${error.count}回使用されています（閾値: ${error.threshold}回）。能動態への書き換えを検討してください。`,
-          code: 'passive-overuse',
-          ruleName: this.name,
-          suggestions: error.suggestions
-        }));
-      }
     }
 
     return diagnostics;

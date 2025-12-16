@@ -14,6 +14,7 @@ import { WeakExpressionRule } from './weakExpressionRule';
 import { CommaCountRule } from './commaCountRule';
 import { TermNotationRule } from './termNotationRule';
 import { KanjiOpeningRule } from './kanjiOpeningRule';
+import { PassiveOveruseRule } from './passiveOveruseRule';
 
 /**
  * ヘルパー関数
@@ -36,6 +37,29 @@ const createToken = (
     pronunciation: surface,
     start,
     end: start + surface.length
+  });
+};
+
+const createTokenWithBaseForm = (
+  surface: string,
+  pos: string,
+  baseForm: string,
+  start: number,
+  end: number = start + surface.length
+): Token => {
+  return new Token({
+    surface,
+    pos,
+    posDetail1: '*',
+    posDetail2: '*',
+    posDetail3: '*',
+    conjugation: '*',
+    conjugationForm: '*',
+    baseForm,
+    reading: surface,
+    pronunciation: surface,
+    start,
+    end
   });
 };
 
@@ -443,6 +467,89 @@ describe('KanjiOpeningRule', () => {
     const text = 'ください、できます、ありがとう';
     const context = createContext(text);
     const diagnostics = rule.check([], context);
+
+    expect(diagnostics).toHaveLength(0);
+  });
+});
+
+describe('PassiveOveruseRule', () => {
+  const rule = new PassiveOveruseRule();
+
+  it('should detect passive overuse in consecutive sentences and report localized range', () => {
+    const prefix = '前置きです。';
+    const s1 = '報告書が作成された。';
+    const s2 = '結果が分析された。';
+    const s3 = '結論が導かれた。';
+    const suffix = '後書きです。';
+    const text = `${prefix}\n\n${s1}${s2}${s3}\n\n${suffix}`;
+
+    const prefixOffset = 0;
+    const s1Offset = prefix.length + 2; // \n\n
+    const s2Offset = s1Offset + s1.length;
+    const s3Offset = s2Offset + s2.length;
+
+    const sentencePrefix = new Sentence({ text: prefix, tokens: [], start: prefixOffset, end: prefixOffset + prefix.length });
+
+    const sentence1Tokens = [
+      createTokenWithBaseForm('れ', '動詞', 'れる', s1Offset + 6),
+      createTokenWithBaseForm('た', '助動詞', 'た', s1Offset + 7)
+    ];
+    const sentence1 = new Sentence({ text: s1, tokens: sentence1Tokens, start: s1Offset, end: s1Offset + s1.length });
+
+    const sentence2Tokens = [
+      createTokenWithBaseForm('れ', '動詞', 'れる', s2Offset + 6),
+      createTokenWithBaseForm('た', '助動詞', 'た', s2Offset + 7)
+    ];
+    const sentence2 = new Sentence({ text: s2, tokens: sentence2Tokens, start: s2Offset, end: s2Offset + s2.length });
+
+    const sentence3Tokens = [
+      createTokenWithBaseForm('れ', '動詞', 'れる', s3Offset + 6),
+      createTokenWithBaseForm('た', '助動詞', 'た', s3Offset + 7)
+    ];
+    const sentence3 = new Sentence({ text: s3, tokens: sentence3Tokens, start: s3Offset, end: s3Offset + s3.length });
+
+    const suffixOffset = text.length - suffix.length;
+    const sentenceSuffix = new Sentence({ text: suffix, tokens: [], start: suffixOffset, end: text.length });
+
+    const allTokens = [...sentence1Tokens, ...sentence2Tokens, ...sentence3Tokens];
+    const context = createContext(text, [sentencePrefix, sentence1, sentence2, sentence3, sentenceSuffix]);
+    const diagnostics = rule.check(allTokens, context);
+
+    expect(diagnostics).toHaveLength(1);
+    expect(diagnostics[0].code).toBe('passive-overuse');
+    expect(diagnostics[0].message).toContain('3回');
+    expect(diagnostics[0].range.start.line).toBe(0);
+    expect(diagnostics[0].range.start.character).toBeGreaterThan(0);
+    expect(diagnostics[0].range.end.character).toBeLessThan(text.length);
+  });
+
+  it('should not detect when passive expressions are not consecutive', () => {
+    const text = '報告書が作成された。晴れた。結果が分析された。';
+    const s1 = '報告書が作成された。';
+    const s2 = '晴れた。';
+    const s3 = '結果が分析された。';
+
+    const s1Offset = 0;
+    const s2Offset = s1.length;
+    const s3Offset = s2Offset + s2.length;
+
+    const sentence1Tokens = [
+      createTokenWithBaseForm('れ', '動詞', 'れる', s1Offset + 6),
+      createTokenWithBaseForm('た', '助動詞', 'た', s1Offset + 7)
+    ];
+    const sentence1 = new Sentence({ text: s1, tokens: sentence1Tokens, start: s1Offset, end: s1Offset + s1.length });
+
+    const sentence2 = new Sentence({ text: s2, tokens: [], start: s2Offset, end: s2Offset + s2.length });
+
+    const sentence3Tokens = [
+      createTokenWithBaseForm('れ', '動詞', 'れる', s3Offset + 6),
+      createTokenWithBaseForm('た', '助動詞', 'た', s3Offset + 7)
+    ];
+    const sentence3 = new Sentence({ text: s3, tokens: sentence3Tokens, start: s3Offset, end: s3Offset + s3.length });
+
+    const allTokens = [...sentence1Tokens, ...sentence3Tokens];
+    const context = createContext(text, [sentence1, sentence2, sentence3]);
+    const diagnostics = rule.check(allTokens, context);
 
     expect(diagnostics).toHaveLength(0);
   });
