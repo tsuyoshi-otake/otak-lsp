@@ -16,6 +16,13 @@ import { DOCKER_GLOSSARY } from './dockerGlossary';
 import { LINUX_GLOSSARY } from './linuxGlossary';
 import { WINDOWS_GLOSSARY } from './windowsGlossary';
 import { POWERSHELL_GLOSSARY } from './powershellGlossary';
+import { ORACLE_GLOSSARY } from './oracleGlossary';
+import { MYSQL_GLOSSARY } from './mysqlGlossary';
+import { JAVA_CLI_GLOSSARY } from './javaCliGlossary';
+import { MAVEN_GLOSSARY } from './mavenGlossary';
+import { GRADLE_GLOSSARY } from './gradleGlossary';
+import { DEV_PROCESS_GLOSSARY } from './devProcessGlossary';
+import { IPA_METRICS_GLOSSARY } from './ipaMetricsGlossary';
 
 const PHRASE_REGEX = /[A-Za-z][A-Za-z0-9.+#/_:-]*(?:\s+[A-Za-z][A-Za-z0-9.+#/_:-]*){0,5}/g;
 const WORD_REGEX = /[A-Za-z0-9.+#/_:-]+/g;
@@ -2080,6 +2087,42 @@ const BASE_GLOSSARIES: ReadonlyArray<GlossaryDefinition> = [
     id: 'powershell',
     title: 'PowerShell用語図鑑',
     entries: POWERSHELL_GLOSSARY as unknown as GlossaryEntry[],
+  },
+  // === データベース・Java系ビルドツール ===
+  {
+    id: 'oracle',
+    title: 'Oracle DB用語図鑑',
+    entries: ORACLE_GLOSSARY as unknown as GlossaryEntry[],
+  },
+  {
+    id: 'mysql',
+    title: 'MySQL用語図鑑',
+    entries: MYSQL_GLOSSARY as unknown as GlossaryEntry[],
+  },
+  {
+    id: 'javaCli',
+    title: 'Java CLI用語図鑑',
+    entries: JAVA_CLI_GLOSSARY as unknown as GlossaryEntry[],
+  },
+  {
+    id: 'maven',
+    title: 'Maven用語図鑑',
+    entries: MAVEN_GLOSSARY as unknown as GlossaryEntry[],
+  },
+  {
+    id: 'gradle',
+    title: 'Gradle用語図鑑',
+    entries: GRADLE_GLOSSARY as unknown as GlossaryEntry[],
+  },
+  {
+    id: 'devProcess',
+    title: '開発工程用語図鑑',
+    entries: DEV_PROCESS_GLOSSARY as unknown as GlossaryEntry[],
+  },
+  {
+    id: 'ipaMetrics',
+    title: 'IPA開発指標用語図鑑',
+    entries: IPA_METRICS_GLOSSARY as unknown as GlossaryEntry[],
   },
 ];
 

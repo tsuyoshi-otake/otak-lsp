@@ -321,7 +321,14 @@ export type GlossaryId =
   | 'docker'
   | 'linux'
   | 'windows'
-  | 'powershell';
+  | 'powershell'
+  | 'oracle'
+  | 'mysql'
+  | 'javaCli'
+  | 'maven'
+  | 'gradle'
+  | 'devProcess'
+  | 'ipaMetrics';
 
 export interface Configuration {
   /** 文法チェックの有効/無効 */

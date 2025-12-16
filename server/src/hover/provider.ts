@@ -180,9 +180,15 @@ export class HoverProvider {
     // Wikipedia検索（有効かつ対象品詞の場合）
     if (this.wikipediaEnabled) {
       const search = this.getWikipediaSearch(token, techTerm);
-      const summary = search ? await this.wikipediaClient.getSummary(search.term) : null;
-      if (summary) {
-        contents += '\n\n---\n\n**Wikipedia**:\n\n' + summary;
+      if (search) {
+        const cachedSummary = this.wikipediaClient.getCachedSummary(search.term);
+        if (cachedSummary) {
+          contents += '\n\n---\n\n**Wikipedia**:\n\n' + cachedSummary;
+        } else {
+          // Hoverを待たせない（VS Codeの"Loading..."を出さない）ため、
+          // サマリーはバックグラウンドで事前取得し、次回以降のHoverで表示する。
+          this.wikipediaClient.prefetchSummary(search.term);
+        }
       }
     }
 

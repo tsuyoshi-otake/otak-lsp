@@ -201,12 +201,17 @@ describe('Property-Based Tests: Hover Provider', () => {
               start: 0,
               end: term.length
             });
+ 
+            // Hoverを待たせない設計のため、Wikipediaは「キャッシュがある場合のみ」表示される。
+            // ここでは事前に取得してキャッシュを温める。
+            await testWikipediaClient.getSummary(term);
 
             const result = await testProvider.provideHover([token], 0);
-
+ 
             expect(result).not.toBeNull();
             expect(result?.contents).toContain(summaryText);
             expect(result?.contents).toContain('**Wikipedia**');
+            expect(mockFetch).toHaveBeenCalledTimes(1);
           }
         ),
         { numRuns: 50 }

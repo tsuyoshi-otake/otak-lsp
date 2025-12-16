@@ -145,18 +145,28 @@ describe('Hover Provider', () => {
         createToken('日本', 0, 2, '名詞', '日本', 'ニホン')
       ];
 
-      const mockFetch = jest.fn().mockResolvedValue({
-        ok: true,
-        json: () => Promise.resolve({
-          extract: '日本国は、東アジアに位置する島国である。'
-        })
-      });
+      const deferred = createDeferred<unknown>();
+      const mockFetch = jest.fn().mockImplementation(() => deferred.promise);
       mockWikipediaClient.setFetch(mockFetch);
 
-      const result = await provider.provideHover(tokens, 0);
+      // 1回目: キャッシュが無いので即時応答（Wikipediaは表示しない）しつつ、バックグラウンドで取得開始
+      const result1 = await provider.provideHover(tokens, 0);
+      expect(result1).not.toBeNull();
+      expect(result1?.contents).not.toContain('**Wikipedia**');
+      expect(mockFetch).toHaveBeenCalledTimes(1);
 
-      expect(result).not.toBeNull();
-      expect(result?.contents).toContain('日本国は、東アジアに位置する島国である。');
+      // 取得完了 → キャッシュに載る
+      deferred.resolve({
+        ok: true,
+        json: () => Promise.resolve({ extract: '日本国は、東アジアに位置する島国である。' })
+      });
+      await mockWikipediaClient.getSummary('日本');
+
+      // 2回目: キャッシュから即時にWikipediaを表示
+      const result2 = await provider.provideHover(tokens, 0);
+      expect(result2).not.toBeNull();
+      expect(result2?.contents).toContain('日本国は、東アジアに位置する島国である。');
+      expect(mockFetch).toHaveBeenCalledTimes(1);
     });
 
     it('should include glossary description below Wikipedia when term matches', async () => {
@@ -164,22 +174,33 @@ describe('Hover Provider', () => {
         createToken('API', 0, 3, '名詞', 'API', 'API')
       ];
 
-      const mockFetch = jest.fn().mockResolvedValue({
-        ok: true,
-        json: () => Promise.resolve({
-          extract: 'Wikipediaサマリー'
-        })
-      });
+      const deferred = createDeferred<unknown>();
+      const mockFetch = jest.fn().mockImplementation(() => deferred.promise);
       mockWikipediaClient.setFetch(mockFetch);
 
-      const result = await provider.provideHover(tokens, 0);
+      // 1回目: Wikipediaは未キャッシュなので、まず用語図鑑だけ表示される
+      const result1 = await provider.provideHover(tokens, 0);
+      expect(result1).not.toBeNull();
+      expect(result1?.contents).toContain('**IT用語図鑑**');
+      expect(result1?.contents).not.toContain('**Wikipedia**');
+      expect(mockFetch).toHaveBeenCalledTimes(1);
 
-      expect(result).not.toBeNull();
-      const contents = result!.contents;
+      // 取得完了 → キャッシュに載る
+      deferred.resolve({
+        ok: true,
+        json: () => Promise.resolve({ extract: 'Wikipediaサマリー' })
+      });
+      await mockWikipediaClient.getSummary('API');
+
+      // 2回目: Wikipedia → 用語図鑑の順で表示される
+      const result2 = await provider.provideHover(tokens, 0);
+      expect(result2).not.toBeNull();
+      const contents = result2!.contents;
       expect(contents).toContain('Wikipediaサマリー');
       expect(contents).toContain('**Wikipedia**');
       expect(contents).toContain('**IT用語図鑑**');
       expect(contents.indexOf('**Wikipedia**')).toBeLessThan(contents.indexOf('**IT用語図鑑**'));
+      expect(mockFetch).toHaveBeenCalledTimes(1);
     });
 
     it('should match term notation variants in glossary (e.g., Nodejs -> Node.js)', async () => {
@@ -258,24 +279,34 @@ describe('Hover Provider', () => {
         createToken('++', 1, 3, '記号', '++', '++')
       ];
 
-      const mockFetch = jest.fn().mockResolvedValue({
-        ok: true,
-        json: () => Promise.resolve({
-          extract: 'C++は汎用プログラミング言語である。'
-        })
-      });
+      const deferred = createDeferred<unknown>();
+      const mockFetch = jest.fn().mockImplementation(() => deferred.promise);
       mockWikipediaClient.setFetch(mockFetch);
 
-      const result = await provider.provideHover(tokens, 2, text);
+      // 1回目: 用語抽出は即時に行われる（Wikipediaは未キャッシュなので表示しない）
+      const result1 = await provider.provideHover(tokens, 2, text);
 
       expect(mockFetch).toHaveBeenCalledWith(
         expect.stringContaining('C%2B%2B'),
         expect.any(Object)
       );
-      expect(result).not.toBeNull();
-      expect(result?.contents).toContain('**用語**: C++');
-      expect(result?.contents).toContain('C++は汎用プログラミング言語である。');
-      expect(result?.range).toEqual({ start: 0, end: 3 });
+      expect(result1).not.toBeNull();
+      expect(result1?.contents).toContain('**用語**: C++');
+      expect(result1?.contents).not.toContain('C++は汎用プログラミング言語である。');
+      expect(result1?.range).toEqual({ start: 0, end: 3 });
+
+      // 取得完了 → キャッシュに載る
+      deferred.resolve({
+        ok: true,
+        json: () => Promise.resolve({ extract: 'C++は汎用プログラミング言語である。' })
+      });
+      await mockWikipediaClient.getSummary('C++');
+
+      // 2回目: キャッシュからWikipediaを表示
+      const result2 = await provider.provideHover(tokens, 2, text);
+      expect(result2).not.toBeNull();
+      expect(result2?.contents).toContain('C++は汎用プログラミング言語である。');
+      expect(mockFetch).toHaveBeenCalledTimes(1);
     });
 
     it('should prefer extracted technical term over shorter token for Wikipedia lookup (e.g., C -> C++)', async () => {
@@ -479,4 +510,18 @@ function createToken(
     start,
     end
   });
+}
+
+function createDeferred<T>(): {
+  promise: Promise<T>;
+  resolve: (value: T) => void;
+  reject: (reason?: unknown) => void;
+} {
+  let resolve!: (value: T) => void;
+  let reject!: (reason?: unknown) => void;
+  const promise = new Promise<T>((res, rej) => {
+    resolve = res;
+    reject = rej;
+  });
+  return { promise, resolve, reject };
 }
