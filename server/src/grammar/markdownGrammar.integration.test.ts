@@ -303,6 +303,20 @@ const aws = require('aws-sdk');
       expect(filterByCode(diagnostics, 'monotonous-ending').length).toBeGreaterThan(0);
     });
 
+    it('should NOT detect monotonous-ending across table rows', async () => {
+      const markdown = `# 例
+
+| 文章 |
+|---|
+| Aです。 |
+| Bです。 |
+| Cです。 |
+`;
+
+      const diagnostics = await analyzeMarkdown(markdown);
+      expect(filterByCode(diagnostics, 'monotonous-ending')).toHaveLength(0);
+    });
+
     it('should detect double-particle in table content by default', async () => {
       const markdown = `# 例
 

@@ -221,6 +221,82 @@ export class AdvancedRulesManager {
   }
 
   /**
+   * monotonous-ending は「連続」を見るルールのため、Markdownテーブル内では行（=セル）の境界で連続判定をリセットする。
+   * - 例: 各行の例文が「...です。」で終わる表だと誤検出しやすい
+   * - 一方で 1セル内に複数文がある場合は検出したいので、行内の分割結果は維持する
+   */
+  private insertBoundariesBetweenTableRows(
+    sentences: Sentence[],
+    documentText: string,
+    excludedRanges: ExcludedRange[]
+  ): Sentence[] {
+    if (sentences.length < 2) {
+      return sentences;
+    }
+
+    const tableRanges = excludedRanges.filter((r) => r.type === 'table');
+    if (tableRanges.length === 0) {
+      return sentences;
+    }
+
+    const findTableRange = (offset: number): ExcludedRange | null => {
+      for (const range of tableRanges) {
+        if (offset >= range.start && offset < range.end) {
+          return range;
+        }
+      }
+      return null;
+    };
+
+    const hasLineBreakBetween = (start: number, end: number): boolean => {
+      const safeStart = Math.max(0, Math.min(start, documentText.length));
+      const safeEnd = Math.max(safeStart, Math.min(end, documentText.length));
+      const between = documentText.slice(safeStart, safeEnd);
+      return between.includes('\n') || between.includes('\r');
+    };
+
+    const withBoundaries: Sentence[] = [];
+    for (let i = 0; i < sentences.length; i++) {
+      const current = sentences[i];
+      withBoundaries.push(current);
+
+      if (i === sentences.length - 1) {
+        break;
+      }
+
+      const next = sentences[i + 1];
+      const currentTable = findTableRange(current.start);
+      const nextTable = findTableRange(next.start);
+
+      const shouldInsertBoundary =
+        Boolean(currentTable || nextTable) &&
+        (
+          currentTable !== nextTable ||
+          (currentTable !== null && nextTable !== null && hasLineBreakBetween(current.end, next.start))
+        );
+
+      if (!shouldInsertBoundary) {
+        continue;
+      }
+
+      const boundaryStart = Math.max(0, Math.min(current.end, documentText.length));
+      const boundaryEnd = Math.min(boundaryStart + 1, documentText.length);
+      if (boundaryEnd <= boundaryStart) {
+        continue;
+      }
+
+      withBoundaries.push(new Sentence({
+        text: ' ',
+        tokens: [],
+        start: boundaryStart,
+        end: boundaryEnd
+      }));
+    }
+
+    return withBoundaries;
+  }
+
+  /**
    * 指定タイプの除外範囲内にある文を「境界」に置き換える
    * - 非本文（コードブロック等）を丸ごと取り除くと、前後の本文が隣接して誤検出が増える可能性がある
    * - そのため、除外区間は「本文セグメントの区切り」として扱う
@@ -292,6 +368,14 @@ export class AdvancedRulesManager {
       return {
         ...baseContext,
         documentText: originalText
+      };
+    }
+
+    // monotonous-ending はテーブルの行（セル）をまたいで「連続」と判定しない
+    if (rule.name === 'monotonous-ending' && excludedRanges && excludedRanges.some((r) => r.type === 'table')) {
+      return {
+        ...baseContext,
+        sentences: this.insertBoundariesBetweenTableRows(baseContext.sentences, baseContext.documentText, excludedRanges)
       };
     }
 
