@@ -63,6 +63,31 @@ const createTokenWithBaseForm = (
   });
 };
 
+const createTokenWithReading = (
+  surface: string,
+  pos: string,
+  start: number,
+  reading: string,
+  posDetail1: string = '*',
+  baseForm: string = surface,
+  end: number = start + surface.length
+): Token => {
+  return new Token({
+    surface,
+    pos,
+    posDetail1,
+    posDetail2: '*',
+    posDetail3: '*',
+    conjugation: '*',
+    conjugationForm: '*',
+    baseForm,
+    reading,
+    pronunciation: reading,
+    start,
+    end
+  });
+};
+
 const createContext = (text: string, sentences: Sentence[] = []): RuleContext => ({
   documentText: text,
   sentences,
@@ -469,6 +494,39 @@ describe('KanjiOpeningRule', () => {
     const diagnostics = rule.check([], context);
 
     expect(diagnostics).toHaveLength(0);
+  });
+
+  it('should NOT suggest "時" in compounds like "起動時"', () => {
+    const text = '初回起動時に時間がかかる';
+    const context = createContext(text);
+    const tokens = [
+      createTokenWithReading('初回', '名詞', 0, 'ショカイ', '一般'),
+      createTokenWithReading('起動', '名詞', 2, 'キドウ', 'サ変接続'),
+      createTokenWithReading('時', '名詞', 4, 'ジ', '接尾'),
+      createTokenWithReading('に', '助詞', 5, 'ニ', '格助詞'),
+      createTokenWithReading('時間', '名詞', 6, 'ジカン', '副詞可能'),
+      createTokenWithReading('が', '助詞', 8, 'ガ', '格助詞'),
+      createTokenWithReading('かかる', '動詞', 9, 'カカル', '自立', 'かかる')
+    ];
+
+    const diagnostics = rule.check(tokens, context);
+    expect(diagnostics).toHaveLength(0);
+  });
+
+  it('should suggest "とき" for "困った時"', () => {
+    const text = '困った時は';
+    const context = createContext(text);
+    const tokens = [
+      createTokenWithReading('困っ', '動詞', 0, 'コマッ', '自立', '困る'),
+      createTokenWithReading('た', '助動詞', 2, 'タ'),
+      createTokenWithReading('時', '名詞', 3, 'トキ', '非自立'),
+      createTokenWithReading('は', '助詞', 4, 'ハ', '係助詞')
+    ];
+
+    const diagnostics = rule.check(tokens, context);
+    expect(diagnostics.length).toBeGreaterThan(0);
+    expect(diagnostics.some((d) => d.message.includes('漢字「時」'))).toBe(true);
+    expect(diagnostics.some((d) => d.suggestions.some((s) => s.includes('とき')))).toBe(true);
   });
 });
 

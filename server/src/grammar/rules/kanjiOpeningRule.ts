@@ -86,6 +86,23 @@ const KANJI_OPENING_RULES: Map<string, string> = new Map([
 ]);
 
 /**
+ * 形式名詞など、同じ表層でも読み/用法で開くべきでないケースがある語の制約
+ * - 例: 「起動時」の「時」は読みが「ジ」であり、「とき」への置換は不自然
+ */
+const READING_CONSTRAINTS: ReadonlyMap<string, string> = new Map([
+  ['時', 'トキ'],
+  ['事', 'コト'],
+  ['物', 'モノ'],
+  ['所', 'トコロ'],
+  ['為', 'タメ'],
+  ['筈', 'ハズ'],
+  ['訳', 'ワケ'],
+  ['様', 'ヨウ']
+]);
+
+const MAX_RULE_LENGTH = Math.max(...Array.from(KANJI_OPENING_RULES.keys(), (key) => key.length));
+
+/**
  * 漢字開きルール
  */
 export class KanjiOpeningRule implements AdvancedGrammarRule {
@@ -108,7 +125,9 @@ export class KanjiOpeningRule implements AdvancedGrammarRule {
     for (const [kanji, opened] of KANJI_OPENING_RULES) {
       let index = text.indexOf(kanji);
       while (index !== -1) {
-        results.push({ kanji, opened, index });
+        if (this.isValidClosedKanjiOccurrence(text, kanji, index)) {
+          results.push({ kanji, opened, index });
+        }
         index = text.indexOf(kanji, index + 1);
       }
     }
@@ -118,24 +137,139 @@ export class KanjiOpeningRule implements AdvancedGrammarRule {
     return results;
   }
 
+  private isValidClosedKanjiOccurrence(text: string, kanji: string, index: number): boolean {
+    // 1文字の形式名詞は複合語内の部分一致（例: 時間/起動時）を避ける
+    if (kanji.length !== 1) {
+      return true;
+    }
+
+    const prev = index > 0 ? text[index - 1] : null;
+    const next = index + kanji.length < text.length ? text[index + kanji.length] : null;
+
+    const isKanjiLike = (ch: string | null): boolean => {
+      if (!ch) return false;
+      // CJK統合漢字 + 拡張A + 々（反復記号）
+      return /[\u3400-\u4DBF\u4E00-\u9FFF\u3005]/.test(ch);
+    };
+    const isDigit = (ch: string | null): boolean => {
+      if (!ch) return false;
+      return /[0-9\uFF10-\uFF19]/.test(ch);
+    };
+
+    // 直前/直後が漢字・数字の場合は「複合語の一部」とみなして除外
+    if (isKanjiLike(prev) || isKanjiLike(next) || isDigit(prev)) {
+      return false;
+    }
+
+    return true;
+  }
+
+  /**
+   * トークン列から開くべき漢字を検出（複合語内の部分一致を回避）
+   * - kuromoji は「頂きます」等を複数トークンに分割するため、連続トークンの結合でマッチさせる
+   */
+  detectClosedKanjiFromTokens(tokens: Token[]): Array<{ kanji: string; opened: string; start: number; end: number }> {
+    const matches: Array<{ kanji: string; opened: string; start: number; end: number }> = [];
+
+    if (tokens.length === 0) {
+      return matches;
+    }
+
+    for (let i = 0; i < tokens.length; i++) {
+      let concatenated = '';
+
+      for (let j = i; j < tokens.length; j++) {
+        concatenated += tokens[j].surface;
+        if (concatenated.length > MAX_RULE_LENGTH) {
+          break;
+        }
+
+        const opened = KANJI_OPENING_RULES.get(concatenated);
+        if (!opened) {
+          continue;
+        }
+
+        if (!this.isValidClosedKanjiTokenMatch(tokens, i, j, concatenated)) {
+          continue;
+        }
+
+        matches.push({
+          kanji: concatenated,
+          opened,
+          start: tokens[i].start,
+          end: tokens[j].end
+        });
+      }
+    }
+
+    // 同一開始位置ではより長い一致を優先し、重複を除去する
+    matches.sort((a, b) => {
+      if (a.start !== b.start) return a.start - b.start;
+      if (a.end !== b.end) return b.end - a.end;
+      return b.kanji.length - a.kanji.length;
+    });
+
+    const deduped: Array<{ kanji: string; opened: string; start: number; end: number }> = [];
+    let lastEnd = -1;
+    for (const m of matches) {
+      if (m.start < lastEnd) {
+        continue;
+      }
+      deduped.push(m);
+      lastEnd = m.end;
+    }
+
+    return deduped;
+  }
+
+  private isValidClosedKanjiTokenMatch(tokens: Token[], startIndex: number, endIndex: number, closedKanji: string): boolean {
+    const expectedReading = READING_CONSTRAINTS.get(closedKanji);
+    if (!expectedReading) {
+      return true;
+    }
+
+    // 読み制約は単一トークン一致のみに適用する（複合一致には読みが定義しづらい）
+    if (startIndex !== endIndex) {
+      return true;
+    }
+
+    return tokens[startIndex].reading === expectedReading;
+  }
+
   /**
    * 文法チェックを実行
    */
   check(tokens: Token[], context: RuleContext): AdvancedDiagnostic[] {
     const diagnostics: AdvancedDiagnostic[] = [];
-    const closedKanji = this.detectClosedKanji(context.documentText);
-
-    for (const item of closedKanji) {
-      diagnostics.push(new AdvancedDiagnostic({
-        range: {
-          start: { line: 0, character: item.index },
-          end: { line: 0, character: item.index + item.kanji.length }
-        },
-        message: `漢字「${item.kanji}」はひらがな「${item.opened}」で表記することが推奨されます。`,
-        code: 'kanji-opening',
-        ruleName: this.name,
-        suggestions: [`「${item.opened}」に変更する`]
-      }));
+    if (tokens.length > 0) {
+      const closedKanji = this.detectClosedKanjiFromTokens(tokens);
+      for (const item of closedKanji) {
+        diagnostics.push(new AdvancedDiagnostic({
+          range: {
+            start: { line: 0, character: item.start },
+            end: { line: 0, character: item.end }
+          },
+          message: `漢字「${item.kanji}」はひらがな「${item.opened}」で表記することが推奨されます。`,
+          code: 'kanji-opening',
+          ruleName: this.name,
+          suggestions: [`「${item.opened}」に変更する`]
+        }));
+      }
+    } else {
+      // 形態素トークンが無い場合は文字列検索でフォールバック
+      const closedKanji = this.detectClosedKanji(context.documentText);
+      for (const item of closedKanji) {
+        diagnostics.push(new AdvancedDiagnostic({
+          range: {
+            start: { line: 0, character: item.index },
+            end: { line: 0, character: item.index + item.kanji.length }
+          },
+          message: `漢字「${item.kanji}」はひらがな「${item.opened}」で表記することが推奨されます。`,
+          code: 'kanji-opening',
+          ruleName: this.name,
+          suggestions: [`「${item.opened}」に変更する`]
+        }));
+      }
     }
 
     return diagnostics;

@@ -5,13 +5,14 @@
  * 要件: 6.1, 6.2, 6.3
  */
 
-import { Token, Range } from '../../../../shared/src/types';
+import { Token } from '../../../../shared/src/types';
 import {
   AdvancedGrammarRule,
   AdvancedRulesConfig,
   RuleContext,
   AdvancedDiagnostic,
-  AdverbAgreementError
+  AdverbAgreementError,
+  Sentence
 } from '../../../../shared/src/advancedTypes';
 
 /**
@@ -71,41 +72,44 @@ export class AdverbAgreementRule implements AdvancedGrammarRule {
   description = '副詞と述語の呼応の誤りを検出します';
 
   /**
-   * テキストから副詞呼応エラーを検出
-   * @param text テキスト
+   * 文から副詞呼応エラーを検出
+   * @param sentence 文
    * @returns 検出された副詞呼応エラーのリスト
    */
-  detectAdverbAgreementErrors(text: string): AdverbAgreementError[] {
+  detectAdverbAgreementErrors(sentence: Sentence): AdverbAgreementError[] {
     const results: AdverbAgreementError[] = [];
 
-    // 文ごとに分割
-    const sentences = text.split(/(?<=[。！？!?])/);
+    const trimmed = sentence.text.trim();
+    if (!trimmed) {
+      return results;
+    }
 
-    for (const sentence of sentences) {
-      const trimmed = sentence.trim();
-      if (!trimmed) continue;
+    // 文末記号を除外して文末表現を判定
+    const sentenceWithoutPunctuation = trimmed.replace(/[。！？!?]$/, '');
 
-      for (const rule of ADVERB_AGREEMENT_RULES) {
-        if (trimmed.includes(rule.adverb)) {
-          // 禁止されている文末表現をチェック
-          for (const forbidden of rule.forbiddenEndings) {
-            // 文末が禁止パターンで終わっているか確認
-            const sentenceWithoutPunctuation = trimmed.replace(/[。！？!?]$/, '');
-            if (sentenceWithoutPunctuation.endsWith(forbidden)) {
-              const index = text.indexOf(trimmed);
-              results.push({
-                adverb: rule.adverb,
-                expectedEnding: rule.requiredEndings.join('、'),
-                actualEnding: forbidden,
-                range: {
-                  start: { line: 0, character: index },
-                  end: { line: 0, character: index + trimmed.length }
-                },
-                suggestion: rule.correctExample
-              });
-              break;
-            }
-          }
+    for (const rule of ADVERB_AGREEMENT_RULES) {
+      const adverbTokens = sentence.tokens.filter((token) =>
+        token.surface === rule.adverb && token.isAdverb()
+      );
+      if (adverbTokens.length === 0) {
+        continue;
+      }
+
+      // 禁止されている文末表現をチェック
+      for (const forbidden of rule.forbiddenEndings) {
+        if (sentenceWithoutPunctuation.endsWith(forbidden)) {
+          const adverbToken = adverbTokens[0];
+          results.push({
+            adverb: rule.adverb,
+            expectedEnding: rule.requiredEndings.join('、'),
+            actualEnding: forbidden,
+            range: {
+              start: { line: 0, character: adverbToken.start },
+              end: { line: 0, character: adverbToken.end }
+            },
+            suggestion: rule.correctExample
+          });
+          break;
         }
       }
     }
@@ -121,16 +125,19 @@ export class AdverbAgreementRule implements AdvancedGrammarRule {
    */
   check(tokens: Token[], context: RuleContext): AdvancedDiagnostic[] {
     const diagnostics: AdvancedDiagnostic[] = [];
-    const errors = this.detectAdverbAgreementErrors(context.documentText);
 
-    for (const error of errors) {
-      diagnostics.push(new AdvancedDiagnostic({
-        range: error.range,
-        message: `副詞「${error.adverb}」は「${error.expectedEnding}」などと呼応します。現在の文末「${error.actualEnding}」との呼応を確認してください。`,
-        code: 'adverb-agreement',
-        ruleName: this.name,
-        suggestions: [error.suggestion]
-      }));
+    for (const sentence of context.sentences) {
+      const errors = this.detectAdverbAgreementErrors(sentence);
+
+      for (const error of errors) {
+        diagnostics.push(new AdvancedDiagnostic({
+          range: error.range,
+          message: `副詞「${error.adverb}」は「${error.expectedEnding}」などと呼応します。現在の文末「${error.actualEnding}」との呼応を確認してください。`,
+          code: 'adverb-agreement',
+          ruleName: this.name,
+          suggestions: [error.suggestion]
+        }));
+      }
     }
 
     return diagnostics;

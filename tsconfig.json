@@ -18,5 +18,6 @@
     { "path": "./server" },
     { "path": "./shared" }
   ],
-  "exclude": ["node_modules", "out", "**/*.test.ts"]
+  "files": [],
+  "exclude": ["node_modules", "**/out", "**/*.test.ts"]
 }

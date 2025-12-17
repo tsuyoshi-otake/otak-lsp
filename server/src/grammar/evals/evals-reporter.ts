@@ -159,7 +159,9 @@ export class EvalsReporter {
 
     for (const cat of result.categories) {
       const status = this.getStatusIndicator(cat.status);
-      const example = this.escapeMarkdown(cat.representativeExample);
+      // NOTE: 長すぎる文は「長文であること」を示すため、例文を切り詰めない
+      const maxExampleLength = cat.categoryId === 'long-sentence' ? 150 : 50;
+      const example = this.escapeMarkdown(cat.representativeExample, maxExampleLength);
       lines.push(`| ${cat.categoryName} | ${status} | ${example} |`);
     }
     lines.push('');
@@ -233,11 +235,19 @@ export class EvalsReporter {
   /**
    * Markdownエスケープ
    */
-  private static escapeMarkdown(text: string): string {
+  private static escapeMarkdown(text: string, maxLength: number = 50): string {
     // テーブル内で問題になる文字をエスケープ
-    return text
-      .replace(/\|/g, '\\|')
-      .replace(/\n/g, ' ')
-      .substring(0, 50); // 長すぎる場合は切り詰め
+    const escaped = text.replace(/\|/g, '\\|').replace(/\n/g, ' ');
+
+    if (escaped.length <= maxLength) {
+      return escaped;
+    }
+
+    // 末尾がバックスラッシュだとエスケープが壊れるため避ける
+    let head = escaped.substring(0, maxLength);
+    if (head.endsWith('\\')) {
+      head = head.slice(0, -1);
+    }
+    return `${head}…`;
   }
 }

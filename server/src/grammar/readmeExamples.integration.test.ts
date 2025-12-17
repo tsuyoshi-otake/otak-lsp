@@ -87,6 +87,23 @@ describe('README Examples Integration', () => {
 
     const diagnostics = await analyzeMarkdown(markdown);
     expect(diagnostics.some((d) => d.code === 'weak-expression')).toBe(true);
+    expect(diagnostics.some((d) => d.code === 'adverb-agreement')).toBe(false);
+  });
+
+  it('README 例文の注釈（<-）があっても「かもしれない」を「もし」と誤検出しないこと', async () => {
+    const markdown = [
+      '```markdown',
+      'それは出来ます。  <- 「できます」に修正',
+      '',
+      '## 弱い表現',
+      'これは正しいかもしれない。',
+      '```',
+      ''
+    ].join('\n');
+
+    const diagnostics = await analyzeMarkdown(markdown);
+    expect(diagnostics.some((d) => d.code === 'weak-expression')).toBe(true);
+    expect(diagnostics.some((d) => d.code === 'adverb-agreement')).toBe(false);
   });
 
   it('Conjunction Repetition はコードブロック内を誤検出しないこと（本文のみ検出）', async () => {
