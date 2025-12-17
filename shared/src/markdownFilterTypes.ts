@@ -14,6 +14,7 @@ export type ExcludeType =
   | 'table-delimiter'
   | 'table-separator'
   | 'emphasis-marker'
+  | 'link-marker'
   | 'url'
   | 'config-key'
   | 'heading'
@@ -42,6 +43,8 @@ export interface FilterConfig {
   excludeListMarkers: boolean;
   /** 強調マーカー（* / ** など）を除外 */
   excludeEmphasisMarkers: boolean;
+  /** リンク/タスク等のマーカー（[]() など）を除外 */
+  excludeLinkMarkers: boolean;
   /** カスタム除外パターン */
   customExcludePatterns: RegExp[];
   /** デバッグモード */
@@ -140,6 +143,7 @@ export const DEFAULT_FILTER_CONFIG: FilterConfig = {
   excludeHeadings: true,
   excludeListMarkers: true,
   excludeEmphasisMarkers: true,
+  excludeLinkMarkers: true,
   customExcludePatterns: [],
   debugMode: false
 };

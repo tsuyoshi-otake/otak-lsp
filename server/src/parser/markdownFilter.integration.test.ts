@@ -175,6 +175,7 @@ Also contains \`code\` and https://example.com.`;
         excludeHeadings: false,
         excludeListMarkers: false,
         excludeEmphasisMarkers: false,
+        excludeLinkMarkers: false,
         customExcludePatterns: [],
         debugMode: false
       });
@@ -198,6 +199,7 @@ Also contains \`code\` and https://example.com.`;
         excludeHeadings: false,
         excludeListMarkers: false,
         excludeEmphasisMarkers: true,
+        excludeLinkMarkers: true,
         customExcludePatterns: [],
         debugMode: false
       });

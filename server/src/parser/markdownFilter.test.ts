@@ -27,6 +27,7 @@ describe('Core Interfaces and Data Models', () => {
         excludeHeadings: true,
         excludeListMarkers: true,
         excludeEmphasisMarkers: true,
+        excludeLinkMarkers: true,
         customExcludePatterns: [],
         debugMode: false
       };
@@ -39,6 +40,7 @@ describe('Core Interfaces and Data Models', () => {
       expect(config.excludeHeadings).toBe(true);
       expect(config.excludeListMarkers).toBe(true);
       expect(config.excludeEmphasisMarkers).toBe(true);
+      expect(config.excludeLinkMarkers).toBe(true);
       expect(config.customExcludePatterns).toEqual([]);
       expect(config.debugMode).toBe(false);
     });
@@ -78,6 +80,7 @@ describe('Core Interfaces and Data Models', () => {
         'table-delimiter',
         'table-separator',
         'emphasis-marker',
+        'link-marker',
         'url',
         'config-key',
         'heading',
@@ -143,6 +146,7 @@ describe('Core Interfaces and Data Models', () => {
       expect(DEFAULT_FILTER_CONFIG.excludeUrls).toBe(true);
       expect(DEFAULT_FILTER_CONFIG.excludeConfigKeys).toBe(true);
       expect(DEFAULT_FILTER_CONFIG.excludeEmphasisMarkers).toBe(true);
+      expect(DEFAULT_FILTER_CONFIG.excludeLinkMarkers).toBe(true);
       expect(DEFAULT_FILTER_CONFIG.customExcludePatterns).toEqual([]);
       expect(DEFAULT_FILTER_CONFIG.debugMode).toBe(false);
     });
@@ -606,6 +610,54 @@ describe('Markdown Structure Markers', () => {
     const result = filter.filter(text);
 
     expect(result.excludedRanges.some((r) => r.type === 'emphasis-marker')).toBe(false);
+    expect(result.filteredText).toBe(text);
+  });
+
+  it('should exclude underscore emphasis markers', () => {
+    const text = 'これは __太郎__ と _花子_ です';
+    const result = filter.filter(text);
+
+    // __ __ と _ _ の合計4箇所
+    expect(result.excludedRanges.filter((r) => r.type === 'emphasis-marker').length).toBeGreaterThanOrEqual(4);
+    expect(result.filteredText).toBe(text);
+  });
+
+  it('should not treat underscore in snake_case as emphasis marker', () => {
+    const text = 'This is foo_bar_baz.';
+    const result = filter.filter(text);
+
+    expect(result.excludedRanges.some((r) => r.type === 'emphasis-marker')).toBe(false);
+    expect(result.filteredText).toBe(text);
+  });
+
+  it('should exclude strikethrough markers (~~)', () => {
+    const text = 'これは ~~太郎~~ です';
+    const result = filter.filter(text);
+
+    expect(result.excludedRanges.filter((r) => r.type === 'emphasis-marker').length).toBeGreaterThanOrEqual(2);
+    expect(result.filteredText).toBe(text);
+  });
+
+  it('should exclude markdown link markers but keep link text', () => {
+    const text = 'これは [太郎](https://example.com) です';
+    const result = filter.filter(text);
+
+    expect(result.excludedRanges.some((r) => r.type === 'url')).toBe(true);
+    expect(result.excludedRanges.some((r) => r.type === 'link-marker')).toBe(true);
+    // URL部分はマスクされるが、リンクテキストと構造は保持される
+    expect(result.filteredText).toContain('[太郎](');
+    expect(result.filteredText).toContain(') です');
+    expect(result.filteredText).toContain('太郎');
+    expect(result.filteredText).not.toContain('https://example.com');
+    expect(result.filteredText.length).toBe(text.length);
+  });
+
+  it('should exclude task list markers', () => {
+    const text = '- [ ] タスク';
+    const result = filter.filter(text);
+
+    expect(result.excludedRanges.some((r) => r.type === 'list-marker')).toBe(true);
+    expect(result.excludedRanges.some((r) => r.type === 'link-marker')).toBe(true);
     expect(result.filteredText).toBe(text);
   });
 });

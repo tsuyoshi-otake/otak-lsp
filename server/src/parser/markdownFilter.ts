@@ -102,6 +102,9 @@ export class MarkdownFilter implements IMarkdownFilter {
     const hasPipe = text.indexOf('|') !== -1;
     const hasHeadingMarker = text.indexOf('#') !== -1;
     const hasAsterisk = text.indexOf('*') !== -1;
+    const hasUnderscore = text.indexOf('_') !== -1;
+    const hasTilde = text.indexOf('~') !== -1;
+    const hasBracketLike = text.indexOf('[') !== -1 || text.indexOf(']') !== -1 || text.indexOf('(') !== -1;
 
     // 各フィルタリング処理を優先順位順に実行
     // 優先順位: コードブロック > インラインコード > URL > 設定キー > カスタムパターン > テーブル
@@ -138,8 +141,12 @@ export class MarkdownFilter implements IMarkdownFilter {
       ranges.push(...this.findListMarkers(text, ranges));
     }
 
-    if (effectiveConfig.excludeEmphasisMarkers && hasAsterisk) {
+    if (effectiveConfig.excludeEmphasisMarkers && (hasAsterisk || hasUnderscore || hasTilde)) {
       ranges.push(...this.findEmphasisMarkers(text, ranges));
+    }
+
+    if (effectiveConfig.excludeLinkMarkers && hasBracketLike) {
+      ranges.push(...this.findLinkMarkers(text, ranges));
     }
 
     const adjustedRanges =
@@ -767,6 +774,10 @@ export class MarkdownFilter implements IMarkdownFilter {
       return ch.length > 0 && ch >= '0' && ch <= '9';
     };
 
+    const isAsciiWord = (ch: string): boolean => {
+      return /[A-Za-z0-9_]/.test(ch);
+    };
+
     const lines = text.split('\n');
     let position = 0;
 
@@ -776,13 +787,14 @@ export class MarkdownFilter implements IMarkdownFilter {
 
       let i = 0;
       while (i < line.length) {
-        if (line[i] !== '*') {
+        const marker = line[i];
+        if (marker !== '*' && marker !== '_' && marker !== '~') {
           i++;
           continue;
         }
 
         const runStart = i;
-        while (i < line.length && line[i] === '*') {
+        while (i < line.length && line[i] === marker) {
           i++;
         }
         const runEnd = i;
@@ -793,7 +805,7 @@ export class MarkdownFilter implements IMarkdownFilter {
         }
 
         // 箇条書きマーカーは別ロジックで扱う（設定で無効化できるようにする）
-        if (runLength === 1 && runStart < listMarkerEnd) {
+        if (marker === '*' && runLength === 1 && runStart < listMarkerEnd) {
           continue;
         }
 
@@ -801,12 +813,22 @@ export class MarkdownFilter implements IMarkdownFilter {
         const next = runEnd < line.length ? line[runEnd] : '';
 
         // 2*3 のような数式っぽいケースは温存
-        if (runLength === 1 && isAsciiDigit(prev) && isAsciiDigit(next)) {
+        if (marker === '*' && runLength === 1 && isAsciiDigit(prev) && isAsciiDigit(next)) {
+          continue;
+        }
+
+        // foo_bar のような ASCII 単語内のアンダースコアは温存
+        if (marker === '_' && runLength === 1 && isAsciiWord(prev) && isAsciiWord(next)) {
+          continue;
+        }
+
+        // ~~ は GFM の取り消し線。単体 ~ は温存（例: ~1 など）
+        if (marker === '~' && runLength < 2) {
           continue;
         }
 
         // 両側が空白ならリテラル扱いにして温存（例: " * "）
-        if (runLength === 1 && isWhitespace(prev) && isWhitespace(next)) {
+        if (marker !== '~' && runLength === 1 && isWhitespace(prev) && isWhitespace(next)) {
           continue;
         }
 
@@ -825,6 +847,174 @@ export class MarkdownFilter implements IMarkdownFilter {
       }
 
       position += line.length + 1; // +1 for newline
+    }
+
+    return ranges;
+  }
+
+  /**
+   * Markdownリンク/タスクの構造マーカーを検出
+   * - [text](url) / ![alt](url) の `[`, `](`, `)` を除外（内容は残す）
+   * - タスクリストの `[ ]` / `[x]` も除外
+   */
+  private findLinkMarkers(text: string, existingRanges: ExcludedRange[]): ExcludedRange[] {
+    const ranges: ExcludedRange[] = [];
+
+    if (!text || text.length === 0) {
+      return ranges;
+    }
+
+    // テーブル範囲は「本文として残す」設計のため、構造マーカー検出の重複チェックからは除外する
+    const skipRanges = existingRanges.filter((r) => r.type !== 'table');
+
+    const isOverlappingAny = (start: number, end: number): boolean => {
+      return this.isOverlapping(start, end, skipRanges) || this.isOverlapping(start, end, ranges);
+    };
+
+    const addMarker = (start: number, end: number, reason: string): void => {
+      if (start >= end) return;
+      if (start < 0 || end > text.length) return;
+      if (isOverlappingAny(start, end)) return;
+      ranges.push({
+        start,
+        end,
+        type: 'link-marker',
+        content: text.substring(start, end),
+        reason
+      });
+    };
+
+    const isEscapedAt = (index: number): boolean => {
+      if (index <= 0) return false;
+      let backslashes = 0;
+      for (let i = index - 1; i >= 0 && text[i] === '\\'; i--) {
+        backslashes++;
+      }
+      return backslashes % 2 === 1;
+    };
+
+    const findOpeningBracketBefore = (index: number): number | null => {
+      // 同一行内で最後の '[' を探す（Markdownリンクは改行を跨がない）
+      for (let i = index - 1; i >= 0; i--) {
+        const ch = text[i];
+        if (ch === '\n' || ch === '\r') {
+          break;
+        }
+        if (ch === '[' && !isEscapedAt(i)) {
+          return i;
+        }
+      }
+      return null;
+    };
+
+    const findClosingParenForMarkdownLink = (contentStart: number): number => {
+      let depth = 0;
+      let escaped = false;
+      let inAngle = false;
+      let inSingleQuote = false;
+      let inDoubleQuote = false;
+
+      for (let i = contentStart; i < text.length; i++) {
+        const ch = text[i];
+
+        if (escaped) {
+          escaped = false;
+          continue;
+        }
+        if (ch === '\\') {
+          escaped = true;
+          continue;
+        }
+
+        if (inAngle) {
+          if (ch === '>') {
+            inAngle = false;
+          }
+          continue;
+        }
+        if (inSingleQuote) {
+          if (ch === '\'') {
+            inSingleQuote = false;
+          }
+          continue;
+        }
+        if (inDoubleQuote) {
+          if (ch === '"') {
+            inDoubleQuote = false;
+          }
+          continue;
+        }
+
+        if (ch === '<') {
+          inAngle = true;
+          continue;
+        }
+        if (ch === '\'') {
+          inSingleQuote = true;
+          continue;
+        }
+        if (ch === '"') {
+          inDoubleQuote = true;
+          continue;
+        }
+
+        if (ch === '(') {
+          depth++;
+          continue;
+        }
+        if (ch === ')') {
+          if (depth === 0) {
+            return i;
+          }
+          depth--;
+          continue;
+        }
+      }
+
+      return -1;
+    };
+
+    // [text](...)/![alt](...)
+    for (let i = 0; i < text.length - 1; i++) {
+      if (text[i] !== ']' || text[i + 1] !== '(') {
+        continue;
+      }
+      if (isEscapedAt(i)) {
+        continue;
+      }
+
+      const openingBracket = findOpeningBracketBefore(i);
+      if (openingBracket !== null) {
+        addMarker(openingBracket, openingBracket + 1, 'マークダウンリンク開始マーカー検出');
+        // 画像リンク `![` の `!` もマーカーとして除外
+        if (openingBracket - 1 >= 0 && text[openingBracket - 1] === '!' && !isEscapedAt(openingBracket - 1)) {
+          addMarker(openingBracket - 1, openingBracket, 'マークダウン画像マーカー検出');
+        }
+      }
+
+      // kuromoji が `](` を 1 トークン化するケースがあるため、まとめて除外する
+      addMarker(i, i + 2, 'マークダウンリンク区切りマーカー検出');
+
+      const contentStart = i + 2;
+      const closingParen = findClosingParenForMarkdownLink(contentStart);
+      if (closingParen === -1) {
+        continue;
+      }
+
+      addMarker(closingParen, closingParen + 1, 'マークダウンリンク終了マーカー検出');
+      i = closingParen;
+    }
+
+    // タスクリスト: [ ] / [x] / [X]
+    for (let i = 0; i < text.length - 2; i++) {
+      if (text[i] !== '[') continue;
+      if (isEscapedAt(i)) continue;
+      const b = text[i + 1];
+      const c = text[i + 2];
+      if (c !== ']') continue;
+      if (b !== ' ' && b !== 'x' && b !== 'X') continue;
+      addMarker(i, i + 3, 'タスクリストマーカー検出');
+      i = i + 2;
     }
 
     return ranges;
@@ -934,6 +1124,7 @@ export class MarkdownFilter implements IMarkdownFilter {
         range.type === 'heading' ||
         range.type === 'list-marker' ||
         range.type === 'emphasis-marker' ||
+        range.type === 'link-marker' ||
         range.type === 'table-delimiter' ||
         range.type === 'table-separator'
       ) {
