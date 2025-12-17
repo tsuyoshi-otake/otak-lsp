@@ -479,20 +479,6 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     },
   },
   {
-    "code": "sentence-ending-colon",
-    "message": "文末にコロン（：）が使用されています。句点（。）に変更するか、文を続けてください。",
-    "range": {
-      "end": {
-        "character": 29,
-        "line": 298,
-      },
-      "start": {
-        "character": 28,
-        "line": 298,
-      },
-    },
-  },
-  {
     "code": "tautology",
     "message": "重複表現「頭痛が痛い」が検出されました。「頭」と「痛い」が重複しています。",
     "range": {

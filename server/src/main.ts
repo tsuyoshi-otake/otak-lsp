@@ -493,8 +493,20 @@ async function analyzeDocument(document: TextDocument): Promise<void> {
 
         documentTokens.set(uri, semanticTokensList ?? []);
       } else {
-        // セマンティックハイライトが無効でも Hover ではトークンが必要なため保持する
-        documentTokens.set(uri, allTokens);
+        // セマンティックハイライトが無効でも Hover ではトークンが必要なため保持する。
+        // ただし Markdown の除外範囲（URL/コード/構造マーカー等）は Hover でもノイズになるため除外する。
+        let hoverExcludedRanges = excludedRanges;
+        if (configuration.excludeTableDelimiters !== false) {
+          hoverExcludedRanges = hoverExcludedRanges.filter((r) => r.type !== 'table');
+        }
+        if (configuration.markdown.analyzeCodeBlocks) {
+          hoverExcludedRanges = hoverExcludedRanges.filter((r) => r.type !== 'code-block');
+        }
+
+        const hoverTokensList = hoverExcludedRanges.length > 0
+          ? tokenFilter.filterTokens(allTokens, hoverExcludedRanges)
+          : allTokens;
+        documentTokens.set(uri, hoverTokensList);
       }
 
       if (configuration.enableGrammarCheck) {

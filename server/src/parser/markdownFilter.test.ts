@@ -26,6 +26,7 @@ describe('Core Interfaces and Data Models', () => {
         excludeConfigKeys: true,
         excludeHeadings: true,
         excludeListMarkers: true,
+        excludeEmphasisMarkers: true,
         customExcludePatterns: [],
         debugMode: false
       };
@@ -37,6 +38,7 @@ describe('Core Interfaces and Data Models', () => {
       expect(config.excludeConfigKeys).toBe(true);
       expect(config.excludeHeadings).toBe(true);
       expect(config.excludeListMarkers).toBe(true);
+      expect(config.excludeEmphasisMarkers).toBe(true);
       expect(config.customExcludePatterns).toEqual([]);
       expect(config.debugMode).toBe(false);
     });
@@ -75,6 +77,7 @@ describe('Core Interfaces and Data Models', () => {
         'table',
         'table-delimiter',
         'table-separator',
+        'emphasis-marker',
         'url',
         'config-key',
         'heading',
@@ -139,6 +142,7 @@ describe('Core Interfaces and Data Models', () => {
       expect(DEFAULT_FILTER_CONFIG.excludeTables).toBe(true);
       expect(DEFAULT_FILTER_CONFIG.excludeUrls).toBe(true);
       expect(DEFAULT_FILTER_CONFIG.excludeConfigKeys).toBe(true);
+      expect(DEFAULT_FILTER_CONFIG.excludeEmphasisMarkers).toBe(true);
       expect(DEFAULT_FILTER_CONFIG.customExcludePatterns).toEqual([]);
       expect(DEFAULT_FILTER_CONFIG.debugMode).toBe(false);
     });
@@ -570,6 +574,39 @@ describe('Markdown Structure Markers', () => {
     const result = filter.filter(text);
 
     expect(result.excludedRanges.some((r) => r.type === 'list-marker')).toBe(true);
+  });
+
+  it('should exclude bold markers (**) but keep inner text', () => {
+    const text = 'これは **太郎** です';
+    const result = filter.filter(text);
+
+    expect(result.excludedRanges.filter((r) => r.type === 'emphasis-marker')).toHaveLength(2);
+    expect(result.filteredText).toBe(text);
+  });
+
+  it('should exclude italic markers (*) but keep inner text', () => {
+    const text = 'これは *太郎* です';
+    const result = filter.filter(text);
+
+    expect(result.excludedRanges.filter((r) => r.type === 'emphasis-marker')).toHaveLength(2);
+    expect(result.filteredText).toBe(text);
+  });
+
+  it('should not treat list marker \"* \" as emphasis marker when excludeListMarkers is false', () => {
+    const text = '* 項目';
+    const result = filter.filter(text, { ...DEFAULT_FILTER_CONFIG, excludeListMarkers: false });
+
+    expect(result.excludedRanges.some((r) => r.type === 'list-marker')).toBe(false);
+    expect(result.excludedRanges.some((r) => r.type === 'emphasis-marker')).toBe(false);
+    expect(result.filteredText).toBe(text);
+  });
+
+  it('should not treat \"2*3\" as emphasis marker', () => {
+    const text = '2*3';
+    const result = filter.filter(text);
+
+    expect(result.excludedRanges.some((r) => r.type === 'emphasis-marker')).toBe(false);
+    expect(result.filteredText).toBe(text);
   });
 });
 

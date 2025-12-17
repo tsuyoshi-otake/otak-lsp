@@ -101,6 +101,7 @@ export class MarkdownFilter implements IMarkdownFilter {
       text.indexOf('otakLsp.') !== -1 || text.indexOf('config.') !== -1 || text.indexOf('settings.') !== -1;
     const hasPipe = text.indexOf('|') !== -1;
     const hasHeadingMarker = text.indexOf('#') !== -1;
+    const hasAsterisk = text.indexOf('*') !== -1;
 
     // 各フィルタリング処理を優先順位順に実行
     // 優先順位: コードブロック > インラインコード > URL > 設定キー > カスタムパターン > テーブル
@@ -135,6 +136,10 @@ export class MarkdownFilter implements IMarkdownFilter {
 
     if (effectiveConfig.excludeListMarkers) {
       ranges.push(...this.findListMarkers(text, ranges));
+    }
+
+    if (effectiveConfig.excludeEmphasisMarkers && hasAsterisk) {
+      ranges.push(...this.findEmphasisMarkers(text, ranges));
     }
 
     const adjustedRanges =
@@ -736,6 +741,96 @@ export class MarkdownFilter implements IMarkdownFilter {
   }
 
   /**
+   * 強調マーカーを検出
+   * - **bold**, *italic* などの `*` を除外（内容は残す）
+   * - ただし箇条書きの先頭 `* ` は list-marker で扱うため除外しない
+   */
+  private findEmphasisMarkers(text: string, existingRanges: ExcludedRange[]): ExcludedRange[] {
+    const ranges: ExcludedRange[] = [];
+
+    if (!text || text.length === 0) {
+      return ranges;
+    }
+
+    // テーブル範囲は「本文として残す」設計のため、強調マーカー検出の重複チェックからは除外する
+    const skipRanges = existingRanges.filter((r) => r.type !== 'table');
+
+    const isOverlappingAny = (start: number, end: number): boolean => {
+      return this.isOverlapping(start, end, skipRanges) || this.isOverlapping(start, end, ranges);
+    };
+
+    const isWhitespace = (ch: string): boolean => {
+      return ch.length === 0 || /\s/.test(ch);
+    };
+
+    const isAsciiDigit = (ch: string): boolean => {
+      return ch.length > 0 && ch >= '0' && ch <= '9';
+    };
+
+    const lines = text.split('\n');
+    let position = 0;
+
+    for (const line of lines) {
+      const listMarkerMatch = line.match(/^(\s*(?:>\s*)*)(\s*\*\s)/);
+      const listMarkerEnd = listMarkerMatch ? listMarkerMatch[1].length + listMarkerMatch[2].length : 0;
+
+      let i = 0;
+      while (i < line.length) {
+        if (line[i] !== '*') {
+          i++;
+          continue;
+        }
+
+        const runStart = i;
+        while (i < line.length && line[i] === '*') {
+          i++;
+        }
+        const runEnd = i;
+        const runLength = runEnd - runStart;
+
+        if (runLength <= 0) {
+          continue;
+        }
+
+        // 箇条書きマーカーは別ロジックで扱う（設定で無効化できるようにする）
+        if (runLength === 1 && runStart < listMarkerEnd) {
+          continue;
+        }
+
+        const prev = runStart > 0 ? line[runStart - 1] : '';
+        const next = runEnd < line.length ? line[runEnd] : '';
+
+        // 2*3 のような数式っぽいケースは温存
+        if (runLength === 1 && isAsciiDigit(prev) && isAsciiDigit(next)) {
+          continue;
+        }
+
+        // 両側が空白ならリテラル扱いにして温存（例: " * "）
+        if (runLength === 1 && isWhitespace(prev) && isWhitespace(next)) {
+          continue;
+        }
+
+        const absStart = position + runStart;
+        const absEnd = position + runEnd;
+
+        if (!isOverlappingAny(absStart, absEnd)) {
+          ranges.push({
+            start: absStart,
+            end: absEnd,
+            type: 'emphasis-marker',
+            content: text.substring(absStart, absEnd),
+            reason: '強調マーカー検出'
+          });
+        }
+      }
+
+      position += line.length + 1; // +1 for newline
+    }
+
+    return ranges;
+  }
+
+  /**
    * 行の開始位置を取得
    */
   private getLineStart(text: string, lineIndex: number): number {
@@ -838,6 +933,7 @@ export class MarkdownFilter implements IMarkdownFilter {
       if (
         range.type === 'heading' ||
         range.type === 'list-marker' ||
+        range.type === 'emphasis-marker' ||
         range.type === 'table-delimiter' ||
         range.type === 'table-separator'
       ) {
