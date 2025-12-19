@@ -26,13 +26,65 @@ export class QuotationStyleMixRule extends MixDetectionRule {
   description = '引用符スタイルの混在（「」と""と\'\'）を検出します';
 
   /**
+   * コードブロック（```...```）とインラインコード（`...`）の範囲を取得
+   */
+  private getExcludedRanges(text: string): Array<{ start: number; end: number }> {
+    const ranges: Array<{ start: number; end: number }> = [];
+
+    // コードブロック（```...```）
+    const codeBlockRegex = /```[\s\S]*?```/g;
+    let match;
+    while ((match = codeBlockRegex.exec(text)) !== null) {
+      ranges.push({ start: match.index, end: match.index + match[0].length });
+    }
+
+    // インラインコード（`...`）- 複数行にまたがらないもの
+    const inlineCodeRegex = /`[^`\n]+`/g;
+    while ((match = inlineCodeRegex.exec(text)) !== null) {
+      ranges.push({ start: match.index, end: match.index + match[0].length });
+    }
+
+    return ranges;
+  }
+
+  /**
+   * 位置が除外範囲内かどうかを判定
+   */
+  private isInExcludedRange(pos: number, excludedRanges: Array<{ start: number; end: number }>): boolean {
+    return excludedRanges.some(range => pos >= range.start && pos < range.end);
+  }
+
+  /**
+   * 除外範囲を考慮した位置検索
+   */
+  private findAllPositionsExcluding(
+    text: string,
+    regex: RegExp,
+    excludedRanges: Array<{ start: number; end: number }>
+  ): number[] {
+    const positions: number[] = [];
+    let match;
+    const globalRegex = new RegExp(regex.source, 'g');
+    while ((match = globalRegex.exec(text)) !== null) {
+      if (!this.isInExcludedRange(match.index, excludedRanges)) {
+        positions.push(match.index);
+      }
+    }
+    return positions;
+  }
+
+  /**
    * Collect quotation patterns from text
+   * コードブロック・インラインコード内は除外
    */
   protected collectPatterns(text: string): Map<string, PatternInfo> {
     const patterns = new Map<string, PatternInfo>();
 
+    // 除外範囲を取得（コードブロック、インラインコード）
+    const excludedRanges = this.getExcludedRanges(text);
+
     // Japanese quotes: 「」『』
-    const japaneseQuotes = this.findAllPositions(text, /[「」『』]/g);
+    const japaneseQuotes = this.findAllPositionsExcluding(text, /[「」『』]/g, excludedRanges);
     if (japaneseQuotes.length > 0) {
       patterns.set('japanese', {
         count: japaneseQuotes.length,
@@ -41,9 +93,8 @@ export class QuotationStyleMixRule extends MixDetectionRule {
     }
 
     // Double quotes: "" (curly) or "" (straight full-width)
-    const doubleQuotes = this.findAllPositions(text, /[""「」]/g);
     // Filter out Japanese quotes already counted
-    const pureDoubleQuotes = this.findAllPositions(text, /[""]|["]/g);
+    const pureDoubleQuotes = this.findAllPositionsExcluding(text, /[""]|["]/g, excludedRanges);
     if (pureDoubleQuotes.length > 0) {
       patterns.set('double', {
         count: pureDoubleQuotes.length,
@@ -52,7 +103,7 @@ export class QuotationStyleMixRule extends MixDetectionRule {
     }
 
     // Single quotes: '' (curly) or '' (straight)
-    const singleQuotes = this.findAllPositions(text, /['']/g);
+    const singleQuotes = this.findAllPositionsExcluding(text, /['']/g, excludedRanges);
     if (singleQuotes.length > 0) {
       patterns.set('single', {
         count: singleQuotes.length,

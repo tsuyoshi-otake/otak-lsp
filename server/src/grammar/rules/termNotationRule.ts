@@ -30,6 +30,84 @@ export class TermNotationRule implements AdvancedGrammarRule {
   private customRules: Map<string, string> = new Map();
 
   /**
+   * コードブロック（```...```）の範囲を取得
+   */
+  private getCodeBlockRanges(text: string): Array<{ start: number; end: number }> {
+    const ranges: Array<{ start: number; end: number }> = [];
+    const codeBlockRegex = /```[\s\S]*?```/g;
+    let match;
+    while ((match = codeBlockRegex.exec(text)) !== null) {
+      ranges.push({ start: match.index, end: match.index + match[0].length });
+    }
+    return ranges;
+  }
+
+  /**
+   * インラインコード（`...`）の範囲を取得
+   */
+  private getInlineCodeRanges(text: string): Array<{ start: number; end: number }> {
+    const ranges: Array<{ start: number; end: number }> = [];
+    // コードブロック内のバッククォートを除外するため、コードブロック外でのみマッチ
+    const inlineCodeRegex = /`[^`\n]+`/g;
+    let match;
+    while ((match = inlineCodeRegex.exec(text)) !== null) {
+      ranges.push({ start: match.index, end: match.index + match[0].length });
+    }
+    return ranges;
+  }
+
+  /**
+   * テーブルの「誤表記例」列の範囲を取得
+   * 形式: | 誤った表記 | 正しい表記 |
+   */
+  private getTableExampleColumnRanges(text: string): Array<{ start: number; end: number }> {
+    const ranges: Array<{ start: number; end: number }> = [];
+    const lines = text.split('\n');
+    let offset = 0;
+
+    for (const line of lines) {
+      // テーブル行（| で始まる）
+      if (/^\s*\|/.test(line) && line.includes('|')) {
+        const cells = line.split('|');
+        // 最初の非空セル（誤表記例列）を除外
+        if (cells.length >= 3) {
+          let cellStart = 0;
+          for (let i = 0; i < cells.length; i++) {
+            if (i === 0) {
+              cellStart = cells[i].length + 1; // 最初の空セル + |
+              continue;
+            }
+            if (i === 1 && cells[i].trim() !== '' && !/^[-:]+$/.test(cells[i].trim())) {
+              // 最初の内容セル（誤表記例）を除外範囲に追加
+              const cellEnd = cellStart + cells[i].length;
+              ranges.push({ start: offset + cellStart, end: offset + cellEnd });
+            }
+            break;
+          }
+        }
+      }
+      offset += line.length + 1; // +1 for newline
+    }
+    return ranges;
+  }
+
+  /**
+   * 指定位置が除外範囲内かどうかを判定
+   */
+  private isInExcludedRegion(
+    index: number,
+    length: number,
+    excludedRanges: Array<{ start: number; end: number }>
+  ): boolean {
+    const end = index + length;
+    return excludedRanges.some(range =>
+      (index >= range.start && index < range.end) ||
+      (end > range.start && end <= range.end) ||
+      (index <= range.start && end >= range.end)
+    );
+  }
+
+  /**
    * 有効な辞書を取得
    */
   getActiveDictionaries(config: AdvancedRulesConfig): Map<string, string> {
@@ -209,9 +287,23 @@ export class TermNotationRule implements AdvancedGrammarRule {
    */
   check(tokens: Token[], context: RuleContext): AdvancedDiagnostic[] {
     const diagnostics: AdvancedDiagnostic[] = [];
-    const errors = this.detectIncorrectNotation(context.documentText, context.config);
+    const text = context.documentText;
+
+    // 除外範囲を取得（コードブロック、インラインコード、テーブル誤表記例列）
+    const excludedRanges = [
+      ...this.getCodeBlockRanges(text),
+      ...this.getInlineCodeRanges(text),
+      ...this.getTableExampleColumnRanges(text)
+    ];
+
+    const errors = this.detectIncorrectNotation(text, context.config);
 
     for (const error of errors) {
+      // 除外範囲内の検出はスキップ
+      if (this.isInExcludedRegion(error.index, error.incorrect.length, excludedRanges)) {
+        continue;
+      }
+
       diagnostics.push(new AdvancedDiagnostic({
         range: {
           start: { line: 0, character: error.index },

@@ -344,11 +344,12 @@ const aws = require('aws-sdk');
     });
 
     it('should detect term-notation in table content by default', async () => {
+      // 注: 最初の列は誤表記例として除外されるため、2番目以降の列で検出する
       const markdown = `# 設定一覧
 
-| 用語 | 説明 |
+| 名前 | 説明 |
 |------|------|
-| Javascript | 技術用語 |
+| テスト | Javascriptを使用 |
 `;
 
       const diagnostics = await analyzeMarkdown(markdown);

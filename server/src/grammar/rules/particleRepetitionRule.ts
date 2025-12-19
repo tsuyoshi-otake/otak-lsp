@@ -52,6 +52,9 @@ export class ParticleRepetitionRule implements AdvancedGrammarRule {
     );
   }
 
+  /**
+   * テーブル行からインラインコードを抽出
+   */
   private extractInlineCodeFromTableRow(text: string): { text: string; start: number; end: number } | null {
     if (!ParticleRepetitionRule.TABLE_ROW_PREFIX.test(text) || !text.includes('|')) {
       return null;
@@ -88,6 +91,56 @@ export class ParticleRepetitionRule implements AdvancedGrammarRule {
     const start = index + 1;
     const end = start + inner.length;
     return { text: inner, start, end };
+  }
+
+  /**
+   * テーブル行の最後のセルを抽出（インラインコードがない場合のフォールバック）
+   * EVALSテーブル形式: | カテゴリ | ステータス | 例文 |
+   */
+  private extractLastCellFromTableRow(text: string): { text: string; start: number; end: number } | null {
+    if (!ParticleRepetitionRule.TABLE_ROW_PREFIX.test(text) || !text.includes('|')) {
+      return null;
+    }
+
+    // パイプで分割してセルを取得
+    const cells = text.split('|');
+    if (cells.length < 3) {
+      return null;
+    }
+
+    // 最後のセル（末尾の空セルを除く）
+    let lastCellIndex = cells.length - 1;
+    while (lastCellIndex > 0 && cells[lastCellIndex].trim() === '') {
+      lastCellIndex--;
+    }
+
+    const lastCell = cells[lastCellIndex].trim();
+
+    // 日本語を含むセルのみ対象（例文セル）
+    if (!/[ぁ-んァ-ン一-龠]/.test(lastCell)) {
+      return null;
+    }
+
+    // テーブル区切り行（---）は除外
+    if (/^[-:]+$/.test(lastCell)) {
+      return null;
+    }
+
+    // セルの開始位置を計算
+    let startPos = 0;
+    for (let i = 0; i < lastCellIndex; i++) {
+      startPos += cells[i].length + 1; // +1 for '|'
+    }
+    // セル内の先頭空白をスキップ
+    const cellContent = cells[lastCellIndex];
+    const leadingSpaces = cellContent.length - cellContent.trimStart().length;
+    startPos += leadingSpaces;
+
+    return {
+      text: lastCell,
+      start: startPos,
+      end: startPos + lastCell.length
+    };
   }
 
   private buildSentenceForInlineCode(sentence: Sentence, inline: { text: string; start: number; end: number }): Sentence {
@@ -174,11 +227,16 @@ export class ParticleRepetitionRule implements AdvancedGrammarRule {
       let sentenceToCheck = sentence;
       const isTableRow = ParticleRepetitionRule.TABLE_ROW_PREFIX.test(sentence.text) && sentence.text.includes('|');
       if (isTableRow) {
-        const inline = this.extractInlineCodeFromTableRow(sentence.text);
-        if (!inline) {
+        // まずインラインコードを探す
+        let cellContent = this.extractInlineCodeFromTableRow(sentence.text);
+        // インラインコードがなければ最後のセル（例文セル）を使用
+        if (!cellContent) {
+          cellContent = this.extractLastCellFromTableRow(sentence.text);
+        }
+        if (!cellContent) {
           continue;
         }
-        sentenceToCheck = this.buildSentenceForInlineCode(sentence, inline);
+        sentenceToCheck = this.buildSentenceForInlineCode(sentence, cellContent);
       }
 
       const repetitions = this.findRepeatedParticles(sentenceToCheck, context.documentText);

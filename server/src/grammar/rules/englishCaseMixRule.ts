@@ -47,6 +47,57 @@ export class EnglishCaseMixRule extends MixDetectionRule {
   ]);
 
   /**
+   * コードブロック（```...```）とインラインコード（`...`）の範囲を取得
+   */
+  private getCodeRanges(text: string): Array<{ start: number; end: number }> {
+    const ranges: Array<{ start: number; end: number }> = [];
+
+    // コードブロック（```...```）
+    const codeBlockRegex = /```[\s\S]*?```/g;
+    let match;
+    while ((match = codeBlockRegex.exec(text)) !== null) {
+      ranges.push({ start: match.index, end: match.index + match[0].length });
+    }
+
+    // インラインコード（`...`）
+    const inlineCodeRegex = /`[^`\n]+`/g;
+    while ((match = inlineCodeRegex.exec(text)) !== null) {
+      ranges.push({ start: match.index, end: match.index + match[0].length });
+    }
+
+    return ranges;
+  }
+
+  /**
+   * 位置がコード範囲内かどうかを判定
+   */
+  private isInCodeRange(pos: number, codeRanges: Array<{ start: number; end: number }>): boolean {
+    return codeRanges.some(range => pos >= range.start && pos < range.end);
+  }
+
+  /**
+   * 拡張子パターンかどうかを判定（例: .vsix, .md, .js）
+   */
+  private isFileExtension(text: string, index: number): boolean {
+    // 前の文字がドットかどうか
+    if (index > 0 && text[index - 1] === '.') {
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * ハイフンで繋がった識別子内かどうかを判定（例: otak-lsp の lsp）
+   */
+  private isInHyphenatedIdentifier(text: string, index: number, wordLength: number): boolean {
+    // 前後にハイフンがある場合は識別子の一部
+    const prevChar = index > 0 ? text[index - 1] : '';
+    const nextChar = index + wordLength < text.length ? text[index + wordLength] : '';
+
+    return prevChar === '-' || nextChar === '-';
+  }
+
+  /**
    * Override check to provide more specific diagnostics per word
    */
   check(tokens: Token[], context: RuleContext): AdvancedDiagnostic[] {
@@ -89,9 +140,13 @@ export class EnglishCaseMixRule extends MixDetectionRule {
 
   /**
    * Find all variants of English words in text
+   * コードブロック、拡張子、ハイフン識別子内は除外
    */
   private findWordVariants(text: string): Map<string, Map<string, number[]>> {
     const wordVariants = new Map<string, Map<string, number[]>>();
+
+    // コード範囲を事前に取得
+    const codeRanges = this.getCodeRanges(text);
 
     // Match English words (2+ characters)
     const wordRegex = /[a-zA-Z]{2,}/g;
@@ -99,9 +154,22 @@ export class EnglishCaseMixRule extends MixDetectionRule {
 
     while ((match = wordRegex.exec(text)) !== null) {
       const word = match[0];
-      if (this.isInCliCommand(text, match.index)) {
+      const index = match.index;
+
+      // 除外条件をチェック
+      if (this.isInCliCommand(text, index)) {
         continue;
       }
+      if (this.isInCodeRange(index, codeRanges)) {
+        continue;
+      }
+      if (this.isFileExtension(text, index)) {
+        continue;
+      }
+      if (this.isInHyphenatedIdentifier(text, index, word.length)) {
+        continue;
+      }
+
       const normalizedWord = word.toLowerCase();
 
       if (!wordVariants.has(normalizedWord)) {
@@ -112,7 +180,7 @@ export class EnglishCaseMixRule extends MixDetectionRule {
       if (!variants.has(word)) {
         variants.set(word, []);
       }
-      variants.get(word)!.push(match.index);
+      variants.get(word)!.push(index);
     }
 
     return wordVariants;

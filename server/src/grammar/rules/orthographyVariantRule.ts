@@ -15,6 +15,26 @@ import {
 } from '../../../../shared/src/advancedTypes';
 
 /**
+ * 1文字形式名詞（複合語内では漢字のまま使用するのが適切）
+ * これらは前後に漢字が続く場合（複合語内）は検出対象外とする
+ *
+ * 例:
+ * - 「時」→「とき」: 「その時」は変換推奨、「時間」「食事時」は除外
+ * - 「所」→「ところ」: 「その所」は変換推奨、「場所」「住所」は除外
+ * - 「事」→「こと」: 「その事」は変換推奨、「食事」「事件」は除外
+ */
+const SINGLE_CHAR_FORMAL_NOUNS = new Set(['事', '物', '所', '時', '為', '筈', '訳', '様']);
+
+/**
+ * 漢字かどうかを判定（CJK統合漢字）
+ */
+const isKanji = (char: string): boolean => {
+  if (!char) return false;
+  const code = char.charCodeAt(0);
+  return code >= 0x4E00 && code <= 0x9FFF;
+};
+
+/**
  * 表記ゆれパターン（漢字表記 -> ひらがな推奨）
  * Map<漢字表記, ひらがな推奨表記>
  */
@@ -143,6 +163,23 @@ export class OrthographyVariantRule implements AdvancedGrammarRule {
   }
 
   /**
+   * 1文字形式名詞が複合語内かどうかを判定
+   * 前後に漢字が続く場合は複合語内と判断
+   */
+  private isInCompoundWord(text: string, index: number, variant: string): boolean {
+    // 1文字形式名詞のみチェック
+    if (!SINGLE_CHAR_FORMAL_NOUNS.has(variant)) {
+      return false;
+    }
+
+    const prevChar = index > 0 ? text[index - 1] : '';
+    const nextChar = index + variant.length < text.length ? text[index + variant.length] : '';
+
+    // 前後どちらかに漢字が続く場合は複合語内
+    return isKanji(prevChar) || isKanji(nextChar);
+  }
+
+  /**
    * テキスト内の表記ゆれを検出
    */
   detectVariants(text: string): Array<{ variant: string; recommended: string; index: number }> {
@@ -151,7 +188,10 @@ export class OrthographyVariantRule implements AdvancedGrammarRule {
     for (const [variant, recommended] of ORTHOGRAPHY_VARIANTS) {
       let index = text.indexOf(variant);
       while (index !== -1) {
-        results.push({ variant, recommended, index });
+        // 1文字形式名詞が複合語内にある場合は除外
+        if (!this.isInCompoundWord(text, index, variant)) {
+          results.push({ variant, recommended, index });
+        }
         index = text.indexOf(variant, index + 1);
       }
     }
