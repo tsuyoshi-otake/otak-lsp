@@ -33,7 +33,7 @@ describe('EmphasisStyleMixRule', () => {
     it('should detect mix of ** and __', () => {
       context.documentText = '**太字**と__下線強調__の混在。';
       const diagnostics = rule.check(emptyTokens, context);
-      expect(diagnostics.length).toBe(1);
+      expect(diagnostics.length).toBe(2);
       expect(diagnostics[0].code).toBe('emphasis-style-mix');
     });
 
@@ -54,13 +54,13 @@ describe('EmphasisStyleMixRule', () => {
     it('should detect mix with ** first', () => {
       context.documentText = '**太字**と__下線__';
       const diagnostics = rule.check(emptyTokens, context);
-      expect(diagnostics.length).toBe(1);
+      expect(diagnostics.length).toBe(2);
     });
 
     it('should detect mix with __ first', () => {
       context.documentText = '__下線__と**太字**';
       const diagnostics = rule.check(emptyTokens, context);
-      expect(diagnostics.length).toBe(1);
+      expect(diagnostics.length).toBe(2);
     });
   });
 

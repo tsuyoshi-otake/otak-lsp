@@ -43,7 +43,7 @@
 ```
 
 ※ Markdownのコードブロック（コードフェンス）内も既定で解析対象（文法チェック/セマンティックハイライト）です。接続詞連続（Conjunction Repetition）や逆接「が」連続（Adversative Ga）など、文脈依存で誤検出しやすい一部ルールは「コード（例: ` ```javascript `）」では対象外としますが、` ```markdown ` / ` ```text ` のような「例文」コードブロックでは検出対象になります。コードブロック自体を対象外にしたい場合は `otakLsp.markdown.analyzeCodeBlocks` を無効にしてください。
-※ Markdownのテーブル（`|...|`）内も既定で文法チェック対象です。テーブル内を対象外にしたい場合は `otakLsp.markdown.analyzeTables` を無効にしてください（無効にしても、弱い表現（Weak Expression）/ 技術用語表記（Term Notation）/ 漢字開き（Kanji Opening）/ 冗長表現（Redundant Expression）/ 重複表現（Tautology）は対象のままです）。
+※ Markdownのテーブル（`|...|`）内も既定で文法チェック対象です。テーブル内を対象外にしたい場合は `otakLsp.markdown.analyzeTables` を無効にしてください（無効にしても、弱い表現（Weak Expression）/ 技術用語表記（Term Notation）/ 漢字開き（Kanji Opening）/ 冗長表現（Redundant Expression）/ 重複表現（Tautology）に加えて、箇条書き記号の混在/強調記号の混在/見出しレベルの飛び/テーブル列数の不一致/コードブロック言語指定の欠落は対象のままです）。
 
 #### 3. 二重否定の検出（Double Negation）
 
@@ -612,7 +612,7 @@ npm run package
 | テーブル列数の不一致 | PASS | \| A \| B \| C \| \|---\|---\| \| 1 \| 2 \| 3 \| |
 | コードブロック言語指定の欠落 | PASS | ``` const x = 1; ``` |
 
-Last updated: 2025-12-17
+Last updated: 2025-12-18
 <!-- EVALS-END -->
 
 ## 技術仕様

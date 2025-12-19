@@ -200,7 +200,6 @@ export class OrthographyVariantRule implements AdvancedGrammarRule {
   }
 
   isEnabled(config: AdvancedRulesConfig): boolean {
-    // 漢字開きルールと関連するため、漢字開きルールが有効なら有効
-    return config.enableKanjiOpening;
+    return config.enableOrthographyVariant;
   }
 }

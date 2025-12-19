@@ -61,6 +61,14 @@ describe('TableColumnMismatchRule', () => {
       const diagnostics = rule.check(emptyTokens, context);
       expect(diagnostics.length).toBe(0);
     });
+
+    it('should detect mismatch in escaped inline table example within a markdown table cell', () => {
+      context.documentText =
+        '| テーブル列数の不一致 | PASS | \\| A \\| B \\| C \\| \\|---\\|---\\| \\| 1 \\| 2 \\| 3 \\| |';
+      const diagnostics = rule.check(emptyTokens, context);
+      expect(diagnostics.length).toBe(1);
+      expect(diagnostics[0].code).toBe('table-column-mismatch');
+    });
   });
 
   describe('multiple tables', () => {

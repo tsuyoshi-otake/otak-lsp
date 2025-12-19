@@ -166,6 +166,6 @@ export class SpaceAroundUnitRule implements AdvancedGrammarRule {
   }
 
   isEnabled(config: AdvancedRulesConfig): boolean {
-    return config.enableAlphabetWidth;
+    return config.enableSpaceAroundUnit;
   }
 }

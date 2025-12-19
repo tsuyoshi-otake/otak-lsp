@@ -37,6 +37,13 @@ describe('HeadingLevelSkipRule', () => {
       expect(diagnostics[0].code).toBe('heading-level-skip');
     });
 
+    it('should detect skip in markdown table cell with compressed example', () => {
+      context.documentText = '| 見出しレベルの飛び | PASS | # タイトル ### サブセクション |';
+      const diagnostics = rule.check(emptyTokens, context);
+      expect(diagnostics.length).toBe(1);
+      expect(diagnostics[0].code).toBe('heading-level-skip');
+    });
+
     it('should detect skip from h1 to h3 in blockquote', () => {
       context.documentText = '> # タイトル\n> ### サブセクション';
       const diagnostics = rule.check(emptyTokens, context);

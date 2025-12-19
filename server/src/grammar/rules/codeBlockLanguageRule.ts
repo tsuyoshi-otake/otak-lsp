@@ -26,6 +26,26 @@ export class CodeBlockLanguageRule implements AdvancedGrammarRule {
     return (prefix.match(/>/g) || []).length;
   }
 
+  private findInlineFencedCodeSnippets(line: string): Array<{ start: number; end: number }> {
+    // ` ``` code ``` ` のような「単一行フェンス」は、EVALS 表などで複数行コードブロックを圧縮して載せる際に使われる。
+    // - opening fence 直後に空白がある（= 言語指定が無い可能性が高い）パターンのみ対象
+    // - 同一行内に closing fence があるもののみ対象
+    const results: Array<{ start: number; end: number }> = [];
+    const re = /(^|[\s|])([`~]{3,})\s+([^\r\n]*?)\2/g;
+    let match: RegExpExecArray | null;
+    while ((match = re.exec(line)) !== null) {
+      const leading = match[1] ?? '';
+      const fence = match[2] ?? '';
+      if (!fence) {
+        continue;
+      }
+      const start = match.index + leading.length;
+      const end = start + fence.length;
+      results.push({ start, end });
+    }
+    return results;
+  }
+
   /**
    * Check for code blocks without language specification
    */
@@ -40,6 +60,27 @@ export class CodeBlockLanguageRule implements AdvancedGrammarRule {
 
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i];
+
+      // 単一行フェンス（例: ` ``` const x = 1; ``` `）を先に検出する
+      // NOTE: 本文のコードブロック検出（複数行）とは独立に扱う
+      if (!inCodeBlock && (line.includes('```') || line.includes('~~~'))) {
+        const inlineSnippets = this.findInlineFencedCodeSnippets(line);
+        for (const snippet of inlineSnippets) {
+          diagnostics.push(new AdvancedDiagnostic({
+            range: {
+              start: { line: i, character: snippet.start },
+              end: { line: i, character: snippet.end }
+            },
+            message: 'コードブロックに言語指定がありません。シンタックスハイライトのために言語を指定してください。',
+            code: 'code-block-language',
+            ruleName: this.name,
+            suggestions: [
+              '```javascript\nconst x = 1;\n``` のように複数行にして言語指定を追加してください',
+              'プレーンテキストの場合は ```text を使用できます'
+            ]
+          }));
+        }
+      }
 
       // Check for fenced code block start (``` or ~~~)
       const startMatch = line.match(/^(\s*(?:>\s*)*)(`{3,}|~{3,})(.*)$/);

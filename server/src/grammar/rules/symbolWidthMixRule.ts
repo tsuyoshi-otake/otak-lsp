@@ -141,6 +141,6 @@ export class SymbolWidthMixRule implements AdvancedGrammarRule {
   }
 
   isEnabled(config: AdvancedRulesConfig): boolean {
-    return config.enableAlphabetWidth;
+    return config.enableSymbolWidthMix;
   }
 }

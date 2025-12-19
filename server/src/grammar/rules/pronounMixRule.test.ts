@@ -33,20 +33,20 @@ describe('PronounMixRule', () => {
     it('should detect mix of watashi and boku', () => {
       context.documentText = '私は開発者です。僕はプログラミングが好きです。';
       const diagnostics = rule.check(emptyTokens, context);
-      expect(diagnostics.length).toBe(1);
+      expect(diagnostics.length).toBe(2);
       expect(diagnostics[0].code).toBe('pronoun-mix');
     });
 
     it('should detect mix of touhou and watashi', () => {
       context.documentText = '当方は担当者です。私が対応します。';
       const diagnostics = rule.check(emptyTokens, context);
-      expect(diagnostics.length).toBe(1);
+      expect(diagnostics.length).toBe(2);
     });
 
     it('should detect mix of jibun and watashi', () => {
       context.documentText = '自分は学生です。私は日本人です。';
       const diagnostics = rule.check(emptyTokens, context);
-      expect(diagnostics.length).toBe(1);
+      expect(diagnostics.length).toBe(2);
     });
 
     it('should not detect mix when only watashi is used', () => {

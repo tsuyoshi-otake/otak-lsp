@@ -95,6 +95,65 @@ export interface MarkdownPipeTableBlock {
   lines: string[];
 }
 
+export interface MarkdownPipeTableCell {
+  /**
+   * セルの生文字列（`|` 区切りの間）。前後の空白は含む。
+   * 例: ` A `, ` PASS `, ` \\| A \\| B \\| `
+   */
+  raw: string;
+  /** 元の行（引数 line）に対する開始インデックス（0-based, `|` の直後） */
+  start: number;
+  /** 元の行（引数 line）に対する終了インデックス（0-based, `|` の直前 / 末尾） */
+  end: number;
+}
+
+/**
+ * 先頭 `|` 形式のテーブル行をセルに分割する。
+ * - `\\|` のようなエスケープされた `|` はセル区切りとみなさない
+ * - 行頭の空白は許容する（`  | A |`）
+ * - 末尾 `|` がない場合でも最後のセルを返す
+ */
+export function splitMarkdownPipeTableRowCells(line: string): MarkdownPipeTableCell[] {
+  const cells: MarkdownPipeTableCell[] = [];
+  if (!line) {
+    return cells;
+  }
+
+  let index = 0;
+  while (index < line.length && (line[index] === ' ' || line[index] === '\t')) {
+    index++;
+  }
+
+  if (index >= line.length || line[index] !== '|') {
+    return cells;
+  }
+
+  let cellStart = index + 1;
+  let escaped = false;
+
+  for (let i = cellStart; i < line.length; i++) {
+    const ch = line[i];
+    if (escaped) {
+      escaped = false;
+      continue;
+    }
+    if (ch === '\\') {
+      escaped = true;
+      continue;
+    }
+    if (ch === '|') {
+      cells.push({ raw: line.slice(cellStart, i), start: cellStart, end: i });
+      cellStart = i + 1;
+    }
+  }
+
+  if (cellStart <= line.length) {
+    cells.push({ raw: line.slice(cellStart), start: cellStart, end: line.length });
+  }
+
+  return cells;
+}
+
 /**
  * 先頭 `|` 形式のテーブルブロック（候補）を抽出する。
  * - blockquote を剥がしたうえで行頭が `|` の連続行を 1 ブロックとして扱う

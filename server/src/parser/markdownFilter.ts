@@ -1085,7 +1085,33 @@ export class MarkdownFilter implements IMarkdownFilter {
     const transformCodeBlockSegment = (segment: string): string => {
       const firstNewlineIndex = segment.indexOf('\n');
       if (firstNewlineIndex === -1) {
-        return maskPreservingNewlines(segment);
+        // 単一行の ```code``` 形式は（後方互換のため）code-block として除外するが、
+        // 構文記号（```）自体は Markdown構造ルールが参照できるよう保持する。
+        // - テーブル内の evals 例などで ` ``` const x = 1; ``` ` を載せた場合に、
+        //   すべてをスペース化すると構造ルール側で検出できなくなる。
+        const lineForMatch = segment.endsWith('\r') ? segment.slice(0, -1) : segment;
+        const inlineFence = lineForMatch.match(/^(\s*(?:>\s*)*)(`{3,}|~{3,}).*?\2\s*$/);
+        if (!inlineFence) {
+          return maskPreservingNewlines(segment);
+        }
+
+        const fence = inlineFence[2];
+        const closingIndex = segment.lastIndexOf(fence);
+        if (closingIndex < 0) {
+          return maskPreservingNewlines(segment);
+        }
+
+        const openingIndex = segment.indexOf(fence);
+        const contentStart = openingIndex + fence.length;
+        const contentEnd = closingIndex;
+        if (contentEnd <= contentStart) {
+          return segment;
+        }
+
+        const before = segment.slice(0, contentStart);
+        const inner = segment.slice(contentStart, contentEnd);
+        const after = segment.slice(contentEnd);
+        return before + inner.replace(/[^\r\n]/g, ' ') + after;
       }
 
       const openingLine = segment.slice(0, firstNewlineIndex);

@@ -2,7 +2,7 @@
   "name": "otak-lsp",
   "displayName": "otak-lsp - Japanese Grammar Analyzer",
   "description": "日本語形態素解析VSCode拡張機能（外部依存なし）。文法チェック、セマンティックハイライト、ホバー情報を提供します。kuromoji.js内蔵でMeCab不要。",
-  "version": "0.6.8",
+  "version": "0.7.2",
   "publisher": "otak-lsp",
   "license": "MIT",
   "repository": {
@@ -377,6 +377,144 @@
           "description": "長すぎる文の検出の有効/無効",
           "scope": "resource"
         },
+        "otakLsp.advanced.enableSahenVerb": {
+          "type": "boolean",
+          "default": true,
+          "description": "サ変動詞の誤用検出（「勉強をする」→「勉強する」など）の有効/無効",
+          "scope": "resource"
+        },
+        "otakLsp.advanced.enableMissingSubject": {
+          "type": "boolean",
+          "default": true,
+          "description": "主語の欠如検出の有効/無効",
+          "scope": "resource"
+        },
+        "otakLsp.advanced.enableTwistedSentence": {
+          "type": "boolean",
+          "default": true,
+          "description": "ねじれ文の検出の有効/無効",
+          "scope": "resource"
+        },
+        "otakLsp.advanced.enableHomophone": {
+          "type": "boolean",
+          "default": true,
+          "description": "同音異義語の誤用検出の有効/無効",
+          "scope": "resource"
+        },
+        "otakLsp.advanced.enableHonorificError": {
+          "type": "boolean",
+          "default": true,
+          "description": "敬語の誤用検出の有効/無効",
+          "scope": "resource"
+        },
+        "otakLsp.advanced.enableAdverbAgreement": {
+          "type": "boolean",
+          "default": true,
+          "description": "副詞の呼応エラー検出の有効/無効",
+          "scope": "resource"
+        },
+        "otakLsp.advanced.enableModifierPosition": {
+          "type": "boolean",
+          "default": true,
+          "description": "修飾語の位置の問題検出の有効/無効",
+          "scope": "resource"
+        },
+        "otakLsp.advanced.enableAmbiguousDemonstrative": {
+          "type": "boolean",
+          "default": true,
+          "description": "曖昧な指示語の検出の有効/無効",
+          "scope": "resource"
+        },
+        "otakLsp.advanced.enablePassiveOveruse": {
+          "type": "boolean",
+          "default": true,
+          "description": "受身表現の多用検出の有効/無効",
+          "scope": "resource"
+        },
+        "otakLsp.advanced.enableNounChain": {
+          "type": "boolean",
+          "default": true,
+          "description": "名詞の連続使用検出の有効/無効",
+          "scope": "resource"
+        },
+        "otakLsp.advanced.enableConjunctionMisuse": {
+          "type": "boolean",
+          "default": true,
+          "description": "接続詞の誤用検出の有効/無効",
+          "scope": "resource"
+        },
+        "otakLsp.advanced.enableOkuriganaVariant": {
+          "type": "boolean",
+          "default": true,
+          "description": "送り仮名の揺れ（「表わす」→「表す」など）の検出の有効/無効",
+          "scope": "resource"
+        },
+        "otakLsp.advanced.enableOrthographyVariant": {
+          "type": "boolean",
+          "default": true,
+          "description": "表記ゆれ（「出来る」→「できる」など）の検出の有効/無効",
+          "scope": "resource"
+        },
+        "otakLsp.advanced.enableNumberWidthMix": {
+          "type": "boolean",
+          "default": true,
+          "description": "全角/半角数字の混在検出の有効/無効",
+          "scope": "resource"
+        },
+        "otakLsp.advanced.enableKatakanaChouon": {
+          "type": "boolean",
+          "default": true,
+          "description": "カタカナ長音の揺れ（「サーバ」→「サーバー」など）の検出の有効/無効",
+          "scope": "resource"
+        },
+        "otakLsp.advanced.enableHalfwidthKana": {
+          "type": "boolean",
+          "default": true,
+          "description": "半角カナの検出の有効/無効",
+          "scope": "resource"
+        },
+        "otakLsp.advanced.enableNumeralStyleMix": {
+          "type": "boolean",
+          "default": true,
+          "description": "漢数字とアラビア数字の混在検出の有効/無効",
+          "scope": "resource"
+        },
+        "otakLsp.advanced.enableSpaceAroundUnit": {
+          "type": "boolean",
+          "default": true,
+          "description": "英字・数字・単位間のスペースの過不足検出の有効/無効",
+          "scope": "resource"
+        },
+        "otakLsp.advanced.enableBracketQuoteMismatch": {
+          "type": "boolean",
+          "default": true,
+          "description": "括弧・引用符の不一致検出の有効/無効",
+          "scope": "resource"
+        },
+        "otakLsp.advanced.enableDateFormatVariant": {
+          "type": "boolean",
+          "default": true,
+          "description": "日付表記の揺れの検出の有効/無効",
+          "scope": "resource"
+        },
+        "otakLsp.advanced.enableDashTildeNormalization": {
+          "type": "boolean",
+          "default": true,
+          "description": "ダッシュ・チルダの不統一検出の有効/無効",
+          "scope": "resource"
+        },
+        "otakLsp.advanced.enableNakaguroUsage": {
+          "type": "boolean",
+          "default": true,
+          "description": "中黒の過不足（「・・」など）の検出の有効/無効",
+          "scope": "resource"
+        },
+        "otakLsp.advanced.enableSymbolWidthMix": {
+          "type": "boolean",
+          "default": true,
+          "description": "全角/半角記号の混在検出の有効/無効",
+          "scope": "resource"
+        },
         "otakLsp.advanced.noParticleChainThreshold": {
           "type": "number",
           "default": 3,
@@ -399,6 +537,22 @@
           "minimum": 50,
           "maximum": 500,
           "description": "長文と判定する文字数の閾値",
+          "scope": "resource"
+        },
+        "otakLsp.advanced.nounChainThreshold": {
+          "type": "number",
+          "default": 5,
+          "minimum": 2,
+          "maximum": 20,
+          "description": "名詞の連続使用の閾値（この値以上で警告）",
+          "scope": "resource"
+        },
+        "otakLsp.advanced.passiveOveruseThreshold": {
+          "type": "number",
+          "default": 3,
+          "minimum": 2,
+          "maximum": 10,
+          "description": "受身表現の多用の閾値（この値以上で警告）",
           "scope": "resource"
         },
         "otakLsp.advanced.enableSentenceEndingColon": {

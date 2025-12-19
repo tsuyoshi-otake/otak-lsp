@@ -33,14 +33,14 @@ describe('QuotationStyleMixRule', () => {
     it('should detect mix of Japanese and double quotes', () => {
       context.documentText = '彼は「こんにちは」と言った。彼女は"さようなら"と答えた。';
       const diagnostics = rule.check(emptyTokens, context);
-      expect(diagnostics.length).toBe(1);
+      expect(diagnostics.length).toBe(4);
       expect(diagnostics[0].code).toBe('quotation-style-mix');
     });
 
     it('should detect mix of Japanese and single quotes', () => {
       context.documentText = '「日本語」と\'English\'の混在。';
       const diagnostics = rule.check(emptyTokens, context);
-      expect(diagnostics.length).toBe(1);
+      expect(diagnostics.length).toBe(4);
     });
 
     it('should not detect mix when only Japanese quotes are used', () => {
@@ -60,13 +60,13 @@ describe('QuotationStyleMixRule', () => {
     it('should detect mix with Japanese first, then Western', () => {
       context.documentText = '「日本語」"English"';
       const diagnostics = rule.check(emptyTokens, context);
-      expect(diagnostics.length).toBe(1);
+      expect(diagnostics.length).toBe(4);
     });
 
     it('should detect mix with Western first, then Japanese', () => {
       context.documentText = '"English"「日本語」';
       const diagnostics = rule.check(emptyTokens, context);
-      expect(diagnostics.length).toBe(1);
+      expect(diagnostics.length).toBe(4);
     });
   });
 

@@ -33,27 +33,34 @@ describe('BulletStyleMixRule', () => {
     it('should detect mix of nakaguro and hyphen', () => {
       context.documentText = '・項目1\n- 項目2';
       const diagnostics = rule.check(emptyTokens, context);
-      expect(diagnostics.length).toBe(1);
+      expect(diagnostics.length).toBe(2);
       expect(diagnostics[0].code).toBe('bullet-style-mix');
     });
 
     it('should detect mix in blockquote bullet list', () => {
       context.documentText = '> ・項目1\n> - 項目2';
       const diagnostics = rule.check(emptyTokens, context);
-      expect(diagnostics.length).toBe(1);
+      expect(diagnostics.length).toBe(2);
       expect(diagnostics[0].code).toBe('bullet-style-mix');
     });
 
     it('should detect mix of asterisk and hyphen', () => {
       context.documentText = '* タスク1\n- タスク2';
       const diagnostics = rule.check(emptyTokens, context);
-      expect(diagnostics.length).toBe(1);
+      expect(diagnostics.length).toBe(2);
     });
 
     it('should detect mix of all three bullet types', () => {
       context.documentText = '・項目1\n- 項目2\n* 項目3';
       const diagnostics = rule.check(emptyTokens, context);
-      expect(diagnostics.length).toBe(1);
+      expect(diagnostics.length).toBe(3);
+    });
+
+    it('should detect mix in markdown table cell with compressed example', () => {
+      context.documentText = '| 箇条書き記号の混在 | PASS | ・項目1 - 項目2 * 項目3 |';
+      const diagnostics = rule.check(emptyTokens, context);
+      expect(diagnostics.length).toBe(3);
+      expect(diagnostics[0].code).toBe('bullet-style-mix');
     });
 
     it('should not detect mix when only nakaguro is used', () => {
@@ -73,13 +80,13 @@ describe('BulletStyleMixRule', () => {
     it('should detect mix regardless of order (nakaguro first)', () => {
       context.documentText = '・項目1\n- 項目2';
       const diagnostics = rule.check(emptyTokens, context);
-      expect(diagnostics.length).toBe(1);
+      expect(diagnostics.length).toBe(2);
     });
 
     it('should detect mix regardless of order (hyphen first)', () => {
       context.documentText = '- 項目1\n・項目2';
       const diagnostics = rule.check(emptyTokens, context);
-      expect(diagnostics.length).toBe(1);
+      expect(diagnostics.length).toBe(2);
     });
   });
 

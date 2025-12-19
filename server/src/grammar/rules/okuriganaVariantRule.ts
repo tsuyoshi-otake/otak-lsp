@@ -179,7 +179,6 @@ export class OkuriganaVariantRule implements AdvancedGrammarRule {
   }
 
   isEnabled(config: AdvancedRulesConfig): boolean {
-    // 送り仮名揺れは漢字開きルールと関連するため、漢字開きルールが有効なら有効
-    return config.enableKanjiOpening;
+    return config.enableOkuriganaVariant;
   }
 }

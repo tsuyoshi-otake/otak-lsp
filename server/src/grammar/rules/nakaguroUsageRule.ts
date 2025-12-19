@@ -88,6 +88,6 @@ export class NakaguroUsageRule implements AdvancedGrammarRule {
   }
 
   isEnabled(config: AdvancedRulesConfig): boolean {
-    return config.enableCommaCount; // 句読点関連として同じ設定を使用
+    return config.enableNakaguroUsage;
   }
 }

@@ -49,7 +49,26 @@ describe('Property-Based Tests: Markdown Filter', () => {
               // コードブロックの内容はスペース置換（改行は保持）される
               const firstNewline = originalSegment.indexOf('\n');
               if (firstNewline === -1) {
-                // 単一行の ```code``` 形式は全体がマスクされる
+                // 単一行の ```code``` 形式は構文記号（```）を保持しつつ、中身だけがマスクされる
+                const fenceMatch = originalSegment.match(/^(`{3,}|~{3,})/);
+                if (fenceMatch) {
+                  const fence = fenceMatch[1];
+                  const closingIndex = originalSegment.lastIndexOf(fence);
+                  if (closingIndex >= 0 && closingIndex !== 0) {
+                    expect(filteredSegment.slice(0, fence.length)).toBe(fence);
+                    expect(filteredSegment.slice(closingIndex, closingIndex + fence.length)).toBe(fence);
+
+                    for (let i = fence.length; i < closingIndex; i++) {
+                      const ch = originalSegment[i];
+                      if (ch !== '\n' && ch !== '\r') {
+                        expect(filteredSegment[i]).toBe(' ');
+                      }
+                    }
+                    continue;
+                  }
+                }
+
+                // フォールバック: フェンス形が壊れている場合は従来通り全体がマスクされる
                 for (let i = 0; i < originalSegment.length; i++) {
                   const ch = originalSegment[i];
                   if (ch !== '\n' && ch !== '\r') {

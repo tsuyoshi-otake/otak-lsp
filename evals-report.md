@@ -1,6 +1,6 @@
 # Japanese Grammar Evals Report
 
-Generated: 2025-12-13
+Generated: 2025-12-18
 
 ## Summary
 
@@ -9,8 +9,8 @@ Generated: 2025-12-13
 | Total Categories | 54 |
 | Implemented Categories | 54 (100%) |
 | Total Examples | 143 |
-| Detected Examples | 143 |
-| Detection Rate | 100% |
+| Detected Examples | 142 |
+| Detection Rate | 99% |
 
 ## Category Results
 
@@ -23,7 +23,7 @@ Generated: 2025-12-13
 | 文体混在 | PASS | 2 | 2 | 100% |
 | ら抜き言葉 | PASS | 4 | 4 | 100% |
 | 二重否定 | PASS | 4 | 4 | 100% |
-| 同じ助詞の連続使用 | PASS | 3 | 3 | 100% |
+| 同じ助詞の連続使用 | FAIL | 2 | 3 | 67% |
 | 接続詞連続使用 | PASS | 3 | 3 | 100% |
 | 逆接「が」連続使用 | PASS | 2 | 2 | 100% |
 | 全角半角アルファベット混在 | PASS | 2 | 2 | 100% |
@@ -110,8 +110,12 @@ Generated: 2025-12-13
 
 ### 同じ助詞の連続使用 (particle-repetition)
 
-- Status: PASS
-- Detection Rate: 100% (3/3)
+- Status: FAIL
+- Detection Rate: 67% (2/3)
+
+**Failed Examples:**
+
+- `東京の会社の社長の息子`
 
 ### 接続詞連続使用 (conjunction-repetition)
 

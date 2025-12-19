@@ -60,13 +60,13 @@ describe('PunctuationStyleMixRule', () => {
     it('should detect mix with Japanese first, then Western', () => {
       context.documentText = '日本語、文章，混在';
       const diagnostics = rule.check(emptyTokens, context);
-      expect(diagnostics.length).toBe(1);
+      expect(diagnostics.length).toBe(2);
     });
 
     it('should detect mix with Western first, then Japanese', () => {
       context.documentText = '文章，混在、日本語';
       const diagnostics = rule.check(emptyTokens, context);
-      expect(diagnostics.length).toBe(1);
+      expect(diagnostics.length).toBe(2);
     });
   });
 

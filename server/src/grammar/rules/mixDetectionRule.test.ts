@@ -87,7 +87,7 @@ describe('MixDetectionRule', () => {
     it('should detect mix when multiple patterns exist', () => {
       context.documentText = 'AABB';
       const diagnostics = rule.check(emptyTokens, context);
-      expect(diagnostics.length).toBe(1);
+      expect(diagnostics.length).toBe(4);
       expect(diagnostics[0].message).toContain('mixed');
     });
 
@@ -108,19 +108,19 @@ describe('MixDetectionRule', () => {
     it('should detect mix regardless of pattern order (A then B)', () => {
       context.documentText = 'AAABBB';
       const diagnostics = rule.check(emptyTokens, context);
-      expect(diagnostics.length).toBe(1);
+      expect(diagnostics.length).toBe(6);
     });
 
     it('should detect mix regardless of pattern order (B then A)', () => {
       context.documentText = 'BBBAAA';
       const diagnostics = rule.check(emptyTokens, context);
-      expect(diagnostics.length).toBe(1);
+      expect(diagnostics.length).toBe(6);
     });
 
     it('should detect mix regardless of pattern order (interleaved)', () => {
       context.documentText = 'ABABAB';
       const diagnostics = rule.check(emptyTokens, context);
-      expect(diagnostics.length).toBe(1);
+      expect(diagnostics.length).toBe(6);
     });
   });
 
@@ -128,7 +128,7 @@ describe('MixDetectionRule', () => {
     it('should provide correct range for detected mix', () => {
       context.documentText = 'AABB';
       const diagnostics = rule.check(emptyTokens, context);
-      expect(diagnostics.length).toBe(1);
+      expect(diagnostics.length).toBe(4);
       expect(diagnostics[0].range.start.character).toBe(0);
       expect(diagnostics[0].range.end.character).toBe(1);
     });
@@ -138,7 +138,7 @@ describe('MixDetectionRule', () => {
     it('should return correct rule code', () => {
       context.documentText = 'AABB';
       const diagnostics = rule.check(emptyTokens, context);
-      expect(diagnostics.length).toBe(1);
+      expect(diagnostics.length).toBe(4);
       expect(diagnostics[0].code).toBe('punctuation-style-mix');
     });
   });

@@ -16,7 +16,7 @@ import {
   AdvancedGrammarErrorType
 } from '../../../../shared/src/advancedTypes';
 import { MixDetectionRule, PatternInfo } from './mixDetectionRule';
-import { stripMarkdownBlockquotePrefix } from '../../../../shared/src/markdownSyntax';
+import { splitMarkdownPipeTableRowCells, stripMarkdownBlockquotePrefix } from '../../../../shared/src/markdownSyntax';
 
 /**
  * Bullet Style Mix Detection Rule
@@ -25,6 +25,17 @@ import { stripMarkdownBlockquotePrefix } from '../../../../shared/src/markdownSy
 export class BulletStyleMixRule extends MixDetectionRule {
   name = 'bullet-style-mix';
   description = '箇条書き記号の混在（・と-と*）を検出します';
+
+  private static findInlineSeparatorPositions(raw: string, marker: '-' | '*'): number[] {
+    const positions: number[] = [];
+    const pattern = marker === '-' ? /\s-\s/g : /\s\*\s/g;
+    let match: RegExpExecArray | null;
+    while ((match = pattern.exec(raw)) !== null) {
+      // ` - ` / ` * ` の中央文字位置をマーカー位置として扱う
+      positions.push(match.index + 1);
+    }
+    return positions;
+  }
 
   /**
    * Collect bullet patterns from text
@@ -43,15 +54,60 @@ export class BulletStyleMixRule extends MixDetectionRule {
       const { strippedLine, strippedLength } = stripMarkdownBlockquotePrefix(line);
       const trimmed = strippedLine.trimStart();
       const leadingSpaces = strippedLine.length - trimmed.length;
-      const markerOffset = offset + strippedLength + leadingSpaces;
 
-      // Check for bullet at line start (after optional whitespace)
-      if (trimmed.startsWith('・')) {
-        nakaguroPositions.push(markerOffset);
-      } else if (trimmed.startsWith('- ') || trimmed === '-') {
-        hyphenPositions.push(markerOffset);
-      } else if (trimmed.startsWith('* ') || trimmed === '*') {
-        asteriskPositions.push(markerOffset);
+      // テーブル行: セルごとに先頭マーカーを検出
+      if (trimmed.startsWith('|')) {
+        const tableStartInStripped = leadingSpaces;
+        const tableCells = splitMarkdownPipeTableRowCells(strippedLine.slice(tableStartInStripped));
+
+        for (const cell of tableCells) {
+          // セルの先頭（空白除外）
+          const raw = cell.raw;
+          const firstNonWs = raw.search(/\S/);
+          if (firstNonWs < 0) {
+            continue;
+          }
+
+          const cellTrimmedStart = raw.slice(firstNonWs);
+          const cellMarkerOffset =
+            offset + strippedLength + tableStartInStripped + cell.start + firstNonWs;
+
+          const hasLeadingBullet =
+            cellTrimmedStart.startsWith('・') ||
+            cellTrimmedStart.startsWith('- ') ||
+            cellTrimmedStart === '-' ||
+            cellTrimmedStart.startsWith('* ') ||
+            cellTrimmedStart === '*';
+
+          if (cellTrimmedStart.startsWith('・')) {
+            nakaguroPositions.push(cellMarkerOffset);
+          } else if (cellTrimmedStart.startsWith('- ') || cellTrimmedStart === '-') {
+            hyphenPositions.push(cellMarkerOffset);
+          } else if (cellTrimmedStart.startsWith('* ') || cellTrimmedStart === '*') {
+            asteriskPositions.push(cellMarkerOffset);
+          }
+
+          // EVALS 表などで「複数行の例文」を 1セル内に圧縮して載せるケース:
+          // `・項目1 - 項目2 * 項目3` のような ` - ` / ` * ` を簡易的な箇条書き区切りとして扱う
+          if (hasLeadingBullet) {
+            for (const rel of BulletStyleMixRule.findInlineSeparatorPositions(raw, '-')) {
+              hyphenPositions.push(offset + strippedLength + tableStartInStripped + cell.start + rel);
+            }
+            for (const rel of BulletStyleMixRule.findInlineSeparatorPositions(raw, '*')) {
+              asteriskPositions.push(offset + strippedLength + tableStartInStripped + cell.start + rel);
+            }
+          }
+        }
+      } else {
+        // 通常行: 行頭の箇条書きマーカーのみ検出
+        const markerOffset = offset + strippedLength + leadingSpaces;
+        if (trimmed.startsWith('・')) {
+          nakaguroPositions.push(markerOffset);
+        } else if (trimmed.startsWith('- ') || trimmed === '-') {
+          hyphenPositions.push(markerOffset);
+        } else if (trimmed.startsWith('* ') || trimmed === '*') {
+          asteriskPositions.push(markerOffset);
+        }
       }
 
       offset += line.length + 1; // +1 for newline

@@ -474,6 +474,20 @@ export interface AdvancedRulesConfig {
   enableNounChain: boolean;
   enableConjunctionMisuse: boolean;
 
+  // 拡張文法ルール（Tasks 14-25）
+  enableOkuriganaVariant: boolean;
+  enableOrthographyVariant: boolean;
+  enableNumberWidthMix: boolean;
+  enableKatakanaChouon: boolean;
+  enableHalfwidthKana: boolean;
+  enableNumeralStyleMix: boolean;
+  enableSpaceAroundUnit: boolean;
+  enableBracketQuoteMismatch: boolean;
+  enableDateFormatVariant: boolean;
+  enableDashTildeNormalization: boolean;
+  enableNakaguroUsage: boolean;
+  enableSymbolWidthMix: boolean;
+
   // 文末コロン検出（Feature: sentence-ending-colon-detection）
   enableSentenceEndingColon: boolean;
 
@@ -555,6 +569,20 @@ export const DEFAULT_ADVANCED_RULES_CONFIG: AdvancedRulesConfig = {
   enablePassiveOveruse: true,
   enableNounChain: true,
   enableConjunctionMisuse: true,
+
+  // 拡張文法ルール（Tasks 14-25）はすべて有効
+  enableOkuriganaVariant: true,
+  enableOrthographyVariant: true,
+  enableNumberWidthMix: true,
+  enableKatakanaChouon: true,
+  enableHalfwidthKana: true,
+  enableNumeralStyleMix: true,
+  enableSpaceAroundUnit: true,
+  enableBracketQuoteMismatch: true,
+  enableDateFormatVariant: true,
+  enableDashTildeNormalization: true,
+  enableNakaguroUsage: true,
+  enableSymbolWidthMix: true,
 
   // 文末コロン検出（Feature: sentence-ending-colon-detection）
   enableSentenceEndingColon: true,

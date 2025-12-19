@@ -6,7 +6,7 @@
  * Detects when table rows have different column counts
  */
 
-import { Token, Range } from '../../../../shared/src/types';
+import { Token } from '../../../../shared/src/types';
 import {
   AdvancedGrammarRule,
   AdvancedRulesConfig,
@@ -16,6 +16,7 @@ import {
 import {
   findMarkdownPipeTables,
   isMarkdownPipeTableSeparatorLine,
+  splitMarkdownPipeTableRowCells,
   stripMarkdownBlockquotePrefix
 } from '../../../../shared/src/markdownSyntax';
 
@@ -48,7 +49,112 @@ export class TableColumnMismatchRule implements AdvancedGrammarRule {
       diagnostics.push(...tableDiagnostics);
     }
 
+    // EVALS 表などで「テーブル例」をセル内に `\\|` でエスケープして載せるケースを補足する
+    diagnostics.push(...this.checkInlineEscapedTableExamples(context.documentText));
+
     return diagnostics;
+  }
+
+  private checkInlineEscapedTableExamples(text: string): AdvancedDiagnostic[] {
+    const diagnostics: AdvancedDiagnostic[] = [];
+    const lines = text.split('\n');
+
+    for (let lineIndex = 0; lineIndex < lines.length; lineIndex++) {
+      const line = lines[lineIndex];
+      if (!line.includes('\\|') || !line.includes('-')) {
+        continue;
+      }
+
+      const { strippedLine, strippedLength } = stripMarkdownBlockquotePrefix(line);
+      const leadingWhitespace = strippedLine.length - strippedLine.trimStart().length;
+      const tableLine = strippedLine.slice(leadingWhitespace);
+      if (!tableLine.startsWith('|')) {
+        continue;
+      }
+
+      const cells = splitMarkdownPipeTableRowCells(tableLine);
+      for (const cell of cells) {
+        const raw = cell.raw;
+        if (!raw.includes('\\|')) {
+          continue;
+        }
+
+        const reconstructed = this.reconstructInlineTable(raw);
+        if (!reconstructed) {
+          continue;
+        }
+
+        const mismatch = this.detectFirstColumnMismatch(reconstructed);
+        if (!mismatch) {
+          continue;
+        }
+
+        const cellStartChar = strippedLength + leadingWhitespace + cell.start;
+        const cellEndChar = strippedLength + leadingWhitespace + cell.end;
+
+        diagnostics.push(new AdvancedDiagnostic({
+          range: {
+            start: { line: lineIndex, character: Math.min(cellStartChar, line.length) },
+            end: { line: lineIndex, character: Math.min(cellEndChar, line.length) }
+          },
+          message: mismatch.isSeparator
+            ? `テーブルの区切り行の列数が一致しません。ヘッダーは${mismatch.expected}列ですが、区切り行は${mismatch.actual}列です。`
+            : `テーブルの列数が一致しません。ヘッダーは${mismatch.expected}列ですが、この行は${mismatch.actual}列です。`,
+          code: 'table-column-mismatch',
+          ruleName: this.name,
+          suggestions: [`${mismatch.expected}列に修正してください`]
+        }));
+      }
+    }
+
+    return diagnostics;
+  }
+
+  private reconstructInlineTable(rawCell: string): string[] | null {
+    // `\|` を `|` として復元し、`|<ws>|` を行境界（改行）として扱う。
+    // NOTE: 空セルを含む複雑な表には対応しない（EVALS 表の圧縮例文向け）
+    const unescaped = rawCell.replace(/\\\|/g, '|').trim();
+    if (!unescaped.startsWith('|') || !unescaped.includes('|')) {
+      return null;
+    }
+
+    const withNewlines = unescaped.replace(/\|\s+\|/g, '|\n|');
+    const lines = withNewlines
+      .split('\n')
+      .map((l) => l.trimEnd())
+      .filter((l) => l.trim().startsWith('|'));
+
+    if (lines.length < 2) {
+      return null;
+    }
+
+    // 区切り行が含まれていない場合は「テーブル例」ではない可能性が高い
+    if (!lines.some((l) => isMarkdownPipeTableSeparatorLine(l))) {
+      return null;
+    }
+
+    return lines;
+  }
+
+  private detectFirstColumnMismatch(lines: string[]): { expected: number; actual: number; isSeparator: boolean } | null {
+    const headerLine = lines[0] ?? '';
+    const expected = this.countColumns(headerLine);
+    if (expected <= 0) {
+      return null;
+    }
+
+    for (let i = 1; i < lines.length; i++) {
+      const line = lines[i] ?? '';
+      const actual = this.countColumns(line);
+      if (actual <= 0) {
+        continue;
+      }
+      if (actual !== expected) {
+        return { expected, actual, isSeparator: isMarkdownPipeTableSeparatorLine(line) };
+      }
+    }
+
+    return null;
   }
 
   /**

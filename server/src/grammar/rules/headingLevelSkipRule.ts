@@ -6,13 +6,14 @@
  * Detects when heading levels are skipped (e.g., h1 directly to h3)
  */
 
-import { Token, Range } from '../../../../shared/src/types';
+import { Token } from '../../../../shared/src/types';
 import {
   AdvancedGrammarRule,
   AdvancedRulesConfig,
   RuleContext,
   AdvancedDiagnostic
 } from '../../../../shared/src/advancedTypes';
+import { splitMarkdownPipeTableRowCells, stripMarkdownBlockquotePrefix } from '../../../../shared/src/markdownSyntax';
 
 /**
  * Heading Level Skip Detection Rule
@@ -24,6 +25,39 @@ export class HeadingLevelSkipRule implements AdvancedGrammarRule {
 
   private countBlockquoteDepth(prefix: string): number {
     return (prefix.match(/>/g) || []).length;
+  }
+
+  private extractHeadingsFromTableLine(
+    strippedLine: string,
+    strippedLength: number
+  ): Array<{ level: number; character: number }> {
+    const headings: Array<{ level: number; character: number }> = [];
+
+    const leadingWhitespace = strippedLine.length - strippedLine.trimStart().length;
+    const tableLine = strippedLine.slice(leadingWhitespace);
+    if (!tableLine.startsWith('|')) {
+      return headings;
+    }
+
+    const cells = splitMarkdownPipeTableRowCells(tableLine);
+    for (const cell of cells) {
+      const raw = cell.raw;
+      if (!raw.includes('#')) {
+        continue;
+      }
+
+      const re = /(^|\s)(#{1,6})\s+/g;
+      let match: RegExpExecArray | null;
+      while ((match = re.exec(raw)) !== null) {
+        const hashStartInCell = match.index + match[1].length;
+        headings.push({
+          level: match[2].length,
+          character: strippedLength + leadingWhitespace + cell.start + hashStartInCell
+        });
+      }
+    }
+
+    return headings;
   }
 
   /**
@@ -75,17 +109,40 @@ export class HeadingLevelSkipRule implements AdvancedGrammarRule {
         continue;
       }
 
-      // Check for heading (ATX style only: #, ##, ###, etc.)
-      const strippedLine = line.replace(/^\s*(?:>\s*)*/, '');
-      const match = strippedLine.match(/^(#{1,6})\s+/);
-      if (match) {
-        const currentLevel = match[1].length;
+      // 見出し（ATX #）を抽出:
+      // - 通常の見出し行（行頭）
+      // - Markdownテーブルセル内の「圧縮例文」（例: `# タイトル ### サブセクション`）
+      const occurrences: Array<{ level: number; character: number }> = [];
+
+      const stripped = stripMarkdownBlockquotePrefix(line);
+      const strippedLine = stripped.strippedLine;
+      const strippedLength = stripped.strippedLength;
+
+      const startMatch = strippedLine.match(/^\s{0,3}(#{1,6})\s+/);
+      if (startMatch) {
+        const hashStart = startMatch[0].indexOf('#');
+        occurrences.push({
+          level: startMatch[1].length,
+          character: strippedLength + hashStart
+        });
+      }
+
+      if (strippedLine.includes('|') && strippedLine.includes('#')) {
+        occurrences.push(...this.extractHeadingsFromTableLine(strippedLine, strippedLength));
+      }
+
+      occurrences.sort((a, b) => a.character - b.character);
+
+      for (const occ of occurrences) {
+        const currentLevel = occ.level;
 
         // Check for skip (only when going deeper)
         if (previousLevel > 0 && currentLevel > previousLevel + 1) {
-          const range = this.getLineRange(context.documentText, i);
           diagnostics.push(new AdvancedDiagnostic({
-            range,
+            range: {
+              start: { line: i, character: occ.character },
+              end: { line: i, character: Math.min(occ.character + currentLevel, line.length) }
+            },
             message: `見出しレベルが飛んでいます。h${previousLevel}の次にh${currentLevel}が使用されています。h${previousLevel + 1}を使用してください。`,
             code: 'heading-level-skip',
             ruleName: this.name,
@@ -108,20 +165,5 @@ export class HeadingLevelSkipRule implements AdvancedGrammarRule {
     return config.enableHeadingLevelSkip;
   }
 
-  /**
-   * Get range for a specific line
-   */
-  private getLineRange(text: string, lineIndex: number): Range {
-    const lines = text.split('\n');
-    let start = 0;
-
-    for (let i = 0; i < lineIndex; i++) {
-      start += lines[i].length + 1; // +1 for newline
-    }
-
-    return {
-      start: { line: lineIndex, character: 0 },
-      end: { line: lineIndex, character: lines[lineIndex].length }
-    };
-  }
+  // getLineRange は未使用（セル内検出でより局所的なレンジを返すため）
 }

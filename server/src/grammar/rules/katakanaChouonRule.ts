@@ -226,6 +226,6 @@ export class KatakanaChouonRule implements AdvancedGrammarRule {
   }
 
   isEnabled(config: AdvancedRulesConfig): boolean {
-    return config.enableTermNotation;
+    return config.enableKatakanaChouon;
   }
 }

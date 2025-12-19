@@ -154,6 +154,6 @@ export class DateFormatVariantRule implements AdvancedGrammarRule {
   }
 
   isEnabled(config: AdvancedRulesConfig): boolean {
-    return config.enableAlphabetWidth;
+    return config.enableDateFormatVariant;
   }
 }

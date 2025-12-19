@@ -181,6 +181,6 @@ export class NumeralStyleMixRule implements AdvancedGrammarRule {
   }
 
   isEnabled(config: AdvancedRulesConfig): boolean {
-    return config.enableAlphabetWidth;
+    return config.enableNumeralStyleMix;
   }
 }

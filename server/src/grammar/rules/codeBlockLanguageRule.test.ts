@@ -120,6 +120,13 @@ describe('CodeBlockLanguageRule', () => {
       expect(diagnostics.length).toBe(1);
       expect(diagnostics[0].code).toBe('code-block-language');
     });
+
+    it('should detect single-line fenced code snippet without language (compressed example)', () => {
+      context.documentText = '| コードブロック言語指定の欠落 | PASS | ``` const x = 1; ``` |';
+      const diagnostics = rule.check(emptyTokens, context);
+      expect(diagnostics.length).toBe(1);
+      expect(diagnostics[0].code).toBe('code-block-language');
+    });
   });
 
   describe('configuration', () => {

@@ -168,6 +168,6 @@ export class HalfwidthKanaRule implements AdvancedGrammarRule {
   }
 
   isEnabled(config: AdvancedRulesConfig): boolean {
-    return config.enableAlphabetWidth;
+    return config.enableHalfwidthKana;
   }
 }

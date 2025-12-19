@@ -45,6 +45,19 @@ import {
   PassiveOveruseRule,
   NounChainRule,
   ConjunctionMisuseRule,
+  // Extended Grammar Rules - Tasks 14-25 (Feature: remaining-grammar-rules)
+  OkuriganaVariantRule,
+  OrthographyVariantRule,
+  NumberWidthMixRule,
+  KatakanaChouonRule,
+  HalfwidthKanaRule,
+  NumeralStyleMixRule,
+  SpaceAroundUnitRule,
+  BracketQuoteMismatchRule,
+  DateFormatVariantRule,
+  DashTildeNormalizationRule,
+  NakaguroUsageRule,
+  SymbolWidthMixRule,
   // Sentence Ending Colon Detection (Feature: sentence-ending-colon-detection)
   SentenceEndingColonRule,
   // Evals NG Pattern Expansion (Feature: evals-ng-pattern-expansion)
@@ -356,13 +369,35 @@ export class AdvancedRulesManager {
     excludedRanges?: ExcludedRange[],
     originalText?: string
   ): RuleContext {
-    // テーブルは既定でマスクされるが、「弱い表現」は表セル内の自然言語でも有用なので原文で判定する
+    // Markdown テーブルのマスク（analyzeTables=false）でも、構造/表記の一部ルールは原文を参照したい。
+    // - EVALS 表などの「例文」をテーブルに載せるケースで、記号がマスクされると検出できなくなるため
+    if (
+      (rule.name === 'bullet-style-mix' ||
+        rule.name === 'emphasis-style-mix' ||
+        rule.name === 'heading-level-skip' ||
+        rule.name === 'table-column-mismatch' ||
+        rule.name === 'code-block-language') &&
+      typeof originalText === 'string'
+    ) {
+      return {
+        ...baseContext,
+        documentText: originalText
+      };
+    }
+
+    // テーブルは既定でマスクされるが、「弱い表現」や「表記ゆれ」などは表セル内の自然言語でも有用なので原文で判定する
     if (
       (rule.name === 'weak-expression' ||
         rule.name === 'term-notation' ||
         rule.name === 'kanji-opening' ||
         rule.name === 'redundant-expression' ||
-        rule.name === 'tautology') &&
+        rule.name === 'tautology' ||
+        rule.name === 'okurigana-variant' ||
+        rule.name === 'orthography-variant' ||
+        rule.name === 'katakana-chouon' ||
+        rule.name === 'halfwidth-kana' ||
+        rule.name === 'dash-tilde-normalization' ||
+        rule.name === 'nakaguro-usage') &&
       typeof originalText === 'string'
     ) {
       return {
@@ -424,6 +459,19 @@ export class AdvancedRulesManager {
       new PassiveOveruseRule(),
       new NounChainRule(),
       new ConjunctionMisuseRule(),
+      // Extended Grammar Rules - Tasks 14-25 (Feature: remaining-grammar-rules)
+      new OkuriganaVariantRule(),
+      new OrthographyVariantRule(),
+      new NumberWidthMixRule(),
+      new KatakanaChouonRule(),
+      new HalfwidthKanaRule(),
+      new NumeralStyleMixRule(),
+      new SpaceAroundUnitRule(),
+      new BracketQuoteMismatchRule(),
+      new DateFormatVariantRule(),
+      new DashTildeNormalizationRule(),
+      new NakaguroUsageRule(),
+      new SymbolWidthMixRule(),
       // Sentence Ending Colon Detection (Feature: sentence-ending-colon-detection)
       new SentenceEndingColonRule(),
       // Evals NG Pattern Expansion (Feature: evals-ng-pattern-expansion)

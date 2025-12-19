@@ -152,6 +152,6 @@ export class NumberWidthMixRule implements AdvancedGrammarRule {
   }
 
   isEnabled(config: AdvancedRulesConfig): boolean {
-    return config.enableAlphabetWidth;
+    return config.enableNumberWidthMix;
   }
 }
