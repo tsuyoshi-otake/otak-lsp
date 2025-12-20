@@ -42,7 +42,6 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
       "ロードバランサー(ALB/NLB)",
       "ターゲットグループ",
       "リスナー",
-      "ルール"
     ]
   },
   {
@@ -118,11 +117,8 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
   {
     "service": "DynamoDB",
     "terms": [
-      "テーブル",
       "セカンダリインデックス(GSI/LSI)",
-      "ストリーム",
       "TTL",
-      "バックアップ"
     ]
   },
   {
@@ -138,7 +134,6 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
     "service": "OpenSearch Service",
     "terms": [
       "ドメイン",
-      "インデックス",
       "スナップショット"
     ]
   },
@@ -162,7 +157,6 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
   {
     "service": "Lambda",
     "terms": [
-      "関数",
       "レイヤー",
       "エイリアス",
       "バージョン",
@@ -176,7 +170,6 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
       "クラスター",
       "サービス",
       "タスク定義",
-      "タスク"
     ]
   },
   {
@@ -200,7 +193,6 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
       "コンピュート環境",
       "ジョブキュー",
       "ジョブ定義",
-      "ジョブ"
     ]
   },
   {
@@ -226,22 +218,18 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
     "service": "EventBridge",
     "terms": [
       "イベントバス",
-      "ルール",
       "ターゲット",
-      "スケジュール"
     ]
   },
   {
     "service": "SQS",
     "terms": [
-      "キュー",
       "デッドレターキュー"
     ]
   },
   {
     "service": "SNS",
     "terms": [
-      "トピック",
       "サブスクリプション"
     ]
   },
@@ -255,9 +243,7 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
   {
     "service": "CloudWatch",
     "terms": [
-      "メトリクス",
       "アラーム",
-      "ダッシュボード",
       "ロググループ",
       "ログストリーム"
     ]
@@ -274,16 +260,11 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
     "terms": [
       "レコーダー",
       "デリバリーチャネル",
-      "ルール"
     ]
   },
   {
     "service": "IAM",
     "terms": [
-      "ユーザー",
-      "グループ",
-      "ロール",
-      "ポリシー",
       "インスタンスプロファイル"
     ]
   },
@@ -312,7 +293,6 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
     "service": "WAF",
     "terms": [
       "Web ACL",
-      "ルール",
       "ルールグループ"
     ]
   },
@@ -320,14 +300,12 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
     "service": "GuardDuty",
     "terms": [
       "ディテクタ",
-      "検出結果"
     ]
   },
   {
     "service": "Security Hub",
     "terms": [
       "セキュリティ標準",
-      "検出結果"
     ]
   },
   {
@@ -335,7 +313,6 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
     "terms": [
       "パラメータストア(パラメータ)",
       "ドキュメント",
-      "セッション",
       "メンテナンスウィンドウ",
       "パッチベースライン"
     ]
@@ -346,7 +323,6 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
       "スタック",
       "変更セット",
       "スタックセット",
-      "テンプレート"
     ]
   },
   {
@@ -354,7 +330,6 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
     "terms": [
       "組織",
       "OU",
-      "アカウント",
       "サービスポリシー(SCP)"
     ]
   },
@@ -362,7 +337,6 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
     "service": "STS",
     "terms": [
       "一時認証情報",
-      "セッション"
     ]
   },
   {
@@ -384,7 +358,6 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
   {
     "service": "DataSync",
     "terms": [
-      "タスク",
       "エージェント",
       "ロケーション"
     ]
@@ -393,7 +366,6 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
     "service": "Transfer Family",
     "terms": [
       "サーバー(SFTP/FTPS/FTP)",
-      "ユーザー",
       "ワークフロー"
     ]
   },
@@ -410,7 +382,6 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
     "terms": [
       "ゲートウェイ",
       "ハイパーバイザ",
-      "バックアップ"
     ]
   },
   {
@@ -419,7 +390,6 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
       "レプリケーションインスタンス",
       "ソースエンドポイント",
       "ターゲットエンドポイント",
-      "タスク"
     ]
   },
   {
@@ -451,7 +421,6 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
     "service": "Elastic Beanstalk",
     "terms": [
       "アプリケーション",
-      "環境",
       "バージョン",
       "設定テンプレート"
     ]
@@ -462,7 +431,6 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
       "サービス",
       "リビジョン",
       "オートスケーリング設定",
-      "接続"
     ]
   },
   {
@@ -521,7 +489,6 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
   {
     "service": "Direct Connect",
     "terms": [
-      "接続",
       "仮想インターフェイス",
       "LAG",
       "ゲートウェイ"
@@ -600,7 +567,6 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
       "トレース",
       "セグメント",
       "サービスマップ",
-      "グループ",
       "サンプリングルール"
     ]
   },
@@ -608,15 +574,12 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
     "service": "OpenTelemetry",
     "terms": [
       "トレース",
-      "メトリクス",
-      "ログ"
     ]
   },
   {
     "service": "Managed Grafana",
     "terms": [
       "ワークスペース",
-      "ユーザー",
       "データソース"
     ]
   },
@@ -649,22 +612,18 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
     "service": "RUM",
     "terms": [
       "アプリモニター",
-      "イベント"
     ]
   },
   {
     "service": "CloudTrail Lake",
     "terms": [
       "イベントデータストア",
-      "クエリ",
-      "ダッシュボード"
     ]
   },
   {
     "service": "Audit Manager",
     "terms": [
       "フレームワーク",
-      "評価",
       "コントロール",
       "エビデンス"
     ]
@@ -673,7 +632,6 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
     "service": "Artifact",
     "terms": [
       "契約",
-      "レポート",
       "同意"
     ]
   },
@@ -687,7 +645,6 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
   {
     "service": "Health",
     "terms": [
-      "イベント",
       "影響を受けるエンティティ"
     ]
   },
@@ -737,8 +694,6 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
   {
     "service": "IAM Identity Center",
     "terms": [
-      "ユーザー",
-      "グループ",
       "許可セット",
       "アプリケーション"
     ]
@@ -764,7 +719,6 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
     "service": "Verified Permissions",
     "terms": [
       "ポリシーストア",
-      "ポリシー",
       "スキーマ"
     ]
   },
@@ -772,7 +726,6 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
     "service": "IAM Access Analyzer",
     "terms": [
       "アナライザー",
-      "検出結果",
       "アーカイブルール"
     ]
   },
@@ -781,29 +734,23 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
     "terms": [
       "評価テンプレート",
       "評価ターゲット",
-      "検出結果"
     ]
   },
   {
     "service": "Macie",
     "terms": [
-      "ジョブ",
-      "検出結果",
       "カスタムデータ識別子"
     ]
   },
   {
     "service": "Detective",
     "terms": [
-      "グラフ",
       "メンバーアカウント",
-      "検出結果"
     ]
   },
   {
     "service": "Firewall Manager",
     "terms": [
-      "ポリシー",
       "スコープ",
       "コンプライアンス"
     ]
@@ -837,13 +784,11 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
     "terms": [
       "クラスター",
       "HSM",
-      "バックアップ"
     ]
   },
   {
     "service": "SSM Parameter Store",
     "terms": [
-      "パラメータ",
       "パラメータポリシー"
     ]
   },
@@ -852,14 +797,12 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
     "terms": [
       "証明書",
       "検証",
-      "更新"
     ]
   },
   {
     "service": "WAFv2",
     "terms": [
       "Web ACL",
-      "ルール",
       "ルールグループ",
       "IPセット",
       "正規表現パターンセット"
@@ -879,10 +822,8 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
     "terms": [
       "データカタログ",
       "クローラ",
-      "ジョブ",
       "ワークフロー",
       "トリガー",
-      "接続",
       "開発エンドポイント"
     ]
   },
@@ -890,7 +831,6 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
     "service": "Athena",
     "terms": [
       "ワークグループ",
-      "クエリ",
       "名前付きクエリ",
       "データカタログ"
     ]
@@ -914,20 +854,15 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
   {
     "service": "MWAA",
     "terms": [
-      "環境",
       "DAG",
       "実行",
-      "接続",
-      "変数"
     ]
   },
   {
     "service": "DataBrew",
     "terms": [
       "レシピ",
-      "プロジェクト",
       "データセット",
-      "ジョブ",
       "ルールセット"
     ]
   },
@@ -936,9 +871,6 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
     "terms": [
       "データセット",
       "データソース",
-      "分析",
-      "ダッシュボード",
-      "テンプレート"
     ]
   },
   {
@@ -952,7 +884,6 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
   {
     "service": "Kinesis Video Streams",
     "terms": [
-      "ストリーム",
       "チャネル",
       "アーカイブ",
       "シグナリング"
@@ -962,16 +893,13 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
     "service": "MSK",
     "terms": [
       "クラスター",
-      "設定",
       "ACL",
-      "トピック"
     ]
   },
   {
     "service": "Glue Data Catalog",
     "terms": [
       "データベース",
-      "テーブル",
       "パーティション"
     ]
   },
@@ -979,7 +907,6 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
     "service": "Timestream",
     "terms": [
       "データベース",
-      "テーブル",
       "スケジュールクエリ"
     ]
   },
@@ -987,8 +914,6 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
     "service": "QLDB",
     "terms": [
       "台帳",
-      "テーブル",
-      "ストリーム",
       "ジャーナル"
     ]
   },
@@ -996,7 +921,6 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
     "service": "Keyspaces",
     "terms": [
       "キースペース",
-      "テーブル"
     ]
   },
   {
@@ -1005,7 +929,6 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
       "クラスター",
       "サブネットグループ",
       "ACL",
-      "ユーザー"
     ]
   },
   {
@@ -1023,7 +946,6 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
       "GraphQL API",
       "データソース",
       "リゾルバ",
-      "関数",
       "スキーマ"
     ]
   },
@@ -1053,7 +975,6 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
   {
     "service": "Pinpoint",
     "terms": [
-      "プロジェクト",
       "セグメント",
       "キャンペーン",
       "ジャーニー",
@@ -1066,7 +987,6 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
       "ID(ドメイン/メール)",
       "設定セット",
       "ルールセット",
-      "テンプレート",
       "受信ルール"
     ]
   },
@@ -1074,8 +994,6 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
     "service": "WorkMail",
     "terms": [
       "組織",
-      "ユーザー",
-      "グループ",
       "リソース(会議室など)"
     ]
   },
@@ -1094,13 +1012,11 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
       "フリート",
       "スタック",
       "イメージビルダー",
-      "セッション"
     ]
   },
   {
     "service": "Cloud9",
     "terms": [
-      "環境",
       "メンバー"
     ]
   },
@@ -1115,7 +1031,6 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
   {
     "service": "CodeBuild",
     "terms": [
-      "プロジェクト",
       "ビルド",
       "レポートグループ"
     ]
@@ -1134,7 +1049,6 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
     "terms": [
       "パイプライン",
       "ステージ",
-      "アクション",
       "実行"
     ]
   },
@@ -1150,8 +1064,6 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
   {
     "service": "CodeStar",
     "terms": [
-      "プロジェクト",
-      "接続"
     ]
   },
   {
@@ -1166,8 +1078,6 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
   {
     "service": "CloudShell",
     "terms": [
-      "環境",
-      "セッション"
     ]
   },
   {
@@ -1217,7 +1127,6 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
       "カスタム分類器",
       "エンティティ認識器",
       "エンドポイント",
-      "ジョブ",
       "フライホイール"
     ]
   },
@@ -1233,7 +1142,6 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
     "terms": [
       "分析ジョブ",
       "アダプター",
-      "クエリ",
       "通知設定"
     ]
   },
@@ -1279,9 +1187,7 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
       "インスタンス",
       "コンタクトフロー",
       "ルーティングプロファイル",
-      "キュー",
       "営業時間",
-      "ユーザー",
       "セキュリティプロファイル",
       "電話番号"
     ]
@@ -1289,9 +1195,7 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
   {
     "service": "Chime",
     "terms": [
-      "アカウント",
       "会議",
-      "ユーザー",
       "ボイスコネクタ"
     ]
   },
@@ -1306,7 +1210,6 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
   {
     "service": "Kendra",
     "terms": [
-      "インデックス",
       "データソース",
       "同義語",
       "FAQ",
@@ -1323,7 +1226,6 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
       "ソリューション",
       "ソリューションバージョン",
       "キャンペーン",
-      "フィルタ"
     ]
   },
   {
@@ -1334,7 +1236,6 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
       "インポートジョブ",
       "予測器",
       "予測",
-      "エクスポート"
     ]
   },
   {
@@ -1343,8 +1244,6 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
       "イベントタイプ",
       "エンティティタイプ",
       "モデル",
-      "ルール",
-      "変数",
       "ディテクタ",
       "バージョン"
     ]
@@ -1363,10 +1262,6 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
     "terms": [
       "モノ(Thing)",
       "証明書",
-      "ポリシー",
-      "ルール",
-      "トピック",
-      "ジョブ",
       "影(Thing Shadow)"
     ]
   },
@@ -1374,9 +1269,6 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
     "service": "IoT Device Management",
     "terms": [
       "フリートインデックス",
-      "ジョブ",
-      "グループ",
-      "ポリシー"
     ]
   },
   {
@@ -1384,7 +1276,6 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
     "terms": [
       "コンポーネント",
       "デプロイ",
-      "グループ",
       "デバイス"
     ]
   },
@@ -1404,7 +1295,6 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
       "入力",
       "検出器モデル",
       "アラーム",
-      "アクション"
     ]
   },
   {
@@ -1415,7 +1305,6 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
       "測定値",
       "ゲートウェイ",
       "ポータル",
-      "ダッシュボード"
     ]
   },
   {
@@ -1461,7 +1350,6 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
       "ゲームセッション",
       "マッチメイキング設定",
       "ビルド",
-      "キュー"
     ]
   },
   {
@@ -1484,9 +1372,7 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
   {
     "service": "MediaConvert",
     "terms": [
-      "ジョブ",
       "ジョブテンプレート",
-      "キュー",
       "プリセット"
     ]
   },
@@ -1518,8 +1404,6 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
   {
     "service": "MediaTailor",
     "terms": [
-      "設定",
-      "セッション",
       "収益化設定"
     ]
   },
@@ -1543,7 +1427,6 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
     "service": "Elemental Appliances and Software",
     "terms": [
       "アプライアンス",
-      "ジョブ",
       "デバイス"
     ]
   },
@@ -1574,10 +1457,7 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
   {
     "service": "Glue Studio",
     "terms": [
-      "ジョブ",
       "ノード",
-      "接続",
-      "スケジュール"
     ]
   },
   {
@@ -1595,7 +1475,6 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
       "データセット",
       "製品",
       "サブスクリプション",
-      "ジョブ"
     ]
   },
   {
@@ -1610,15 +1489,11 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
     "service": "Budgets",
     "terms": [
       "予算",
-      "アラート",
-      "アクション"
     ]
   },
   {
     "service": "Cost Explorer",
     "terms": [
-      "レポート",
-      "フィルタ",
       "予測"
     ]
   },
@@ -1666,7 +1541,6 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
     "terms": [
       "実験テンプレート",
       "実験",
-      "アクション",
       "ターゲット",
       "停止条件"
     ]
@@ -1691,10 +1565,8 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
   {
     "service": "Chatbot",
     "terms": [
-      "設定",
       "Slackチャネル",
       "Teams設定",
-      "通知"
     ]
   },
   {
@@ -1721,7 +1593,6 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
       "ライセンス設定",
       "ライセンス",
       "トークン",
-      "ルール"
     ]
   },
   {
@@ -1735,8 +1606,6 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
   {
     "service": "Resource Groups",
     "terms": [
-      "グループ",
-      "クエリ",
       "タグエディタ"
     ]
   },
@@ -1752,7 +1621,6 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
     "service": "Resource Explorer",
     "terms": [
       "ビュー",
-      "インデックス",
       "検索"
     ]
   },
@@ -1760,14 +1628,12 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
     "service": "Cloud Control API",
     "terms": [
       "リソースタイプ",
-      "リソース",
       "操作"
     ]
   },
   {
     "service": "CloudWatch Evidently",
     "terms": [
-      "プロジェクト",
       "機能フラグ",
       "起動設定",
       "実験",
@@ -1803,7 +1669,6 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
     "terms": [
       "プロファイリンググループ",
       "エージェント設定",
-      "レポート"
     ]
   },
   {
@@ -1818,7 +1683,6 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
     "terms": [
       "パイプ",
       "ソース",
-      "フィルタ",
       "エンリッチ",
       "ターゲット"
     ]
@@ -1826,7 +1690,6 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
   {
     "service": "EventBridge Scheduler",
     "terms": [
-      "スケジュール",
       "スケジュールグループ"
     ]
   },
@@ -1851,7 +1714,6 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
     "terms": [
       "ビュー",
       "マテリアライズ",
-      "更新"
     ]
   },
   {
@@ -1866,7 +1728,6 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
     "service": "Aurora Serverless",
     "terms": [
       "DBクラスター",
-      "パラメータ",
       "スケーリング設定"
     ]
   },
@@ -1891,14 +1752,12 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
     "terms": [
       "キャッシュ",
       "エンドポイント",
-      "ポリシー"
     ]
   },
   {
     "service": "OpenSearch Serverless",
     "terms": [
       "コレクション",
-      "インデックス",
       "アクセスポリシー",
       "暗号化ポリシー",
       "ネットワークポリシー"
@@ -1917,7 +1776,6 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
     "terms": [
       "キャッシュ",
       "ストレージロケーション",
-      "ポリシー"
     ]
   },
   {
@@ -1939,15 +1797,12 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
   {
     "service": "S3 Batch Operations",
     "terms": [
-      "ジョブ",
       "マニフェスト",
-      "レポート"
     ]
   },
   {
     "service": "S3 Storage Lens",
     "terms": [
-      "ダッシュボード",
       "メトリクスエクスポート",
       "組織設定"
     ]
@@ -1964,7 +1819,6 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
     "service": "EBS Snapshots Archive",
     "terms": [
       "アーカイブスナップショット",
-      "復元"
     ]
   },
   {
@@ -1979,7 +1833,6 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
     "service": "FSx for Windows File Server",
     "terms": [
       "ファイルシステム",
-      "バックアップ",
       "共有"
     ]
   },
@@ -1988,7 +1841,6 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
     "terms": [
       "ファイルシステム",
       "データリポジトリ関連付け",
-      "タスク"
     ]
   },
   {
@@ -2023,7 +1875,6 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
     "service": "Systems Manager AppConfig",
     "terms": [
       "アプリケーション",
-      "環境",
       "設定プロファイル",
       "デプロイ戦略",
       "デプロイ"
@@ -2042,7 +1893,6 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
     "terms": [
       "フリート",
       "ノード",
-      "セッション"
     ]
   },
   {
@@ -2089,7 +1939,6 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
     "service": "EC2 Capacity Reservations",
     "terms": [
       "キャパシティ予約",
-      "グループ",
       "マッチング"
     ]
   },
@@ -2138,7 +1987,6 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
     "terms": [
       "関連付け",
       "IDプロバイダー",
-      "ロール"
     ]
   },
   {
@@ -2146,13 +1994,11 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
     "terms": [
       "クラスター",
       "バンドル",
-      "管理"
     ]
   },
   {
     "service": "Fargate",
     "terms": [
-      "タスク",
       "サービス",
       "実行ロール"
     ]
@@ -2161,7 +2007,6 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
     "service": "Elastic Container Registry Lifecycle",
     "terms": [
       "ライフサイクルポリシー",
-      "ルール",
       "タグ付け"
     ]
   },
@@ -2185,7 +2030,6 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
   {
     "service": "CloudFront Functions",
     "terms": [
-      "関数",
       "公開",
       "関連付け"
     ]
@@ -2193,7 +2037,6 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
   {
     "service": "Lambda@Edge",
     "terms": [
-      "関数",
       "バージョン",
       "CloudFront関連付け"
     ]
@@ -2203,7 +2046,6 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
     "terms": [
       "インバウンドエンドポイント",
       "アウトバウンドエンドポイント",
-      "ルール",
       "ルール関連付け"
     ]
   },
@@ -2214,7 +2056,6 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
       "スコープ",
       "プール",
       "割り当て",
-      "監査"
     ]
   },
   {
@@ -2224,7 +2065,6 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
       "サービスネットワーク",
       "ターゲットグループ",
       "リスナー",
-      "ルール"
     ]
   },
   {
@@ -2234,7 +2074,6 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
       "サイト",
       "デバイス",
       "リンク",
-      "ポリシー"
     ]
   },
   {
@@ -2243,7 +2082,6 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
       "コアネットワーク",
       "セグメント",
       "アタッチメント",
-      "ポリシー"
     ]
   },
   {
@@ -2251,7 +2089,6 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
     "terms": [
       "プロファイル",
       "リソース関連付け",
-      "ルール"
     ]
   },
   {
@@ -2266,7 +2103,6 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
     "terms": [
       "ボットルール",
       "マネージドルール",
-      "アクション"
     ]
   },
   {
@@ -2290,7 +2126,6 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
     "service": "KMS External Key Store(XKS)",
     "terms": [
       "外部キーストア",
-      "接続",
       "キー"
     ]
   },
@@ -2299,13 +2134,11 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
     "terms": [
       "ローテーション設定",
       "Lambda",
-      "スケジュール"
     ]
   },
   {
     "service": "ACM Renewal",
     "terms": [
-      "更新",
       "検証",
       "失効"
     ]
@@ -2323,8 +2156,6 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
     "terms": [
       "インスタンス",
       "トラストプロバイダー",
-      "グループ",
-      "ポリシー"
     ]
   },
   {
@@ -2342,7 +2173,6 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
       "アプリクライアント",
       "ドメイン",
       "トリガー",
-      "グループ"
     ]
   },
   {
@@ -2356,32 +2186,25 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
   {
     "service": "Inspector(新)",
     "terms": [
-      "評価",
       "カバレッジ",
-      "検出結果",
-      "フィルタ"
     ]
   },
   {
     "service": "Macie Classification",
     "terms": [
       "分類ジョブ",
-      "検出結果",
       "例外"
     ]
   },
   {
     "service": "Detective Investigations",
     "terms": [
-      "調査",
       "関連付け",
-      "検出結果"
     ]
   },
   {
     "service": "Security Hub Findings",
     "terms": [
-      "検出結果",
       "集約",
       "自動化ルール"
     ]
@@ -2389,7 +2212,6 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
   {
     "service": "Firewall Manager Policies",
     "terms": [
-      "ポリシー",
       "スコープ",
       "準拠状況"
     ]
@@ -2399,14 +2221,12 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
     "terms": [
       "クラスター",
       "HSMユーザー",
-      "バックアップ"
     ]
   },
   {
     "service": "Config Conformance Packs",
     "terms": [
       "適合パック",
-      "ルール",
       "評価結果"
     ]
   },
@@ -2423,7 +2243,6 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
     "terms": [
       "レコーダー",
       "配信",
-      "監査"
     ]
   },
   {
@@ -2454,7 +2273,6 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
     "terms": [
       "ルールセット",
       "検証",
-      "レポート"
     ]
   },
   {
@@ -2468,7 +2286,6 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
   {
     "service": "Proton",
     "terms": [
-      "環境",
       "環境テンプレート",
       "サービス",
       "サービステンプレート",
@@ -2480,7 +2297,6 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
     "terms": [
       "デプロイ",
       "ワークロード",
-      "設定"
     ]
   },
   {
@@ -2527,7 +2343,6 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
   {
     "service": "CodeStar Connections",
     "terms": [
-      "接続",
       "ホスト",
       "リポジトリ関連付け"
     ]
@@ -2536,10 +2351,8 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
     "service": "CodeCatalyst",
     "terms": [
       "スペース",
-      "プロジェクト",
       "リポジトリ",
       "ワークフロー",
-      "環境",
       "パッケージ"
     ]
   },
@@ -2547,14 +2360,12 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
     "service": "CloudControl",
     "terms": [
       "リソースタイプ",
-      "リソース",
       "オペレーション"
     ]
   },
   {
     "service": "Device Farm",
     "terms": [
-      "プロジェクト",
       "デバイスプール",
       "テスト仕様",
       "実行",
@@ -2602,7 +2413,6 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
       "インスタンス",
       "トラストプロバイダー",
       "アクセスグループ",
-      "ポリシー"
     ]
   },
   {
@@ -2671,7 +2481,6 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
   {
     "service": "Snowcone",
     "terms": [
-      "ジョブ",
       "デバイス",
       "受領確認"
     ]
@@ -2742,7 +2551,6 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
     "terms": [
       "パイプライン",
       "プリセット",
-      "ジョブ"
     ]
   },
   {
@@ -2750,8 +2558,6 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
     "terms": [
       "パイプライン",
       "アクティビティ",
-      "スケジュール",
-      "リソース"
     ]
   },
   {
@@ -2765,9 +2571,7 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
   {
     "service": "EventBridge API Destinations",
     "terms": [
-      "接続",
       "APIデスティネーション",
-      "ルール",
       "ターゲット"
     ]
   },
@@ -2811,7 +2615,6 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
       "メンバー",
       "設定済みテーブル",
       "分析テンプレート",
-      "ルール"
     ]
   },
   {
@@ -2827,8 +2630,6 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
     "service": "DataZone",
     "terms": [
       "ドメイン",
-      "プロジェクト",
-      "環境",
       "データソース",
       "データアセット",
       "共有",
@@ -2869,7 +2670,6 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
       "インスタンス",
       "データ接続",
       "需要計画",
-      "ダッシュボード"
     ]
   },
   {
@@ -2898,7 +2698,6 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
       "ケーステンプレート",
       "フィールド",
       "レイアウト",
-      "ルール"
     ]
   },
   {
@@ -2916,7 +2715,6 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
       "ドメイン",
       "ウォッチリスト",
       "スピーカー",
-      "評価"
     ]
   },
   {
@@ -2924,7 +2722,6 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
     "terms": [
       "ネットワーク",
       "ワークスペース",
-      "ユーザー",
       "ルーム",
       "監査ログ"
     ]
@@ -2933,8 +2730,6 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
     "service": "WorkDocs",
     "terms": [
       "サイト",
-      "ユーザー",
-      "グループ",
       "フォルダ",
       "ドキュメント"
     ]
@@ -2972,7 +2767,6 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
       "アプリインスタンス",
       "チャネル",
       "メンバーシップ",
-      "メッセージ"
     ]
   },
   {
@@ -2980,7 +2774,6 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
     "terms": [
       "配信ダッシュボード",
       "インサイト",
-      "ルール",
       "送信イベント"
     ]
   },
@@ -2997,7 +2790,6 @@ export const AWS_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
     "service": "Mainframe Modernization",
     "terms": [
       "アプリケーション",
-      "環境",
       "ランタイム",
       "デプロイ"
     ]
@@ -5035,7 +4827,6 @@ export const CLOUDFLARE_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
     "terms": [
       "クライアント証明書",
       "CA",
-      "ポリシー",
       "ホスト名対象範囲",
       "検証結果"
     ]
@@ -5088,10 +4879,6 @@ export const CLOUDFLARE_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
   {
     "service": "Analytics",
     "terms": [
-      "ダッシュボード",
-      "フィルタ",
-      "レポート",
-      "メトリクス",
       "データ保持期間"
     ]
   },
@@ -5102,27 +4889,21 @@ export const CLOUDFLARE_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
       "スニペット(Snippet)",
       "イベント(Event)",
       "参照元(Referrer)",
-      "レポート"
     ]
   },
   {
     "service": "Security Analytics",
     "terms": [
-      "イベント",
       "シグナル",
       "攻撃カテゴリ",
       "トレンド",
-      "フィルタ"
     ]
   },
   {
     "service": "GraphQL Analytics API",
     "terms": [
       "データセット",
-      "クエリ",
-      "フィルタ",
       "グルーピング",
-      "メトリクス"
     ]
   },
   {
@@ -5148,9 +4929,7 @@ export const CLOUDFLARE_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
     "service": "Gateway(Zero Trust)",
     "terms": [
       "ポリシー(HTTP/DNS/Network)",
-      "ルール",
       "IDベース制御",
-      "ログ",
       "例外(Allowlist)"
     ]
   },
@@ -5187,9 +4966,7 @@ export const CLOUDFLARE_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
     "service": "RBI(ブラウザ分離)",
     "terms": [
       "分離ポリシー",
-      "セッション",
       "表示モード",
-      "ログ",
       "例外"
     ]
   },
@@ -5197,17 +4974,13 @@ export const CLOUDFLARE_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
     "service": "ZTNA Device Posture",
     "terms": [
       "ポスチャチェック",
-      "ルール",
       "条件(OS/証明書/EDRなど)",
-      "アクション"
     ]
   },
   {
     "service": "CASB(Zero Trust)",
     "terms": [
       "インテグレーション",
-      "ポリシー",
-      "アラート",
       "リメディエーション",
       "監査ログ"
     ]
@@ -5228,7 +5001,6 @@ export const CLOUDFLARE_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
       "サイト",
       "トンネル(IPsec/GRE)",
       "ルーティング",
-      "ポリシー",
       "接続状態"
     ]
   },
@@ -5239,7 +5011,6 @@ export const CLOUDFLARE_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
       "送信元/宛先",
       "ポート",
       "プロトコル",
-      "アクション"
     ]
   },
   {
@@ -5249,7 +5020,6 @@ export const CLOUDFLARE_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
       "IPマッピング",
       "変換方向",
       "優先度",
-      "ログ"
     ]
   },
   {
@@ -5278,7 +5048,6 @@ export const CLOUDFLARE_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
       "Argo設定",
       "スマートルーティング",
       "Tiered Cache関連",
-      "ログ"
     ]
   },
   {
@@ -5287,7 +5056,6 @@ export const CLOUDFLARE_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
       "キャッシュ階層",
       "上位キャッシュ",
       "キャッシュヒット率",
-      "設定"
     ]
   },
   {
@@ -5296,14 +5064,12 @@ export const CLOUDFLARE_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
       "リザーブ設定",
       "バックアップキャッシュ",
       "取得元設定",
-      "監視"
     ]
   },
   {
     "service": "Waiting Room",
     "terms": [
       "待合室(Waiting Room)",
-      "ルール",
       "キュー設定",
       "セッション持続",
       "バイパス"
@@ -5325,8 +5091,6 @@ export const CLOUDFLARE_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
       "モニター",
       "エンドポイント",
       "しきい値",
-      "通知",
-      "履歴"
     ]
   },
   {
@@ -5346,18 +5110,14 @@ export const CLOUDFLARE_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
       "Email Worker(Worker)",
       "ルーティングアクション(Send to Worker)",
       "ロジック",
-      "ログ",
       "ルール連携"
     ]
   },
   {
     "service": "Email Security",
     "terms": [
-      "ポリシー",
       "検知(Phishing/Malware)",
       "例外",
-      "レポート",
-      "アラート"
     ]
   },
   {
@@ -5416,7 +5176,6 @@ export const CLOUDFLARE_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
     "terms": [
       "ジョブ(Job)",
       "データセット(Dataset)",
-      "フィルタ",
       "送信先(Destination)",
       "失敗リトライ"
     ]
@@ -5425,8 +5184,6 @@ export const CLOUDFLARE_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
     "service": "Audit Logs",
     "terms": [
       "監査ログイベント",
-      "フィルタ",
-      "エクスポート",
       "保持期間",
       "参照"
     ]
@@ -5453,18 +5210,14 @@ export const CLOUDFLARE_CONSOLE_GLOSSARY: ReadonlyArray<ConsoleGlossaryRow> = [
   {
     "service": "Account",
     "terms": [
-      "アカウント",
       "メンバー",
-      "ロール",
       "アクセス権",
-      "監査"
     ]
   },
   {
     "service": "Zone",
     "terms": [
       "ゾーン",
-      "設定",
       "プラン",
       "ネームサーバー",
       "ドメイン"
