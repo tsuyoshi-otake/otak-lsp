@@ -14,6 +14,7 @@ import {
   TransportKind,
 } from 'vscode-languageclient/node';
 import * as path from 'path';
+import { SemanticThemeId, SEMANTIC_THEMES } from '../../shared/src/types';
 
 /**
  * サポートする言語タイプ
@@ -62,6 +63,11 @@ let statusBarItem: vscode.StatusBarItem | undefined;
  * 拡張機能の有効/無効状態
  */
 let isEnabled: boolean = true;
+
+/**
+ * 現在のセマンティックテーマID
+ */
+let currentThemeId: SemanticThemeId = 'pastel';
 
 /**
  * ドキュメントセレクターを作成
@@ -206,15 +212,68 @@ function updateStatusBar(enabled: boolean): void {
 
   isEnabled = enabled;
 
+  // MarkdownStringでリッチなツールチップを作成
+  const tooltip = new vscode.MarkdownString();
+  tooltip.isTrusted = true;
+  tooltip.supportHtml = true;
+
   if (enabled) {
     statusBarItem.text = '$(check) otak-lsp: ON';
-    statusBarItem.tooltip = 'otak-lsp - Japanese Grammar Analyzer\n文法チェック・ハイライト有効\nクリックで無効化';
     statusBarItem.backgroundColor = undefined;
+
+    const currentTheme = SEMANTIC_THEMES[currentThemeId];
+    
+    tooltip.appendMarkdown('### otak-lsp\n\n');
+    tooltip.appendMarkdown('Japanese Grammar Analyzer\n\n');
+    tooltip.appendMarkdown(`テーマ: ${currentTheme.name}\n\n`);
+    tooltip.appendMarkdown('---\n\n');
+    tooltip.appendMarkdown('[テーマ設定](command:otakLsp.selectTheme) | [ルール設定](command:workbench.action.openSettings?"otakLsp")\n\n');
   } else {
     statusBarItem.text = '$(circle-slash) otak-lsp: OFF';
-    statusBarItem.tooltip = 'otak-lsp - Japanese Grammar Analyzer\n文法チェック・ハイライト無効\nクリックで有効化';
     statusBarItem.backgroundColor = new vscode.ThemeColor('statusBarItem.warningBackground');
+
+    tooltip.appendMarkdown('### otak-lsp\n\n');
+    tooltip.appendMarkdown('Japanese Grammar Analyzer\n\n');
+    tooltip.appendMarkdown('---\n\n');
+    tooltip.appendMarkdown('[有効化](command:otakLsp.toggle)\n\n');
   }
+
+  statusBarItem.tooltip = tooltip;
+}
+
+/**
+ * セマンティックテーマを適用
+ * @param themeId テーマID
+ */
+async function applySemanticTheme(themeId: SemanticThemeId): Promise<void> {
+  const theme = SEMANTIC_THEMES[themeId];
+  if (!theme) {
+    return;
+  }
+
+  currentThemeId = themeId;
+
+  // VS Codeの設定を更新
+  const config = vscode.workspace.getConfiguration('editor');
+  const currentCustomizations = config.get<Record<string, unknown>>('semanticTokenColorCustomizations') || {};
+
+  const newCustomizations = {
+    ...currentCustomizations,
+    rules: {
+      noun: { foreground: theme.colors.noun },
+      verb: { foreground: theme.colors.verb },
+      adjective: { foreground: theme.colors.adjective },
+      particle: { foreground: theme.colors.particle },
+      adverb: { foreground: theme.colors.adverb }
+    }
+  };
+
+  await config.update('semanticTokenColorCustomizations', newCustomizations, vscode.ConfigurationTarget.Global);
+
+  // ステータスバーを更新
+  updateStatusBar(isEnabled);
+
+  outputChannel?.appendLine(`Semantic theme changed to: ${theme.name}`);
 }
 
 /**
@@ -331,6 +390,43 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     }
   );
   context.subscriptions.push(toggleCommand);
+
+  // コマンド: セマンティックテーマ設定
+  const setThemeCommand = vscode.commands.registerCommand(
+    'otakLsp.setTheme',
+    async (themeId: SemanticThemeId) => {
+      await applySemanticTheme(themeId);
+      const theme = SEMANTIC_THEMES[themeId];
+      vscode.window.setStatusBarMessage(`テーマを「${theme.name}」に変更しました`, 2000);
+    }
+  );
+  context.subscriptions.push(setThemeCommand);
+
+  // コマンド: テーマ選択（QuickPick）
+  const selectThemeCommand = vscode.commands.registerCommand(
+    'otakLsp.selectTheme',
+    async () => {
+      const themeIds: SemanticThemeId[] = ['default', 'pastel', 'vivid', 'monochrome', 'nature'];
+      const items = themeIds.map(id => {
+        const theme = SEMANTIC_THEMES[id];
+        return {
+          label: id === currentThemeId ? `$(check) ${theme.name}` : theme.name,
+          description: theme.description,
+          themeId: id
+        };
+      });
+
+      const selected = await vscode.window.showQuickPick(items, {
+        placeHolder: 'セマンティックハイライトのテーマを選択'
+      });
+
+      if (selected) {
+        await applySemanticTheme(selected.themeId);
+        vscode.window.setStatusBarMessage(`テーマを「${SEMANTIC_THEMES[selected.themeId].name}」に変更しました`, 2000);
+      }
+    }
+  );
+  context.subscriptions.push(selectThemeCommand);
 
   // コマンド: ステータス表示
   const showStatusCommand = vscode.commands.registerCommand(

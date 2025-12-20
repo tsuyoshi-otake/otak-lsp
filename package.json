@@ -2,7 +2,7 @@
   "name": "otak-lsp",
   "displayName": "otak-lsp - Japanese Grammar Analyzer",
   "description": "日本語形態素解析VSCode拡張機能（外部依存なし）。文法チェック、セマンティックハイライト、ホバー情報を提供します。kuromoji.js内蔵でMeCab不要。",
-  "version": "0.7.2",
+  "version": "0.7.7",
   "publisher": "otak-lsp",
   "license": "MIT",
   "repository": {
@@ -50,6 +50,14 @@
       {
         "command": "otakLsp.analyzeCurrentFile",
         "title": "otak-lsp: 現在のファイルを解析"
+      },
+      {
+        "command": "otakLsp.setTheme",
+        "title": "otak-lsp: セマンティックテーマを設定"
+      },
+      {
+        "command": "otakLsp.selectTheme",
+        "title": "otak-lsp: セマンティックテーマを選択"
       }
     ],
     "configuration": {
@@ -684,19 +692,19 @@
         "enabled": true,
         "rules": {
           "noun": {
-            "foreground": "#4EC9B0"
+            "foreground": "#A8D8B9"
           },
           "verb": {
-            "foreground": "#DCDCAA"
+            "foreground": "#F7DC6F"
           },
           "adjective": {
-            "foreground": "#9CDCFE"
+            "foreground": "#AED6F1"
           },
           "particle": {
-            "foreground": "#569CD6"
+            "foreground": "#D7BDE2"
           },
           "adverb": {
-            "foreground": "#C586C0"
+            "foreground": "#F5B7B1"
           }
         }
       }

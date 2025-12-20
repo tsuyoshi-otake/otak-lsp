@@ -387,3 +387,95 @@ export const ErrorCodes = {
 } as const;
 
 export type ErrorCode = typeof ErrorCodes[keyof typeof ErrorCodes];
+
+/**
+ * セマンティックハイライトテーマID
+ */
+export type SemanticThemeId = 'default' | 'pastel' | 'vivid' | 'monochrome' | 'nature';
+
+/**
+ * セマンティックハイライトテーマの色設定
+ */
+export interface SemanticThemeColors {
+  noun: string;
+  verb: string;
+  adjective: string;
+  particle: string;
+  adverb: string;
+}
+
+/**
+ * セマンティックハイライトテーマ
+ */
+export interface SemanticTheme {
+  id: SemanticThemeId;
+  name: string;
+  description: string;
+  colors: SemanticThemeColors;
+}
+
+/**
+ * セマンティックハイライトテーマプリセット
+ */
+export const SEMANTIC_THEMES: Record<SemanticThemeId, SemanticTheme> = {
+  default: {
+    id: 'default',
+    name: 'Default',
+    description: 'VS Code標準に近い配色',
+    colors: {
+      noun: '#4EC9B0',
+      verb: '#DCDCAA',
+      adjective: '#9CDCFE',
+      particle: '#569CD6',
+      adverb: '#C586C0'
+    }
+  },
+  pastel: {
+    id: 'pastel',
+    name: 'Pastel',
+    description: '目に優しいパステルカラー',
+    colors: {
+      noun: '#A8D8B9',
+      verb: '#F7DC6F',
+      adjective: '#AED6F1',
+      particle: '#D7BDE2',
+      adverb: '#F5B7B1'
+    }
+  },
+  vivid: {
+    id: 'vivid',
+    name: 'Vivid',
+    description: '鮮やかで視認性の高い配色',
+    colors: {
+      noun: '#00D4AA',
+      verb: '#FFD700',
+      adjective: '#00BFFF',
+      particle: '#FF6B6B',
+      adverb: '#DA70D6'
+    }
+  },
+  monochrome: {
+    id: 'monochrome',
+    name: 'Monochrome',
+    description: 'グレースケールベースの落ち着いた配色',
+    colors: {
+      noun: '#B0B0B0',
+      verb: '#E0E0E0',
+      adjective: '#909090',
+      particle: '#C8C8C8',
+      adverb: '#A0A0A0'
+    }
+  },
+  nature: {
+    id: 'nature',
+    name: 'Nature',
+    description: '自然をイメージした配色',
+    colors: {
+      noun: '#228B22',
+      verb: '#8B4513',
+      adjective: '#4169E1',
+      particle: '#DAA520',
+      adverb: '#9370DB'
+    }
+  }
+};
