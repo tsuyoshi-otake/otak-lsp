@@ -35,6 +35,7 @@ import { WikipediaClient } from './wikipedia/client';
 import { Configuration, Token, SupportedLanguage } from '../../shared/src/types';
 import { ExcludedRange } from '../../shared/src/markdownFilterTypes';
 import { AdvancedRulesConfig, SentenceSplitMode, WeakExpressionLevel } from '../../shared/src/advancedTypes';
+import { AnalysisState, AnalysisStateManager, createInitialAnalysisState } from './server/languageServer';
 
 // Create connection
 const connection = createConnection(ProposedFeatures.all);
@@ -82,6 +83,18 @@ let configuration: Configuration = {
 
 // Debounce timers
 const debounceTimers: Map<string, NodeJS.Timeout> = new Map();
+
+// Analysis state management (Feature: input-lag-improvement)
+// 要件: 3.1, 3.3 - 各文書URIに対して解析状態を管理
+const analysisStates: AnalysisStateManager = new AnalysisStateManager();
+
+// デバッグログコールバックの設定（Feature: input-lag-improvement タスク7）
+// DEBUG_LOGS有効時に解析状態の変化をログ出力
+if (DEBUG_LOGS) {
+  analysisStates.setDebugLogCallback((message: string) => {
+    connection.console.log(`[DEBUG] ${message}`);
+  });
+}
 
 function computeLineStarts(text: string): number[] {
   const lineStarts: number[] = [0];
@@ -366,6 +379,8 @@ connection.onDidChangeConfiguration(async (change) => {
 
 /**
  * Schedule document analysis with debounce
+ * Feature: input-lag-improvement
+ * 要件: 1.1, 1.3, 3.3 - 解析の直列化と最新要求の優先
  */
 function scheduleAnalysis(document: TextDocument): void {
   if (!configuration.enableGrammarCheck && !configuration.enableSemanticHighlight) {
@@ -373,16 +388,50 @@ function scheduleAnalysis(document: TextDocument): void {
   }
 
   const uri = document.uri;
+  const now = Date.now();
+
+  // 解析状態を更新（最新文書情報と変更時刻を記録）
+  // 要件: 3.3 - 最新の文書情報と変更時刻を記録
+  const currentState = analysisStates.getState(uri);
+  
+  // 要件: 1.1 - 解析が実行中の場合、新しい解析要求を待機状態にする
+  if (currentState.running) {
+    // 実行中の場合は待機状態に設定し、最新の文書情報を記録
+    analysisStates.updateState(uri, {
+      pending: true,
+      latestDocument: document,
+      latestVersion: document.version,
+      lastChangeAt: now,
+    });
+    
+    if (DEBUG_LOGS) {
+      connection.console.log(`[DEBUG] Analysis running for ${uri}, queuing request (version: ${document.version})`);
+    }
+    return;
+  }
+
+  // 要件: 1.3 - 最新の文書状態のみを解析対象とする
+  analysisStates.updateState(uri, {
+    latestDocument: document,
+    latestVersion: document.version,
+    lastChangeAt: now,
+  });
 
   // Clear existing timer
   const existingTimer = debounceTimers.get(uri);
   if (existingTimer) {
     clearTimeout(existingTimer);
+    if (DEBUG_LOGS) {
+      connection.console.log(`[DEBUG] Cleared existing debounce timer for ${uri}`);
+    }
   }
 
   // Set new timer
+  if (DEBUG_LOGS) {
+    connection.console.log(`[DEBUG] Setting debounce timer for ${uri} (delay: ${configuration.debounceDelay}ms, version: ${document.version})`);
+  }
   const timer = setTimeout(() => {
-    analyzeDocument(document);
+    runAnalysis(uri);
     debounceTimers.delete(uri);
   }, configuration.debounceDelay);
 
@@ -390,9 +439,77 @@ function scheduleAnalysis(document: TextDocument): void {
 }
 
 /**
- * Analyze document
+ * Run serialized analysis
+ * Feature: input-lag-improvement
+ * 要件: 1.2, 4.3 - 解析完了後の再スケジューリング
  */
-async function analyzeDocument(document: TextDocument): Promise<void> {
+async function runAnalysis(uri: string): Promise<void> {
+  const state = analysisStates.getState(uri);
+  const document = state.latestDocument;
+  
+  if (!document) {
+    if (DEBUG_LOGS) {
+      connection.console.log(`[DEBUG] No document found for ${uri}, skipping analysis`);
+    }
+    return;
+  }
+
+  // 解析開始: running = true に設定
+  const analysisVersion = state.latestVersion;
+  const analysisChangeAt = state.lastChangeAt;
+  analysisStates.updateState(uri, {
+    running: true,
+    pending: false,
+  });
+
+  if (DEBUG_LOGS) {
+    connection.console.log(`[DEBUG] Starting analysis for ${uri} (version: ${analysisVersion})`);
+  }
+
+  try {
+    // 解析実行（バージョン情報を渡す）
+    await analyzeDocument(document, analysisVersion);
+  } finally {
+    // 解析完了: running = false に設定
+    analysisStates.updateState(uri, { running: false });
+
+    if (DEBUG_LOGS) {
+      connection.console.log(`[DEBUG] Analysis completed for ${uri} (version: ${analysisVersion})`);
+    }
+
+    // 要件: 1.2, 4.3 - 待機中の解析要求があれば次の解析を開始
+    const stateAfterComplete = analysisStates.getState(uri);
+    if (stateAfterComplete.pending) {
+      // 要件: 4.3 - 残り遅延時間を計算してタイマーを設定
+      const elapsed = Date.now() - stateAfterComplete.lastChangeAt;
+      const remainingDelay = Math.max(0, configuration.debounceDelay - elapsed);
+      
+      if (DEBUG_LOGS) {
+        connection.console.log(`[DEBUG] Pending analysis found for ${uri}, rescheduling (remaining delay: ${remainingDelay}ms, pending version: ${stateAfterComplete.latestVersion})`);
+      }
+      
+      // Clear existing timer if any
+      const existingTimer = debounceTimers.get(uri);
+      if (existingTimer) {
+        clearTimeout(existingTimer);
+      }
+
+      const timer = setTimeout(() => {
+        runAnalysis(uri);
+        debounceTimers.delete(uri);
+      }, remainingDelay);
+
+      debounceTimers.set(uri, timer);
+    }
+  }
+}
+
+/**
+ * Analyze document
+ * Feature: input-lag-improvement
+ * 要件: 2.1, 2.2, 2.3, 2.4 - 古い解析結果の破棄
+ */
+async function analyzeDocument(document: TextDocument, analysisVersion?: number): Promise<void> {
   if (!configuration.enableGrammarCheck && !configuration.enableSemanticHighlight) {
     return;
   }
@@ -468,6 +585,10 @@ async function analyzeDocument(document: TextDocument): Promise<void> {
     let grammarTokensList: Token[] | null = configuration.enableGrammarCheck ? allTokens : null;
 
     // Filter tokens that fall within excluded ranges (for Markdown files)
+    // 注: キャッシュ更新は isStale チェック後に行う（要件 2.4）
+    let tokensToCache: Token[] = allTokens;
+    let hoverTokensList: Token[] | null = null;
+    
     if (languageId === 'markdown') {
       if (configuration.enableSemanticHighlight) {
         // セマンティックハイライト用:
@@ -491,7 +612,7 @@ async function analyzeDocument(document: TextDocument): Promise<void> {
           );
         }
 
-        documentTokens.set(uri, semanticTokensList ?? []);
+        tokensToCache = semanticTokensList ?? [];
       } else {
         // セマンティックハイライトが無効でも Hover ではトークンが必要なため保持する。
         // ただし Markdown の除外範囲（URL/コード/構造マーカー等）は Hover でもノイズになるため除外する。
@@ -503,10 +624,10 @@ async function analyzeDocument(document: TextDocument): Promise<void> {
           hoverExcludedRanges = hoverExcludedRanges.filter((r) => r.type !== 'code-block');
         }
 
-        const hoverTokensList = hoverExcludedRanges.length > 0
+        hoverTokensList = hoverExcludedRanges.length > 0
           ? tokenFilter.filterTokens(allTokens, hoverExcludedRanges)
           : allTokens;
-        documentTokens.set(uri, hoverTokensList);
+        tokensToCache = hoverTokensList;
       }
 
       if (configuration.enableGrammarCheck) {
@@ -530,16 +651,9 @@ async function analyzeDocument(document: TextDocument): Promise<void> {
       }
     } else {
       // セマンティックハイライトが無効でも Hover ではトークンが必要なため保持する
-      documentTokens.set(uri, allTokens);
+      tokensToCache = allTokens;
       semanticTokensList = allTokens;
       grammarTokensList = allTokens;
-    }
-    // Store the original text for semantic token generation
-    // (MarkdownFilter uses space replacement, so positions are preserved)
-    documentTexts.set(uri, text);
-    if (configuration.enableSemanticHighlight) {
-      documentLineStarts.set(uri, computeLineStarts(text));
-      documentSemanticTokensCache.delete(uri);
     }
 
     // Grammar check
@@ -596,7 +710,36 @@ async function analyzeDocument(document: TextDocument): Promise<void> {
       }
     }
 
-    // Send diagnostics
+    // 要件: 2.1, 2.2, 2.3, 2.4 - 解析完了時に文書バージョンが変更されている場合、結果を破棄
+    const currentState = analysisStates.getState(uri);
+    const isStale = analysisVersion !== undefined && currentState.latestVersion > analysisVersion;
+    
+    if (isStale) {
+      if (DEBUG_LOGS) {
+        connection.console.log(`[DEBUG] Discarding stale analysis result for ${uri} (analysis version: ${analysisVersion}, current version: ${currentState.latestVersion})`);
+      }
+      // 古い結果は破棄（キャッシュ更新・診断送信・セマンティック更新を行わない）
+      // 要件: 2.2 - 診断情報の送信を行わない
+      // 要件: 2.3 - セマンティックハイライトの更新を行わない
+      // 要件: 2.4 - キャッシュの更新を行わない
+      return;
+    }
+
+    // 要件: 2.4 - 最新の結果のみキャッシュを更新
+    // Store tokens for hover and semantic highlighting
+    documentTokens.set(uri, tokensToCache);
+    // Store the original text for semantic token generation
+    // (MarkdownFilter uses space replacement, so positions are preserved)
+    documentTexts.set(uri, text);
+    if (languageId === 'markdown') {
+      documentExcludedRanges.set(uri, excludedRanges);
+    }
+    if (configuration.enableSemanticHighlight) {
+      documentLineStarts.set(uri, computeLineStarts(text));
+      documentSemanticTokensCache.delete(uri);
+    }
+
+    // 要件: 2.2 - 最新の結果のみ診断情報を送信
     if (DEBUG_LOGS) {
       connection.console.log(`[DEBUG] Sending ${diagnostics.length} diagnostics`);
     }
@@ -659,6 +802,8 @@ documents.onDidChangeContent((change) => {
 
 /**
  * Document closed
+ * Feature: input-lag-improvement
+ * 要件: 3.2 - 文書クローズ時に解析状態を削除
  */
 documents.onDidClose((event) => {
   const uri = event.document.uri;
@@ -669,7 +814,14 @@ documents.onDidClose((event) => {
   if (timer) {
     clearTimeout(timer);
     debounceTimers.delete(uri);
+    if (DEBUG_LOGS) {
+      connection.console.log(`[DEBUG] Cleared debounce timer on document close for ${uri}`);
+    }
   }
+
+  // Clear analysis state (要件: 3.2)
+  // デバッグログはAnalysisStateManager内で出力される
+  analysisStates.deleteState(uri);
 
   // Clear cache
   documentTokens.delete(uri);
@@ -677,6 +829,10 @@ documents.onDidClose((event) => {
   documentExcludedRanges.delete(uri);
   documentLineStarts.delete(uri);
   documentSemanticTokensCache.delete(uri);
+
+  if (DEBUG_LOGS) {
+    connection.console.log(`[DEBUG] Cleared all caches for ${uri}`);
+  }
 
   // Clear diagnostics
   connection.sendDiagnostics({ uri, diagnostics: [] });
@@ -762,3 +918,104 @@ documents.listen(connection);
 connection.listen();
 
 connection.console.log('otak-lsp Language Server started');
+
+/**
+ * 漢字の読み方を取得する
+ * @param char 漢字文字（複数文字の場合は最初の文字のみ処理）
+ * @returns 読み方の配列（漢字でない場合は空配列）
+ */
+export function getKanjiReadings(char: string): string[] {
+  // 空文字列の場合は空配列を返す
+  if (!char || char.length === 0) {
+    return [];
+  }
+
+  // 最初の文字のみを処理
+  const firstChar = char.charAt(0);
+  const codePoint = firstChar.codePointAt(0);
+
+  // 漢字の範囲をチェック（CJK統合漢字: U+4E00-U+9FFF）
+  if (codePoint === undefined || codePoint < 0x4E00 || codePoint > 0x9FFF) {
+    return [];
+  }
+
+  // 基本的な漢字の読み方データ（一部の常用漢字）
+  const kanjiReadings: Record<string, string[]> = {
+    '日': ['ニチ', 'ジツ', 'ひ', 'か'],
+    '月': ['ゲツ', 'ガツ', 'つき'],
+    '火': ['カ', 'ひ', 'ほ'],
+    '水': ['スイ', 'みず'],
+    '木': ['モク', 'ボク', 'き', 'こ'],
+    '金': ['キン', 'コン', 'かね', 'かな'],
+    '土': ['ド', 'ト', 'つち'],
+    '山': ['サン', 'やま'],
+    '川': ['セン', 'かわ'],
+    '田': ['デン', 'た'],
+    '人': ['ジン', 'ニン', 'ひと'],
+    '口': ['コウ', 'ク', 'くち'],
+    '目': ['モク', 'ボク', 'め', 'ま'],
+    '手': ['シュ', 'て', 'た'],
+    '足': ['ソク', 'あし', 'た'],
+    '本': ['ホン', 'もと'],
+    '文': ['ブン', 'モン', 'ふみ'],
+    '字': ['ジ', 'あざ'],
+    '学': ['ガク', 'まな'],
+    '校': ['コウ'],
+    '先': ['セン', 'さき'],
+    '生': ['セイ', 'ショウ', 'い', 'う', 'は', 'なま'],
+    '年': ['ネン', 'とし'],
+    '大': ['ダイ', 'タイ', 'おお'],
+    '小': ['ショウ', 'ちい', 'こ', 'お'],
+    '中': ['チュウ', 'なか'],
+    '上': ['ジョウ', 'ショウ', 'うえ', 'うわ', 'かみ', 'あ', 'のぼ'],
+    '下': ['カ', 'ゲ', 'した', 'しも', 'もと', 'さ', 'くだ', 'お'],
+    '左': ['サ', 'ひだり'],
+    '右': ['ウ', 'ユウ', 'みぎ'],
+    '男': ['ダン', 'ナン', 'おとこ', 'お'],
+    '女': ['ジョ', 'ニョ', 'ニョウ', 'おんな', 'め'],
+    '子': ['シ', 'ス', 'こ'],
+    '父': ['フ', 'ちち'],
+    '母': ['ボ', 'はは'],
+    '王': ['オウ'],
+    '玉': ['ギョク', 'たま'],
+    '国': ['コク', 'くに'],
+    '花': ['カ', 'はな'],
+    '草': ['ソウ', 'くさ'],
+    '虫': ['チュウ', 'むし'],
+    '犬': ['ケン', 'いぬ'],
+    '空': ['クウ', 'そら', 'あ', 'から'],
+    '雨': ['ウ', 'あめ', 'あま'],
+    '天': ['テン', 'あめ', 'あま'],
+    '気': ['キ', 'ケ'],
+    '夕': ['セキ', 'ゆう'],
+    '名': ['メイ', 'ミョウ', 'な'],
+    '音': ['オン', 'イン', 'おと', 'ね'],
+    '休': ['キュウ', 'やす'],
+    '見': ['ケン', 'み'],
+    '早': ['ソウ', 'サッ', 'はや'],
+    '耳': ['ジ', 'みみ'],
+    '出': ['シュツ', 'スイ', 'で', 'だ'],
+    '入': ['ニュウ', 'い', 'はい'],
+    '立': ['リツ', 'リュウ', 'た'],
+    '正': ['セイ', 'ショウ', 'ただ', 'まさ'],
+    '白': ['ハク', 'ビャク', 'しろ', 'しら'],
+    '赤': ['セキ', 'シャク', 'あか'],
+    '青': ['セイ', 'ショウ', 'あお'],
+    '百': ['ヒャク'],
+    '千': ['セン', 'ち'],
+    '万': ['マン', 'バン', 'よろず'],
+    '円': ['エン', 'まる'],
+    '力': ['リョク', 'リキ', 'ちから'],
+    '林': ['リン', 'はやし'],
+    '森': ['シン', 'もり'],
+    '石': ['セキ', 'シャク', 'コク', 'いし'],
+    '竹': ['チク', 'たけ'],
+    '糸': ['シ', 'いと'],
+    '貝': ['バイ', 'かい'],
+    '車': ['シャ', 'くるま'],
+    '町': ['チョウ', 'まち'],
+    '村': ['ソン', 'むら'],
+  };
+
+  return kanjiReadings[firstChar] || [];
+}

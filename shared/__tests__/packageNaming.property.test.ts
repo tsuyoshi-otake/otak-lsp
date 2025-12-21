@@ -32,8 +32,8 @@ describe('パッケージ名リファクタリング - プロパティテスト'
       expect(packageJson.name).toBe('otak-lsp');
     });
 
-    it('表示名は「otak-lsp - Japanese Grammar Analyzer」形式である', () => {
-      expect(packageJson.displayName).toBe('otak-lsp - Japanese Grammar Analyzer');
+    it('表示名は「otak-lsp」形式である', () => {
+      expect(packageJson.displayName).toBe('otak-lsp');
     });
 
     it('表示名は「otak-lsp」で始まる', () => {
