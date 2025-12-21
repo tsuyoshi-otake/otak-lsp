@@ -32,6 +32,13 @@ export class MarkdownFilter implements IMarkdownFilter {
   private static readonly INLINE_CODE_PRESERVE_IN_TABLE_REGEX =
     /[\u3040-\u30FF\u3400-\u4DBF\u4E00-\u9FFF\u3005\uFF10-\uFF19\uFF21-\uFF3A\uFF41-\uFF5A]/;
 
+  /**
+   * 日本語文字を判定する正規表現
+   * ひらがな・カタカナ・漢字・半角カナを含む
+   */
+  private static readonly JAPANESE_CHAR_REGEX =
+    /[\u3040-\u30FF\u3400-\u4DBF\u4E00-\u9FFF\uF900-\uFAFF\uFF65-\uFF9F]/;
+
   constructor(config?: FilterConfig) {
     this.config = config ? { ...DEFAULT_FILTER_CONFIG, ...config } : { ...DEFAULT_FILTER_CONFIG };
   }
@@ -41,6 +48,15 @@ export class MarkdownFilter implements IMarkdownFilter {
     maxDepth: number = Number.POSITIVE_INFINITY
   ): { strippedLine: string; depth: number; strippedLength: number } {
     return stripMarkdownBlockquotePrefixShared(line, maxDepth);
+  }
+
+  /**
+   * テキストに日本語文字が含まれているかを判定
+   * @param text 判定対象のテキスト
+   * @returns 日本語文字が含まれている場合はtrue
+   */
+  private containsJapanese(text: string): boolean {
+    return MarkdownFilter.JAPANESE_CHAR_REGEX.test(text);
   }
 
   /**
@@ -1117,16 +1133,19 @@ export class MarkdownFilter implements IMarkdownFilter {
       const openingLine = segment.slice(0, firstNewlineIndex);
       const sanitizedOpening = sanitizeCodeFenceLanguageSpecLine(openingLine);
 
-      if (config.preserveCodeBlockContent) {
-        return sanitizedOpening + segment.slice(firstNewlineIndex);
-      }
-
+      // 日本語を含まないコードブロックは preserveCodeBlockContent に関係なくマスクする
       const lastNewlineIndex = segment.lastIndexOf('\n');
       if (lastNewlineIndex === firstNewlineIndex) {
         return sanitizedOpening + segment.slice(firstNewlineIndex);
       }
 
       const contentRegion = segment.slice(firstNewlineIndex + 1, lastNewlineIndex + 1);
+      const hasJapanese = this.containsJapanese(contentRegion);
+
+      if (config.preserveCodeBlockContent && hasJapanese) {
+        return sanitizedOpening + segment.slice(firstNewlineIndex);
+      }
+
       const maskedContent = maskPreservingNewlines(contentRegion);
       return sanitizedOpening + '\n' + maskedContent + segment.slice(lastNewlineIndex + 1);
     };

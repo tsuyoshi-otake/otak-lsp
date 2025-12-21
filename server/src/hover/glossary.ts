@@ -1205,6 +1205,7 @@ const BASE_GLOSSARIES: ReadonlyArray<GlossaryDefinition> = [
       { term: 'otakLsp.enableSemanticHighlight', aliases: ['enableSemanticHighlight', '.enableSemanticHighlight'], description: '品詞ベースのセマンティックハイライト機能の有効/無効。' },
       { term: 'otakLsp.excludeTableDelimiters', aliases: ['excludeTableDelimiters', '.excludeTableDelimiters'], description: 'Markdownテーブルの区切り記号（|---|）をハイライト対象に含めるかの設定。' },
       { term: 'otakLsp.debounceDelay', aliases: ['debounceDelay'], description: 'テキスト編集後に解析を開始するまでの遅延時間（ミリ秒）。' },
+      { term: 'otakLsp.enableProfileLogs', aliases: ['enableProfileLogs'], description: '解析パイプラインの計測ログを出力する設定（開発者向け）。' },
       { term: 'otakLsp.targetLanguages', aliases: ['targetLanguages'], description: '解析対象とする言語IDの一覧。' },
       { term: 'otakLsp.showStatus', aliases: ['showStatus', '.showStatus'], description: '拡張コマンド。言語サーバの状態を表示する。' },
       { term: 'otakLsp.markdown.analyzeTables', description: 'Markdownテーブル内も文法チェック対象にする設定。' },

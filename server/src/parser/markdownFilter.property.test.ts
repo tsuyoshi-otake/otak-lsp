@@ -541,4 +541,151 @@ describe('Property-Based Tests: Markdown Filter', () => {
       );
     });
   });
+
+  /**
+   * Feature: codeblock-non-japanese-skip, Property 6: 日本語を含まないコードブロックの自動スキップ
+   * 任意のコードブロックにおいて、日本語文字（ひらがな・カタカナ・漢字・半角カナ）が含まれない場合、
+   * preserveCodeBlockContent設定に関係なく内容がマスクされる
+   * Validates: Requirements 2.2, 2.3
+   */
+  describe('Property 6: 日本語を含まないコードブロックの自動スキップ', () => {
+    it('should mask non-Japanese code blocks regardless of preserveCodeBlockContent setting', () => {
+      fc.assert(
+        fc.property(
+          fc.boolean(),
+          fc.string({ minLength: 1, maxLength: 50 }).filter(
+            (s) => !s.includes('`') && 
+                   !/[\u3040-\u30FF\u3400-\u4DBF\u4E00-\u9FFF\uF900-\uFAFF\uFF65-\uFF9F]/.test(s)
+          ),
+          (preserveCodeBlockContent, nonJapaneseContent) => {
+            if (nonJapaneseContent.trim().length === 0) return true;
+
+            const text = `\`\`\`\n${nonJapaneseContent}\n\`\`\``;
+            const result = filter.filter(text, {
+              ...DEFAULT_FILTER_CONFIG,
+              preserveCodeBlockContent
+            });
+
+            // 日本語を含まないコードブロックは設定に関係なくマスクされる
+            expect(result.excludedRanges.some((r) => r.type === 'code-block')).toBe(true);
+            expect(result.filteredText).not.toContain(nonJapaneseContent);
+            expect(result.filteredText.length).toBe(text.length);
+          }
+        ),
+        { numRuns: 30 }
+      );
+    });
+
+    it('should preserve Japanese code blocks when preserveCodeBlockContent is true', () => {
+      fc.assert(
+        fc.property(
+          fc.oneof(
+            fc.string({ minLength: 1, maxLength: 20 }).map(s => `ひらがな${s}`),
+            fc.string({ minLength: 1, maxLength: 20 }).map(s => `カタカナ${s}`),
+            fc.string({ minLength: 1, maxLength: 20 }).map(s => `漢字${s}`),
+            fc.string({ minLength: 1, maxLength: 20 }).map(s => `ｶﾀｶﾅ${s}`)
+          ).filter((s) => !s.includes('`')),
+          (japaneseContent) => {
+            const text = `\`\`\`\n${japaneseContent}\n\`\`\``;
+            const result = filter.filter(text, {
+              ...DEFAULT_FILTER_CONFIG,
+              preserveCodeBlockContent: true
+            });
+
+            // 日本語を含むコードブロックは preserveCodeBlockContent=true で保持される
+            expect(result.excludedRanges.some((r) => r.type === 'code-block')).toBe(true);
+            expect(result.filteredText).toContain(japaneseContent);
+            expect(result.filteredText.length).toBe(text.length);
+          }
+        ),
+        { numRuns: 30 }
+      );
+    });
+
+    it('should mask all code blocks when preserveCodeBlockContent is false', () => {
+      fc.assert(
+        fc.property(
+          fc.oneof(
+            // 日本語を含むコンテンツ
+            fc.string({ minLength: 1, maxLength: 20 }).map(s => `ひらがな${s}`),
+            // 日本語を含まないコンテンツ
+            fc.string({ minLength: 1, maxLength: 20 }).filter(
+              (s) => !/[\u3040-\u30FF\u3400-\u4DBF\u4E00-\u9FFF\uF900-\uFAFF\uFF65-\uFF9F]/.test(s)
+            )
+          ).filter((s) => !s.includes('`') && s.trim().length > 0),
+          (content) => {
+            const text = `\`\`\`\n${content}\n\`\`\``;
+            const result = filter.filter(text, {
+              ...DEFAULT_FILTER_CONFIG,
+              preserveCodeBlockContent: false
+            });
+
+            // preserveCodeBlockContent=false では日本語の有無に関係なくマスクされる
+            expect(result.excludedRanges.some((r) => r.type === 'code-block')).toBe(true);
+            expect(result.filteredText).not.toContain(content);
+            expect(result.filteredText.length).toBe(text.length);
+          }
+        ),
+        { numRuns: 30 }
+      );
+    });
+
+    it('should correctly detect Japanese characters in mixed content', () => {
+      fc.assert(
+        fc.property(
+          fc.string({ minLength: 1, maxLength: 20 }).filter(
+            (s) => !s.includes('`') && 
+                   !/[\u3040-\u30FF\u3400-\u4DBF\u4E00-\u9FFF\uF900-\uFAFF\uFF65-\uFF9F]/.test(s)
+          ),
+          fc.oneof(
+            fc.constant('ひらがな'),
+            fc.constant('カタカナ'),
+            fc.constant('漢字'),
+            fc.constant('ｶﾀｶﾅ')
+          ),
+          (englishContent, japaneseContent) => {
+            if (englishContent.trim().length === 0) return true;
+
+            const mixedContent = `${englishContent} ${japaneseContent}`;
+            const text = `\`\`\`\n${mixedContent}\n\`\`\``;
+            const result = filter.filter(text, {
+              ...DEFAULT_FILTER_CONFIG,
+              preserveCodeBlockContent: true
+            });
+
+            // 日本語が含まれているので保持される
+            expect(result.filteredText).toContain(japaneseContent);
+            expect(result.filteredText).toContain(englishContent);
+            expect(result.filteredText.length).toBe(text.length);
+          }
+        ),
+        { numRuns: 30 }
+      );
+    });
+
+    it('should handle Unicode characters that are not Japanese', () => {
+      fc.assert(
+        fc.property(
+          fc.oneof(
+            fc.constant('🚀🎉🌟'), // 絵文字
+            fc.constant('Émojis'), // アクセント付き文字
+            fc.constant('Ñoël'),   // その他のUnicode文字
+            fc.constant('Москва')  // キリル文字
+          ),
+          (unicodeContent) => {
+            const text = `\`\`\`\n${unicodeContent}\n\`\`\``;
+            const result = filter.filter(text, {
+              ...DEFAULT_FILTER_CONFIG,
+              preserveCodeBlockContent: true
+            });
+
+            // 日本語以外のUnicode文字は日本語として扱われない
+            expect(result.filteredText).not.toContain(unicodeContent);
+            expect(result.filteredText.length).toBe(text.length);
+          }
+        ),
+        { numRuns: 30 }
+      );
+    });
+  });
 });

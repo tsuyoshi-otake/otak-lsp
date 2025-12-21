@@ -1,0 +1,16 @@
+{
+  "name": "analysis-pipeline-profiling",
+  "description": "解析パイプラインの各処理時間を計測し、ルール評価の比率を可視化する",
+  "language": "ja",
+  "phases": {
+    "requirements": {
+      "status": "approved"
+    },
+    "design": {
+      "status": "approved"
+    },
+    "tasks": {
+      "status": "approved"
+    }
+  }
+}

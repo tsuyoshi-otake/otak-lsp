@@ -1,0 +1,16 @@
+{
+  "name": "codeblock-non-japanese-skip",
+  "description": "日本語を含まないコードブロックの解析を自動でスキップする",
+  "language": "ja",
+  "phases": {
+    "requirements": {
+      "status": "approved"
+    },
+    "design": {
+      "status": "approved"
+    },
+    "tasks": {
+      "status": "draft"
+    }
+  }
+}

@@ -400,6 +400,253 @@ describe('Code Block Exclusion (Task 3.1)', () => {
       expect(result.filteredText).toContain('これも日本語です');
     });
   });
+
+  describe('Japanese detection in code blocks', () => {
+    it('should mask code block without Japanese even when preserveCodeBlockContent is true', () => {
+      const text = '```javascript\nconst x = 1;\nconsole.log(x);\n```';
+      const result = filter.filter(text, {
+        ...DEFAULT_FILTER_CONFIG,
+        preserveCodeBlockContent: true
+      });
+
+      expect(result.excludedRanges.some((r) => r.type === 'code-block')).toBe(true);
+      expect(result.filteredText).not.toContain('const x');
+      expect(result.filteredText).not.toContain('console.log');
+      expect(result.filteredText.length).toBe(text.length);
+    });
+
+    it('should preserve code block with Japanese when preserveCodeBlockContent is true', () => {
+      const text = '```javascript\n// これはコメントです\nconst x = 1;\n```';
+      const result = filter.filter(text, {
+        ...DEFAULT_FILTER_CONFIG,
+        preserveCodeBlockContent: true
+      });
+
+      expect(result.excludedRanges.some((r) => r.type === 'code-block')).toBe(true);
+      expect(result.filteredText).toContain('これはコメントです');
+      expect(result.filteredText.length).toBe(text.length);
+    });
+
+    it('should mask code block with Japanese when preserveCodeBlockContent is false', () => {
+      const text = '```javascript\n// これはコメントです\nconst x = 1;\n```';
+      const result = filter.filter(text, {
+        ...DEFAULT_FILTER_CONFIG,
+        preserveCodeBlockContent: false
+      });
+
+      expect(result.excludedRanges.some((r) => r.type === 'code-block')).toBe(true);
+      expect(result.filteredText).not.toContain('これはコメントです');
+      expect(result.filteredText).not.toContain('const x');
+      expect(result.filteredText.length).toBe(text.length);
+    });
+
+    it('should detect hiragana in code blocks', () => {
+      const text = '```\nひらがな\n```';
+      const result = filter.filter(text, {
+        ...DEFAULT_FILTER_CONFIG,
+        preserveCodeBlockContent: true
+      });
+
+      expect(result.filteredText).toContain('ひらがな');
+    });
+
+    it('should detect katakana in code blocks', () => {
+      const text = '```\nカタカナ\n```';
+      const result = filter.filter(text, {
+        ...DEFAULT_FILTER_CONFIG,
+        preserveCodeBlockContent: true
+      });
+
+      expect(result.filteredText).toContain('カタカナ');
+    });
+
+    it('should detect kanji in code blocks', () => {
+      const text = '```\n漢字\n```';
+      const result = filter.filter(text, {
+        ...DEFAULT_FILTER_CONFIG,
+        preserveCodeBlockContent: true
+      });
+
+      expect(result.filteredText).toContain('漢字');
+    });
+
+    it('should detect half-width katakana in code blocks', () => {
+      const text = '```\nｶﾀｶﾅ\n```';
+      const result = filter.filter(text, {
+        ...DEFAULT_FILTER_CONFIG,
+        preserveCodeBlockContent: true
+      });
+
+      expect(result.filteredText).toContain('ｶﾀｶﾅ');
+    });
+
+    it('should mask code block with only English text', () => {
+      const text = '```\nHello World\n```';
+      const result = filter.filter(text, {
+        ...DEFAULT_FILTER_CONFIG,
+        preserveCodeBlockContent: true
+      });
+
+      expect(result.filteredText).not.toContain('Hello World');
+      expect(result.filteredText.length).toBe(text.length);
+    });
+
+    it('should mask code block with only numbers and symbols', () => {
+      const text = '```\n12345 + 67890\n```';
+      const result = filter.filter(text, {
+        ...DEFAULT_FILTER_CONFIG,
+        preserveCodeBlockContent: true
+      });
+
+      expect(result.filteredText).not.toContain('12345');
+      expect(result.filteredText.length).toBe(text.length);
+    });
+  });
+
+  /**
+   * Task 3: 日本語を含まないコードブロックの解析スキップのテスト
+   * 要件: 2.2, 2.3
+   */
+  describe('Non-Japanese code block skipping (Task 3)', () => {
+    it('should mask non-Japanese code blocks even when analyzeCodeBlocks is true', () => {
+      const text = '```python\ndef hello():\n    print("Hello")\n```';
+      const result = filter.filter(text, {
+        ...DEFAULT_FILTER_CONFIG,
+        preserveCodeBlockContent: true // analyzeCodeBlocks=trueに相当
+      });
+
+      // 日本語を含まないコードブロックはマスクされる
+      expect(result.excludedRanges.some((r) => r.type === 'code-block')).toBe(true);
+      expect(result.filteredText).not.toContain('def hello');
+      expect(result.filteredText).not.toContain('print("Hello")');
+      expect(result.filteredText.length).toBe(text.length);
+    });
+
+    it('should preserve Japanese code blocks when analyzeCodeBlocks is true', () => {
+      const text = '```python\n# 挨拶関数\ndef hello():\n    print("こんにちは")\n```';
+      const result = filter.filter(text, {
+        ...DEFAULT_FILTER_CONFIG,
+        preserveCodeBlockContent: true // analyzeCodeBlocks=trueに相当
+      });
+
+      // 日本語を含むコードブロックは保持される
+      expect(result.excludedRanges.some((r) => r.type === 'code-block')).toBe(true);
+      expect(result.filteredText).toContain('挨拶関数');
+      expect(result.filteredText).toContain('こんにちは');
+      expect(result.filteredText.length).toBe(text.length);
+    });
+
+    it('should mask all code blocks when analyzeCodeBlocks is false regardless of Japanese content', () => {
+      const japaneseText = '```python\n# 挨拶関数\ndef hello():\n    print("こんにちは")\n```';
+      const englishText = '```python\ndef hello():\n    print("Hello")\n```';
+
+      const japaneseResult = filter.filter(japaneseText, {
+        ...DEFAULT_FILTER_CONFIG,
+        preserveCodeBlockContent: false // analyzeCodeBlocks=falseに相当
+      });
+
+      const englishResult = filter.filter(englishText, {
+        ...DEFAULT_FILTER_CONFIG,
+        preserveCodeBlockContent: false // analyzeCodeBlocks=falseに相当
+      });
+
+      // どちらもマスクされる
+      expect(japaneseResult.filteredText).not.toContain('挨拶関数');
+      expect(japaneseResult.filteredText).not.toContain('こんにちは');
+      expect(englishResult.filteredText).not.toContain('def hello');
+      expect(englishResult.filteredText).not.toContain('print("Hello")');
+    });
+
+    it('should handle mixed content code blocks correctly', () => {
+      const text = '```javascript\n// 日本語コメント\nconst message = "Hello World";\nconsole.log(message);\n```';
+      const result = filter.filter(text, {
+        ...DEFAULT_FILTER_CONFIG,
+        preserveCodeBlockContent: true
+      });
+
+      // 日本語が含まれているので保持される
+      expect(result.filteredText).toContain('日本語コメント');
+      expect(result.filteredText).toContain('const message');
+      expect(result.filteredText.length).toBe(text.length);
+    });
+
+    it('should handle inline code blocks with Japanese detection', () => {
+      const nonJapaneseInline = 'Use `console.log()` for debugging';
+      const japaneseInline = 'Use `デバッグ` for debugging';
+
+      const nonJapaneseResult = filter.filter(nonJapaneseInline);
+      const japaneseResult = filter.filter(japaneseInline);
+
+      // インラインコードは通常通り除外される（日本語判定は主にフェンスコードブロック用）
+      expect(nonJapaneseResult.excludedRanges.some((r) => r.type === 'inline-code')).toBe(true);
+      expect(japaneseResult.excludedRanges.some((r) => r.type === 'inline-code')).toBe(true);
+    });
+
+    it('should handle multiple code blocks with different Japanese content', () => {
+      const text = `前の文章
+
+\`\`\`python
+# English comment
+def function1():
+    pass
+\`\`\`
+
+中間の文章
+
+\`\`\`javascript
+// 日本語のコメント
+function function2() {
+    return "値";
+}
+\`\`\`
+
+後の文章`;
+
+      const result = filter.filter(text, {
+        ...DEFAULT_FILTER_CONFIG,
+        preserveCodeBlockContent: true
+      });
+
+      // 日本語を含まないコードブロックはマスクされる
+      expect(result.filteredText).not.toContain('def function1');
+      expect(result.filteredText).not.toContain('pass');
+
+      // 日本語を含むコードブロックは保持される
+      expect(result.filteredText).toContain('日本語のコメント');
+      expect(result.filteredText).toContain('function function2');
+
+      // 周囲のテキストは保持される
+      expect(result.filteredText).toContain('前の文章');
+      expect(result.filteredText).toContain('中間の文章');
+      expect(result.filteredText).toContain('後の文章');
+    });
+
+    it('should handle edge case with only whitespace and punctuation in code blocks', () => {
+      const text = '```\n   \n  .,;!?\n   \n```';
+      const result = filter.filter(text, {
+        ...DEFAULT_FILTER_CONFIG,
+        preserveCodeBlockContent: true
+      });
+
+      // 日本語を含まないのでマスクされる
+      expect(result.excludedRanges.some((r) => r.type === 'code-block')).toBe(true);
+      expect(result.filteredText).not.toContain('.,;!?');
+      expect(result.filteredText.length).toBe(text.length);
+    });
+
+    it('should handle code blocks with Unicode characters that are not Japanese', () => {
+      const text = '```\n// Émojis: 🚀 🎉\nconst emoji = "🌟";\n```';
+      const result = filter.filter(text, {
+        ...DEFAULT_FILTER_CONFIG,
+        preserveCodeBlockContent: true
+      });
+
+      // 日本語以外のUnicode文字は日本語として扱われない
+      expect(result.filteredText).not.toContain('🚀');
+      expect(result.filteredText).not.toContain('const emoji');
+      expect(result.filteredText.length).toBe(text.length);
+    });
+  });
 });
 
 /**

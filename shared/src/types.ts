@@ -337,6 +337,8 @@ export interface Configuration {
   enableSemanticHighlight: boolean;
   /** テーブル内のセマンティックハイライト（旧動作に戻す場合はfalse） */
   excludeTableDelimiters: boolean;
+  /** 解析パイプラインの計測ログを有効にする */
+  enableProfileLogs: boolean;
   /** Markdown関連設定 */
   markdown: {
     /** Markdownのコードブロック（```）内も文法チェック対象にする */

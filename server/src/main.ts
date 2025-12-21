@@ -41,6 +41,48 @@ import { AnalysisState, AnalysisStateManager, createInitialAnalysisState } from 
 const connection = createConnection(ProposedFeatures.all);
 
 const DEBUG_LOGS = process.env.OTAK_LCP_DEBUG === '1';
+const PROFILE_LOGS_ENV = process.env.OTAK_LCP_PROFILE === '1';
+
+type ProfileStep = {
+  name: string;
+  ms: number;
+  meta?: string;
+};
+
+function formatMs(ms: number): string {
+  return `${ms.toFixed(1)}ms`;
+}
+
+function formatPercent(value: number): string {
+  return `${value.toFixed(1)}%`;
+}
+
+function logProfileBlock(
+  title: string,
+  headerMeta: string,
+  steps: ProfileStep[],
+  totalMs: number
+): void {
+  if (!isProfileLogsEnabled()) {
+    return;
+  }
+
+  connection.console.log(`[PROFILE] ${title} ${headerMeta} total=${formatMs(totalMs)}`);
+
+  if (steps.length === 0) {
+    return;
+  }
+
+  for (const step of steps) {
+    const ratio = totalMs > 0 ? (step.ms / totalMs) * 100 : 0;
+    const meta = step.meta ? ` ${step.meta}` : '';
+    connection.console.log(`  ${step.name}=${formatMs(step.ms)} (${formatPercent(ratio)})${meta}`);
+  }
+}
+
+function isProfileLogsEnabled(): boolean {
+  return configuration.enableProfileLogs || PROFILE_LOGS_ENV;
+}
 
 // Create document manager
 const documents: TextDocuments<TextDocument> = new TextDocuments(TextDocument);
@@ -68,6 +110,7 @@ let configuration: Configuration = {
   enableGrammarCheck: true,
   enableSemanticHighlight: true,
   excludeTableDelimiters: true,
+  enableProfileLogs: false,
   markdown: {
     analyzeCodeBlocks: true,
     analyzeTables: true,
@@ -220,6 +263,7 @@ function applyBaseConfigFromSettings(settings: unknown): void {
   const enableGrammarCheck = getSetting(settings, 'enableGrammarCheck');
   const enableSemanticHighlight = getSetting(settings, 'enableSemanticHighlight');
   const excludeTableDelimiters = getSetting(settings, 'excludeTableDelimiters');
+  const enableProfileLogs = getSetting(settings, 'enableProfileLogs');
   const analyzeCodeBlocks = getSetting(settings, 'markdown.analyzeCodeBlocks');
   const analyzeTables = getSetting(settings, 'markdown.analyzeTables');
   const targetLanguages = getSetting(settings, 'targetLanguages');
@@ -233,6 +277,7 @@ function applyBaseConfigFromSettings(settings: unknown): void {
     enableGrammarCheck: typeof enableGrammarCheck === 'boolean' ? enableGrammarCheck : configuration.enableGrammarCheck,
     enableSemanticHighlight: typeof enableSemanticHighlight === 'boolean' ? enableSemanticHighlight : configuration.enableSemanticHighlight,
     excludeTableDelimiters: typeof excludeTableDelimiters === 'boolean' ? excludeTableDelimiters : configuration.excludeTableDelimiters,
+    enableProfileLogs: typeof enableProfileLogs === 'boolean' ? enableProfileLogs : configuration.enableProfileLogs,
     markdown: {
       ...configuration.markdown,
       analyzeCodeBlocks: typeof analyzeCodeBlocks === 'boolean' ? analyzeCodeBlocks : configuration.markdown.analyzeCodeBlocks,
@@ -514,9 +559,21 @@ async function analyzeDocument(document: TextDocument, analysisVersion?: number)
     return;
   }
 
+  const profileEnabled = isProfileLogsEnabled();
+  const profileSteps: ProfileStep[] = [];
+  const analysisStart = profileEnabled ? Date.now() : 0;
+  const recordStep = (name: string, start: number, meta?: string): void => {
+    if (!profileEnabled) {
+      return;
+    }
+    profileSteps.push({ name, ms: Date.now() - start, meta });
+  };
+
   const uri = document.uri;
   const text = document.getText();
   const languageId = document.languageId as SupportedLanguage;
+  let analyzedTokenCount = 0;
+  let diagnosticsCount = 0;
 
   if (DEBUG_LOGS) {
     connection.console.log(`[DEBUG] Analyzing document: ${uri}`);
@@ -545,12 +602,14 @@ async function analyzeDocument(document: TextDocument, analysisVersion?: number)
       }
     } else if (languageId === 'markdown') {
       // Apply markdown filtering to exclude code blocks, URLs, table delimiters, etc.
+      const markdownStart = profileEnabled ? Date.now() : 0;
       const filterResult = markdownFilter.filter(textToAnalyze, {
         ...markdownFilter.getConfig(),
         preserveCodeBlockContent: configuration.markdown.analyzeCodeBlocks,
       });
       textToAnalyze = filterResult.filteredText;
       excludedRanges = filterResult.excludedRanges;
+      recordStep('Markdownフィルタ', markdownStart, `除外=${excludedRanges.length}`);
 
       documentExcludedRanges.set(uri, excludedRanges);
       if (DEBUG_LOGS) {
@@ -576,10 +635,13 @@ async function analyzeDocument(document: TextDocument, analysisVersion?: number)
     if (DEBUG_LOGS) {
       connection.console.log(`[DEBUG] Starting morphological analysis...`);
     }
+    const mecabStart = profileEnabled ? Date.now() : 0;
     const allTokens = await mecabAnalyzer.analyze(textToAnalyze);
+    recordStep('形態素解析', mecabStart, `tokens=${allTokens.length}`);
     if (DEBUG_LOGS) {
       connection.console.log(`[DEBUG] Analysis complete, ${allTokens.length} tokens found`);
     }
+    analyzedTokenCount = allTokens.length;
 
     let semanticTokensList: Token[] | null = configuration.enableSemanticHighlight ? allTokens : null;
     let grammarTokensList: Token[] | null = configuration.enableGrammarCheck ? allTokens : null;
@@ -590,6 +652,7 @@ async function analyzeDocument(document: TextDocument, analysisVersion?: number)
     let hoverTokensList: Token[] | null = null;
     
     if (languageId === 'markdown') {
+      const tokenFilterStart = profileEnabled ? Date.now() : 0;
       if (configuration.enableSemanticHighlight) {
         // セマンティックハイライト用:
         // - table: 既定では table 範囲を除外せずにセル内テキストを残す
@@ -649,6 +712,7 @@ async function analyzeDocument(document: TextDocument, analysisVersion?: number)
           );
         }
       }
+      recordStep('トークンフィルタ', tokenFilterStart);
     } else {
       // セマンティックハイライトが無効でも Hover ではトークンが必要なため保持する
       tokensToCache = allTokens;
@@ -663,7 +727,9 @@ async function analyzeDocument(document: TextDocument, analysisVersion?: number)
       if (DEBUG_LOGS) {
         connection.console.log(`[DEBUG] Running basic grammar check...`);
       }
+      const basicStart = profileEnabled ? Date.now() : 0;
       const grammarDiagnostics = grammarChecker.check(grammarTokensList ?? [], textToAnalyze);
+      recordStep('基本ルール評価', basicStart, `件数=${grammarDiagnostics.length}`);
       if (DEBUG_LOGS) {
         connection.console.log(`[DEBUG] Basic grammar check found ${grammarDiagnostics.length} issues`);
       }
@@ -686,11 +752,13 @@ async function analyzeDocument(document: TextDocument, analysisVersion?: number)
       if (DEBUG_LOGS) {
         connection.console.log(`[DEBUG] Running advanced grammar check...`);
       }
+      const advancedStart = profileEnabled ? Date.now() : 0;
       const advancedDiagnostics = languageId === 'markdown'
         ? advancedRulesManager.checkText(textToAnalyze, grammarTokensList ?? [], excludedRanges, {
           analyzeTables: configuration.markdown.analyzeTables,
         })
         : advancedRulesManager.checkText(textToAnalyze, grammarTokensList ?? []);
+      recordStep('高度ルール評価', advancedStart, `件数=${advancedDiagnostics.length}`);
       if (DEBUG_LOGS) {
         connection.console.log(`[DEBUG] Advanced grammar check found ${advancedDiagnostics.length} issues`);
       }
@@ -718,6 +786,15 @@ async function analyzeDocument(document: TextDocument, analysisVersion?: number)
       if (DEBUG_LOGS) {
         connection.console.log(`[DEBUG] Discarding stale analysis result for ${uri} (analysis version: ${analysisVersion}, current version: ${currentState.latestVersion})`);
       }
+      if (profileEnabled) {
+        const totalMs = Date.now() - analysisStart;
+        logProfileBlock(
+          '解析',
+          `uri=${uri} version=${analysisVersion ?? document.version} stale=true tokens=${analyzedTokenCount} diagnostics=${diagnostics.length}`,
+          profileSteps,
+          totalMs
+        );
+      }
       // 古い結果は破棄（キャッシュ更新・診断送信・セマンティック更新を行わない）
       // 要件: 2.2 - 診断情報の送信を行わない
       // 要件: 2.3 - セマンティックハイライトの更新を行わない
@@ -743,6 +820,7 @@ async function analyzeDocument(document: TextDocument, analysisVersion?: number)
     if (DEBUG_LOGS) {
       connection.console.log(`[DEBUG] Sending ${diagnostics.length} diagnostics`);
     }
+    const notifyStart = profileEnabled ? Date.now() : 0;
     connection.sendDiagnostics({ uri, diagnostics });
 
     // Request semantic tokens refresh
@@ -753,6 +831,17 @@ async function analyzeDocument(document: TextDocument, analysisVersion?: number)
       connection.sendRequest('workspace/semanticTokens/refresh').catch(() => {
         // Client might not support this request
       });
+    }
+    if (profileEnabled) {
+      recordStep('診断/セマンティック更新', notifyStart, `diagnostics=${diagnostics.length}`);
+      diagnosticsCount = diagnostics.length;
+      const totalMs = Date.now() - analysisStart;
+      logProfileBlock(
+        '解析',
+        `uri=${uri} version=${analysisVersion ?? document.version} stale=false tokens=${analyzedTokenCount} diagnostics=${diagnosticsCount}`,
+        profileSteps,
+        totalMs
+      );
     }
   } catch (error) {
     connection.console.error(`[ERROR] Analysis failed for ${uri}: ${error}`);
@@ -899,13 +988,32 @@ connection.onRequest(
 
     const cached = documentSemanticTokensCache.get(uri);
     if (cached && cached.tokens === tokens && cached.lineStarts === lineStarts) {
+      if (isProfileLogsEnabled()) {
+        logProfileBlock(
+          'セマンティックトークン',
+          `uri=${uri} tokens=${tokens.length} cache=hit`,
+          [],
+          0
+        );
+      }
       return cached.semanticTokens;
     }
 
+    const profileEnabled = isProfileLogsEnabled();
+    const semanticStart = profileEnabled ? Date.now() : 0;
     const semanticTokens = semanticTokenProvider.provideSemanticTokens(tokens, text, lineStarts);
     documentSemanticTokensCache.set(uri, { tokens, lineStarts, semanticTokens });
     if (DEBUG_LOGS) {
       connection.console.log(`[DEBUG] Semantic tokens data length: ${semanticTokens.data.length}`);
+    }
+    if (profileEnabled) {
+      const totalMs = Date.now() - semanticStart;
+      logProfileBlock(
+        'セマンティックトークン',
+        `uri=${uri} tokens=${tokens.length} cache=miss`,
+        [{ name: '生成', ms: totalMs }],
+        totalMs
+      );
     }
     return semanticTokens;
   }

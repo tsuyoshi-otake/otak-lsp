@@ -387,6 +387,7 @@
 | `otakLsp.markdown.analyzeTables` | Markdownのテーブル（\|...\|）内も文法チェック対象にする | `true` |
 | `otakLsp.targetLanguages` | 解析対象のファイルタイプ | `["markdown", "javascript", ...]` |
 | `otakLsp.debounceDelay` | 解析のデバウンス遅延（ミリ秒） | `250` |
+| `otakLsp.enableProfileLogs` | 解析パイプラインの計測ログを出力（開発者向け） | `false` |
 | `otakLsp.hover.enableWikipedia` | ホバーにWikipediaサマリーを表示 | `true` |
 | `otakLsp.hover.enableGlossary` | ホバーに用語図鑑（オフライン）を表示（Wikipediaの下に表示） | `true` |
 | `otakLsp.hover.enabledGlossaries` | ホバーで表示する用語図鑑カテゴリ（デフォルトは全カテゴリ） | `["it", "cloud", ...]` |
