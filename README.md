@@ -8,7 +8,7 @@
 - **軽量**: 純粋なJavaScript実装
 - **高度な文法チェック**: 文体統一、ら抜き言葉、技術用語表記など16種類のルールをサポート
 
-![alt text](images/01.png)
+![otak-lsp セマンティックハイライト例](https://raw.githubusercontent.com/tsuyoshi-otake/otak-lsp/main/images/01.png)
 
 ## 主な機能
 
