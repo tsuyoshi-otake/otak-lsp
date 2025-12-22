@@ -70,7 +70,11 @@ import {
   PronounMixRule,
   HeadingLevelSkipRule,
   TableColumnMismatchRule,
-  CodeBlockLanguageRule
+  CodeBlockLanguageRule,
+  // Official Document Rules (Feature: official-document-rules)
+  OyobiNarabiniRule,
+  MatawaWakushikuwaRule,
+  JouyouKanjiRule
 } from './rules';
 
 /**
@@ -484,7 +488,11 @@ export class AdvancedRulesManager {
       new PronounMixRule(),
       new HeadingLevelSkipRule(),
       new TableColumnMismatchRule(),
-      new CodeBlockLanguageRule()
+      new CodeBlockLanguageRule(),
+      // Official Document Rules (Feature: official-document-rules)
+      new OyobiNarabiniRule(),
+      new MatawaWakushikuwaRule(),
+      new JouyouKanjiRule()
     ];
   }
 

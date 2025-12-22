@@ -47,6 +47,7 @@ export class ConfigurationManager {
     return {
       enableGrammarCheck: true,
       enableSemanticHighlight: true,
+      enableProfileLogs: false,
       excludeTableDelimiters: true,
       markdown: {
         analyzeCodeBlocks: true,

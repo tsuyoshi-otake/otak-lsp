@@ -66,3 +66,8 @@ export { PronounMixRule } from './pronounMixRule';
 export { HeadingLevelSkipRule } from './headingLevelSkipRule';
 export { TableColumnMismatchRule } from './tableColumnMismatchRule';
 export { CodeBlockLanguageRule } from './codeBlockLanguageRule';
+
+// Official Document Rules (Feature: official-document-rules)
+export { OyobiNarabiniRule } from './oyobiNarabiniRule';
+export { MatawaWakushikuwaRule } from './matawaWakushikuwaRule';
+export { JouyouKanjiRule } from './jouyouKanjiRule';

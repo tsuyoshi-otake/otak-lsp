@@ -63,7 +63,11 @@ export type AdvancedGrammarErrorType =
   | 'pronoun-mix'
   | 'heading-level-skip'
   | 'table-column-mismatch'
-  | 'code-block-language';
+  | 'code-block-language'
+  // Feature: official-document-rules（公文書表記ルール）
+  | 'oyobi-narabini'      // 及び/並びに使い分け
+  | 'matawa-wakushikuwa'  // 又は/若しくは使い分け
+  | 'jouyou-kanji';       // 常用漢字外検出
 
 /**
  * 文体タイプ
@@ -504,6 +508,12 @@ export interface AdvancedRulesConfig {
   enableTableColumnMismatch: boolean;
   enableCodeBlockLanguage: boolean;
 
+  // 公文書ルール（Feature: official-document-rules）
+  enableOyobiNarabini: boolean;
+  enableMatawaWakushikuwa: boolean;
+  enableJouyouKanji: boolean;
+  excludeProperNounsFromJouyouKanji: boolean;
+
   // 技術用語辞典の有効/無効
   enableWebTechDictionary: boolean;
   enableGenerativeAIDictionary: boolean;
@@ -599,6 +609,13 @@ export const DEFAULT_ADVANCED_RULES_CONFIG: AdvancedRulesConfig = {
   enableHeadingLevelSkip: true,
   enableTableColumnMismatch: true,
   enableCodeBlockLanguage: true,
+
+  // 公文書ルール（Feature: official-document-rules）
+  // デフォルトでは無効（要件 4.4）、固有名詞除外は有効（要件 4.5）
+  enableOyobiNarabini: false,
+  enableMatawaWakushikuwa: false,
+  enableJouyouKanji: false,
+  excludeProperNounsFromJouyouKanji: true,
 
   // 技術用語辞典はすべて有効
   enableWebTechDictionary: true,

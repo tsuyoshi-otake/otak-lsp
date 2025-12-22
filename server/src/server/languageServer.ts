@@ -274,6 +274,7 @@ export class LanguageServer {
     return {
       enableGrammarCheck: true,
       enableSemanticHighlight: true,
+      enableProfileLogs: false,
       markdown: {
         analyzeCodeBlocks: false,
         analyzeTables: true,

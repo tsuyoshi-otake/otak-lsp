@@ -254,8 +254,43 @@ function applyAdvancedConfigFromSettings(settings: unknown): void {
     patch.sentenceSplitMode = legacySentenceSplitMode;
   }
 
+  // 公文書ルールの設定を読み込み（Feature: official-document-rules）
+  // 要件: 4.2, 4.3 - VSCode設定（otakLsp.official.*）から設定を読み込み、即座に反映
+  applyOfficialConfigFromSettings(settings, patch);
+
   if (Object.keys(patch).length > 0) {
     advancedRulesManager.updateConfig(patch);
+  }
+}
+
+/**
+ * 公文書ルールの設定を読み込む
+ * Feature: official-document-rules
+ * 要件: 4.2, 4.3 - VSCode設定（otakLsp.official.*）から設定を読み込み、即座に反映
+ */
+function applyOfficialConfigFromSettings(settings: unknown, patch: Partial<AdvancedRulesConfig>): void {
+  // 「及び/並びに」使い分けチェック
+  const enableOyobiNarabini = getSetting(settings, 'official.enableOyobiNarabini');
+  if (typeof enableOyobiNarabini === 'boolean') {
+    patch.enableOyobiNarabini = enableOyobiNarabini;
+  }
+
+  // 「又は/若しくは」使い分けチェック
+  const enableMatawaWakushikuwa = getSetting(settings, 'official.enableMatawaWakushikuwa');
+  if (typeof enableMatawaWakushikuwa === 'boolean') {
+    patch.enableMatawaWakushikuwa = enableMatawaWakushikuwa;
+  }
+
+  // 常用漢字外検出
+  const enableJouyouKanji = getSetting(settings, 'official.enableJouyouKanji');
+  if (typeof enableJouyouKanji === 'boolean') {
+    patch.enableJouyouKanji = enableJouyouKanji;
+  }
+
+  // 固有名詞除外オプション
+  const excludeProperNounsFromJouyouKanji = getSetting(settings, 'official.excludeProperNounsFromJouyouKanji');
+  if (typeof excludeProperNounsFromJouyouKanji === 'boolean') {
+    patch.excludeProperNounsFromJouyouKanji = excludeProperNounsFromJouyouKanji;
   }
 }
 
@@ -300,9 +335,10 @@ function applyBaseConfigFromSettings(settings: unknown): void {
 
 async function getWorkspaceOtakLspSettings(): Promise<unknown> {
   try {
-    const [base, advanced] = await Promise.all([
+    const [base, advanced, official] = await Promise.all([
       connection.workspace.getConfiguration({ section: 'otakLsp' } as any),
       connection.workspace.getConfiguration({ section: 'otakLsp.advanced' } as any),
+      connection.workspace.getConfiguration({ section: 'otakLsp.official' } as any),
     ]);
 
     if (base && typeof base === 'object') {
@@ -314,10 +350,18 @@ async function getWorkspaceOtakLspSettings(): Promise<unknown> {
           ...(advanced as Record<string, unknown>),
         };
       }
+      // 公文書ルールの設定をマージ（Feature: official-document-rules）
+      if (official && typeof official === 'object') {
+        const baseOfficial = getSetting(merged, 'official');
+        merged.official = {
+          ...(baseOfficial && typeof baseOfficial === 'object' ? (baseOfficial as Record<string, unknown>) : {}),
+          ...(official as Record<string, unknown>),
+        };
+      }
       return merged;
     }
 
-    return { advanced };
+    return { advanced, official };
   } catch (error) {
     connection.console.error(`[ERROR] Failed to load workspace configuration: ${error}`);
     return undefined;

@@ -28,17 +28,18 @@ describe('Japanese Grammar Evals', () => {
       expect(result.detectionRate).toBeGreaterThanOrEqual(DETECTION_RATE_THRESHOLD);
     });
 
-    it('should have 54 total categories (44 original + 10 new from evals-ng-pattern-expansion)', () => {
-      expect(result.totalCategories).toBe(54);
+    it('should have 57 total categories (44 original + 10 new from evals-ng-pattern-expansion + 3 official-document-rules)', () => {
+      expect(result.totalCategories).toBe(57);
     });
 
-    it('should have all 54 categories implemented', () => {
-      expect(result.implementedCategories).toBe(54);
+    it('should have all 57 categories implemented', () => {
+      expect(result.implementedCategories).toBe(57);
     });
   });
 
   describe('Implemented Categories', () => {
     // 実装済みカテゴリの検出テスト
+    // 注意: Evalsでは全ルール（公文書ルール含む）が有効化されている
     const implementedCategories = getImplementedCategories();
 
     describe.each(implementedCategories.map(c => [c.name, c.id, c]))(
@@ -51,6 +52,21 @@ describe('Japanese Grammar Evals', () => {
           // 少なくとも1つは検出されるべき
           expect(catResult!.detected).toBeGreaterThan(0);
         });
+      }
+    );
+  });
+
+  describe('Official Document Rules', () => {
+    // 公文書ルールはEvalsでは有効化されている
+    const officialDocumentRules = ['oyobi-narabini', 'matawa-wakushikuwa', 'jouyou-kanji'];
+
+    it.each(officialDocumentRules)(
+      '%s should detect at least one example',
+      async (ruleId) => {
+        const catResult = result.categories.find(c => c.categoryId === ruleId);
+        expect(catResult).toBeDefined();
+        // Evalsでは有効化されているので検出されるべき
+        expect(catResult!.detected).toBeGreaterThan(0);
       }
     );
   });
@@ -113,7 +129,7 @@ describe('Japanese Grammar Evals', () => {
   describe('Summary Output', () => {
     it('should generate summary without errors', () => {
       expect(result.timestamp).toBeDefined();
-      expect(result.categories.length).toBe(54);
+      expect(result.categories.length).toBe(57);
     });
 
     it('should have valid detection counts', () => {

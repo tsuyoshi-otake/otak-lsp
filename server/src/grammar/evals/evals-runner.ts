@@ -68,7 +68,11 @@ import {
   PronounMixRule,
   HeadingLevelSkipRule,
   TableColumnMismatchRule,
-  CodeBlockLanguageRule
+  CodeBlockLanguageRule,
+  // Official Document Rules (Feature: official-document-rules)
+  OyobiNarabiniRule,
+  MatawaWakushikuwaRule,
+  JouyouKanjiRule
 } from '../rules';
 import { SentenceParser } from '../sentenceParser';
 import {
@@ -269,6 +273,10 @@ export class EvalsRunner {
     this.advancedRules.set('heading-level-skip', new HeadingLevelSkipRule());
     this.advancedRules.set('table-column-mismatch', new TableColumnMismatchRule());
     this.advancedRules.set('code-block-language', new CodeBlockLanguageRule());
+    // Official Document Rules (Feature: official-document-rules)
+    this.advancedRules.set('oyobi-narabini', new OyobiNarabiniRule());
+    this.advancedRules.set('matawa-wakushikuwa', new MatawaWakushikuwaRule());
+    this.advancedRules.set('jouyou-kanji', new JouyouKanjiRule());
   }
 
   /**
@@ -389,7 +397,11 @@ export class EvalsRunner {
       sentences,
       config: {
         ...DEFAULT_ADVANCED_RULES_CONFIG,
-        enableParticleRepetition: true
+        enableParticleRepetition: true,
+        // Official Document Rules (Evals用に有効化)
+        enableOyobiNarabini: true,
+        enableMatawaWakushikuwa: true,
+        enableJouyouKanji: true
       }
     };
 
@@ -466,7 +478,7 @@ export class EvalsRunner {
       'style-inconsistency': ['style-inconsistency'],
       'ra-nuki': ['ra-nuki'],
       'double-negation': ['double-negation'],
-      'particle-repetition': ['particle-repetition'],
+      'particle-repetition': ['particle-repetition', 'no-particle-chain'], // 「の」連続は no-particle-chain で検出
       'conjunction-repetition': ['conjunction-repetition'],
       'adversative-ga': ['adversative-ga'],
       'alphabet-width': ['alphabet-width'],
@@ -517,7 +529,11 @@ export class EvalsRunner {
       'pronoun-mix': ['pronoun-mix'],
       'heading-level-skip': ['heading-level-skip'],
       'table-column-mismatch': ['table-column-mismatch'],
-      'code-block-language': ['code-block-language']
+      'code-block-language': ['code-block-language'],
+      // Official Document Rules (Feature: official-document-rules)
+      'oyobi-narabini': ['oyobi-narabini'],
+      'matawa-wakushikuwa': ['matawa-wakushikuwa'],
+      'jouyou-kanji': ['jouyou-kanji']
     };
 
     const expectedRules = ruleAliases[expectedRule] || [expectedRule];

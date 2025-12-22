@@ -1,16 +1,16 @@
 # Japanese Grammar Evals Report
 
-Generated: 2025-12-18
+Generated: 2025-12-22
 
 ## Summary
 
 | Metric | Value |
 |--------|-------|
-| Total Categories | 54 |
-| Implemented Categories | 54 (100%) |
-| Total Examples | 143 |
+| Total Categories | 57 |
+| Implemented Categories | 57 (100%) |
+| Total Examples | 163 |
 | Detected Examples | 142 |
-| Detection Rate | 99% |
+| Detection Rate | 87% |
 
 ## Category Results
 
@@ -70,6 +70,9 @@ Generated: 2025-12-18
 | 見出しレベルの飛び | PASS | 3 | 3 | 100% |
 | テーブル列数の不一致 | PASS | 3 | 3 | 100% |
 | コードブロック言語指定の欠落 | PASS | 3 | 3 | 100% |
+| 「及び/並びに」使い分け | FAIL | 0 | 6 | 0% |
+| 「又は/若しくは」使い分け | FAIL | 0 | 6 | 0% |
+| 常用漢字外使用 | FAIL | 0 | 8 | 0% |
 
 ## Implemented Categories
 
@@ -346,6 +349,50 @@ Generated: 2025-12-18
 
 - Status: PASS
 - Detection Rate: 100% (3/3)
+
+### 「及び/並びに」使い分け (oyobi-narabini)
+
+- Status: FAIL
+- Detection Rate: 0% (0/6)
+
+**Failed Examples:**
+
+- `A並びにBを確認する`
+- `書類並びに資料を提出してください`
+- `報告書並びに議事録を作成する`
+- `A、B及びCを確認する`
+- `甲、乙及び丙の三者で協議する`
+- `設計、開発及びテストを実施する`
+
+### 「又は/若しくは」使い分け (matawa-wakushikuwa)
+
+- Status: FAIL
+- Detection Rate: 0% (0/6)
+
+**Failed Examples:**
+
+- `A若しくはBを選択する`
+- `電話若しくはメールで連絡してください`
+- `承認若しくは却下を決定する`
+- `A、B又はCを選択する`
+- `赤、青又は緑のいずれかを選ぶ`
+- `月曜、水曜又は金曜に実施する`
+
+### 常用漢字外使用 (jouyou-kanji)
+
+- Status: FAIL
+- Detection Rate: 0% (0/8)
+
+**Failed Examples:**
+
+- `斡旋を依頼する`
+- `挨拶をする`
+- `曖昧な表現を避ける`
+- `進捗状況を報告する`
+- `齟齬が生じた`
+- `瑕疵がある`
+- `躊躇する`
+- `顛末を説明する`
 
 ## Not Implemented Categories
 

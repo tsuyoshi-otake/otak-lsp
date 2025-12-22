@@ -635,6 +635,30 @@
           "default": true,
           "description": "コードブロック言語指定欠落検出の有効/無効（言語指定のないコードブロックを検出）",
           "scope": "resource"
+        },
+        "otakLsp.official.enableOyobiNarabini": {
+          "type": "boolean",
+          "default": false,
+          "description": "公文書ルール：「及び/並びに」使い分けチェックの有効/無効（公用文作成の考え方に基づく）",
+          "scope": "resource"
+        },
+        "otakLsp.official.enableMatawaWakushikuwa": {
+          "type": "boolean",
+          "default": false,
+          "description": "公文書ルール：「又は/若しくは」使い分けチェックの有効/無効（公用文作成の考え方に基づく）",
+          "scope": "resource"
+        },
+        "otakLsp.official.enableJouyouKanji": {
+          "type": "boolean",
+          "default": false,
+          "description": "公文書ルール：常用漢字外検出の有効/無効（常用漢字表に基づく）",
+          "scope": "resource"
+        },
+        "otakLsp.official.excludeProperNounsFromJouyouKanji": {
+          "type": "boolean",
+          "default": true,
+          "description": "公文書ルール：常用漢字外検出で固有名詞（人名・地名・組織名）を除外する",
+          "scope": "resource"
         }
       }
     },

@@ -813,6 +813,100 @@ export const NG_EXAMPLE_CATEGORIES: NGExampleCategory[] = [
       { text: '```\ndef hello():\n    pass\n```', correctText: '```python\ndef hello():\n    pass\n```', description: 'Pythonコードの言語指定欠落' },
       { text: '```\nSELECT * FROM users;\n```', correctText: '```sql\nSELECT * FROM users;\n```', description: 'SQLコードの言語指定欠落' }
     ]
+  },
+
+  // ==========================================
+  // Feature: official-document-rules
+  // 公文書表記ルール
+  // ==========================================
+
+  // 55. 「及び/並びに」使い分け
+  {
+    id: 'oyobi-narabini',
+    name: '「及び/並びに」使い分け',
+    description: '公用文における「及び」「並びに」の使い分けルール',
+    expectedRule: 'oyobi-narabini',
+    status: 'IMPLEMENTED',
+    examples: [
+      { text: 'A並びにBを確認する', correctText: 'A及びBを確認する', description: '「並びに」の単独使用（「及び」なし）' },
+      { text: '書類並びに資料を提出してください', correctText: '書類及び資料を提出してください', description: '「並びに」の単独使用' },
+      { text: '報告書並びに議事録を作成する', correctText: '報告書及び議事録を作成する', description: '「並びに」の単独使用' },
+      { text: 'A、B及びCを確認する', description: '3つ以上の要素を「及び」のみで並列（「並びに」の使用を提案）' },
+      { text: '甲、乙及び丙の三者で協議する', description: '3つ以上の要素を「及び」のみで並列' },
+      { text: '設計、開発及びテストを実施する', description: '3つ以上の要素を「及び」のみで並列' }
+    ]
+  },
+
+  // 56. 「又は/若しくは」使い分け
+  {
+    id: 'matawa-wakushikuwa',
+    name: '「又は/若しくは」使い分け',
+    description: '公用文における「又は」「若しくは」の使い分けルール',
+    expectedRule: 'matawa-wakushikuwa',
+    status: 'IMPLEMENTED',
+    examples: [
+      { text: 'A若しくはBを選択する', correctText: 'A又はBを選択する', description: '「若しくは」の単独使用（「又は」なし）' },
+      { text: '電話若しくはメールで連絡してください', correctText: '電話又はメールで連絡してください', description: '「若しくは」の単独使用' },
+      { text: '承認若しくは却下を決定する', correctText: '承認又は却下を決定する', description: '「若しくは」の単独使用' },
+      { text: 'A、B又はCを選択する', description: '3つ以上の選択肢を「又は」のみで並列（「若しくは」の使用を提案）' },
+      { text: '赤、青又は緑のいずれかを選ぶ', description: '3つ以上の選択肢を「又は」のみで並列' },
+      { text: '月曜、水曜又は金曜に実施する', description: '3つ以上の選択肢を「又は」のみで並列' }
+    ]
+  },
+
+  // 57. 常用漢字外使用
+  {
+    id: 'jouyou-kanji',
+    name: '常用漢字外使用',
+    description: '常用漢字表にない漢字の使用',
+    expectedRule: 'jouyou-kanji',
+    status: 'IMPLEMENTED',
+    examples: [
+      // 基本的な常用漢字外（8例）
+      { text: '斡旋を依頼する', correctText: 'あっせんを依頼する', description: '「斡」は常用漢字外' },
+      { text: '繋がりを大切にする', correctText: 'つながりを大切にする', description: '「繋」は常用漢字外' },
+      { text: '嘘をつかない', correctText: 'うそをつかない', description: '「嘘」は常用漢字外' },
+      { text: '噂が広まる', correctText: 'うわさが広まる', description: '「噂」は常用漢字外' },
+      { text: '齟齬が生じた', correctText: 'そごが生じた', description: '「齟」「齬」は常用漢字外' },
+      { text: '瑕疵がある', correctText: 'かしがある', description: '「瑕」「疵」は常用漢字外' },
+      { text: '躊躇する', correctText: 'ちゅうちょする', description: '「躊」「躇」は常用漢字外' },
+      { text: '顛末を説明する', correctText: 'てんまつを説明する', description: '「顛」は常用漢字外' },
+      // 日常生活で使われる常用漢字外（16例）
+      { text: '呟きを投稿する', correctText: 'つぶやきを投稿する', description: '「呟」は常用漢字外' },
+      { text: '絆を深める', correctText: 'きずなを深める', description: '「絆」は常用漢字外' },
+      { text: '罠にかかる', correctText: 'わなにかかる', description: '「罠」は常用漢字外' },
+      { text: '靄がかかる', correctText: 'もやがかかる', description: '「靄」は常用漢字外' },
+      { text: '鰯を焼く', correctText: 'いわしを焼く', description: '「鰯」は常用漢字外' },
+      { text: '鯛を釣る', correctText: 'たいを釣る', description: '「鯛」は常用漢字外' },
+      { text: '鷹が飛ぶ', correctText: 'たかが飛ぶ', description: '「鷹」は常用漢字外' },
+      { text: '麹で作る', correctText: 'こうじで作る', description: '「麹」は常用漢字外' },
+      { text: '齧り付く', correctText: 'かじり付く', description: '「齧」は常用漢字外' },
+      { text: '鑛山で働く', correctText: '鉱山で働く', description: '「鑛」は「鉱」の旧字体' },
+      { text: '眩しい光', correctText: 'まぶしい光', description: '「眩」は常用漢字外' },
+      { text: '皺が増えた', correctText: 'しわが増えた', description: '「皺」は常用漢字外' },
+      { text: '痒い場所', correctText: 'かゆい場所', description: '「痒」は常用漢字外' },
+      { text: '歪んだ形', correctText: 'ゆがんだ形', description: '「歪」は常用漢字外' },
+      { text: '溜まった水', correctText: 'たまった水', description: '「溜」は常用漢字外' },
+      { text: '掴む力', correctText: 'つかむ力', description: '「掴」は常用漢字外' },
+      // ビジネス・公文書で使われる常用漢字外（8例）
+      { text: '贅沢な暮らし', correctText: 'ぜいたくな暮らし', description: '「贅」は常用漢字外' },
+      { text: '稀な事例', correctText: 'まれな事例', description: '「稀」は常用漢字外' },
+      { text: '煽る発言', correctText: 'あおる発言', description: '「煽」は常用漢字外' },
+      { text: '牽引する', correctText: 'けんいんする', description: '「牽」は常用漢字外' },
+      { text: '窺う機会', correctText: 'うかがう機会', description: '「窺」は常用漢字外' },
+      { text: '捉える視点', correctText: 'とらえる視点', description: '「捉」は常用漢字外' },
+      { text: '鸚鵡を飼う', correctText: 'おうむを飼う', description: '「鸚」「鵡」は常用漢字外' },
+      { text: '餡子を作る', correctText: 'あんこを作る', description: '「餡」は常用漢字外' },
+      // 旧字体・異体字（8例）
+      { text: '澤田さん', correctText: '沢田さん', description: '「澤」は「沢」の旧字体' },
+      { text: '濱口さん', correctText: '浜口さん', description: '「濱」は「浜」の旧字体' },
+      { text: '廣瀬さん', correctText: '広瀬さん', description: '「廣」は「広」の旧字体' },
+      { text: '齋藤さん', correctText: '斎藤さん', description: '「齋」は「斎」の旧字体' },
+      { text: '邊野さん', correctText: '辺野さん', description: '「邊」は「辺」の旧字体' },
+      { text: '國分さん', correctText: '国分さん', description: '「國」は「国」の旧字体' },
+      { text: '龍の絵', correctText: '竜の絵', description: '「龍」は「竜」の旧字体' },
+      { text: '鐵道会社', correctText: '鉄道会社', description: '「鐵」は「鉄」の旧字体' }
+    ]
   }
 ];
 

@@ -280,9 +280,10 @@ npm install otak-lsp
       // トークンが生成されている
       expect(result.tokens.length).toBeGreaterThan(0);
 
-      // 既定ではコードブロック内も対象
       const surfaces = result.tokens.map(t => t.surface);
-      expect(surfaces.join('')).toContain('npm install');
+
+      // 日本語を含まないコードブロックはマスクされる
+      expect(surfaces.join('')).not.toContain('npm install');
 
       // インラインコード内のテキストが除外されている
       expect(surfaces.join('')).not.toContain('npm start');

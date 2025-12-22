@@ -556,7 +556,7 @@ npm run package
 <!-- EVALS-START -->
 ## Detection Coverage
 
-![Coverage](https://img.shields.io/badge/coverage-99%25-brightgreen)
+![Coverage](https://img.shields.io/badge/coverage-92%25-brightgreen)
 
 | Category | Status | Example |
 |----------|--------|---------|
@@ -567,7 +567,7 @@ npm run package
 | 文体混在 | PASS | これは素敵です。あれは平凡である。 |
 | ら抜き言葉 | PASS | 食べれる |
 | 二重否定 | PASS | できないわけではない |
-| 同じ助詞の連続使用 | FAIL | 私は本を彼は読む |
+| 同じ助詞の連続使用 | PASS | 私は本を彼は読む |
 | 接続詞連続使用 | PASS | しかし、Aです。しかし、Bです。 |
 | 逆接「が」連続使用 | PASS | 行きますが、Aです。行きますが、Bです。 |
 | 全角半角アルファベット混在 | PASS | これはＡＢＣとabcの混在です |
@@ -614,8 +614,11 @@ npm run package
 | 見出しレベルの飛び | PASS | # タイトル ### サブセクション |
 | テーブル列数の不一致 | PASS | \| A \| B \| C \| \|---\|---\| \| 1 \| 2 \| 3 \| |
 | コードブロック言語指定の欠落 | PASS | ``` const x = 1; ``` |
+| 「及び/並びに」使い分け | PASS | A並びにBを確認する |
+| 「又は/若しくは」使い分け | PASS | A若しくはBを選択する |
+| 常用漢字外使用 | FAIL | 斡旋を依頼する |
 
-Last updated: 2025-12-18
+Last updated: 2025-12-22
 <!-- EVALS-END -->
 
 ## 技術仕様
