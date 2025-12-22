@@ -513,6 +513,10 @@ export interface AdvancedRulesConfig {
   enableMatawaWakushikuwa: boolean;
   enableJouyouKanji: boolean;
   excludeProperNounsFromJouyouKanji: boolean;
+  /** 人名用漢字・旧字体姓を常用漢字チェックから除外 */
+  excludeJinmeiKanji: boolean;
+  /** 地名を常用漢字チェックから除外 */
+  excludePlaceNames: boolean;
 
   // 技術用語辞典の有効/無効
   enableWebTechDictionary: boolean;
@@ -616,6 +620,9 @@ export const DEFAULT_ADVANCED_RULES_CONFIG: AdvancedRulesConfig = {
   enableMatawaWakushikuwa: false,
   enableJouyouKanji: false,
   excludeProperNounsFromJouyouKanji: true,
+  // 人名用漢字・旧字体姓・地名はデフォルトで除外（誤検知防止）
+  excludeJinmeiKanji: true,
+  excludePlaceNames: true,
 
   // 技術用語辞典はすべて有効
   enableWebTechDictionary: true,

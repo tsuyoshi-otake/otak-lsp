@@ -258,7 +258,9 @@ describe('Property-Based Tests: Official Document Rules - 設定による有効/
             const tokens = [createToken(text, '名詞', 0)];
             const context = createContext(text, [], {
               enableJouyouKanji: true,
-              excludeProperNounsFromJouyouKanji: false
+              excludeProperNounsFromJouyouKanji: false,
+              excludeJinmeiKanji: false,  // 人名用漢字除外を無効化
+              excludePlaceNames: false     // 地名除外を無効化
             });
 
             expect(rule.isEnabled(context.config)).toBe(true);
@@ -647,23 +649,25 @@ describe('Property-Based Tests: Official Document Rules - 診断メッセージ�
             const tokens = [createToken(text, '名詞', 0)];
             const context = createContext(text, [], {
               enableJouyouKanji: true,
-              excludeProperNounsFromJouyouKanji: false
+              excludeProperNounsFromJouyouKanji: false,
+              excludeJinmeiKanji: false,  // 人名用漢字除外を無効化
+              excludePlaceNames: false     // 地名除外を無効化
             });
 
             const diagnostics = rule.check(tokens, context);
-            
+
             // 診断が出力されることを確認
             expect(diagnostics.length).toBeGreaterThan(0);
-            
+
             for (const diagnostic of diagnostics) {
               // 5.1: 問題の説明が含まれる（対象の漢字が明示される）
               expect(diagnostic.message).toBeTruthy();
               expect(diagnostic.message).toContain('常用漢字表');
-              
+
               // 5.2: 修正案が含まれる
               expect(diagnostic.suggestions).toBeDefined();
               expect(diagnostic.suggestions!.length).toBeGreaterThan(0);
-              
+
               // 5.3: 根拠となる基準名が含まれる
               expect(diagnostic.message).toMatch(/常用漢字表|内閣告示/);
             }
@@ -685,21 +689,23 @@ describe('Property-Based Tests: Official Document Rules - 診断メッセージ�
             const tokens = [createToken(text, '名詞', 0)];
             const context = createContext(text, [], {
               enableJouyouKanji: true,
-              excludeProperNounsFromJouyouKanji: false
+              excludeProperNounsFromJouyouKanji: false,
+              excludeJinmeiKanji: false,  // 人名用漢字除外を無効化
+              excludePlaceNames: false     // 地名除外を無効化
             });
 
             const diagnostics = rule.check(tokens, context);
-            
+
             // 診断が出力されることを確認
             expect(diagnostics.length).toBeGreaterThan(0);
-            
+
             // 修正案に具体的な提案が含まれる
             const firstDiagnostic = diagnostics[0];
             expect(firstDiagnostic.suggestions).toBeDefined();
             expect(firstDiagnostic.suggestions!.length).toBeGreaterThan(0);
-            
+
             // メッセージまたは修正案に代替表記が含まれる
-            const hasAlternative = 
+            const hasAlternative =
               firstDiagnostic.message.includes(expectedSuggestion) ||
               firstDiagnostic.suggestions!.some(s => s.includes(expectedSuggestion) || s.includes('ひらがな'));
             expect(hasAlternative).toBe(true);
@@ -805,11 +811,13 @@ describe('Property-Based Tests: Official Document Rules - 診断の重要度', (
             const tokens = [createToken(text, '名詞', 0)];
             const context = createContext(text, [], {
               enableJouyouKanji: true,
-              excludeProperNounsFromJouyouKanji: false
+              excludeProperNounsFromJouyouKanji: false,
+              excludeJinmeiKanji: false,  // 人名用漢字除外を無効化
+              excludePlaceNames: false     // 地名除外を無効化
             });
 
             const diagnostics = rule.check(tokens, context);
-            
+
             // 診断が出力された場合、すべてInformationレベル
             for (const diagnostic of diagnostics) {
               expect(diagnostic.severity).toBe(DiagnosticSeverity.Information);
@@ -867,7 +875,9 @@ describe('Property-Based Tests: Official Document Rules - 診断の重要度', (
               const tokens = [createToken(text, '名詞', 0)];
               const context = createContext(text, [], {
                 enableJouyouKanji: true,
-                excludeProperNounsFromJouyouKanji: false
+                excludeProperNounsFromJouyouKanji: false,
+                excludeJinmeiKanji: false,  // 人名用漢字除外を無効化
+                excludePlaceNames: false     // 地名除外を無効化
               });
               diagnostics = rule.check(tokens, context);
             }

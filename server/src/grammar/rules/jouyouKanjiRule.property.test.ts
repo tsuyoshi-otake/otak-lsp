@@ -73,6 +73,9 @@ describe('Property-Based Tests: JouyouKanjiRule', () => {
     config: {
       ...DEFAULT_ADVANCED_RULES_CONFIG,
       enableJouyouKanji: true,
+      // テスト用にデフォルトで除外オプションを無効化
+      excludeJinmeiKanji: false,
+      excludePlaceNames: false,
       ...configOverrides
     }
   });
