@@ -279,8 +279,8 @@ export const DEFAULT_PROOFREADING_CONFIG: ProofreadingSettingsConfig = {
       enable: true,
       sentence: 120,
       comma: 4,
-      hiragana: 50,
-      katakana: 30,
+      hiragana: 18,
+      katakana: 18,
       kanji: 10
     },
     envDependent: {

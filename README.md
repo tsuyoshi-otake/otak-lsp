@@ -526,8 +526,8 @@ A、B又はC若しくはD、E又はFを選択する（正しい使用例）
 | `otakLsp.proofreading.length.enable` | 長さチェック全体の有効/無効 | `true` |
 | `otakLsp.proofreading.length.sentence` | 1文の最大文字数 | `120` |
 | `otakLsp.proofreading.length.comma` | 1文の最大読点数 | `4` |
-| `otakLsp.proofreading.length.hiragana` | ひらがな連続の閾値 | `50` |
-| `otakLsp.proofreading.length.katakana` | カタカナ連続の閾値 | `30` |
+| `otakLsp.proofreading.length.hiragana` | ひらがな連続の閾値 | `18` |
+| `otakLsp.proofreading.length.katakana` | カタカナ連続の閾値 | `18` |
 | `otakLsp.proofreading.length.kanji` | 漢字連続の閾値 | `10` |
 
 #### 約物チェック
@@ -741,7 +741,7 @@ npm run package
 | 和暦初年の統一 | PASS | 令和1年 → 令和元年 |
 | ひらがな連続 | PASS | ああああああああああ（閾値超過時） |
 | カタカナ連続 | PASS | アアアアアアアアアアアアア（閾値超過時） |
-| 漢字連続 | PASS | 東京都渋谷区松濤（閾値超過時） |
+| 漢字連続 | PASS | 東京都渋谷区松濤一丁目 |
 | 二点リーダー偶数 | PASS | これは‥テストです |
 | ダッシュ偶数 | PASS | これは―テストです |
 | 括弧の入れ子深さ | PASS | （（（深い括弧）））|
