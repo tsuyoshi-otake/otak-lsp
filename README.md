@@ -500,6 +500,60 @@ A、B又はC若しくはD、E又はFを選択する（正しい使用例）
 | `otakLsp.advanced.monotonousEndingThreshold` | 文末表現連続の閾値 | `3` |
 | `otakLsp.advanced.longSentenceThreshold` | 長文と判定する文字数 | `120` |
 
+### 校正設定
+
+校正ソフトの設定画面に相当する詳細なチェック項目を提供します。既存の高度な文法ルール設定と併用できます。
+
+#### 基本設定
+
+| 設定項目 | 説明 | デフォルト値 |
+|---------|------|-------------|
+| `otakLsp.proofreading.preset` | プリセット（`video-default` / `custom`） | `custom` |
+| `otakLsp.proofreading.mergeMode` | 既存設定とのマージモード（`override` / `merge`） | `override` |
+
+#### 誤字チェック
+
+| 設定項目 | 説明 | デフォルト値 |
+|---------|------|-------------|
+| `otakLsp.proofreading.typo.enable` | 誤字チェック全体の有効/無効 | `true` |
+| `otakLsp.proofreading.typo.checkInBrackets` | 括弧内もチェックする | `true` |
+| `otakLsp.proofreading.typo.eraFirstYear` | 和暦初年を「元年」に統一 | `true` |
+
+#### 長さチェック
+
+| 設定項目 | 説明 | デフォルト値 |
+|---------|------|-------------|
+| `otakLsp.proofreading.length.enable` | 長さチェック全体の有効/無効 | `true` |
+| `otakLsp.proofreading.length.sentence` | 1文の最大文字数 | `120` |
+| `otakLsp.proofreading.length.comma` | 1文の最大読点数 | `4` |
+| `otakLsp.proofreading.length.hiragana` | ひらがな連続の閾値 | `50` |
+| `otakLsp.proofreading.length.katakana` | カタカナ連続の閾値 | `30` |
+| `otakLsp.proofreading.length.kanji` | 漢字連続の閾値 | `10` |
+
+#### 約物チェック
+
+| 設定項目 | 説明 | デフォルト値 |
+|---------|------|-------------|
+| `otakLsp.proofreading.punctuation.enable` | 約物チェック全体の有効/無効 | `true` |
+| `otakLsp.proofreading.punctuation.evenLeader` | 二点リーダは偶数個で使用 | `true` |
+| `otakLsp.proofreading.punctuation.evenDash` | ダッシュは偶数個で使用 | `true` |
+| `otakLsp.proofreading.punctuation.evenWave` | 波線は偶数個で使用 | `true` |
+
+#### 括弧チェック
+
+| 設定項目 | 説明 | デフォルト値 |
+|---------|------|-------------|
+| `otakLsp.proofreading.bracket.enable` | 括弧チェック全体の有効/無効 | `true` |
+| `otakLsp.proofreading.bracket.checkPairing` | 括弧の対応チェック | `true` |
+| `otakLsp.proofreading.bracket.maxDepth` | 括弧の最大入れ子深さ | `3` |
+
+#### 引用行
+
+| 設定項目 | 説明 | デフォルト値 |
+|---------|------|-------------|
+| `otakLsp.proofreading.quoteLine.enable` | 引用行の除外を有効化 | `true` |
+| `otakLsp.proofreading.quoteLine.markers` | 引用行の開始記号（配列またはカンマ区切り文字列） | `[">", "|"]` |
+
 ### 設定例
 
 ```json
@@ -684,8 +738,15 @@ npm run package
 | 常用漢字外使用 | PASS | 斡旋を依頼する |
 | 人名除外 | PASS | 澤田翔太、濱口 颯 |
 | 地名除外 | PASS | 渋谷駅、埼玉県 |
+| 和暦初年の統一 | PASS | 令和1年 → 令和元年 |
+| ひらがな連続 | PASS | ああああああああああ（閾値超過時） |
+| カタカナ連続 | PASS | アアアアアアアアアアアアア（閾値超過時） |
+| 漢字連続 | PASS | 東京都渋谷区松濤（閾値超過時） |
+| 二点リーダー偶数 | PASS | これは‥テストです |
+| ダッシュ偶数 | PASS | これは―テストです |
+| 括弧の入れ子深さ | PASS | （（（深い括弧）））|
 
-Last updated: 2025-12-22
+Last updated: 2025-12-23
 <!-- EVALS-END -->
 
 ## 技術仕様

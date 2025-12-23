@@ -1,0 +1,16 @@
+{
+  "name": "proofreading-settings-compat",
+  "description": "校正設定画面の項目に合わせてotak-lspのルールと設定を拡張する",
+  "language": "ja",
+  "phases": {
+    "requirements": {
+      "status": "approved"
+    },
+    "design": {
+      "status": "approved"
+    },
+    "tasks": {
+      "status": "approved"
+    }
+  }
+}

@@ -75,6 +75,7 @@ import {
   JouyouKanjiRule
 } from '../rules';
 import { SentenceParser } from '../sentenceParser';
+import { ProofreadingRulesManager } from '../../proofreading/proofreadingRulesManager';
 import {
   NGExampleCategory,
   NG_EXAMPLE_CATEGORIES
@@ -179,10 +180,12 @@ export class EvalsRunner {
   private advancedRules: Map<string, {
     check: (tokens: Token[], context: RuleContext) => AdvancedDiagnostic[];
   }>;
+  private proofreadingRulesManager: ProofreadingRulesManager;
 
   constructor() {
     this.grammarChecker = new GrammarChecker();
     this.advancedRules = new Map();
+    this.proofreadingRulesManager = new ProofreadingRulesManager();
   }
 
   /**
@@ -415,6 +418,14 @@ export class EvalsRunner {
       }
     });
 
+    // 校正設定ルールのチェック (Feature: proofreading-settings-compat)
+    try {
+      const proofreadingDiagnostics = this.proofreadingRulesManager.checkText(text, tokens);
+      diagnostics.push(...proofreadingDiagnostics);
+    } catch (e) {
+      console.error('Proofreading rules failed:', e);
+    }
+
     // 期待されるルールまたは関連するルールで検出されたかチェック
     const detected = this.isDetected(diagnostics, expectedRule, text);
     const matchedRule = diagnostics.length > 0 ? diagnostics[0].code : undefined;
@@ -533,7 +544,15 @@ export class EvalsRunner {
       // Official Document Rules (Feature: official-document-rules)
       'oyobi-narabini': ['oyobi-narabini'],
       'matawa-wakushikuwa': ['matawa-wakushikuwa'],
-      'jouyou-kanji': ['jouyou-kanji']
+      'jouyou-kanji': ['jouyou-kanji'],
+      // Proofreading Settings Compat (Feature: proofreading-settings-compat)
+      'era-first-year': ['era-first-year'],
+      'hiragana-run-length': ['hiragana-run-length'],
+      'katakana-run-length': ['katakana-run-length'],
+      'kanji-run-length': ['kanji-run-length'],
+      'even-leader': ['even-leader'],
+      'even-dash': ['even-dash'],
+      'bracket-depth': ['bracket-depth']
     };
 
     const expectedRules = ruleAliases[expectedRule] || [expectedRule];

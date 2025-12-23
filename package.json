@@ -2,7 +2,7 @@
   "name": "otak-lsp",
   "displayName": "otak-lsp",
   "description": "日本語形態素解析VSCode拡張機能（外部依存なし）。文法チェック、セマンティックハイライト、ホバー情報を提供します。kuromoji.js内蔵でMeCab不要。",
-  "version": "0.8.9",
+  "version": "0.8.12",
   "publisher": "odangoo",
   "license": "MIT",
   "icon": "images/otak-lsp.png",
@@ -650,7 +650,7 @@
         },
         "otakLsp.official.enableJouyouKanji": {
           "type": "boolean",
-          "default": false,
+          "default": true,
           "description": "公文書ルール：常用漢字外検出の有効/無効（常用漢字表に基づく）",
           "scope": "resource"
         },
@@ -658,6 +658,336 @@
           "type": "boolean",
           "default": true,
           "description": "公文書ルール：常用漢字外検出で固有名詞（人名・地名・組織名）を除外する",
+          "scope": "resource"
+        },
+        "otakLsp.proofreading.preset": {
+          "type": "string",
+          "enum": ["video-default", "custom"],
+          "default": "custom",
+          "description": "校正設定のプリセット。video-default: 動画のチェック状態を一括適用、custom: カスタム設定",
+          "scope": "resource"
+        },
+        "otakLsp.proofreading.mergeMode": {
+          "type": "string",
+          "enum": ["override", "merge"],
+          "default": "override",
+          "description": "advanced設定との統合方式。override: 校正設定を優先、merge: ORで統合",
+          "scope": "resource"
+        },
+        "otakLsp.proofreading.typo.enable": {
+          "type": "boolean",
+          "default": true,
+          "description": "誤字チェックカテゴリの有効/無効",
+          "scope": "resource"
+        },
+        "otakLsp.proofreading.typo.checkInBrackets": {
+          "type": "boolean",
+          "default": true,
+          "description": "括弧内もチェックする",
+          "scope": "resource"
+        },
+        "otakLsp.proofreading.typo.raNuki": {
+          "type": "boolean",
+          "default": true,
+          "description": "ら抜き表現の検出",
+          "scope": "resource"
+        },
+        "otakLsp.proofreading.typo.saIre": {
+          "type": "boolean",
+          "default": true,
+          "description": "さ入れ表現の検出",
+          "scope": "resource"
+        },
+        "otakLsp.proofreading.typo.doubleHonorific": {
+          "type": "boolean",
+          "default": true,
+          "description": "二重敬語の検出",
+          "scope": "resource"
+        },
+        "otakLsp.proofreading.typo.adverbAgreement": {
+          "type": "boolean",
+          "default": true,
+          "description": "呼応表現（副詞呼応）の検出",
+          "scope": "resource"
+        },
+        "otakLsp.proofreading.typo.eraFirstYear": {
+          "type": "boolean",
+          "default": true,
+          "description": "和暦の初年を「元年」に統一するオプション",
+          "scope": "resource"
+        },
+        "otakLsp.proofreading.termBase.enable": {
+          "type": "boolean",
+          "default": true,
+          "description": "用語基準カテゴリの有効/無効",
+          "scope": "resource"
+        },
+        "otakLsp.proofreading.termBase.okuriganaMode": {
+          "type": "string",
+          "enum": ["public-text", "public-text-honkoku", "custom"],
+          "default": "public-text",
+          "description": "送り仮名チェックモード。public-text: 公用文（解説・広報）、public-text-honkoku: 公用文（本則）",
+          "scope": "resource"
+        },
+        "otakLsp.proofreading.termBase.jouyouKanji": {
+          "type": "boolean",
+          "default": true,
+          "description": "常用漢字チェックの有効/無効",
+          "scope": "resource"
+        },
+        "otakLsp.proofreading.termBase.oldKanji": {
+          "type": "boolean",
+          "default": true,
+          "description": "旧字体検出の有効/無効",
+          "scope": "resource"
+        },
+        "otakLsp.proofreading.termBase.kanjiOpening": {
+          "type": "boolean",
+          "default": true,
+          "description": "難しい語の言い換え（漢字開き）の有効/無効",
+          "scope": "resource"
+        },
+        "otakLsp.proofreading.termBase.excludeProperNouns": {
+          "type": "boolean",
+          "default": true,
+          "description": "固有名詞を常用漢字チェックから除外",
+          "scope": "resource"
+        },
+        "otakLsp.proofreading.termJournalist.enable": {
+          "type": "boolean",
+          "default": false,
+          "description": "用語基準（記者ハンドブック）カテゴリの有効/無効",
+          "scope": "resource"
+        },
+        "otakLsp.proofreading.termJournalist.journalistHandbook": {
+          "type": "boolean",
+          "default": false,
+          "description": "記者ハンドブック準拠チェック",
+          "scope": "resource"
+        },
+        "otakLsp.proofreading.expression.enable": {
+          "type": "boolean",
+          "default": true,
+          "description": "表現洗練カテゴリの有効/無効",
+          "scope": "resource"
+        },
+        "otakLsp.proofreading.expression.styleConsistency": {
+          "type": "boolean",
+          "default": true,
+          "description": "文体の統一チェック",
+          "scope": "resource"
+        },
+        "otakLsp.proofreading.expression.redundant": {
+          "type": "boolean",
+          "default": true,
+          "description": "冗長な表現（重ね言葉）の検出",
+          "scope": "resource"
+        },
+        "otakLsp.proofreading.expression.particleRepetition": {
+          "type": "boolean",
+          "default": true,
+          "description": "同一助詞の連続の検出",
+          "scope": "resource"
+        },
+        "otakLsp.proofreading.expression.doubleNegation": {
+          "type": "boolean",
+          "default": true,
+          "description": "二重否定の検出",
+          "scope": "resource"
+        },
+        "otakLsp.proofreading.expression.twistedSentence": {
+          "type": "boolean",
+          "default": true,
+          "description": "回りくどい表現の検出",
+          "scope": "resource"
+        },
+        "otakLsp.proofreading.charType.enable": {
+          "type": "boolean",
+          "default": true,
+          "description": "字種統一カテゴリの有効/無効",
+          "scope": "resource"
+        },
+        "otakLsp.proofreading.charType.preferredNumeral": {
+          "type": "string",
+          "enum": ["full", "half", "mix"],
+          "default": "half",
+          "description": "数字の優先表記（全角/半角/混在）",
+          "scope": "resource"
+        },
+        "otakLsp.proofreading.charType.preferredAlphabet": {
+          "type": "string",
+          "enum": ["full", "half"],
+          "default": "half",
+          "description": "アルファベットの優先表記（全角/半角）",
+          "scope": "resource"
+        },
+        "otakLsp.proofreading.length.enable": {
+          "type": "boolean",
+          "default": true,
+          "description": "長さチェックカテゴリの有効/無効",
+          "scope": "resource"
+        },
+        "otakLsp.proofreading.length.sentence": {
+          "type": "number",
+          "default": 120,
+          "minimum": 1,
+          "maximum": 999,
+          "description": "文の長さの閾値（文字数）",
+          "scope": "resource"
+        },
+        "otakLsp.proofreading.length.comma": {
+          "type": "number",
+          "default": 4,
+          "minimum": 1,
+          "maximum": 999,
+          "description": "句読点の閾値（1文中の読点数）",
+          "scope": "resource"
+        },
+        "otakLsp.proofreading.length.hiragana": {
+          "type": "number",
+          "default": 50,
+          "minimum": 1,
+          "maximum": 999,
+          "description": "ひらがな連続の閾値（文字数）",
+          "scope": "resource"
+        },
+        "otakLsp.proofreading.length.katakana": {
+          "type": "number",
+          "default": 30,
+          "minimum": 1,
+          "maximum": 999,
+          "description": "カタカナ連続の閾値（文字数）",
+          "scope": "resource"
+        },
+        "otakLsp.proofreading.length.kanji": {
+          "type": "number",
+          "default": 10,
+          "minimum": 1,
+          "maximum": 999,
+          "description": "漢字連続の閾値（文字数）",
+          "scope": "resource"
+        },
+        "otakLsp.proofreading.envDependent.enable": {
+          "type": "boolean",
+          "default": true,
+          "description": "環境依存文字カテゴリの有効/無効",
+          "scope": "resource"
+        },
+        "otakLsp.proofreading.envDependent.mode": {
+          "type": "string",
+          "enum": ["all", "partial"],
+          "default": "all",
+          "description": "機種依存文字の検出モード。all: すべて指摘、partial: 一部のみ指摘",
+          "scope": "resource"
+        },
+        "otakLsp.proofreading.punctuation.enable": {
+          "type": "boolean",
+          "default": true,
+          "description": "約物チェックカテゴリの有効/無効",
+          "scope": "resource"
+        },
+        "otakLsp.proofreading.punctuation.evenLeader": {
+          "type": "boolean",
+          "default": true,
+          "description": "二点リーダは偶数個を要求",
+          "scope": "resource"
+        },
+        "otakLsp.proofreading.punctuation.evenDash": {
+          "type": "boolean",
+          "default": true,
+          "description": "ダッシュは偶数個を要求",
+          "scope": "resource"
+        },
+        "otakLsp.proofreading.punctuation.evenWave": {
+          "type": "boolean",
+          "default": true,
+          "description": "波線は偶数個を要求",
+          "scope": "resource"
+        },
+        "otakLsp.proofreading.punctuation.spaceAfterQE": {
+          "type": "boolean",
+          "default": true,
+          "description": "疑問符/感嘆符後の空白チェック",
+          "scope": "resource"
+        },
+        "otakLsp.proofreading.spell.enable": {
+          "type": "boolean",
+          "default": false,
+          "description": "スペルチェックカテゴリの有効/無効",
+          "scope": "resource"
+        },
+        "otakLsp.proofreading.notationVariant.enable": {
+          "type": "boolean",
+          "default": true,
+          "description": "表記ゆれカテゴリの有効/無効",
+          "scope": "resource"
+        },
+        "otakLsp.proofreading.notationVariant.katakanaOnly": {
+          "type": "boolean",
+          "default": false,
+          "description": "カタカナ語のみをチェック",
+          "scope": "resource"
+        },
+        "otakLsp.proofreading.bracket.enable": {
+          "type": "boolean",
+          "default": true,
+          "description": "括弧カテゴリの有効/無効",
+          "scope": "resource"
+        },
+        "otakLsp.proofreading.bracket.checkPairing": {
+          "type": "boolean",
+          "default": true,
+          "description": "括弧の対応チェック",
+          "scope": "resource"
+        },
+        "otakLsp.proofreading.bracket.maxDepth": {
+          "type": "number",
+          "default": 3,
+          "minimum": 1,
+          "maximum": 10,
+          "description": "括弧階層の深さの閾値",
+          "scope": "resource"
+        },
+        "otakLsp.proofreading.quoteLine.enable": {
+          "type": "boolean",
+          "default": true,
+          "description": "引用行の除外を有効にする",
+          "scope": "resource"
+        },
+        "otakLsp.proofreading.quoteLine.markers": {
+          "type": "string",
+          "default": ">,|",
+          "description": "引用行とみなす記号（半角カンマ区切り）",
+          "scope": "resource"
+        },
+        "otakLsp.proofreading.dictionaries.rule": {
+          "type": "array",
+          "items": { "type": "string" },
+          "default": [],
+          "maxItems": 3,
+          "description": "ルール辞書のファイルパス（最大3つ）",
+          "scope": "resource"
+        },
+        "otakLsp.proofreading.dictionaries.proofreading": {
+          "type": "array",
+          "items": { "type": "string" },
+          "default": [],
+          "maxItems": 5,
+          "description": "校正用辞書の拡張辞書パス（最大5つ）",
+          "scope": "resource"
+        },
+        "otakLsp.proofreading.dictionaries.spell": {
+          "type": "array",
+          "items": { "type": "string" },
+          "default": [],
+          "maxItems": 3,
+          "description": "スペルチェック用辞書のパス（最大3つ）",
+          "scope": "resource"
+        },
+        "otakLsp.proofreading.description": {
+          "type": "string",
+          "default": "",
+          "description": "校正設定の詳細説明",
           "scope": "resource"
         }
       }

@@ -19,6 +19,7 @@ export type ExcludeType =
   | 'config-key'
   | 'heading'
   | 'list-marker'
+  | 'quote-line'
   | 'custom';
 
 /**

@@ -36,6 +36,13 @@ import { Configuration, Token, SupportedLanguage } from '../../shared/src/types'
 import { ExcludedRange } from '../../shared/src/markdownFilterTypes';
 import { AdvancedRulesConfig, SentenceSplitMode, WeakExpressionLevel } from '../../shared/src/advancedTypes';
 import { AnalysisState, AnalysisStateManager, createInitialAnalysisState } from './server/languageServer';
+import { ProofreadingRulesManager } from './proofreading/proofreadingRulesManager';
+import {
+  parseProofreadingSettingsFromRaw,
+  applyProofreadingSettings,
+  ProofreadingSettingsConfig,
+  DEFAULT_PROOFREADING_CONFIG
+} from './proofreading/proofreadingConfig';
 
 // Create connection
 const connection = createConnection(ProposedFeatures.all);
@@ -94,6 +101,7 @@ let markdownFilter: MarkdownFilter;
 let tokenFilter: TokenFilter;
 let grammarChecker: GrammarChecker;
 let advancedRulesManager: AdvancedRulesManager;
+let proofreadingRulesManager: ProofreadingRulesManager;
 let semanticTokenProvider: SemanticTokenProvider;
 let hoverProvider: HoverProvider;
 let wikipediaClient: WikipediaClient;
@@ -294,6 +302,33 @@ function applyOfficialConfigFromSettings(settings: unknown, patch: Partial<Advan
   }
 }
 
+/**
+ * 校正設定を読み込んで適用
+ * Feature: proofreading-settings-compat
+ * 要件: 1.3 - VS Code設定（otakLsp.proofreading.*）から設定を読み込み、即座に反映
+ */
+function applyProofreadingConfigFromSettings(settings: unknown): void {
+  const proofreadingSetting = getSetting(settings, 'proofreading');
+  if (!proofreadingSetting || typeof proofreadingSetting !== 'object') {
+    return;
+  }
+
+  // VS Code設定からProofreadingSettingsConfigを生成
+  const proofreadingConfig = parseProofreadingSettingsFromRaw(proofreadingSetting as Record<string, unknown>);
+
+  // ProofreadingRulesManagerの設定を更新
+  proofreadingRulesManager.updateConfig(proofreadingConfig);
+
+  // AdvancedRulesConfigにパッチを適用
+  const currentAdvancedConfig = advancedRulesManager.getConfig();
+  const mergedConfig = applyProofreadingSettings(proofreadingConfig, currentAdvancedConfig);
+  advancedRulesManager.updateConfig(mergedConfig);
+
+  if (DEBUG_LOGS) {
+    connection.console.log(`[DEBUG] Proofreading config applied: preset=${proofreadingConfig.preset}, mergeMode=${proofreadingConfig.mergeMode}`);
+  }
+}
+
 function applyBaseConfigFromSettings(settings: unknown): void {
   const enableGrammarCheck = getSetting(settings, 'enableGrammarCheck');
   const enableSemanticHighlight = getSetting(settings, 'enableSemanticHighlight');
@@ -335,10 +370,11 @@ function applyBaseConfigFromSettings(settings: unknown): void {
 
 async function getWorkspaceOtakLspSettings(): Promise<unknown> {
   try {
-    const [base, advanced, official] = await Promise.all([
+    const [base, advanced, official, proofreading] = await Promise.all([
       connection.workspace.getConfiguration({ section: 'otakLsp' } as any),
       connection.workspace.getConfiguration({ section: 'otakLsp.advanced' } as any),
       connection.workspace.getConfiguration({ section: 'otakLsp.official' } as any),
+      connection.workspace.getConfiguration({ section: 'otakLsp.proofreading' } as any),
     ]);
 
     if (base && typeof base === 'object') {
@@ -358,10 +394,18 @@ async function getWorkspaceOtakLspSettings(): Promise<unknown> {
           ...(official as Record<string, unknown>),
         };
       }
+      // 校正設定をマージ（Feature: proofreading-settings-compat）
+      if (proofreading && typeof proofreading === 'object') {
+        const baseProofreading = getSetting(merged, 'proofreading');
+        merged.proofreading = {
+          ...(baseProofreading && typeof baseProofreading === 'object' ? (baseProofreading as Record<string, unknown>) : {}),
+          ...(proofreading as Record<string, unknown>),
+        };
+      }
       return merged;
     }
 
-    return { advanced, official };
+    return { advanced, official, proofreading };
   } catch (error) {
     connection.console.error(`[ERROR] Failed to load workspace configuration: ${error}`);
     return undefined;
@@ -381,6 +425,7 @@ connection.onInitialize((params: InitializeParams): InitializeResult => {
   tokenFilter = new TokenFilter();
   grammarChecker = new GrammarChecker();
   advancedRulesManager = new AdvancedRulesManager();
+  proofreadingRulesManager = new ProofreadingRulesManager();
   semanticTokenProvider = new SemanticTokenProvider();
   wikipediaClient = new WikipediaClient();
   hoverProvider = new HoverProvider(wikipediaClient);
@@ -418,6 +463,7 @@ connection.onInitialized(() => {
     if (settings) {
       applyBaseConfigFromSettings(settings);
       applyAdvancedConfigFromSettings(settings);
+      applyProofreadingConfigFromSettings(settings);
     }
   })();
 });
@@ -436,6 +482,7 @@ connection.onDidChangeConfiguration(async (change) => {
 
   applyBaseConfigFromSettings(incomingSettings);
   applyAdvancedConfigFromSettings(incomingSettings);
+  applyProofreadingConfigFromSettings(incomingSettings);
 
   connection.console.log(`Configuration updated: grammarCheck=${configuration.enableGrammarCheck}, semanticHighlight=${configuration.enableSemanticHighlight}, sentenceSplitMode=${advancedRulesManager.getConfig().sentenceSplitMode}`);
 
@@ -817,6 +864,31 @@ async function analyzeDocument(document: TextDocument, analysisVersion?: number)
           range,
           message: diag.message,
           source: 'otak-lsp',
+          code: diag.code,
+        });
+      }
+
+      // Proofreading rules (Feature: proofreading-settings-compat)
+      if (DEBUG_LOGS) {
+        connection.console.log(`[DEBUG] Running proofreading rules check...`);
+      }
+      const proofreadingStart = profileEnabled ? Date.now() : 0;
+      const proofreadingDiagnostics = proofreadingRulesManager.checkText(textToAnalyze, grammarTokensList ?? []);
+      recordStep('校正ルール評価', proofreadingStart, `件数=${proofreadingDiagnostics.length}`);
+      if (DEBUG_LOGS) {
+        connection.console.log(`[DEBUG] Proofreading rules check found ${proofreadingDiagnostics.length} issues`);
+      }
+      for (const diag of proofreadingDiagnostics) {
+        let range = {
+          start: { line: diag.range.start.line, character: diag.range.start.character },
+          end: { line: diag.range.end.line, character: diag.range.end.character },
+        };
+
+        diagnostics.push({
+          severity: convertSeverity(diag.severity),
+          range,
+          message: diag.message,
+          source: 'otak-lsp-proofreading',
           code: diag.code,
         });
       }

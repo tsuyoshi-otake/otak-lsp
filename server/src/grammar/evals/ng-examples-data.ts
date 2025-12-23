@@ -907,6 +907,100 @@ export const NG_EXAMPLE_CATEGORIES: NGExampleCategory[] = [
       { text: '龍の絵', correctText: '竜の絵', description: '「龍」は「竜」の旧字体' },
       { text: '鐵道会社', correctText: '鉄道会社', description: '「鐵」は「鉄」の旧字体' }
     ]
+  },
+
+  // ==========================================
+  // 校正設定互換ルール（Feature: proofreading-settings-compat）
+  // ==========================================
+
+  // 和暦初年の統一
+  {
+    id: 'era-first-year',
+    name: '和暦初年の統一',
+    description: '和暦の1年を元年に統一',
+    expectedRule: 'era-first-year',
+    status: 'IMPLEMENTED',
+    examples: [
+      { text: '令和1年に設立', correctText: '令和元年に設立', description: '令和1年 → 令和元年' },
+      { text: '平成1年の記録', correctText: '平成元年の記録', description: '平成1年 → 平成元年' },
+      { text: '昭和1年生まれ', correctText: '昭和元年生まれ', description: '昭和1年 → 昭和元年' },
+      { text: '令和１年開始', correctText: '令和元年開始', description: '全角数字も対象' }
+    ]
+  },
+
+  // ひらがな連続
+  {
+    id: 'hiragana-run-length',
+    name: 'ひらがな連続',
+    description: 'ひらがなが連続しすぎる場合の警告',
+    expectedRule: 'hiragana-run-length',
+    status: 'IMPLEMENTED',
+    examples: [
+      { text: 'これはとてもながいひらがなのれんぞくぶんしょうでありますがこのぶんしょうはさらにながくつづきますのでもうすこしながくします', description: '51文字以上のひらがな連続' }
+    ]
+  },
+
+  // カタカナ連続
+  {
+    id: 'katakana-run-length',
+    name: 'カタカナ連続',
+    description: 'カタカナが連続しすぎる場合の警告',
+    expectedRule: 'katakana-run-length',
+    status: 'IMPLEMENTED',
+    examples: [
+      { text: 'コレハトテモナガイカタカナノレンゾクブンショウデアリマスモット', description: '31文字以上のカタカナ連続' }
+    ]
+  },
+
+  // 漢字連続
+  {
+    id: 'kanji-run-length',
+    name: '漢字連続',
+    description: '漢字が連続しすぎる場合の警告',
+    expectedRule: 'kanji-run-length',
+    status: 'IMPLEMENTED',
+    examples: [
+      { text: '東京都渋谷区松濤一丁目', description: '10文字以上の漢字連続' }
+    ]
+  },
+
+  // 二点リーダ偶数
+  {
+    id: 'even-leader',
+    name: '二点リーダ偶数',
+    description: '二点リーダは偶数個で使用',
+    expectedRule: 'even-leader',
+    status: 'IMPLEMENTED',
+    examples: [
+      { text: 'これは‥テストです', correctText: 'これは‥‥テストです', description: '二点リーダが1個（奇数）' },
+      { text: 'あれは‥‥‥です', description: '二点リーダが3個（奇数）' }
+    ]
+  },
+
+  // ダッシュ偶数
+  {
+    id: 'even-dash',
+    name: 'ダッシュ偶数',
+    description: 'ダッシュは偶数個で使用',
+    expectedRule: 'even-dash',
+    status: 'IMPLEMENTED',
+    examples: [
+      { text: 'これは―テストです', correctText: 'これは――テストです', description: 'ダッシュが1個（奇数）' },
+      { text: 'あれは———です', description: 'ダッシュが3個（奇数）' }
+    ]
+  },
+
+  // 括弧の入れ子深さ
+  {
+    id: 'bracket-depth',
+    name: '括弧の入れ子深さ',
+    description: '括弧の入れ子が深すぎる場合の警告',
+    expectedRule: 'bracket-depth',
+    status: 'IMPLEMENTED',
+    examples: [
+      { text: '（（（（深い括弧））））', description: '4階層以上の括弧（閾値3超過）' },
+      { text: '「「「「深い括弧」」」」', description: '4階層以上の鉤括弧（閾値3超過）' }
+    ]
   }
 ];
 

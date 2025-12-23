@@ -28,12 +28,12 @@ describe('Japanese Grammar Evals', () => {
       expect(result.detectionRate).toBeGreaterThanOrEqual(DETECTION_RATE_THRESHOLD);
     });
 
-    it('should have 57 total categories (44 original + 10 new from evals-ng-pattern-expansion + 3 official-document-rules)', () => {
-      expect(result.totalCategories).toBe(57);
+    it('should have 64 total categories (44 original + 10 evals-ng-pattern-expansion + 3 official-document-rules + 7 proofreading-settings-compat)', () => {
+      expect(result.totalCategories).toBe(64);
     });
 
-    it('should have all 57 categories implemented', () => {
-      expect(result.implementedCategories).toBe(57);
+    it('should have all 64 categories implemented', () => {
+      expect(result.implementedCategories).toBe(64);
     });
   });
 
@@ -129,7 +129,7 @@ describe('Japanese Grammar Evals', () => {
   describe('Summary Output', () => {
     it('should generate summary without errors', () => {
       expect(result.timestamp).toBeDefined();
-      expect(result.categories.length).toBe(57);
+      expect(result.categories.length).toBe(64); // 57 + 7 proofreading-settings-compat
     });
 
     it('should have valid detection counts', () => {

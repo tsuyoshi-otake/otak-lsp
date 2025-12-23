@@ -615,10 +615,10 @@ export const DEFAULT_ADVANCED_RULES_CONFIG: AdvancedRulesConfig = {
   enableCodeBlockLanguage: true,
 
   // 公文書ルール（Feature: official-document-rules）
-  // デフォルトでは無効（要件 4.4）、固有名詞除外は有効（要件 4.5）
+  // 常用漢字チェックは既定で有効、固有名詞除外は有効（要件 4.5）
   enableOyobiNarabini: false,
   enableMatawaWakushikuwa: false,
-  enableJouyouKanji: false,
+  enableJouyouKanji: true,
   excludeProperNounsFromJouyouKanji: true,
   // 人名用漢字・旧字体姓・地名はデフォルトで除外（誤検知防止）
   excludeJinmeiKanji: true,
