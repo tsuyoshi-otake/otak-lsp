@@ -20,6 +20,17 @@ import {
   WEB_TECH_NOTATION_RULES
 } from '../../dictionaries/termNotationDictionary';
 
+type PhraseTrieNode = {
+  correct?: string;
+  children: Map<string, PhraseTrieNode>;
+};
+
+type CompiledDictionary = {
+  singleWord: Map<string, string>;
+  phraseTrieRoot: PhraseTrieNode;
+  maxPhraseWords: number;
+};
+
 /**
  * 技術用語表記統一ルール
  */
@@ -28,6 +39,10 @@ export class TermNotationRule implements AdvancedGrammarRule {
   description = '技術用語の表記を統一します';
 
   private customRules: Map<string, string> = new Map();
+  private cachedDictionaryKey: string | null = null;
+  private cachedDictionaries: Map<string, string> | null = null;
+  private cachedCompiledKey: string | null = null;
+  private cachedCompiled: CompiledDictionary | null = null;
 
   /**
    * コードブロック（```...```）の範囲を取得
@@ -111,6 +126,11 @@ export class TermNotationRule implements AdvancedGrammarRule {
    * 有効な辞書を取得
    */
   getActiveDictionaries(config: AdvancedRulesConfig): Map<string, string> {
+    const cacheKey = this.buildDictionaryKey(config);
+    if (this.cachedDictionaryKey === cacheKey && this.cachedDictionaries) {
+      return this.cachedDictionaries;
+    }
+
     const combined = new Map<string, string>();
 
     if (config.enableWebTechDictionary) {
@@ -145,6 +165,8 @@ export class TermNotationRule implements AdvancedGrammarRule {
     }
     this.customRules.forEach((v, k) => combined.set(k, v));
 
+    this.cachedDictionaryKey = cacheKey;
+    this.cachedDictionaries = combined;
     return combined;
   }
 
@@ -153,6 +175,10 @@ export class TermNotationRule implements AdvancedGrammarRule {
    */
   addCustomRule(incorrect: string, correct: string): void {
     this.customRules.set(incorrect, correct);
+    this.cachedDictionaryKey = null;
+    this.cachedDictionaries = null;
+    this.cachedCompiledKey = null;
+    this.cachedCompiled = null;
   }
 
   /**
@@ -167,37 +193,7 @@ export class TermNotationRule implements AdvancedGrammarRule {
    * テキスト内の誤った表記を検出
    */
   detectIncorrectNotation(text: string, config: AdvancedRulesConfig): Array<{ incorrect: string; correct: string; index: number }> {
-    type PhraseTrieNode = {
-      correct?: string;
-      children: Map<string, PhraseTrieNode>;
-    };
-
-    const dictionaries = this.getActiveDictionaries(config);
-
-    const singleWord = new Map<string, string>();
-    const phraseTrieRoot: PhraseTrieNode = { children: new Map() };
-    let maxPhraseWords = 1;
-
-    for (const [incorrect, correct] of dictionaries) {
-      if (incorrect === correct) {
-        continue;
-      }
-
-      const parts = incorrect.trim().split(/\s+/g).filter((v) => v.length > 0);
-      if (parts.length <= 1) {
-        singleWord.set(incorrect, correct);
-        continue;
-      }
-
-      maxPhraseWords = Math.max(maxPhraseWords, parts.length);
-      let node = phraseTrieRoot;
-      for (const part of parts) {
-        const next = node.children.get(part) ?? { children: new Map() };
-        node.children.set(part, next);
-        node = next;
-      }
-      node.correct = correct;
-    }
+    const { singleWord, phraseTrieRoot, maxPhraseWords } = this.getCompiledDictionaries(config);
 
     const termTokenRegex = /[A-Za-z0-9.+#/_:-]+/g;
     const tokens: Array<{ value: string; start: number; end: number }> = [];
@@ -280,6 +276,72 @@ export class TermNotationRule implements AdvancedGrammarRule {
     }
 
     return results;
+  }
+
+  private buildDictionaryKey(config: AdvancedRulesConfig): string {
+    const flags = [
+      config.enableWebTechDictionary ? '1' : '0',
+      config.enableGenerativeAIDictionary ? '1' : '0',
+      config.enableAWSDictionary ? '1' : '0',
+      config.enableAzureDictionary ? '1' : '0',
+      config.enableOCIDictionary ? '1' : '0'
+    ].join('');
+
+    const customEntries: Array<[string, string]> = [];
+    if (config.customNotationRules) {
+      config.customNotationRules.forEach((v, k) => customEntries.push([k, v]));
+    }
+    this.customRules.forEach((v, k) => customEntries.push([k, v]));
+
+    customEntries.sort((a, b) => {
+      if (a[0] < b[0]) return -1;
+      if (a[0] > b[0]) return 1;
+      if (a[1] < b[1]) return -1;
+      if (a[1] > b[1]) return 1;
+      return 0;
+    });
+
+    const customKey = customEntries.map(([k, v]) => `${k}=>${v}`).join('|');
+    return `${flags}:${customKey}`;
+  }
+
+  private getCompiledDictionaries(config: AdvancedRulesConfig): CompiledDictionary {
+    const cacheKey = this.buildDictionaryKey(config);
+    if (this.cachedCompiledKey === cacheKey && this.cachedCompiled) {
+      return this.cachedCompiled;
+    }
+
+    const dictionaries = this.getActiveDictionaries(config);
+
+    const singleWord = new Map<string, string>();
+    const phraseTrieRoot: PhraseTrieNode = { children: new Map() };
+    let maxPhraseWords = 1;
+
+    for (const [incorrect, correct] of dictionaries) {
+      if (incorrect === correct) {
+        continue;
+      }
+
+      const parts = incorrect.trim().split(/\s+/g).filter((v) => v.length > 0);
+      if (parts.length <= 1) {
+        singleWord.set(incorrect, correct);
+        continue;
+      }
+
+      maxPhraseWords = Math.max(maxPhraseWords, parts.length);
+      let node = phraseTrieRoot;
+      for (const part of parts) {
+        const next = node.children.get(part) ?? { children: new Map() };
+        node.children.set(part, next);
+        node = next;
+      }
+      node.correct = correct;
+    }
+
+    const compiled = { singleWord, phraseTrieRoot, maxPhraseWords };
+    this.cachedCompiledKey = cacheKey;
+    this.cachedCompiled = compiled;
+    return compiled;
   }
 
   /**

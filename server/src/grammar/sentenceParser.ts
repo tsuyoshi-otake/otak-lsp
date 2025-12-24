@@ -59,11 +59,12 @@ export class SentenceParser {
     const sentences: Sentence[] = [];
     let currentStart = 0;
     const markdownBreaks = excludedRanges ? SentenceParser.computeMarkdownBreaks(text, excludedRanges) : null;
+    const tableRanges = excludedRanges ? excludedRanges.filter((range) => range.type === 'table') : undefined;
 
     for (let i = 0; i < text.length; i++) {
       // Markdown特有の境界で強制分割
       if (markdownBreaks && markdownBreaks.has(i)) {
-        SentenceParser.pushSentence(sentences, text, tokens, currentStart, i, excludedRanges);
+        SentenceParser.pushSentence(sentences, text, tokens, currentStart, i, excludedRanges, tableRanges);
         if (text[i] === '\n') {
           currentStart = i + 1;
         } else if (text[i] === '\r') {
@@ -81,7 +82,7 @@ export class SentenceParser {
       // 文の終端記号をチェック
       if (SENTENCE_TERMINATORS.test(text[i])) {
         // Markdownテーブル内は行単位で扱う（セル抽出のため、終端記号では分割しない）
-        if (SentenceParser.isOffsetInsideExcludedType(i, excludedRanges, 'table')) {
+        if (SentenceParser.isOffsetInsideExcludedType(i, tableRanges, 'table')) {
           continue;
         }
 
@@ -90,7 +91,7 @@ export class SentenceParser {
           i++;
         }
 
-        SentenceParser.pushSentence(sentences, text, tokens, currentStart, i + 1, excludedRanges);
+        SentenceParser.pushSentence(sentences, text, tokens, currentStart, i + 1, excludedRanges, tableRanges);
 
         currentStart = i + 1;
       }
@@ -100,8 +101,8 @@ export class SentenceParser {
         const newlineStart = (i > 0 && text[i - 1] === '\r') ? i - 1 : i;
 
         // Markdownテーブル内は1行=1単位として扱う（セル単位に分割して解析しやすくする）
-        if (SentenceParser.isOffsetInsideExcludedType(newlineStart, excludedRanges, 'table')) {
-          SentenceParser.pushSentence(sentences, text, tokens, currentStart, newlineStart, excludedRanges);
+        if (SentenceParser.isOffsetInsideExcludedType(newlineStart, tableRanges, 'table')) {
+          SentenceParser.pushSentence(sentences, text, tokens, currentStart, newlineStart, excludedRanges, tableRanges);
           currentStart = i + 1;
           continue;
         }
@@ -119,7 +120,7 @@ export class SentenceParser {
         }
 
         if (hasEmptyLine) {
-          SentenceParser.pushSentence(sentences, text, tokens, currentStart, newlineStart, excludedRanges);
+          SentenceParser.pushSentence(sentences, text, tokens, currentStart, newlineStart, excludedRanges, tableRanges);
 
           // 空行をスキップ
           while (j < text.length && (text[j] === ' ' || text[j] === '\t' || text[j] === '\r' || text[j] === '\n')) {
@@ -133,7 +134,7 @@ export class SentenceParser {
           // strict: 常に分割
           // normal: 文脈を考慮して判断
           if (splitMode === 'strict' || SentenceParser.shouldSplitOnNewline(text, newlineStart, tokens)) {
-            SentenceParser.pushSentence(sentences, text, tokens, currentStart, newlineStart, excludedRanges);
+            SentenceParser.pushSentence(sentences, text, tokens, currentStart, newlineStart, excludedRanges, tableRanges);
             currentStart = i + 1;
           }
         }
@@ -142,7 +143,7 @@ export class SentenceParser {
 
     // 最後の文（終端記号なし）
     if (currentStart < text.length) {
-      SentenceParser.pushSentence(sentences, text, tokens, currentStart, text.length, excludedRanges);
+      SentenceParser.pushSentence(sentences, text, tokens, currentStart, text.length, excludedRanges, tableRanges);
     }
 
     return sentences;
@@ -289,7 +290,8 @@ export class SentenceParser {
     tokens: Token[],
     start: number,
     end: number,
-    excludedRanges?: ExcludedRange[]
+    excludedRanges?: ExcludedRange[],
+    tableRanges?: ExcludedRange[]
   ): void {
     if (end <= start) {
       return;
@@ -322,7 +324,7 @@ export class SentenceParser {
     }
 
     // テーブル行はセル単位に分割して Sentence を作る（range を行全体にしないため）
-    const insideTable = SentenceParser.isOffsetInsideExcludedType(effectiveStart, excludedRanges, 'table');
+    const insideTable = SentenceParser.isOffsetInsideExcludedType(effectiveStart, tableRanges ?? excludedRanges, 'table');
     if (insideTable && SentenceParser.isMarkdownTableRowLine(sentenceText)) {
       const cellRanges = SentenceParser.extractMarkdownTableCellRanges(text, effectiveStart, end);
       const selected = SentenceParser.selectBestTableCellRange(text, cellRanges);
@@ -635,7 +637,35 @@ export class SentenceParser {
    * @returns 範囲内のトークン
    */
   private static getTokensInRange(tokens: Token[], start: number, end: number): Token[] {
-    return tokens.filter(token => token.start >= start && token.end <= end);
+    if (tokens.length === 0) {
+      return [];
+    }
+
+    let left = 0;
+    let right = tokens.length;
+
+    while (left < right) {
+      const mid = Math.floor((left + right) / 2);
+      if (tokens[mid].start < start) {
+        left = mid + 1;
+      } else {
+        right = mid;
+      }
+    }
+
+    const selected: Token[] = [];
+    for (let i = left; i < tokens.length; i++) {
+      const token = tokens[i];
+      if (token.start >= end) {
+        break;
+      }
+      if (token.end > end) {
+        break;
+      }
+      selected.push(token);
+    }
+
+    return selected;
   }
 
   /**
