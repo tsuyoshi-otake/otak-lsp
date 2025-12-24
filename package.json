@@ -2,7 +2,7 @@
   "name": "otak-lsp",
   "displayName": "otak-lsp",
   "description": "日本語形態素解析VSCode拡張機能（外部依存なし）。文法チェック、セマンティックハイライト、ホバー情報を提供します。kuromoji.js内蔵でMeCab不要。",
-  "version": "0.8.15",
+  "version": "0.8.16",
   "publisher": "odangoo",
   "license": "MIT",
   "icon": "images/otak-lsp.png",
@@ -658,6 +658,20 @@
           "type": "boolean",
           "default": true,
           "description": "公文書ルール：常用漢字外検出で固有名詞（人名・地名・組織名）を除外する",
+          "scope": "resource"
+        },
+        "otakLsp.advanced.tieredExecution.enabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "段階実行の有効/無効。有効にすると入力中は軽量ルールのみ実行し、アイドル/保存時に全ルールを実行します。",
+          "scope": "resource"
+        },
+        "otakLsp.advanced.tieredExecution.idleDelayMs": {
+          "type": "number",
+          "default": 1200,
+          "minimum": 500,
+          "maximum": 10000,
+          "description": "アイドル判定までの遅延時間（ミリ秒）。編集停止からこの時間経過後に全ルールを実行します。",
           "scope": "resource"
         },
         "otakLsp.proofreading.preset": {

@@ -1,0 +1,16 @@
+{
+  "name": "advanced-rules-shared-preprocessing-cache",
+  "description": "高度ルールの前処理結果を共有キャッシュ化して重複計算を削減する",
+  "language": "ja",
+  "phases": {
+    "requirements": {
+      "status": "approved"
+    },
+    "design": {
+      "status": "approved"
+    },
+    "tasks": {
+      "status": "approved"
+    }
+  }
+}

@@ -13,6 +13,7 @@ import { Token } from '../../../../shared/src/types';
 import {
   AdvancedRulesConfig,
   RuleContext,
+  AdvancedDiagnostic,
   AdvancedGrammarErrorType
 } from '../../../../shared/src/advancedTypes';
 import { MixDetectionRule, PatternInfo } from './mixDetectionRule';
@@ -73,15 +74,36 @@ export class QuotationStyleMixRule extends MixDetectionRule {
     return positions;
   }
 
+  // Feature: advanced-rules-shared-preprocessing-cache
+  // 現在のコンテキストを一時保持（check -> collectPatterns 間で共有）
+  private currentContext: RuleContext | null = null;
+
+  /**
+   * Override check to pass context for shared preprocessing
+   * Feature: advanced-rules-shared-preprocessing-cache
+   */
+  check(tokens: Token[], context: RuleContext): AdvancedDiagnostic[] {
+    this.currentContext = context;
+    try {
+      return super.check(tokens, context);
+    } finally {
+      this.currentContext = null;
+    }
+  }
+
   /**
    * Collect quotation patterns from text
    * コードブロック・インラインコード内は除外
+   * Feature: advanced-rules-shared-preprocessing-cache
+   * - context.shared がある場合は共有コンテキストのコード範囲を使用
+   * - context.shared がない場合は従来通り個別に計算（フォールバック）
    */
   protected collectPatterns(text: string): Map<string, PatternInfo> {
     const patterns = new Map<string, PatternInfo>();
 
     // 除外範囲を取得（コードブロック、インラインコード）
-    const excludedRanges = this.getExcludedRanges(text);
+    // 共有コンテキストがあれば再利用、なければ個別計算
+    const excludedRanges = this.currentContext?.shared?.codeRanges ?? this.getExcludedRanges(text);
 
     // Japanese quotes: 「」『』
     const japaneseQuotes = this.findAllPositionsExcluding(text, /[「」『』]/g, excludedRanges);

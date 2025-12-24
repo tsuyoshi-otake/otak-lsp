@@ -34,7 +34,13 @@ import { DEFAULT_ENABLED_GLOSSARIES } from './hover/glossary';
 import { WikipediaClient } from './wikipedia/client';
 import { Configuration, Token, SupportedLanguage } from '../../shared/src/types';
 import { ExcludedRange } from '../../shared/src/markdownFilterTypes';
-import { AdvancedRulesConfig, SentenceSplitMode, WeakExpressionLevel } from '../../shared/src/advancedTypes';
+import {
+  AdvancedRulesConfig,
+  SentenceSplitMode,
+  WeakExpressionLevel,
+  RuleProfilingCollector,
+  RuleProfilingEntry
+} from '../../shared/src/advancedTypes';
 import { AnalysisState, AnalysisStateManager, createInitialAnalysisState } from './server/languageServer';
 import { ProofreadingRulesManager } from './proofreading/proofreadingRulesManager';
 import {
@@ -91,6 +97,50 @@ function isProfileLogsEnabled(): boolean {
   return configuration.enableProfileLogs || PROFILE_LOGS_ENV;
 }
 
+/**
+ * ルール別プロファイルログを出力
+ * Feature: advanced-rules-profiling
+ * 要件: 3.1, 3.2, 3.3, 3.4 - 1回の解析ごとに1まとまり、降順、URI・バージョン、比率表示
+ */
+function logRuleProfilingBlock(
+  uri: string,
+  version: number,
+  collector: RuleProfilingCollector
+): void {
+  if (!isProfileLogsEnabled()) {
+    return;
+  }
+
+  if (collector.entries.length === 0) {
+    return;
+  }
+
+  // 要件 3.2: 実行時間の降順でソート
+  const sortedEntries = [...collector.entries].sort(
+    (a, b) => b.executionTimeMs - a.executionTimeMs
+  );
+
+  // 要件 3.3, 3.4: URI、バージョン、合計時間をヘッダに
+  connection.console.log(
+    `[PROFILE] 高度ルール内訳 uri=${uri} version=${version} total=${formatMs(collector.totalTimeMs)}`
+  );
+
+  for (const entry of sortedEntries) {
+    const ratio = collector.totalTimeMs > 0
+      ? (entry.executionTimeMs / collector.totalTimeMs) * 100
+      : 0;
+
+    let logLine = `  rule=${entry.ruleName} ${formatMs(entry.executionTimeMs)} (${formatPercent(ratio)}) diagnostics=${entry.diagnosticsCount}`;
+
+    // 要件 4.2: 失敗したルールは error=... を付与
+    if (!entry.success && entry.errorMessage) {
+      logLine += ` error=${entry.errorMessage}`;
+    }
+
+    connection.console.log(logLine);
+  }
+}
+
 // Create document manager
 const documents: TextDocuments<TextDocument> = new TextDocuments(TextDocument);
 
@@ -134,6 +184,13 @@ let configuration: Configuration = {
 
 // Debounce timers
 const debounceTimers: Map<string, NodeJS.Timeout> = new Map();
+
+// Idle timers for tiered execution (Feature: advanced-rules-tiered-execution)
+// 編集停止後に全ルールを実行するためのタイマー
+const idleTimers: Map<string, NodeJS.Timeout> = new Map();
+
+// 軽量ルールのみ実行済みの文書を追跡（全ルール実行待ち）
+const pendingFullAnalysis: Set<string> = new Set();
 
 // Analysis state management (Feature: input-lag-improvement)
 // 要件: 3.1, 3.3 - 各文書URIに対して解析状態を管理
@@ -262,12 +319,42 @@ function applyAdvancedConfigFromSettings(settings: unknown): void {
     patch.sentenceSplitMode = legacySentenceSplitMode;
   }
 
+  // 段階実行設定を読み込み（Feature: advanced-rules-tiered-execution）
+  applyTieredExecutionConfigFromSettings(settings, patch);
+
   // 公文書ルールの設定を読み込み（Feature: official-document-rules）
   // 要件: 4.2, 4.3 - VSCode設定（otakLsp.official.*）から設定を読み込み、即座に反映
   applyOfficialConfigFromSettings(settings, patch);
 
   if (Object.keys(patch).length > 0) {
     advancedRulesManager.updateConfig(patch);
+  }
+}
+
+/**
+ * 段階実行設定を読み込む
+ * Feature: advanced-rules-tiered-execution
+ * 要件: 1 - VSCode設定（otakLsp.advanced.tieredExecution.*）から設定を読み込む
+ */
+function applyTieredExecutionConfigFromSettings(settings: unknown, patch: Partial<AdvancedRulesConfig>): void {
+  const enabled = getSetting(settings, 'advanced.tieredExecution.enabled');
+  const idleDelayMs = getSetting(settings, 'advanced.tieredExecution.idleDelayMs');
+
+  // 現在の設定を基に更新
+  const currentConfig = advancedRulesManager.getConfig();
+  const newTieredExecution = { ...currentConfig.tieredExecution };
+
+  if (typeof enabled === 'boolean') {
+    newTieredExecution.enabled = enabled;
+  }
+  if (typeof idleDelayMs === 'number' && Number.isFinite(idleDelayMs) && idleDelayMs >= 500) {
+    newTieredExecution.idleDelayMs = idleDelayMs;
+  }
+
+  // どちらかが変更されていれば更新
+  if (newTieredExecution.enabled !== currentConfig.tieredExecution.enabled ||
+      newTieredExecution.idleDelayMs !== currentConfig.tieredExecution.idleDelayMs) {
+    patch.tieredExecution = newTieredExecution;
   }
 }
 
@@ -516,6 +603,7 @@ connection.onDidChangeConfiguration(async (change) => {
 /**
  * Schedule document analysis with debounce
  * Feature: input-lag-improvement
+ * Feature: advanced-rules-tiered-execution
  * 要件: 1.1, 1.3, 3.3 - 解析の直列化と最新要求の優先
  */
 function scheduleAnalysis(document: TextDocument): void {
@@ -529,7 +617,7 @@ function scheduleAnalysis(document: TextDocument): void {
   // 解析状態を更新（最新文書情報と変更時刻を記録）
   // 要件: 3.3 - 最新の文書情報と変更時刻を記録
   const currentState = analysisStates.getState(uri);
-  
+
   // 要件: 1.1 - 解析が実行中の場合、新しい解析要求を待機状態にする
   if (currentState.running) {
     // 実行中の場合は待機状態に設定し、最新の文書情報を記録
@@ -539,7 +627,7 @@ function scheduleAnalysis(document: TextDocument): void {
       latestVersion: document.version,
       lastChangeAt: now,
     });
-    
+
     if (DEBUG_LOGS) {
       connection.console.log(`[DEBUG] Analysis running for ${uri}, queuing request (version: ${document.version})`);
     }
@@ -562,12 +650,45 @@ function scheduleAnalysis(document: TextDocument): void {
     }
   }
 
-  // Set new timer
+  // Feature: advanced-rules-tiered-execution
+  // 段階実行が有効な場合、アイドルタイマーをリセットして軽量ルールのみの解析をスケジュール
+  const tieredConfig = advancedRulesManager.getConfig().tieredExecution;
+  if (tieredConfig.enabled) {
+    // アイドルタイマーをクリア・リセット
+    const existingIdleTimer = idleTimers.get(uri);
+    if (existingIdleTimer) {
+      clearTimeout(existingIdleTimer);
+    }
+
+    // 軽量ルールのみの解析をスケジュール
+    if (DEBUG_LOGS) {
+      connection.console.log(`[DEBUG] Tiered execution: scheduling lightweight analysis for ${uri}`);
+    }
+    const timer = setTimeout(() => {
+      runAnalysis(uri, true); // lightweightOnly = true
+      debounceTimers.delete(uri);
+    }, configuration.debounceDelay);
+    debounceTimers.set(uri, timer);
+
+    // アイドル後に全ルール実行をスケジュール
+    const idleTimer = setTimeout(() => {
+      if (DEBUG_LOGS) {
+        connection.console.log(`[DEBUG] Tiered execution: idle timeout, scheduling full analysis for ${uri}`);
+      }
+      scheduleFullAnalysis(uri);
+      idleTimers.delete(uri);
+    }, tieredConfig.idleDelayMs);
+    idleTimers.set(uri, idleTimer);
+
+    return;
+  }
+
+  // Set new timer (従来の全ルール実行)
   if (DEBUG_LOGS) {
     connection.console.log(`[DEBUG] Setting debounce timer for ${uri} (delay: ${configuration.debounceDelay}ms, version: ${document.version})`);
   }
   const timer = setTimeout(() => {
-    runAnalysis(uri);
+    runAnalysis(uri, false);
     debounceTimers.delete(uri);
   }, configuration.debounceDelay);
 
@@ -575,14 +696,46 @@ function scheduleAnalysis(document: TextDocument): void {
 }
 
 /**
+ * Schedule full analysis (all rules)
+ * Feature: advanced-rules-tiered-execution
+ * アイドル時または保存時に全ルールを実行
+ */
+function scheduleFullAnalysis(uri: string): void {
+  const state = analysisStates.getState(uri);
+  if (!state.latestDocument) {
+    return;
+  }
+
+  // 全ルール解析が待機中であることを記録
+  pendingFullAnalysis.add(uri);
+
+  // 実行中の解析がある場合は完了を待つ
+  if (state.running) {
+    if (DEBUG_LOGS) {
+      connection.console.log(`[DEBUG] Full analysis pending for ${uri}, waiting for current analysis to complete`);
+    }
+    return;
+  }
+
+  // 即座に全ルール解析を開始
+  runAnalysis(uri, false).then(() => {
+    pendingFullAnalysis.delete(uri);
+  });
+}
+
+/**
  * Run serialized analysis
  * Feature: input-lag-improvement
+ * Feature: advanced-rules-tiered-execution
  * 要件: 1.2, 4.3 - 解析完了後の再スケジューリング
+ *
+ * @param uri 文書URI
+ * @param lightweightOnly 軽量ルールのみ実行するかどうか（段階実行用）
  */
-async function runAnalysis(uri: string): Promise<void> {
+async function runAnalysis(uri: string, lightweightOnly: boolean = false): Promise<void> {
   const state = analysisStates.getState(uri);
   const document = state.latestDocument;
-  
+
   if (!document) {
     if (DEBUG_LOGS) {
       connection.console.log(`[DEBUG] No document found for ${uri}, skipping analysis`);
@@ -599,18 +752,29 @@ async function runAnalysis(uri: string): Promise<void> {
   });
 
   if (DEBUG_LOGS) {
-    connection.console.log(`[DEBUG] Starting analysis for ${uri} (version: ${analysisVersion})`);
+    connection.console.log(`[DEBUG] Starting analysis for ${uri} (version: ${analysisVersion}, lightweightOnly: ${lightweightOnly})`);
   }
 
   try {
-    // 解析実行（バージョン情報を渡す）
-    await analyzeDocument(document, analysisVersion);
+    // 解析実行（バージョン情報と軽量モードを渡す）
+    await analyzeDocument(document, analysisVersion, lightweightOnly);
   } finally {
     // 解析完了: running = false に設定
     analysisStates.updateState(uri, { running: false });
 
     if (DEBUG_LOGS) {
-      connection.console.log(`[DEBUG] Analysis completed for ${uri} (version: ${analysisVersion})`);
+      connection.console.log(`[DEBUG] Analysis completed for ${uri} (version: ${analysisVersion}, lightweightOnly: ${lightweightOnly})`);
+    }
+
+    // Feature: advanced-rules-tiered-execution
+    // 全ルール解析が待機中なら実行
+    if (pendingFullAnalysis.has(uri)) {
+      if (DEBUG_LOGS) {
+        connection.console.log(`[DEBUG] Pending full analysis found for ${uri}, starting now`);
+      }
+      pendingFullAnalysis.delete(uri);
+      runAnalysis(uri, false);
+      return;
     }
 
     // 要件: 1.2, 4.3 - 待機中の解析要求があれば次の解析を開始
@@ -619,19 +783,21 @@ async function runAnalysis(uri: string): Promise<void> {
       // 要件: 4.3 - 残り遅延時間を計算してタイマーを設定
       const elapsed = Date.now() - stateAfterComplete.lastChangeAt;
       const remainingDelay = Math.max(0, configuration.debounceDelay - elapsed);
-      
+
       if (DEBUG_LOGS) {
         connection.console.log(`[DEBUG] Pending analysis found for ${uri}, rescheduling (remaining delay: ${remainingDelay}ms, pending version: ${stateAfterComplete.latestVersion})`);
       }
-      
+
       // Clear existing timer if any
       const existingTimer = debounceTimers.get(uri);
       if (existingTimer) {
         clearTimeout(existingTimer);
       }
 
+      // 段階実行の場合は軽量ルールのみでスケジュール
+      const tieredConfig = advancedRulesManager.getConfig().tieredExecution;
       const timer = setTimeout(() => {
-        runAnalysis(uri);
+        runAnalysis(uri, tieredConfig.enabled);
         debounceTimers.delete(uri);
       }, remainingDelay);
 
@@ -643,9 +809,14 @@ async function runAnalysis(uri: string): Promise<void> {
 /**
  * Analyze document
  * Feature: input-lag-improvement
+ * Feature: advanced-rules-tiered-execution
  * 要件: 2.1, 2.2, 2.3, 2.4 - 古い解析結果の破棄
+ *
+ * @param document 解析対象の文書
+ * @param analysisVersion 解析開始時の文書バージョン（stale判定用）
+ * @param lightweightOnly 軽量ルールのみ実行するかどうか（段階実行用）
  */
-async function analyzeDocument(document: TextDocument, analysisVersion?: number): Promise<void> {
+async function analyzeDocument(document: TextDocument, analysisVersion?: number, lightweightOnly: boolean = false): Promise<void> {
   if (!configuration.enableGrammarCheck && !configuration.enableSemanticHighlight) {
     return;
   }
@@ -840,16 +1011,37 @@ async function analyzeDocument(document: TextDocument, analysisVersion?: number)
       }
 
       // Advanced grammar rules
+      // Feature: advanced-rules-tiered-execution - lightweightOnly の場合は軽量ルールのみ
       if (DEBUG_LOGS) {
-        connection.console.log(`[DEBUG] Running advanced grammar check...`);
+        connection.console.log(`[DEBUG] Running advanced grammar check... (lightweightOnly: ${lightweightOnly})`);
       }
       const advancedStart = profileEnabled ? Date.now() : 0;
-      const advancedDiagnostics = languageId === 'markdown'
-        ? advancedRulesManager.checkText(textToAnalyze, grammarTokensList ?? [], excludedRanges, {
-          analyzeTables: configuration.markdown.analyzeTables,
-        })
-        : advancedRulesManager.checkText(textToAnalyze, grammarTokensList ?? []);
-      recordStep('高度ルール評価', advancedStart, `件数=${advancedDiagnostics.length}`);
+      // Feature: advanced-rules-profiling - プロファイル有効時のみコレクタを生成
+      const ruleProfilingCollector: RuleProfilingCollector | undefined = profileEnabled
+        ? { entries: [], totalTimeMs: 0 }
+        : undefined;
+      let advancedDiagnostics: Diagnostic[];
+      if (lightweightOnly) {
+        // 段階実行: 軽量ルールのみ実行
+        advancedDiagnostics = languageId === 'markdown'
+          ? advancedRulesManager.checkLightweightRules(textToAnalyze, grammarTokensList ?? [], excludedRanges, {
+            analyzeTables: configuration.markdown.analyzeTables,
+          }, ruleProfilingCollector)
+          : advancedRulesManager.checkLightweightRules(textToAnalyze, grammarTokensList ?? [], undefined, undefined, ruleProfilingCollector);
+        recordStep('軽量ルール評価', advancedStart, `件数=${advancedDiagnostics.length}`);
+      } else {
+        // 全ルール実行
+        advancedDiagnostics = languageId === 'markdown'
+          ? advancedRulesManager.checkText(textToAnalyze, grammarTokensList ?? [], excludedRanges, {
+            analyzeTables: configuration.markdown.analyzeTables,
+          }, ruleProfilingCollector)
+          : advancedRulesManager.checkText(textToAnalyze, grammarTokensList ?? [], undefined, undefined, ruleProfilingCollector);
+        recordStep('高度ルール評価', advancedStart, `件数=${advancedDiagnostics.length}`);
+      }
+      // Feature: advanced-rules-profiling - ルール別ログ出力
+      if (ruleProfilingCollector) {
+        logRuleProfilingBlock(uri, analysisVersion ?? document.version, ruleProfilingCollector);
+      }
       if (DEBUG_LOGS) {
         connection.console.log(`[DEBUG] Advanced grammar check found ${advancedDiagnostics.length} issues`);
       }
@@ -1006,8 +1198,36 @@ documents.onDidChangeContent((change) => {
 });
 
 /**
+ * Document saved
+ * Feature: advanced-rules-tiered-execution
+ * 保存時に全ルールを即時実行
+ */
+documents.onDidSave((event) => {
+  const tieredConfig = advancedRulesManager.getConfig().tieredExecution;
+  if (!tieredConfig.enabled) {
+    return;
+  }
+
+  const uri = event.document.uri;
+  if (DEBUG_LOGS) {
+    connection.console.log(`[DEBUG] Document saved: ${uri}, triggering full analysis`);
+  }
+
+  // アイドルタイマーをクリア（保存で全ルール実行するので不要）
+  const existingIdleTimer = idleTimers.get(uri);
+  if (existingIdleTimer) {
+    clearTimeout(existingIdleTimer);
+    idleTimers.delete(uri);
+  }
+
+  // 全ルール解析をスケジュール
+  scheduleFullAnalysis(uri);
+});
+
+/**
  * Document closed
  * Feature: input-lag-improvement
+ * Feature: advanced-rules-tiered-execution
  * 要件: 3.2 - 文書クローズ時に解析状態を削除
  */
 documents.onDidClose((event) => {
@@ -1023,6 +1243,17 @@ documents.onDidClose((event) => {
       connection.console.log(`[DEBUG] Cleared debounce timer on document close for ${uri}`);
     }
   }
+
+  // Feature: advanced-rules-tiered-execution - アイドルタイマーをクリア
+  const idleTimer = idleTimers.get(uri);
+  if (idleTimer) {
+    clearTimeout(idleTimer);
+    idleTimers.delete(uri);
+    if (DEBUG_LOGS) {
+      connection.console.log(`[DEBUG] Cleared idle timer on document close for ${uri}`);
+    }
+  }
+  pendingFullAnalysis.delete(uri);
 
   // Clear analysis state (要件: 3.2)
   // デバッグログはAnalysisStateManager内で出力される

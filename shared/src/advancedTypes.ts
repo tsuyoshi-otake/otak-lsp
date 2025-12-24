@@ -440,6 +440,28 @@ export interface SentenceEndingColon {
 }
 
 /**
+ * 段階実行設定
+ * Feature: advanced-rules-tiered-execution
+ *
+ * 入力中は軽量ルールのみ実行し、アイドル時に重いルールを実行する
+ */
+export interface TieredExecutionConfig {
+  /** 段階実行の有効/無効 */
+  enabled: boolean;
+  /** アイドル判定までの遅延時間（ミリ秒） */
+  idleDelayMs: number;
+}
+
+/**
+ * デフォルトの段階実行設定
+ * Feature: advanced-rules-tiered-execution
+ */
+export const DEFAULT_TIERED_EXECUTION_CONFIG: TieredExecutionConfig = {
+  enabled: false,
+  idleDelayMs: 1200
+};
+
+/**
  * 高度な文法ルール設定
  */
 export interface AdvancedRulesConfig {
@@ -546,6 +568,10 @@ export interface AdvancedRulesConfig {
   // Feature: remaining-grammar-rules
   nounChainThreshold: number;
   passiveOveruseThreshold: number;
+
+  // 段階実行設定
+  // Feature: advanced-rules-tiered-execution
+  tieredExecution: TieredExecutionConfig;
 }
 
 /**
@@ -648,7 +674,10 @@ export const DEFAULT_ADVANCED_RULES_CONFIG: AdvancedRulesConfig = {
 
   // 残り文法ルールの閾値設定（Feature: remaining-grammar-rules）
   nounChainThreshold: 5,
-  passiveOveruseThreshold: 3
+  passiveOveruseThreshold: 3,
+
+  // 段階実行設定（Feature: advanced-rules-tiered-execution）
+  tieredExecution: { ...DEFAULT_TIERED_EXECUTION_CONFIG }
 };
 
 /**
@@ -727,12 +756,43 @@ export class RuleResult {
 }
 
 /**
+ * コード範囲
+ * Feature: advanced-rules-shared-preprocessing-cache
+ */
+export interface CodeRange {
+  start: number;
+  end: number;
+}
+
+/**
+ * 高度ルール用共有コンテキスト
+ * Feature: advanced-rules-shared-preprocessing-cache
+ *
+ * 複数のルールで共通して使用する前処理結果を保持し、
+ * 1回の解析サイクルで再利用できるようにする。
+ */
+export interface AdvancedRuleSharedContext {
+  /** フェンスコードブロック範囲（```...```） */
+  codeBlockRanges: CodeRange[];
+  /** インラインコード範囲（`...`） */
+  inlineCodeRanges: CodeRange[];
+  /** コードブロック + インラインコードの結合範囲 */
+  codeRanges: CodeRange[];
+  /** 行開始位置配列 */
+  lineStarts: number[];
+  /** 行テキスト配列（必要なルールのみ利用） */
+  lines: string[];
+}
+
+/**
  * ルールコンテキスト
  */
 export interface RuleContext {
   documentText: string;
   sentences: Sentence[];
   config: AdvancedRulesConfig;
+  /** 共有コンテキスト（解析サイクル内で再利用可能な前処理結果） */
+  shared?: AdvancedRuleSharedContext;
 }
 
 /**
@@ -743,4 +803,34 @@ export interface AdvancedGrammarRule {
   description: string;
   check(tokens: Token[], context: RuleContext): AdvancedDiagnostic[];
   isEnabled(config: AdvancedRulesConfig): boolean;
+}
+
+/**
+ * ルール別計測エントリ
+ * Feature: advanced-rules-profiling
+ * 各ルールの実行時間・診断件数・成否を保持する
+ */
+export interface RuleProfilingEntry {
+  /** ルール名 */
+  ruleName: string;
+  /** 実行時間（ミリ秒） */
+  executionTimeMs: number;
+  /** 診断件数 */
+  diagnosticsCount: number;
+  /** 実行成否（例外発生の有無） */
+  success: boolean;
+  /** 例外があれば簡易なエラーメッセージ */
+  errorMessage?: string;
+}
+
+/**
+ * ルール別計測コレクタ
+ * Feature: advanced-rules-profiling
+ * ルール別計測が有効な場合のみ渡され、計測結果を収集する
+ */
+export interface RuleProfilingCollector {
+  /** 各ルールの計測エントリ */
+  entries: RuleProfilingEntry[];
+  /** 高度ルール全体の合計時間（ミリ秒） */
+  totalTimeMs: number;
 }

@@ -2,6 +2,7 @@
  * Advanced Rules Manager
  * 高度な文法ルールを管理し、実行を制御する
  * Feature: advanced-grammar-rules
+ * Feature: advanced-rules-tiered-execution
  */
 
 import { Token, Diagnostic, Range, Position } from '../../../shared/src/types';
@@ -9,9 +10,15 @@ import {
   AdvancedGrammarRule,
   AdvancedRulesConfig,
   DEFAULT_ADVANCED_RULES_CONFIG,
+  TieredExecutionConfig,
+  DEFAULT_TIERED_EXECUTION_CONFIG,
   RuleContext,
   AdvancedDiagnostic,
-  Sentence
+  Sentence,
+  RuleProfilingEntry,
+  RuleProfilingCollector,
+  AdvancedRuleSharedContext,
+  CodeRange
 } from '../../../shared/src/advancedTypes';
 import { ExcludedRange } from '../../../shared/src/markdownFilterTypes';
 import { SentenceParser } from './sentenceParser';
@@ -78,6 +85,34 @@ import {
 } from './rules';
 
 /**
+ * 軽量ルール名リスト
+ * Feature: advanced-rules-tiered-execution
+ *
+ * 走査コストが低く即時実行に適したルール。
+ * 正規表現マッチや単純な文字列検査のみで完結するルールを含む。
+ */
+const LIGHTWEIGHT_RULE_NAMES: readonly string[] = [
+  'alphabet-width',
+  'halfwidth-kana',
+  'number-width-mix',
+  'symbol-width-mix',
+  'katakana-chouon',
+  'okurigana-variant',
+  'orthography-variant',
+  'dash-tilde-normalization',
+  'nakaguro-usage',
+  'bracket-quote-mismatch',
+  'space-around-unit',
+  'date-format-variant',
+  'numeral-style-mix',
+  'punctuation-style-mix',
+  'quotation-style-mix',
+  'bullet-style-mix',
+  'emphasis-style-mix',
+  'sentence-ending-colon'
+] as const;
+
+/**
  * Advanced Rules Manager
  * すべての高度な文法ルールを管理・実行する
  */
@@ -139,6 +174,71 @@ export class AdvancedRulesManager {
         this.lineStarts.push(i + 1);
       }
     }
+  }
+
+  /**
+   * 共有コンテキストを構築する
+   * Feature: advanced-rules-shared-preprocessing-cache
+   *
+   * 複数のルールで共通して使用する前処理結果を1回の解析で計算し、
+   * 解析サイクル内で再利用できるようにする。
+   *
+   * @param text 解析対象のテキスト
+   * @returns 共有コンテキスト
+   */
+  private buildSharedContext(text: string): AdvancedRuleSharedContext {
+    // コードブロック範囲を検出（```...```）
+    const codeBlockRanges: CodeRange[] = [];
+    const codeBlockRegex = /```[\s\S]*?```/g;
+    let match: RegExpExecArray | null;
+    while ((match = codeBlockRegex.exec(text)) !== null) {
+      codeBlockRanges.push({
+        start: match.index,
+        end: match.index + match[0].length
+      });
+    }
+
+    // インラインコード範囲を検出（`...`）
+    // コードブロック内のバッククォートを除外するため、コードブロック範囲と重なるものは除外
+    const inlineCodeRanges: CodeRange[] = [];
+    const inlineCodeRegex = /`[^`\n]+`/g;
+    while ((match = inlineCodeRegex.exec(text)) !== null) {
+      const start = match.index;
+      const end = start + match[0].length;
+
+      // コードブロック範囲と重なるかチェック
+      const overlapsCodeBlock = codeBlockRanges.some(
+        range => start < range.end && end > range.start
+      );
+
+      if (!overlapsCodeBlock) {
+        inlineCodeRanges.push({ start, end });
+      }
+    }
+
+    // codeRanges: コードブロックとインラインコードの結合
+    const codeRanges: CodeRange[] = [...codeBlockRanges, ...inlineCodeRanges];
+    // 位置でソート
+    codeRanges.sort((a, b) => a.start - b.start);
+
+    // 行開始位置を計算
+    const lineStarts: number[] = [0];
+    for (let i = 0; i < text.length; i++) {
+      if (text[i] === '\n') {
+        lineStarts.push(i + 1);
+      }
+    }
+
+    // 行テキストを分割
+    const lines = text.split('\n');
+
+    return {
+      codeBlockRanges,
+      inlineCodeRanges,
+      codeRanges,
+      lineStarts,
+      lines
+    };
   }
 
   /**
@@ -518,6 +618,45 @@ export class AdvancedRulesManager {
   }
 
   /**
+   * 軽量ルール名リストを取得
+   * Feature: advanced-rules-tiered-execution
+   */
+  getLightweightRuleNames(): readonly string[] {
+    return LIGHTWEIGHT_RULE_NAMES;
+  }
+
+  /**
+   * ルールが軽量ルールかどうかを判定
+   * Feature: advanced-rules-tiered-execution
+   */
+  isLightweightRule(ruleName: string): boolean {
+    return LIGHTWEIGHT_RULE_NAMES.includes(ruleName);
+  }
+
+  /**
+   * 軽量ルールのみでチェック
+   * Feature: advanced-rules-tiered-execution
+   *
+   * 入力中のレスポンス改善のため、コストの低いルールのみを実行する。
+   */
+  checkLightweightRules(
+    text: string,
+    tokens: Token[],
+    excludedRanges?: ExcludedRange[],
+    options?: { analyzeTables?: boolean },
+    profilingCollector?: RuleProfilingCollector
+  ): Diagnostic[] {
+    return this.checkWithRules(
+      text,
+      tokens,
+      [...LIGHTWEIGHT_RULE_NAMES],
+      excludedRanges,
+      options,
+      profilingCollector
+    );
+  }
+
+  /**
    * 設定を更新
    */
   updateConfig(config: Partial<AdvancedRulesConfig>): void {
@@ -535,12 +674,14 @@ export class AdvancedRulesManager {
    * テキストをチェック
    * 診断の範囲はオフセットベースの場合のみ行/文字ベースに変換する
    * (Feature: diagnostic-range-fix)
+   * (Feature: advanced-rules-profiling) - コレクタが渡された場合はルール別計測を実行
    */
   checkText(
     text: string,
     tokens: Token[],
     excludedRanges?: ExcludedRange[],
-    options?: { analyzeTables?: boolean }
+    options?: { analyzeTables?: boolean },
+    profilingCollector?: RuleProfilingCollector
   ): Diagnostic[] {
     const shouldExcludeTables = Boolean(excludedRanges) && options?.analyzeTables !== true;
     const originalText = text;
@@ -555,22 +696,50 @@ export class AdvancedRulesManager {
     const sentences = shouldExcludeTables && excludedRanges
       ? this.filterOutTableSentences(parsedSentences, excludedRanges)
       : parsedSentences;
+
+    // Feature: advanced-rules-shared-preprocessing-cache
+    // 共有コンテキストを解析サイクルごとに生成
+    const shared = this.buildSharedContext(effectiveText);
+
     const baseContext: RuleContext = {
       documentText: effectiveText,
       sentences,
-      config: this.config
+      config: this.config,
+      shared
     };
 
     const diagnostics: AdvancedDiagnostic[] = [];
     const enabledRules = this.getEnabledRules();
 
     for (const rule of enabledRules) {
+      // Feature: advanced-rules-profiling - ルール別計測
+      const startTime = profilingCollector ? Date.now() : 0;
+      let ruleDiagnostics: AdvancedDiagnostic[] = [];
+      let ruleSuccess = true;
+      let ruleErrorMessage: string | undefined;
+
       try {
         const ruleContext = this.buildRuleContextForRule(rule, baseContext, excludedRanges, originalText);
-        const ruleDiagnostics = rule.check(tokens, ruleContext);
+        ruleDiagnostics = rule.check(tokens, ruleContext);
         diagnostics.push(...ruleDiagnostics);
       } catch (error) {
         console.error(`Error in rule ${rule.name}:`, error);
+        ruleSuccess = false;
+        ruleErrorMessage = error instanceof Error ? error.message : String(error);
+      }
+
+      // Feature: advanced-rules-profiling - 計測結果を記録
+      if (profilingCollector) {
+        const executionTimeMs = Date.now() - startTime;
+        const entry: RuleProfilingEntry = {
+          ruleName: rule.name,
+          executionTimeMs,
+          diagnosticsCount: ruleDiagnostics.length,
+          success: ruleSuccess,
+          errorMessage: ruleErrorMessage
+        };
+        profilingCollector.entries.push(entry);
+        profilingCollector.totalTimeMs += executionTimeMs;
       }
     }
 
@@ -582,13 +751,15 @@ export class AdvancedRulesManager {
    * 特定のルールのみでチェック
    * 診断の範囲はオフセットベースの場合のみ行/文字ベースに変換する
    * (Feature: diagnostic-range-fix)
+   * (Feature: advanced-rules-profiling) - コレクタが渡された場合はルール別計測を実行
    */
   checkWithRules(
     text: string,
     tokens: Token[],
     ruleNames: string[],
     excludedRanges?: ExcludedRange[],
-    options?: { analyzeTables?: boolean }
+    options?: { analyzeTables?: boolean },
+    profilingCollector?: RuleProfilingCollector
   ): Diagnostic[] {
     const shouldExcludeTables = Boolean(excludedRanges) && options?.analyzeTables !== true;
     const originalText = text;
@@ -603,22 +774,50 @@ export class AdvancedRulesManager {
     const sentences = shouldExcludeTables && excludedRanges
       ? this.filterOutTableSentences(parsedSentences, excludedRanges)
       : parsedSentences;
+
+    // Feature: advanced-rules-shared-preprocessing-cache
+    // 共有コンテキストを解析サイクルごとに生成
+    const shared = this.buildSharedContext(effectiveText);
+
     const baseContext: RuleContext = {
       documentText: effectiveText,
       sentences,
-      config: this.config
+      config: this.config,
+      shared
     };
 
     const diagnostics: AdvancedDiagnostic[] = [];
     const selectedRules = this.rules.filter(r => ruleNames.includes(r.name) && r.isEnabled(this.config));
 
     for (const rule of selectedRules) {
+      // Feature: advanced-rules-profiling - ルール別計測
+      const startTime = profilingCollector ? Date.now() : 0;
+      let ruleDiagnostics: AdvancedDiagnostic[] = [];
+      let ruleSuccess = true;
+      let ruleErrorMessage: string | undefined;
+
       try {
         const ruleContext = this.buildRuleContextForRule(rule, baseContext, excludedRanges, originalText);
-        const ruleDiagnostics = rule.check(tokens, ruleContext);
+        ruleDiagnostics = rule.check(tokens, ruleContext);
         diagnostics.push(...ruleDiagnostics);
       } catch (error) {
         console.error(`Error in rule ${rule.name}:`, error);
+        ruleSuccess = false;
+        ruleErrorMessage = error instanceof Error ? error.message : String(error);
+      }
+
+      // Feature: advanced-rules-profiling - 計測結果を記録
+      if (profilingCollector) {
+        const executionTimeMs = Date.now() - startTime;
+        const entry: RuleProfilingEntry = {
+          ruleName: rule.name,
+          executionTimeMs,
+          diagnosticsCount: ruleDiagnostics.length,
+          success: ruleSuccess,
+          errorMessage: ruleErrorMessage
+        };
+        profilingCollector.entries.push(entry);
+        profilingCollector.totalTimeMs += executionTimeMs;
       }
     }
 

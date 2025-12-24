@@ -227,6 +227,90 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     },
   },
   {
+    "code": "jouyou-kanji",
+    "message": "「閾」は常用漢字表にありません。ひらがな表記への書き換えを検討してください。（根拠: 常用漢字表 平成22年内閣告示第2号）",
+    "range": {
+      "end": {
+        "character": 1,
+        "line": 244,
+      },
+      "start": {
+        "character": 0,
+        "line": 244,
+      },
+    },
+  },
+  {
+    "code": "jouyou-kanji",
+    "message": "「閾」は常用漢字表にありません。ひらがな表記への書き換えを検討してください。（根拠: 常用漢字表 平成22年内閣告示第2号）",
+    "range": {
+      "end": {
+        "character": 1,
+        "line": 257,
+      },
+      "start": {
+        "character": 0,
+        "line": 257,
+      },
+    },
+  },
+  {
+    "code": "jouyou-kanji",
+    "message": "「閾」は常用漢字表にありません。ひらがな表記への書き換えを検討してください。（根拠: 常用漢字表 平成22年内閣告示第2号）",
+    "range": {
+      "end": {
+        "character": 1,
+        "line": 268,
+      },
+      "start": {
+        "character": 0,
+        "line": 268,
+      },
+    },
+  },
+  {
+    "code": "jouyou-kanji",
+    "message": "「國」は常用漢字表にありません。新字体「国」への書き換えを検討してください。（根拠: 常用漢字表 平成22年内閣告示第2号）",
+    "range": {
+      "end": {
+        "character": 27,
+        "line": 310,
+      },
+      "start": {
+        "character": 26,
+        "line": 310,
+      },
+    },
+  },
+  {
+    "code": "jouyou-kanji",
+    "message": "「龍」は常用漢字表にありません。新字体「竜」への書き換えを検討してください。（根拠: 常用漢字表 平成22年内閣告示第2号）",
+    "range": {
+      "end": {
+        "character": 29,
+        "line": 310,
+      },
+      "start": {
+        "character": 28,
+        "line": 310,
+      },
+    },
+  },
+  {
+    "code": "jouyou-kanji",
+    "message": "「髙」は常用漢字表にありません。新字体「高」への書き換えを検討してください。（根拠: 常用漢字表 平成22年内閣告示第2号）",
+    "range": {
+      "end": {
+        "character": 33,
+        "line": 310,
+      },
+      "start": {
+        "character": 32,
+        "line": 310,
+      },
+    },
+  },
+  {
     "code": "kanji-opening",
     "message": "漢字「様々」はひらがな「さまざま」で表記することが推奨されます。",
     "range": {
@@ -601,20 +685,6 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
       "start": {
         "character": 18,
         "line": 715,
-      },
-    },
-  },
-  {
-    "code": "katakana-chouon",
-    "message": "カタカナ表記「リーダ」は「リーダー」が標準的です。",
-    "range": {
-      "end": {
-        "character": 7,
-        "line": 744,
-      },
-      "start": {
-        "character": 4,
-        "line": 744,
       },
     },
   },

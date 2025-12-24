@@ -1,0 +1,16 @@
+{
+  "name": "advanced-rules-tiered-execution",
+  "description": "入力中は軽量ルールのみ実行し、アイドル時に重いルールを実行する",
+  "language": "ja",
+  "phases": {
+    "requirements": {
+      "status": "approved"
+    },
+    "design": {
+      "status": "approved"
+    },
+    "tasks": {
+      "status": "approved"
+    }
+  }
+}

@@ -346,15 +346,22 @@ export class TermNotationRule implements AdvancedGrammarRule {
 
   /**
    * 文法チェックを実行
+   * Feature: advanced-rules-shared-preprocessing-cache
+   * - context.shared がある場合は共有コンテキストのコード範囲を使用
+   * - context.shared がない場合は従来通り個別に計算（フォールバック）
    */
   check(tokens: Token[], context: RuleContext): AdvancedDiagnostic[] {
     const diagnostics: AdvancedDiagnostic[] = [];
     const text = context.documentText;
 
     // 除外範囲を取得（コードブロック、インラインコード、テーブル誤表記例列）
+    // Feature: advanced-rules-shared-preprocessing-cache
+    // 共有コンテキストがあれば再利用、なければ個別計算
+    const codeBlockRanges = context.shared?.codeBlockRanges ?? this.getCodeBlockRanges(text);
+    const inlineCodeRanges = context.shared?.inlineCodeRanges ?? this.getInlineCodeRanges(text);
     const excludedRanges = [
-      ...this.getCodeBlockRanges(text),
-      ...this.getInlineCodeRanges(text),
+      ...codeBlockRanges,
+      ...inlineCodeRanges,
       ...this.getTableExampleColumnRanges(text)
     ];
 

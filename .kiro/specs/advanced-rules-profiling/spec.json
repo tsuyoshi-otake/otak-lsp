@@ -1,0 +1,16 @@
+{
+  "name": "advanced-rules-profiling",
+  "description": "高度ルールの個別実行時間を計測し、ボトルネックを特定する",
+  "language": "ja",
+  "phases": {
+    "requirements": {
+      "status": "approved"
+    },
+    "design": {
+      "status": "approved"
+    },
+    "tasks": {
+      "status": "approved"
+    }
+  }
+}

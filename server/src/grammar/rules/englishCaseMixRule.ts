@@ -99,9 +99,11 @@ export class EnglishCaseMixRule extends MixDetectionRule {
 
   /**
    * Override check to provide more specific diagnostics per word
+   * Feature: advanced-rules-shared-preprocessing-cache
+   * - context.shared がある場合は共有コンテキストのコード範囲を使用
    */
   check(tokens: Token[], context: RuleContext): AdvancedDiagnostic[] {
-    const wordVariants = this.findWordVariants(context.documentText);
+    const wordVariants = this.findWordVariantsWithContext(context.documentText, context);
     const diagnostics: AdvancedDiagnostic[] = [];
 
     for (const [normalizedWord, variants] of wordVariants) {
@@ -139,14 +141,32 @@ export class EnglishCaseMixRule extends MixDetectionRule {
   }
 
   /**
+   * Find all variants of English words in text with shared context support
+   * Feature: advanced-rules-shared-preprocessing-cache
+   * - context.shared がある場合は共有コンテキストのコード範囲を使用
+   * - context.shared がない場合は従来通り個別に計算（フォールバック）
+   */
+  private findWordVariantsWithContext(text: string, context: RuleContext): Map<string, Map<string, number[]>> {
+    // 共有コンテキストがあれば再利用、なければ個別計算
+    const codeRanges = context.shared?.codeRanges ?? this.getCodeRanges(text);
+    return this.findWordVariantsWithCodeRanges(text, codeRanges);
+  }
+
+  /**
    * Find all variants of English words in text
    * コードブロック、拡張子、ハイフン識別子内は除外
    */
   private findWordVariants(text: string): Map<string, Map<string, number[]>> {
-    const wordVariants = new Map<string, Map<string, number[]>>();
-
-    // コード範囲を事前に取得
     const codeRanges = this.getCodeRanges(text);
+    return this.findWordVariantsWithCodeRanges(text, codeRanges);
+  }
+
+  /**
+   * Find all variants of English words in text with given code ranges
+   * 内部実装: コード範囲は引数で受け取る
+   */
+  private findWordVariantsWithCodeRanges(text: string, codeRanges: Array<{ start: number; end: number }>): Map<string, Map<string, number[]>> {
+    const wordVariants = new Map<string, Map<string, number[]>>();
 
     // Match English words (2+ characters)
     const wordRegex = /[a-zA-Z]{2,}/g;
