@@ -457,7 +457,7 @@ export interface TieredExecutionConfig {
  * Feature: advanced-rules-tiered-execution
  */
 export const DEFAULT_TIERED_EXECUTION_CONFIG: TieredExecutionConfig = {
-  enabled: false,
+  enabled: true,
   idleDelayMs: 1200
 };
 
@@ -642,8 +642,8 @@ export const DEFAULT_ADVANCED_RULES_CONFIG: AdvancedRulesConfig = {
 
   // 公文書ルール（Feature: official-document-rules）
   // 常用漢字チェックは既定で有効、固有名詞除外は有効（要件 4.5）
-  enableOyobiNarabini: false,
-  enableMatawaWakushikuwa: false,
+  enableOyobiNarabini: true,
+  enableMatawaWakushikuwa: true,
   enableJouyouKanji: true,
   excludeProperNounsFromJouyouKanji: true,
   // 人名用漢字・旧字体姓・地名はデフォルトで除外（誤検知防止）

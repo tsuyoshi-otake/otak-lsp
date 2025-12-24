@@ -55,7 +55,7 @@ describe('Tiered Execution - Feature: advanced-rules-tiered-execution', () => {
 
       it('DEFAULT_TIERED_EXECUTION_CONFIGが存在する', () => {
         expect(DEFAULT_TIERED_EXECUTION_CONFIG).toBeDefined();
-        expect(DEFAULT_TIERED_EXECUTION_CONFIG.enabled).toBe(false);
+        expect(DEFAULT_TIERED_EXECUTION_CONFIG.enabled).toBe(true);
         expect(DEFAULT_TIERED_EXECUTION_CONFIG.idleDelayMs).toBe(1200);
       });
     });
@@ -63,7 +63,7 @@ describe('Tiered Execution - Feature: advanced-rules-tiered-execution', () => {
     describe('AdvancedRulesConfigにtieredExecutionフィールドが存在する', () => {
       it('デフォルト設定にtieredExecutionが含まれる', () => {
         expect(DEFAULT_ADVANCED_RULES_CONFIG.tieredExecution).toBeDefined();
-        expect(DEFAULT_ADVANCED_RULES_CONFIG.tieredExecution.enabled).toBe(false);
+        expect(DEFAULT_ADVANCED_RULES_CONFIG.tieredExecution.enabled).toBe(true);
         expect(DEFAULT_ADVANCED_RULES_CONFIG.tieredExecution.idleDelayMs).toBe(1200);
       });
 
@@ -71,7 +71,7 @@ describe('Tiered Execution - Feature: advanced-rules-tiered-execution', () => {
         const manager = new AdvancedRulesManager();
         const config = manager.getConfig();
         expect(config.tieredExecution).toBeDefined();
-        expect(config.tieredExecution.enabled).toBe(false);
+        expect(config.tieredExecution.enabled).toBe(true);
         expect(config.tieredExecution.idleDelayMs).toBe(1200);
       });
     });

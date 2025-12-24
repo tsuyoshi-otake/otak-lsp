@@ -6,8 +6,9 @@
 - **外部依存なし**: kuromoji.jsを内蔵しており、MeCabのインストールは不要です
 - **辞書内蔵**: 様々なの辞書を内蔵
 - **軽量**: 純粋なJavaScript実装
-- **高度な文法チェック**: 文体統一、ら抜き言葉、技術用語表記など20種類のルールをサポート
+- **高度な文法チェック**: 文体統一、ら抜き言葉、技術用語表記など50種類以上のルールをサポート
 - **公文書対応**: 常用漢字チェック、「及び/並びに」「又は/若しくは」使い分け、人名・地名自動除外
+- **高速な解析**: 段階実行・事前検索キャッシュにより、入力中もスムーズに動作
 
 ![otak-lsp セマンティックハイライト例](https://raw.githubusercontent.com/tsuyoshi-otake/otak-lsp/main/images/01.png)
 
@@ -470,6 +471,13 @@ A、B又はC若しくはD、E又はFを選択する（正しい使用例）
 | `otakLsp.advanced.enableJouyouKanji` | 常用漢字チェック | `true` |
 | `otakLsp.advanced.enableOyobiNarabini` | 「及び/並びに」使い分けチェック | `true` |
 | `otakLsp.advanced.enableMatawaWakushikuwa` | 「又は/若しくは」使い分けチェック | `true` |
+
+### パフォーマンス設定
+
+| 設定項目 | 説明 | デフォルト値 |
+|---------|------|-------------|
+| `otakLsp.advanced.tieredExecution.enabled` | 段階実行の有効/無効。入力中は軽量ルールのみ実行し、アイドル/保存時に全ルールを実行 | `true` |
+| `otakLsp.advanced.tieredExecution.idleDelayMs` | アイドル判定までの遅延（ミリ秒） | `1200` |
 
 ### 公文書対応設定
 

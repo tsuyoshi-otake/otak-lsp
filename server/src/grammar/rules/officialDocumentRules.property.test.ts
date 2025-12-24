@@ -276,7 +276,7 @@ describe('Property-Based Tests: Official Document Rules - 設定による有効/
   });
 
   describe('Property 5: AdvancedRulesManager での統合テスト', () => {
-    it('公文書ルールの既定は「及び/並びに」「又は/若しくは」は無効、常用漢字は有効', () => {
+    it('公文書ルールの既定は全て有効', () => {
       fc.assert(
         fc.property(
           fc.constantFrom(
@@ -285,11 +285,8 @@ describe('Property-Based Tests: Official Document Rules - 設定による有効/
             'enableJouyouKanji'
           ) as fc.Arbitrary<keyof AdvancedRulesConfig>,
           (configKey) => {
-            if (configKey === 'enableJouyouKanji') {
-              expect(DEFAULT_ADVANCED_RULES_CONFIG[configKey]).toBe(true);
-            } else {
-              expect(DEFAULT_ADVANCED_RULES_CONFIG[configKey]).toBe(false);
-            }
+            // 全ての公文書ルールはデフォルトで有効
+            expect(DEFAULT_ADVANCED_RULES_CONFIG[configKey]).toBe(true);
           }
         ),
         { numRuns: 30 }
@@ -405,9 +402,9 @@ describe('Property-Based Tests: Official Document Rules - 設定による有効/
             const manager = new AdvancedRulesManager();
             const initialEnabledRules = manager.getEnabledRules().map(r => r.name);
 
-            // 既定では常用漢字のみ有効
-            expect(initialEnabledRules).not.toContain('oyobi-narabini');
-            expect(initialEnabledRules).not.toContain('matawa-wakushikuwa');
+            // 既定では全ての公文書ルールが有効
+            expect(initialEnabledRules).toContain('oyobi-narabini');
+            expect(initialEnabledRules).toContain('matawa-wakushikuwa');
             expect(initialEnabledRules).toContain('jouyou-kanji');
 
             // 設定を更新
