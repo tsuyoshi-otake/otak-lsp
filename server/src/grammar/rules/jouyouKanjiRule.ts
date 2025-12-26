@@ -32,6 +32,7 @@ import {
   SURNAME_SUFFIX_PATTERNS
 } from '../../../../shared/src/jinmeiKanjiData';
 import {
+  isChimeiKanji,
   isChimeiKyujitai,
   getChimeiShinjitai,
   matchesFamousPlaceName,
@@ -45,6 +46,11 @@ import {
  * 除外理由
  */
 type ExclusionReason = 'proper_noun' | 'jinmei_kanji' | 'surname' | 'place_name' | 'address' | null;
+
+/**
+ * 固有名詞の種別
+ */
+type ProperNounType = 'person' | 'place' | 'organization' | null;
 
 /**
  * 事前検索されたコンテキスト（パフォーマンス最適化用）
@@ -64,6 +70,14 @@ interface PreprocessedContext {
 }
 
 /**
+ * トークンの除外判定用ヒント
+ */
+interface TokenExclusionContext {
+  isProperNoun: boolean;
+  isPlaceName: boolean;
+}
+
+/**
  * 常用漢字外の漢字検出結果
  */
 interface NonJouyouKanjiMatch {
@@ -77,16 +91,6 @@ interface NonJouyouKanjiMatch {
   suggestion?: NonJouyouAlternative;
   shinjitaiSuggestion?: string;
 }
-
-/**
- * 固有名詞を判定するための品詞パターン
- */
-const PROPER_NOUN_POS_PATTERNS = [
-  '固有名詞',
-  '人名',
-  '地名',
-  '組織'
-];
 
 /**
  * 住所関連キーワード
@@ -137,16 +141,34 @@ export class JouyouKanjiRule implements AdvancedGrammarRule {
   private exclusionCache: Map<number, ExclusionReason> = new Map();
 
   /**
-   * トークンが固有名詞かどうかを判定
+   * トークンが固有名詞（人名・地名・組織）かどうかを判定
+   */
+  getProperNounType(token: Token): ProperNounType {
+    const posDetail1 = token.posDetail1 || '';
+    const posDetail2 = token.posDetail2 || '';
+    const posDetail3 = token.posDetail3 || '';
+    const details = [posDetail1, posDetail2, posDetail3];
+
+    if (details.includes('人名')) {
+      return 'person';
+    }
+
+    if (details.includes('地名') || details.includes('地域')) {
+      return 'place';
+    }
+
+    if (details.includes('組織')) {
+      return 'organization';
+    }
+
+    return null;
+  }
+
+  /**
+   * トークンが固有名詞（人名・地名・組織）かどうかを判定
    */
   isProperNoun(token: Token): boolean {
-    const pos = token.pos || '';
-    const posDetail = token.posDetail1 || '';
-
-    // 品詞または品詞詳細に固有名詞パターンが含まれるかチェック
-    return PROPER_NOUN_POS_PATTERNS.some(pattern =>
-      pos.includes(pattern) || posDetail.includes(pattern)
-    );
+    return this.getProperNounType(token) !== null;
   }
 
   /**
@@ -227,7 +249,7 @@ export class JouyouKanjiRule implements AdvancedGrammarRule {
   getExclusionReasonOptimized(
     text: string,
     position: number,
-    isTokenProperNoun: boolean,
+    tokenContext: TokenExclusionContext,
     config: {
       excludeProperNouns: boolean;
       excludeJinmeiKanji: boolean;
@@ -243,7 +265,7 @@ export class JouyouKanjiRule implements AdvancedGrammarRule {
     let reason: ExclusionReason = null;
 
     // 1. 固有名詞除外（形態素解析ベース）
-    if (config.excludeProperNouns && isTokenProperNoun) {
+    if (config.excludeProperNouns && tokenContext.isProperNoun) {
       reason = 'proper_noun';
     }
 
@@ -261,8 +283,14 @@ export class JouyouKanjiRule implements AdvancedGrammarRule {
 
     // 3. 地名の除外
     if (reason === null && config.excludePlaceNames) {
+      const char = text[position];
+      const isPlaceNameCandidate = isChimeiKanji(char) || isChimeiKyujitai(char);
+
+      if (tokenContext.isPlaceName) {
+        reason = 'place_name';
+      }
       // 事前検索で見つかった有名地名（O(1)）
-      if (ctx.famousPlacePositions.has(position)) {
+      else if (ctx.famousPlacePositions.has(position)) {
         reason = 'place_name';
       }
       // 事前検索で見つかった住所コンテキスト（O(1)）
@@ -270,7 +298,7 @@ export class JouyouKanjiRule implements AdvancedGrammarRule {
         reason = 'address';
       }
       // フォールバック: 地名接尾辞パターン（必要時のみ実行）
-      else if (isLikelyPlaceName(text, position)) {
+      else if (isPlaceNameCandidate && isLikelyPlaceName(text, position)) {
         reason = 'place_name';
       }
     }
@@ -321,13 +349,16 @@ export class JouyouKanjiRule implements AdvancedGrammarRule {
       if (matchesFamousPlaceName(text, position)) {
         return 'place_name';
       }
-      // 地名パターンにマッチ
-      if (isLikelyPlaceName(text, position)) {
-        return 'place_name';
-      }
       // 住所文脈
       if (isAddressContext(text, position)) {
         return 'address';
+      }
+
+      const isPlaceNameCandidate = isChimeiKanji(char) || isChimeiKyujitai(char);
+
+      // 地名パターンにマッチ
+      if (isPlaceNameCandidate && isLikelyPlaceName(text, position)) {
+        return 'place_name';
       }
     }
 
@@ -360,7 +391,11 @@ export class JouyouKanjiRule implements AdvancedGrammarRule {
       const surface = token.surface || '';
       const tokenStart = token.start;
 
-      const isTokenProperNoun = this.isProperNoun(token);
+      const properNounType = this.getProperNounType(token);
+      const tokenContext: TokenExclusionContext = {
+        isProperNoun: properNounType !== null,
+        isPlaceName: properNounType === 'place'
+      };
 
       // トークン内の各文字をチェック
       for (let i = 0; i < surface.length; i++) {
@@ -382,7 +417,7 @@ export class JouyouKanjiRule implements AdvancedGrammarRule {
         const exclusionReason = this.getExclusionReasonOptimized(
           text,
           position,
-          isTokenProperNoun,
+          tokenContext,
           config,
           ctx
         );
@@ -406,10 +441,12 @@ export class JouyouKanjiRule implements AdvancedGrammarRule {
         matches.push({
           kanji: char,
           position,
-          isProperNoun: isTokenProperNoun,
+          isProperNoun: tokenContext.isProperNoun,
           isJinmeiKanji: isJinmeiKanji(char),
           isSurname: ctx.surnamePatternPositions.has(position),
-          isPlaceName: ctx.famousPlacePositions.has(position) || ctx.placeNameSuffixPositions.has(position),
+          isPlaceName: tokenContext.isPlaceName
+            || ctx.famousPlacePositions.has(position)
+            || ctx.placeNameSuffixPositions.has(position),
           exclusionReason: null,
           suggestion,
           shinjitaiSuggestion

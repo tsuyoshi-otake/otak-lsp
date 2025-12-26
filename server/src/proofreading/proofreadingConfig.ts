@@ -617,6 +617,9 @@ export function parseProofreadingSettingsFromRaw(raw: Record<string, unknown>): 
   if (typeof raw['punctuation.spaceAfterQE'] === 'boolean') {
     config.categories.punctuation.spaceAfterQE = raw['punctuation.spaceAfterQE'];
   }
+  if (typeof raw['punctuation.periodBeforeCloseBracket'] === 'boolean') {
+    config.categories.punctuation.periodBeforeCloseBracket = raw['punctuation.periodBeforeCloseBracket'];
+  }
 
   // スペルチェック
   if (typeof raw['spell.enable'] === 'boolean') {

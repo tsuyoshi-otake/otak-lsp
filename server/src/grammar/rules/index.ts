@@ -34,6 +34,8 @@ export { AmbiguousDemonstrativeRule } from './ambiguousDemonstrativeRule';
 export { PassiveOveruseRule } from './passiveOveruseRule';
 export { NounChainRule } from './nounChainRule';
 export { ConjunctionMisuseRule } from './conjunctionMisuseRule';
+export { AmbiguousTermRule } from './ambiguousTermRule';
+export { BekiUsageRule } from './bekiUsageRule';
 
 // Extended Grammar Rules - Tasks 14-25 (Feature: remaining-grammar-rules)
 export { OkuriganaVariantRule } from './okuriganaVariantRule';

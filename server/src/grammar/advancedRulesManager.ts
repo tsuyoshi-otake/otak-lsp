@@ -52,6 +52,8 @@ import {
   PassiveOveruseRule,
   NounChainRule,
   ConjunctionMisuseRule,
+  AmbiguousTermRule,
+  BekiUsageRule,
   // Extended Grammar Rules - Tasks 14-25 (Feature: remaining-grammar-rules)
   OkuriganaVariantRule,
   OrthographyVariantRule,
@@ -110,7 +112,9 @@ const LIGHTWEIGHT_RULE_NAMES: readonly string[] = [
   'quotation-style-mix',
   'bullet-style-mix',
   'emphasis-style-mix',
-  'sentence-ending-colon'
+  'sentence-ending-colon',
+  'ambiguous-term',
+  'beki-usage'
 ] as const;
 
 /**
@@ -493,6 +497,8 @@ export class AdvancedRulesManager {
     // テーブルは既定でマスクされるが、「弱い表現」や「表記ゆれ」などは表セル内の自然言語でも有用なので原文で判定する
     if (
       (rule.name === 'weak-expression' ||
+        rule.name === 'ambiguous-term' ||
+        rule.name === 'beki-usage' ||
         rule.name === 'term-notation' ||
         rule.name === 'kanji-opening' ||
         rule.name === 'redundant-expression' ||
@@ -564,6 +570,8 @@ export class AdvancedRulesManager {
       new PassiveOveruseRule(),
       new NounChainRule(),
       new ConjunctionMisuseRule(),
+      new AmbiguousTermRule(),
+      new BekiUsageRule(),
       // Extended Grammar Rules - Tasks 14-25 (Feature: remaining-grammar-rules)
       new OkuriganaVariantRule(),
       new OrthographyVariantRule(),

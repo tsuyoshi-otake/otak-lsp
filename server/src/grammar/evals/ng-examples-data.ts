@@ -24,6 +24,8 @@ export interface NGExampleCategory {
   description: string;
   /** 期待されるルールコード */
   expectedRule: string;
+  /** 検出期待（未指定の場合はtrue） */
+  expectedDetection?: boolean;
   /** 実装ステータス */
   status: NGExampleStatus;
   /** NG例のリスト */
@@ -38,6 +40,8 @@ export interface NGExample {
   text: string;
   /** 正しい例文（あれば） */
   correctText?: string;
+  /** 検出期待（未指定の場合はカテゴリに従う） */
+  expectedDetection?: boolean;
   /** 説明 */
   description?: string;
 }
@@ -435,6 +439,33 @@ export const NG_EXAMPLE_CATEGORIES: NGExampleCategory[] = [
     examples: [
       { text: 'それは問題だ。しかし、それも重要だ。', description: '「それ」が何を指すか不明' },
       { text: 'これについては、あれを参照してください。', description: '「これ」「あれ」が不明確' }
+    ]
+  },
+
+  // 27.5. 曖昧語 (Feature: remaining-grammar-rules - IMPLEMENTED)
+  {
+    id: 'ambiguous-term',
+    name: '曖昧語',
+    description: '曖昧で具体性のない表現',
+    expectedRule: 'ambiguous-term',
+    status: 'IMPLEMENTED',
+    examples: [
+      { text: '早めに提出してください。', description: '期限が具体的でない' },
+      { text: 'だいたい1週間で届きます。', description: '期間が曖昧' },
+      { text: '少人数で実施します。', description: '人数が曖昧' }
+    ]
+  },
+
+  // 27.6. 「べき」用法 (Feature: remaining-grammar-rules - IMPLEMENTED)
+  {
+    id: 'beki-usage',
+    name: '「べき」用法',
+    description: '「するべき」や文末「べき」の用法',
+    expectedRule: 'beki-usage',
+    status: 'IMPLEMENTED',
+    examples: [
+      { text: '申請者は本人確認書類を提出するべき。', description: '「するべき」＋文末止め' },
+      { text: '申請者は本人確認書類を提出するべきです。', description: '「するべき」を検出' }
     ]
   },
 
@@ -909,6 +940,27 @@ export const NG_EXAMPLE_CATEGORIES: NGExampleCategory[] = [
     ]
   },
 
+  // 58. 常用漢字外使用（除外）
+  {
+    id: 'jouyou-kanji-exclusion',
+    name: '常用漢字外使用（除外）',
+    description: '固有名詞・地名など除外対象の常用漢字外は検出しない',
+    expectedRule: 'jouyou-kanji',
+    expectedDetection: false,
+    status: 'IMPLEMENTED',
+    examples: [
+      { text: '澤田さん', description: '人名の旧字体は除外' },
+      { text: '濱口さん', description: '人名の旧字体は除外' },
+      { text: '廣瀬さん', description: '人名の旧字体は除外' },
+      { text: '齋藤さん', description: '人名の旧字体は除外' },
+      { text: '邊野さん', description: '人名の旧字体は除外' },
+      { text: '國分さん', description: '人名の旧字体は除外' },
+      { text: '横濱で集合する', description: '有名地名は除外' },
+      { text: '金澤で開催する', description: '有名地名は除外' },
+      { text: '澁谷に行く', description: '有名地名は除外' }
+    ]
+  },
+
   // ==========================================
   // 校正設定互換ルール（Feature: proofreading-settings-compat）
   // ==========================================
@@ -987,6 +1039,32 @@ export const NG_EXAMPLE_CATEGORIES: NGExampleCategory[] = [
     examples: [
       { text: 'これは―テストです', correctText: 'これは――テストです', description: 'ダッシュが1個（奇数）' },
       { text: 'あれは———です', description: 'ダッシュが3個（奇数）' }
+    ]
+  },
+
+  // 疑問符/感嘆符後の空白
+  {
+    id: 'space-after-question-exclamation',
+    name: '疑問符/感嘆符後の空白',
+    description: '疑問符/感嘆符の後に空白がない',
+    expectedRule: 'space-after-question-exclamation',
+    status: 'IMPLEMENTED',
+    examples: [
+      { text: '申請期限を知っていますか？次のページをご覧ください。', description: '空白がない' },
+      { text: '大丈夫ですか！至急確認してください。', description: '空白がない' }
+    ]
+  },
+
+  // 括弧内句点
+  {
+    id: 'period-before-close-bracket',
+    name: '括弧内句点',
+    description: '括弧内が文の場合の句点有無',
+    expectedRule: 'period-before-close-bracket',
+    status: 'IMPLEMENTED',
+    examples: [
+      { text: '（以下「基本計画」という）', description: '括弧内の文に句点がない' },
+      { text: '国立科学博物館（上野。）', description: '括弧内が語句なのに句点がある' }
     ]
   },
 

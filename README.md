@@ -298,6 +298,8 @@
 | 構文/文体 | 副詞の呼応 | 「決して〜ない」など呼応の不一致を検出 | `otakLsp.advanced.enableAdverbAgreement` |
 | 構文/文体 | 修飾語の位置 | 修飾語と被修飾語の順序不整合を検出 | `otakLsp.advanced.enableModifierPosition` |
 | 構文/文体 | 曖昧な指示語 | 「それ」「これ」などの参照が不明瞭なケースを検出 | `otakLsp.advanced.enableAmbiguousDemonstrative` |
+| 構文/文体 | 曖昧語 | 「早めに」「だいたい」「少人数」など曖昧な表現を検出 | `otakLsp.advanced.enableAmbiguousTerm` |
+| 構文/文体 | 「べき」の用法 | 「するべき」や文末「べき」を検出 | `otakLsp.advanced.enableBekiUsage` |
 | 構文/文体 | 受身表現の多用 | 受身表現の過剰な連続を検出 | `otakLsp.advanced.enablePassiveOveruse` |
 | 構文/文体 | 名詞の連続 | 名詞の過度な連結を検出 | `otakLsp.advanced.enableNounChain` |
 | 構文/文体 | 接続詞の誤用 | 逆接/順接など関係に合わない接続詞を検出 | `otakLsp.advanced.enableConjunctionMisuse` |
@@ -524,6 +526,8 @@ A、B又はC若しくはD、E又はFを選択する（正しい使用例）
 | `otakLsp.advanced.enableAdverbAgreement` | 副詞呼応チェック | `true` |
 | `otakLsp.advanced.enableModifierPosition` | 修飾語位置チェック | `true` |
 | `otakLsp.advanced.enableAmbiguousDemonstrative` | 曖昧な指示語チェック | `true` |
+| `otakLsp.advanced.enableAmbiguousTerm` | 曖昧語チェック | `true` |
+| `otakLsp.advanced.enableBekiUsage` | 「べき」用法チェック | `true` |
 | `otakLsp.advanced.enablePassiveOveruse` | 受身表現多用チェック | `true` |
 | `otakLsp.advanced.enableNounChain` | 名詞連続チェック | `true` |
 | `otakLsp.advanced.enableConjunctionMisuse` | 接続詞誤用チェック | `true` |
@@ -640,6 +644,8 @@ A、B又はC若しくはD、E又はFを選択する（正しい使用例）
 | `otakLsp.proofreading.punctuation.evenLeader` | 二点リーダは偶数個で使用 | `true` |
 | `otakLsp.proofreading.punctuation.evenDash` | ダッシュは偶数個で使用 | `true` |
 | `otakLsp.proofreading.punctuation.evenWave` | 波線は偶数個で使用 | `true` |
+| `otakLsp.proofreading.punctuation.spaceAfterQE` | 疑問符/感嘆符の後の空白をチェック | `true` |
+| `otakLsp.proofreading.punctuation.periodBeforeCloseBracket` | 括弧内が文のときに句点を付ける | `true` |
 
 #### 括弧チェック
 
@@ -779,7 +785,7 @@ npm run package
 <!-- EVALS-START -->
 ## Detection Coverage
 
-![Coverage](https://img.shields.io/badge/coverage-96%25-brightgreen)
+![Coverage](https://img.shields.io/badge/coverage-100%25-brightgreen)
 
 | Category | Status | Example |
 |----------|--------|---------|
@@ -810,6 +816,8 @@ npm run package
 | 助詞「の」の連続 | PASS | 東京の会社の部長の息子の友達 |
 | 修飾語の位置 | PASS | 赤い大きな花 |
 | 曖昧な指示語 | PASS | それは問題だ。しかし、それも重要だ。 |
+| 曖昧語 | PASS | 早めに提出してください。 |
+| 「べき」用法 | PASS | 申請者は本人確認書類を提出するべき。 |
 | 受身の多用 | PASS | 報告書が作成された。結果が分析された。結論が導かれた。 |
 | 名詞の連続 | PASS | 東京都渋谷区松濤一丁目住所 |
 | 接続詞の誤用 | PASS | 晴れた。しかし、外出した。 |
@@ -839,13 +847,16 @@ npm run package
 | コードブロック言語指定の欠落 | PASS | ``` const x = 1; ``` |
 | 「及び/並びに」使い分け | PASS | A並びにBを確認する |
 | 「又は/若しくは」使い分け | PASS | A若しくはBを選択する |
-| 常用漢字外使用 | FAIL | 斡旋を依頼する |
+| 常用漢字外使用 | PASS | 斡旋を依頼する |
+| 常用漢字外使用（除外） | PASS | 澤田さん |
 | 和暦初年の統一 | PASS | 令和1年に設立 |
 | ひらがな連続 | PASS | これはとてもながいひらがなのれんぞくぶんしょうでありますがこのぶんしょうはさらにながくつづきますので… |
 | カタカナ連続 | PASS | コレハトテモナガイカタカナノレンゾクブンショウデアリマスモット |
 | 漢字連続 | PASS | 東京都渋谷区松濤一丁目 |
 | 二点リーダ偶数 | PASS | これは‥テストです |
 | ダッシュ偶数 | PASS | これは―テストです |
+| 疑問符/感嘆符後の空白 | PASS | 申請期限を知っていますか？次のページをご覧ください。 |
+| 括弧内句点 | PASS | （以下「基本計画」という） |
 | 括弧の入れ子深さ | PASS | （（（（深い括弧）））） |
 | 箇条書き句点運用 | PASS | - 項目。 |
 

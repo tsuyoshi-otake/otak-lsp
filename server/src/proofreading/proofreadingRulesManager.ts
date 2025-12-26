@@ -104,6 +104,13 @@ export class ProofreadingRulesManager {
 
     if (this.config.categories.punctuation.enable) {
       diagnostics.push(...this.checkPunctuationEvenCount(text, bracketRanges, checkInBrackets));
+
+      if (this.config.categories.punctuation.spaceAfterQE) {
+        diagnostics.push(...this.checkSpaceAfterQuestionExclamation(text, bracketRanges, checkInBrackets));
+      }
+      if (this.config.categories.punctuation.periodBeforeCloseBracket) {
+        diagnostics.push(...this.checkPeriodBeforeCloseBracket(text, bracketRanges, checkInBrackets));
+      }
     }
 
     // 括弧階層チェック
@@ -322,6 +329,140 @@ export class ProofreadingRulesManager {
     }
 
     return diagnostics;
+  }
+
+  /**
+   * 疑問符/感嘆符の後の空白をチェック
+   */
+  private checkSpaceAfterQuestionExclamation(
+    text: string,
+    bracketRanges: BracketRange[],
+    checkInBrackets: boolean
+  ): ProofreadingDiagnostic[] {
+    const diagnostics: ProofreadingDiagnostic[] = [];
+    const pattern = /[?!？！]/g;
+    let match;
+
+    while ((match = pattern.exec(text)) !== null) {
+      const index = match.index;
+
+      if (!checkInBrackets && this.bracketDetector.isInsideBracket(index, bracketRanges)) {
+        continue;
+      }
+
+      const next = text[index + 1];
+      if (!next) {
+        continue;
+      }
+      if (/\s/.test(next)) {
+        continue;
+      }
+      if (/[?!？！]/.test(next)) {
+        continue;
+      }
+
+      let cursor = index + 1;
+      let hasWhitespace = false;
+      while (cursor < text.length) {
+        const ch = text[cursor];
+        if (/\s/.test(ch)) {
+          hasWhitespace = true;
+          break;
+        }
+        if (this.isClosingBracket(ch)) {
+          cursor += 1;
+          continue;
+        }
+        break;
+      }
+
+      if (hasWhitespace || cursor >= text.length) {
+        continue;
+      }
+
+      diagnostics.push({
+        range: {
+          start: this.offsetToPosition(index),
+          end: this.offsetToPosition(index + 1)
+        },
+        message: '疑問符/感嘆符の後に空白がありません。後続の文が続く場合は1文字分空けてください。',
+        severity: DiagnosticSeverity.Information,
+        code: 'space-after-question-exclamation'
+      });
+    }
+
+    return diagnostics;
+  }
+
+  /**
+   * 括弧内の文末句点有無をチェック
+   */
+  private checkPeriodBeforeCloseBracket(
+    text: string,
+    bracketRanges: BracketRange[],
+    checkInBrackets: boolean
+  ): ProofreadingDiagnostic[] {
+    const diagnostics: ProofreadingDiagnostic[] = [];
+    const innerRanges = this.bracketDetector.getInnerRanges(bracketRanges);
+    const sentenceEndingPattern = /(?:です|ます|である|であります|だった|でした|であった|だ|とする|という)$/;
+
+    for (const range of innerRanges) {
+      if (!checkInBrackets && this.bracketDetector.isInsideBracket(range.start, bracketRanges)) {
+        continue;
+      }
+
+      const innerText = text.slice(range.start, range.end);
+      const trimmed = innerText.trim();
+      if (!trimmed) {
+        continue;
+      }
+
+      const endPunctMatch = /([。！？!?])\s*$/.exec(trimmed);
+      const hasEndPunct = Boolean(endPunctMatch);
+      const trimmedWithoutPunct = hasEndPunct ? trimmed.replace(/[。！？!?]\s*$/, '') : trimmed;
+      const isSentenceLike = sentenceEndingPattern.test(trimmedWithoutPunct);
+
+      if (isSentenceLike && !hasEndPunct) {
+        const closeIndex = range.end;
+        diagnostics.push({
+          range: {
+            start: this.offsetToPosition(closeIndex),
+            end: this.offsetToPosition(closeIndex + 1)
+          },
+          message: '括弧内が文の場合は句点（。）を付けてください。',
+          severity: DiagnosticSeverity.Information,
+          code: 'period-before-close-bracket'
+        });
+        continue;
+      }
+
+      if (hasEndPunct && !isSentenceLike && this.isShortNounPhrase(trimmedWithoutPunct)) {
+        const punctChar = endPunctMatch?.[1];
+        if (!punctChar) {
+          continue;
+        }
+        const punctIndex = range.start + innerText.lastIndexOf(punctChar);
+        diagnostics.push({
+          range: {
+            start: this.offsetToPosition(punctIndex),
+            end: this.offsetToPosition(punctIndex + 1)
+          },
+          message: '括弧内が語句の場合は句点を付けません。句点を削除してください。',
+          severity: DiagnosticSeverity.Information,
+          code: 'period-before-close-bracket'
+        });
+      }
+    }
+
+    return diagnostics;
+  }
+
+  private isShortNounPhrase(text: string): boolean {
+    return !/[ぁ-ん]/.test(text) && text.length <= 6;
+  }
+
+  private isClosingBracket(char: string): boolean {
+    return '」』）)]】〕〉》］｝'.includes(char);
   }
 
   /**

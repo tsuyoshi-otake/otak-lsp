@@ -81,6 +81,11 @@ export const CHIMEI_SUFFIX_PATTERNS: string[] = [
 ];
 
 /**
+ * 地名接尾辞の境界判定用パターン
+ */
+const PLACE_NAME_BOUNDARY_PATTERN = /[\s　0-9０-９、。．，,・:：;；!！?？…‥()（）「」『』【】［］\[\]{}<>＜＞]/;
+
+/**
  * 地名の接頭辞パターン
  */
 export const CHIMEI_PREFIX_PATTERNS: string[] = [
@@ -202,17 +207,25 @@ export function isLikelyPlaceName(text: string, position: number): boolean {
   const subsequentText = text.substring(position, searchEnd);
 
   for (const suffix of CHIMEI_SUFFIX_PATTERNS) {
-    // 1-8文字の地名 + 接尾辞のパターン
-    const pattern = new RegExp(`^.{0,8}${suffix}`);
-    if (pattern.test(subsequentText)) {
-      return true;
-    }
-  }
+    let idx = subsequentText.indexOf(suffix);
+    while (idx >= 0) {
+      if (idx > 8) {
+        break;
+      }
 
-  // 住所表記パターン（〇〇県、〇〇市など）
-  const addressPattern = /^.{1,4}(都|道|府|県|市|区|町|村|郡)/;
-  if (addressPattern.test(subsequentText)) {
-    return true;
+      // 「道」は1文字語（鉄道/柔道など）を避ける
+      if (suffix === '道' && idx < 2) {
+        idx = subsequentText.indexOf(suffix, idx + 1);
+        continue;
+      }
+
+      const nextChar = subsequentText[idx + suffix.length];
+      if (!nextChar || PLACE_NAME_BOUNDARY_PATTERN.test(nextChar)) {
+        return true;
+      }
+
+      idx = subsequentText.indexOf(suffix, idx + 1);
+    }
   }
 
   return false;

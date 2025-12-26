@@ -38,6 +38,8 @@ export type AdvancedGrammarErrorType =
   | 'passive-overuse'
   | 'noun-chain'
   | 'conjunction-misuse'
+  | 'ambiguous-term'
+  | 'beki-usage'
   // Extended Grammar Rules - Tasks 14-25
   | 'okurigana-variant'
   | 'orthography-variant'
@@ -500,6 +502,8 @@ export interface AdvancedRulesConfig {
   enablePassiveOveruse: boolean;
   enableNounChain: boolean;
   enableConjunctionMisuse: boolean;
+  enableAmbiguousTerm: boolean;
+  enableBekiUsage: boolean;
 
   // 拡張文法ルール（Tasks 14-25）
   enableOkuriganaVariant: boolean;
@@ -611,6 +615,8 @@ export const DEFAULT_ADVANCED_RULES_CONFIG: AdvancedRulesConfig = {
   enablePassiveOveruse: true,
   enableNounChain: true,
   enableConjunctionMisuse: true,
+  enableAmbiguousTerm: true,
+  enableBekiUsage: true,
 
   // 拡張文法ルール（Tasks 14-25）はすべて有効
   enableOkuriganaVariant: true,

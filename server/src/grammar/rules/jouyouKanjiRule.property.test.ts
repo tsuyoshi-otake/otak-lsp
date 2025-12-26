@@ -35,14 +35,16 @@ describe('Property-Based Tests: JouyouKanjiRule', () => {
     surface: string,
     pos: string,
     posDetail1: string,
-    start: number
+    start: number,
+    posDetail2: string = '*',
+    posDetail3: string = '*'
   ): Token => {
     return new Token({
       surface,
       pos,
       posDetail1,
-      posDetail2: '*',
-      posDetail3: '*',
+      posDetail2,
+      posDetail3,
       conjugation: '*',
       conjugationForm: '*',
       baseForm: surface,
@@ -220,7 +222,7 @@ describe('Property-Based Tests: JouyouKanjiRule', () => {
           (kanji) => {
             const text = kanji;
             // 固有名詞として設定
-            const token = createToken(text, '名詞', '固有名詞', 0);
+            const token = createToken(text, '名詞', '固有名詞', 0, '組織');
             const sentence = createSentence(text, 0);
             const context = createContext(text, [sentence], {
               excludeProperNounsFromJouyouKanji: true
@@ -243,7 +245,7 @@ describe('Property-Based Tests: JouyouKanjiRule', () => {
           (kanji) => {
             const text = kanji;
             // 固有名詞として設定
-            const token = createToken(text, '名詞', '固有名詞', 0);
+            const token = createToken(text, '名詞', '固有名詞', 0, '組織');
             const sentence = createSentence(text, 0);
             const context = createContext(text, [sentence], {
               excludeProperNounsFromJouyouKanji: false
@@ -327,6 +329,38 @@ describe('Property-Based Tests: JouyouKanjiRule', () => {
         ),
         { numRuns: 30 }
       );
+    });
+
+    it('地名接尾辞があっても地名漢字でない場合は除外しない', () => {
+      const text = '鑛山で働く';
+      const token = createToken(text, '名詞', '一般', 0);
+      const sentence = createSentence(text, 0);
+      const context = createContext(text, [sentence], {
+        excludeProperNounsFromJouyouKanji: true,
+        excludeJinmeiKanji: true,
+        excludePlaceNames: true
+      });
+
+      const diagnostics = rule.check([token], context);
+
+      expect(diagnostics.length).toBeGreaterThan(0);
+      expect(diagnostics.some(d => d.code === 'jouyou-kanji')).toBe(true);
+    });
+
+    it('固有名詞/一般は除外対象にしない', () => {
+      const text = '鐵道会社';
+      const token = createToken(text, '名詞', '固有名詞', 0, '一般');
+      const sentence = createSentence(text, 0);
+      const context = createContext(text, [sentence], {
+        excludeProperNounsFromJouyouKanji: true,
+        excludeJinmeiKanji: true,
+        excludePlaceNames: true
+      });
+
+      const diagnostics = rule.check([token], context);
+
+      expect(diagnostics.length).toBeGreaterThan(0);
+      expect(diagnostics.some(d => d.code === 'jouyou-kanji')).toBe(true);
     });
   });
 });

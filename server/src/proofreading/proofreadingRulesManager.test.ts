@@ -234,4 +234,51 @@ describe('ProofreadingRulesManager', () => {
       expect(lengthDiag).toBeUndefined();
     });
   });
+
+  describe('Punctuation rules', () => {
+    it('疑問符の後に空白がない場合は検出する', () => {
+      const manager = new ProofreadingRulesManager();
+      const text = '申請期限を知っていますか？次のページをご覧ください。';
+      const diagnostics = manager.checkText(text, []);
+
+      const diag = diagnostics.find(d => d.message.includes('疑問符/感嘆符の後に空白'));
+      expect(diag).toBeDefined();
+    });
+
+    it('疑問符の後に空白がある場合は検出しない', () => {
+      const manager = new ProofreadingRulesManager();
+      const text = '申請期限を知っていますか？ 次のページをご覧ください。';
+      const diagnostics = manager.checkText(text, []);
+
+      const diag = diagnostics.find(d => d.message.includes('疑問符/感嘆符の後に空白'));
+      expect(diag).toBeUndefined();
+    });
+
+    it('括弧内が文のときは句点不足を検出する', () => {
+      const manager = new ProofreadingRulesManager();
+      const text = '（以下「基本計画」という）';
+      const diagnostics = manager.checkText(text, []);
+
+      const diag = diagnostics.find(d => d.message.includes('括弧内が文の場合'));
+      expect(diag).toBeDefined();
+    });
+
+    it('括弧内が文で句点がある場合は検出しない', () => {
+      const manager = new ProofreadingRulesManager();
+      const text = '（以下「基本計画」という。）';
+      const diagnostics = manager.checkText(text, []);
+
+      const diag = diagnostics.find(d => d.message.includes('括弧内が文の場合'));
+      expect(diag).toBeUndefined();
+    });
+
+    it('括弧内が語句で句点がある場合は検出する', () => {
+      const manager = new ProofreadingRulesManager();
+      const text = '国立科学博物館（上野。）';
+      const diagnostics = manager.checkText(text, []);
+
+      const diag = diagnostics.find(d => d.message.includes('括弧内が語句の場合'));
+      expect(diag).toBeDefined();
+    });
+  });
 });

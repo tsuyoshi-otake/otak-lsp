@@ -25,7 +25,7 @@ describe('EvalsRunner', () => {
     it('should return total counts', async () => {
       const results = await runner.runEvals();
 
-      expect(results.totalCategories).toBe(65); // 44 + 10 new categories (evals-ng-pattern-expansion) + 3 official-document-rules + 7 proofreading-settings-compat + 1 bullet-punctuation
+      expect(results.totalCategories).toBe(NG_EXAMPLE_CATEGORIES.length);
       expect(results.totalExamples).toBeGreaterThan(0);
     }, 60000);
 
@@ -207,9 +207,9 @@ describe('EvalsRunner', () => {
       }, 30000);
     });
 
-    // 新しいカテゴリの総数が65であることを確認
-    it('should have 65 total categories (44 existing + 10 new + 3 official-document-rules + 7 proofreading-settings-compat + 1 bullet-punctuation)', async () => {
-      expect(NG_EXAMPLE_CATEGORIES.length).toBe(65);
+    // 新しいカテゴリの総数が70であることを確認
+    it('should have 70 total categories', async () => {
+      expect(NG_EXAMPLE_CATEGORIES.length).toBe(70);
     });
 
     // 全カテゴリが実装済み（IMPLEMENTED）であることを確認

@@ -42,15 +42,15 @@ export class EvalsReporter {
     lines.push(`| Total Categories | ${result.totalCategories} |`);
     lines.push(`| Implemented Categories | ${result.implementedCategories} (${Math.round(result.implementedCategories / result.totalCategories * 100)}%) |`);
     lines.push(`| Total Examples | ${result.totalExamples} |`);
-    lines.push(`| Detected Examples | ${result.detectedExamples} |`);
-    lines.push(`| Detection Rate | ${result.detectionRate}% |`);
+    lines.push(`| 期待どおりの検出数 | ${result.detectedExamples} |`);
+    lines.push(`| 一致率 | ${result.detectionRate}% |`);
     lines.push('');
 
     // カテゴリ別結果
     lines.push('## Category Results');
     lines.push('');
-    lines.push('| Category | Status | Detected | Total | Rate |');
-    lines.push('|----------|--------|----------|-------|------|');
+    lines.push('| Category | Status | 一致 | Total | 一致率 |');
+    lines.push('|----------|--------|------|-------|-------|');
 
     for (const cat of result.categories) {
       const statusIndicator = this.getStatusIndicator(cat.status);
@@ -66,7 +66,7 @@ export class EvalsReporter {
       lines.push(`### ${cat.categoryName} (${cat.categoryId})`);
       lines.push('');
       lines.push(`- Status: ${this.getStatusIndicator(cat.status)}`);
-      lines.push(`- Detection Rate: ${cat.detectionRate}% (${cat.detected}/${cat.total})`);
+      lines.push(`- 一致率: ${cat.detectionRate}% (${cat.detected}/${cat.total})`);
       lines.push('');
 
       // 検出失敗例
@@ -109,7 +109,7 @@ export class EvalsReporter {
     lines.push('');
     lines.push(`Total Categories: ${result.totalCategories}`);
     lines.push(`Implemented: ${result.implementedCategories} (${Math.round(result.implementedCategories / result.totalCategories * 100)}%)`);
-    lines.push(`Detected: ${result.detectedExamples}/${result.totalExamples} examples (${result.detectionRate}%)`);
+    lines.push(`一致: ${result.detectedExamples}/${result.totalExamples} examples (${result.detectionRate}%)`);
     lines.push('');
 
     // ステータス別カウント
@@ -126,7 +126,7 @@ export class EvalsReporter {
     // 検出失敗があるカテゴリ
     const failedCategories = result.categories.filter(c => c.status === 'FAIL');
     if (failedCategories.length > 0) {
-      lines.push('Failed Categories (partial detection):');
+      lines.push('Failed Categories (mismatch):');
       for (const cat of failedCategories) {
         lines.push(`  - ${cat.categoryName}: ${cat.detected}/${cat.total} (${cat.detectionRate}%)`);
       }

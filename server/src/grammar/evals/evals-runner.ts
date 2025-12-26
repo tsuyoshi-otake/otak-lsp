@@ -40,9 +40,11 @@ import {
   AdverbAgreementRule,
   ModifierPositionRule,
   AmbiguousDemonstrativeRule,
+  AmbiguousTermRule,
   PassiveOveruseRule,
   NounChainRule,
   ConjunctionMisuseRule,
+  BekiUsageRule,
   // Extended Grammar Rules - Tasks 14-25
   OkuriganaVariantRule,
   OrthographyVariantRule,
@@ -120,8 +122,12 @@ export type EvalStatus = 'PASS' | 'FAIL' | 'NOT_IMPL';
 export interface ExampleEvalResult {
   /** 例文テキスト */
   text: string;
-  /** 検出されたか */
+  /** 期待どおり検出されたか */
   detected: boolean;
+  /** 期待される検出結果 */
+  expectedDetection: boolean;
+  /** 実際の検出結果 */
+  actualDetected: boolean;
   /** 検出された診断情報 */
   diagnostics: Diagnostic[];
   /** 期待されるルール */
@@ -142,7 +148,7 @@ export interface CategoryEvalResult {
   status: EvalStatus;
   /** 例文数 */
   total: number;
-  /** 検出数 */
+  /** 期待どおり検出できた数 */
   detected: number;
   /** 検出率 */
   detectionRate: number;
@@ -162,9 +168,9 @@ export interface EvalResult {
   implementedCategories: number;
   /** 全例文数 */
   totalExamples: number;
-  /** 検出した例文数 */
+  /** 期待どおり検出できた例文数 */
   detectedExamples: number;
-  /** 検出率（%） */
+  /** 期待どおり検出できた割合（%） */
   detectionRate: number;
   /** カテゴリ別結果 */
   categories: CategoryEvalResult[];
@@ -248,9 +254,11 @@ export class EvalsRunner {
     this.advancedRules.set('adverb-agreement', new AdverbAgreementRule());
     this.advancedRules.set('modifier-position', new ModifierPositionRule());
     this.advancedRules.set('ambiguous-demonstrative', new AmbiguousDemonstrativeRule());
+    this.advancedRules.set('ambiguous-term', new AmbiguousTermRule());
     this.advancedRules.set('passive-overuse', new PassiveOveruseRule());
     this.advancedRules.set('noun-chain', new NounChainRule());
     this.advancedRules.set('conjunction-misuse', new ConjunctionMisuseRule());
+    this.advancedRules.set('beki-usage', new BekiUsageRule());
     // Extended Grammar Rules - Tasks 14-25
     this.advancedRules.set('okurigana-variant', new OkuriganaVariantRule());
     this.advancedRules.set('orthography-variant', new OrthographyVariantRule());
@@ -340,6 +348,8 @@ export class EvalsRunner {
         examples: category.examples.map(ex => ({
           text: ex.text,
           detected: false,
+          expectedDetection: ex.expectedDetection ?? category.expectedDetection ?? true,
+          actualDetected: false,
           diagnostics: [],
           expectedRule: category.expectedRule
         })),
@@ -351,7 +361,8 @@ export class EvalsRunner {
     let detectedCount = 0;
 
     for (const example of category.examples) {
-      const result = await this.evaluateExample(example.text, category.expectedRule);
+      const expectedDetection = example.expectedDetection ?? category.expectedDetection ?? true;
+      const result = await this.evaluateExample(example.text, category.expectedRule, expectedDetection);
       exampleResults.push(result);
       if (result.detected) {
         detectedCount++;
@@ -383,13 +394,19 @@ export class EvalsRunner {
   /**
    * 例文を評価
    */
-  async evaluateExample(text: string, expectedRule: string): Promise<ExampleEvalResult> {
+  async evaluateExample(
+    text: string,
+    expectedRule: string,
+    expectedDetection: boolean = true
+  ): Promise<ExampleEvalResult> {
     if (!this.tokenizer) {
       await this.initialize();
     }
 
     const tokens = this.tokenize(text);
     const diagnostics: Diagnostic[] = [];
+
+    const isJouyouKanjiEval = expectedRule === 'jouyou-kanji' && expectedDetection;
 
     // 基本文法チェック
     const basicDiagnostics = this.grammarChecker.check(tokens, text);
@@ -407,7 +424,14 @@ export class EvalsRunner {
         enableOyobiNarabini: true,
         enableMatawaWakushikuwa: true,
         enableJouyouKanji: true,
-        enableBulletPunctuation: true
+        enableBulletPunctuation: true,
+        ...(isJouyouKanjiEval
+          ? {
+              excludeProperNounsFromJouyouKanji: false,
+              excludeJinmeiKanji: false,
+              excludePlaceNames: false
+            }
+          : {})
       }
     };
 
@@ -430,12 +454,15 @@ export class EvalsRunner {
     }
 
     // 期待されるルールまたは関連するルールで検出されたかチェック
-    const detected = this.isDetected(diagnostics, expectedRule, text);
+    const actualDetected = this.isDetected(diagnostics, expectedRule, text);
+    const detected = actualDetected === expectedDetection;
     const matchedRule = diagnostics.length > 0 ? diagnostics[0].code : undefined;
 
     return {
       text,
       detected,
+      expectedDetection,
+      actualDetected,
       diagnostics,
       expectedRule,
       matchedRule
@@ -515,9 +542,11 @@ export class EvalsRunner {
       'adverb-agreement': ['adverb-agreement'],
       'modifier-position': ['modifier-position'],
       'ambiguous-demonstrative': ['ambiguous-demonstrative'],
+      'ambiguous-term': ['ambiguous-term'],
       'passive-overuse': ['passive-overuse'],
       'noun-chain': ['noun-chain'],
       'conjunction-misuse': ['conjunction-misuse'],
+      'beki-usage': ['beki-usage'],
       // Extended Grammar Rules - Tasks 14-25
       'okurigana-variant': ['okurigana-variant'],
       'orthography-variant': ['orthography-variant'],
@@ -556,7 +585,9 @@ export class EvalsRunner {
       'kanji-run-length': ['kanji-run-length'],
       'even-leader': ['even-leader'],
       'even-dash': ['even-dash'],
-      'bracket-depth': ['bracket-depth']
+      'bracket-depth': ['bracket-depth'],
+      'space-after-question-exclamation': ['space-after-question-exclamation'],
+      'period-before-close-bracket': ['period-before-close-bracket']
     };
 
     const expectedRules = ruleAliases[expectedRule] || [expectedRule];

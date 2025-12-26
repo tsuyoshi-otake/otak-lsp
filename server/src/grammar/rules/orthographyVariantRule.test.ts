@@ -125,6 +125,24 @@ describe('OrthographyVariantRule', () => {
       expect(diagnostics.length).toBeGreaterThan(0);
     });
 
+    it('should detect "カ月" and suggest "か月"', () => {
+      const text = '申請から7カ月以内に送付します';
+      const context = createContext(text);
+      const diagnostics = rule.check([], context);
+
+      expect(diagnostics.length).toBeGreaterThan(0);
+      expect(diagnostics.some(d => d.message.includes('か月'))).toBe(true);
+    });
+
+    it('should detect "ヶ所" and suggest "か所"', () => {
+      const text = '対象は3ヶ所です';
+      const context = createContext(text);
+      const diagnostics = rule.check([], context);
+
+      expect(diagnostics.length).toBeGreaterThan(0);
+      expect(diagnostics.some(d => d.message.includes('か所'))).toBe(true);
+    });
+
     it('should detect "有る" and suggest "ある"', () => {
       const text = '問題が有る';
       const context = createContext(text);
