@@ -206,7 +206,7 @@ export interface AdvancedRulesConfig {
 }
 ```
 
-デフォルト設定では `enableBulletPunctuation` を `false` とし、明示的に有効化された場合のみ診断を出力する。
+デフォルト設定では `enableBulletPunctuation` を `true` とし、必要に応じて無効化できるようにする。
 
 ## Data Models
 

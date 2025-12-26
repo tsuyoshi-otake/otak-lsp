@@ -340,16 +340,17 @@ describe('Property-Based Tests: Official Document Rules - 設定による有効/
   });
 
   describe('Property 5: AdvancedRulesManager での統合テスト', () => {
-    it('公文書ルールの既定は全て有効（BulletPunctuationを除く）', () => {
+    it('公文書ルールの既定は全て有効', () => {
       fc.assert(
         fc.property(
           fc.constantFrom(
             'enableOyobiNarabini',
             'enableMatawaWakushikuwa',
-            'enableJouyouKanji'
+            'enableJouyouKanji',
+            'enableBulletPunctuation'
           ) as fc.Arbitrary<keyof AdvancedRulesConfig>,
           (configKey) => {
-            // 全ての公文書ルールはデフォルトで有効（BulletPunctuationを除く）
+            // 全ての公文書ルールはデフォルトで有効
             expect(DEFAULT_ADVANCED_RULES_CONFIG[configKey]).toBe(true);
           }
         ),
@@ -357,8 +358,8 @@ describe('Property-Based Tests: Official Document Rules - 設定による有効/
       );
     });
 
-    it('enableBulletPunctuation はデフォルトで無効', () => {
-      expect(DEFAULT_ADVANCED_RULES_CONFIG.enableBulletPunctuation).toBe(false);
+    it('enableBulletPunctuation はデフォルトで有効', () => {
+      expect(DEFAULT_ADVANCED_RULES_CONFIG.enableBulletPunctuation).toBe(true);
     });
 
     it('excludeProperNounsFromJouyouKanji はデフォルトで有効', () => {
@@ -478,12 +479,11 @@ describe('Property-Based Tests: Official Document Rules - 設定による有効/
             const manager = new AdvancedRulesManager();
             const initialEnabledRules = manager.getEnabledRules().map(r => r.name);
 
-            // 既定では全ての公文書ルールが有効（BulletPunctuationを除く）
+            // 既定では全ての公文書ルールが有効
             expect(initialEnabledRules).toContain('oyobi-narabini');
             expect(initialEnabledRules).toContain('matawa-wakushikuwa');
             expect(initialEnabledRules).toContain('jouyou-kanji');
-            // BulletPunctuationはデフォルトで無効
-            expect(initialEnabledRules).not.toContain('bullet-punctuation');
+            expect(initialEnabledRules).toContain('bullet-punctuation');
 
             // 設定を更新
             manager.updateConfig(newConfig);

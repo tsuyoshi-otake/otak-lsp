@@ -387,7 +387,7 @@ A、B又はC若しくはD、E又はFを選択する（正しい使用例）
 - 必要書類を提出する -> 文なので句点を付ける提案
 ```
 
-※ 既定では無効のため、`otakLsp.official.enableBulletPunctuation` を有効にしてください。
+※ 既定で有効です。無効にする場合は `otakLsp.official.enableBulletPunctuation` を `false` に設定してください。
 
 ### セマンティックハイライト
 
@@ -578,7 +578,7 @@ A、B又はC若しくはD、E又はFを選択する（正しい使用例）
 | `otakLsp.official.enableJouyouKanji` | 常用漢字チェック | `true` |
 | `otakLsp.official.enableOyobiNarabini` | 「及び/並びに」使い分けチェック | `true` |
 | `otakLsp.official.enableMatawaWakushikuwa` | 「又は/若しくは」使い分けチェック | `true` |
-| `otakLsp.official.enableBulletPunctuation` | 箇条書き句点運用チェック（名詞句は句点なし、文は句点あり） | `false` |
+| `otakLsp.official.enableBulletPunctuation` | 箇条書き句点運用チェック（名詞句は句点なし、文は句点あり） | `true` |
 | `otakLsp.official.excludeProperNounsFromJouyouKanji` | 固有名詞を常用漢字チェックから除外 | `true` |
 
 ### 技術用語辞典設定

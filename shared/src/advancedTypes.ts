@@ -647,7 +647,7 @@ export const DEFAULT_ADVANCED_RULES_CONFIG: AdvancedRulesConfig = {
   enableOyobiNarabini: true,
   enableMatawaWakushikuwa: true,
   enableJouyouKanji: true,
-  enableBulletPunctuation: false,
+  enableBulletPunctuation: true,
   excludeProperNounsFromJouyouKanji: true,
   // 人名用漢字・旧字体姓・地名はデフォルトで除外（誤検知防止）
   excludeJinmeiKanji: true,

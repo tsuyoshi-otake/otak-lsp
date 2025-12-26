@@ -121,7 +121,7 @@
 - [-] 11. 箇条書き句点運用ルールの追加
   - [x] 11.1 型定義とデフォルト設定の追加
     - `shared/src/advancedTypes.ts`に`bullet-punctuation`を追加
-    - `AdvancedRulesConfig`に`enableBulletPunctuation`を追加（デフォルトfalse）
+    - `AdvancedRulesConfig`に`enableBulletPunctuation`を追加（デフォルトtrue）
     - _Requirements: 6.6, 6.7_
 
   - [x] 11.2 BulletPunctuationRuleを実装
@@ -138,7 +138,7 @@
     - _Requirements: 6.6_
 
   - [x] 11.4 VSCode設定と反映
-    - `package.json`に`otakLsp.official.enableBulletPunctuation`を追加（デフォルトfalse）
+    - `package.json`に`otakLsp.official.enableBulletPunctuation`を追加（デフォルトtrue）
     - `server/src/main.ts`で`official.enableBulletPunctuation`を読み込む
     - _Requirements: 6.6, 6.7_
 
@@ -173,4 +173,4 @@
 - 各ルールは既存のルールパターン（`ConjunctionRepetitionRule`など）を参考に実装
 - 常用漢字データは2136字すべてを含める（ファイルサイズは約10KB程度）
 - 診断メッセージは日本語で、根拠（「公用文作成の考え方」「常用漢字表」など）を明記
-- 箇条書き句点運用ルールはデフォルト無効で追加する
+- 箇条書き句点運用ルールはデフォルト有効で追加する

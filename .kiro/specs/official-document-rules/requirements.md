@@ -89,4 +89,4 @@
 4. WHEN 名詞句/文の判定が曖昧な場合 THEN THE Bullet_Punctuation_Checker SHALL 診断を出力しない
 5. WHEN 項目末尾が「：」または括弧/引用符閉じで終わる場合 THEN THE Bullet_Punctuation_Checker SHALL 診断を出力しない
 6. THE Official_Document_Checker SHALL VSCode設定（otakLsp.official.enableBulletPunctuation）で本ルールをON/OFFできる
-7. THE Official_Document_Checker SHALL 本ルールのデフォルトを無効（false）とする
+7. THE Official_Document_Checker SHALL 本ルールのデフォルトを有効（true）とする
