@@ -2,7 +2,7 @@
   "name": "otak-lsp",
   "displayName": "otak-lsp",
   "description": "日本語形態素解析VSCode拡張機能（外部依存なし）。文法チェック、セマンティックハイライト、ホバー情報を提供します。kuromoji.js内蔵でMeCab不要。",
-  "version": "0.8.27",
+  "version": "0.8.28",
   "publisher": "odangoo",
   "license": "MIT",
   "icon": "images/otak-lsp.png",

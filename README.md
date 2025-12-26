@@ -734,6 +734,7 @@ chatgptで文章を生成します。     <- 「ChatGPT」に修正
 ## MCP連携（stdio）
 
 MCPクライアントから診断を取得する場合は、stdioサーバーを起動します。
+otak-mcp-lspはLSPサーバーを同梱しているため、VS Code拡張なしで単体起動できます。
 
 ### npmパッケージ版（公開済み）
 

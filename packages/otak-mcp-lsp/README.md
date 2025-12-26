@@ -1,6 +1,6 @@
 # otak-mcp-lsp
 
-otak-lspのMCPサーバー（LSPプロキシ）です。stdioで起動し、`analyze` ツールで診断結果を返します。
+otak-lspのLSPサーバーを同梱したMCPサーバーです。VS Code拡張は不要で単体動作し、stdioで起動して`analyze`ツールで診断結果を返します。
 
 ## インストール
 
