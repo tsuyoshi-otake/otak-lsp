@@ -18,7 +18,7 @@ import {
   RuleContext,
   AdvancedDiagnostic
 } from '../../../../shared/src/advancedTypes';
-import { stripMarkdownBlockquotePrefix } from '../../../../shared/src/markdownSyntax';
+import { splitMarkdownPipeTableRowCells, stripMarkdownBlockquotePrefix } from '../../../../shared/src/markdownSyntax';
 
 /**
  * 箇条書き項目の分類
@@ -103,28 +103,24 @@ export class BulletPunctuationRule implements AdvancedGrammarRule {
   description = '箇条書き項目の句点運用をチェックします';
 
   /**
-   * 行から箇条書き項目を抽出
+   * 任意の断片（行/セル）から箇条書き項目を抽出
    */
-  extractBulletItem(line: string, lineStart: number): BulletItem | null {
-    // blockquoteプレフィックスを除去
-    const { strippedLine, strippedLength } = stripMarkdownBlockquotePrefix(line);
-    
-    const match = strippedLine.match(BULLET_MARKER_REGEX);
+  private extractBulletItemFromFragment(fragment: string, fragmentStart: number): BulletItem | null {
+    const match = fragment.match(BULLET_MARKER_REGEX);
     if (!match) {
       return null;
     }
 
-    const [, leadingSpaces, , content] = match;
+    const [, , , content] = match;
     const trimmedContent = content.trim();
-    
     if (!trimmedContent) {
       return null;
     }
 
-    // 項目テキストの開始位置を計算
-    const contentStart = lineStart + strippedLength + (leadingSpaces?.length || 0) + 
-      strippedLine.indexOf(content);
-    
+    const matchOffset = match.index ?? 0;
+    const contentOffset = matchOffset + match[0].length - content.length;
+    const contentStart = fragmentStart + contentOffset;
+
     return {
       text: trimmedContent,
       start: contentStart,
@@ -132,6 +128,46 @@ export class BulletPunctuationRule implements AdvancedGrammarRule {
       hasPeriod: trimmedContent.endsWith('。'),
       classification: 'ambiguous' // 後で分類
     };
+  }
+
+  /**
+   * 行から箇条書き項目を抽出
+   */
+  extractBulletItem(line: string, lineStart: number): BulletItem | null {
+    // blockquoteプレフィックスを除去
+    const { strippedLine, strippedLength } = stripMarkdownBlockquotePrefix(line);
+    return this.extractBulletItemFromFragment(strippedLine, lineStart + strippedLength);
+  }
+
+  /**
+   * 行から箇条書き項目（複数）を抽出
+   */
+  private extractBulletItemsFromLine(line: string, lineStart: number): BulletItem[] {
+    const items: BulletItem[] = [];
+    const { strippedLine, strippedLength } = stripMarkdownBlockquotePrefix(line);
+    const trimmed = strippedLine.trimStart();
+    const leadingSpaces = strippedLine.length - trimmed.length;
+
+    // テーブル行はセル単位で箇条書きを検出
+    if (trimmed.startsWith('|')) {
+      const tableStartInStripped = leadingSpaces;
+      const tableCells = splitMarkdownPipeTableRowCells(strippedLine.slice(tableStartInStripped));
+      for (const cell of tableCells) {
+        const cellStart = lineStart + strippedLength + tableStartInStripped + cell.start;
+        const item = this.extractBulletItemFromFragment(cell.raw, cellStart);
+        if (item) {
+          items.push(item);
+        }
+      }
+      return items;
+    }
+
+    const item = this.extractBulletItemFromFragment(strippedLine, lineStart + strippedLength);
+    if (item) {
+      items.push(item);
+    }
+
+    return items;
   }
 
   /**
@@ -214,9 +250,9 @@ export class BulletPunctuationRule implements AdvancedGrammarRule {
 
     let lineStart = 0;
     for (const line of lines) {
-      const item = this.extractBulletItem(line, lineStart);
-      
-      if (item) {
+      const items = this.extractBulletItemsFromLine(line, lineStart);
+
+      for (const item of items) {
         // 末尾例外パターンは診断しない（要件 6.5）
         if (!this.isTrailingException(item.text)) {
           // トークンを取得して分類

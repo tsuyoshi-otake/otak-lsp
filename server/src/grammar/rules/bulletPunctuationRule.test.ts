@@ -247,6 +247,18 @@ describe('BulletPunctuationRule', () => {
       // 名詞句に句点があるので3つの警告
       expect(diagnostics.length).toBe(3);
     });
+
+    it('テーブルセル内の箇条書きでも警告を出力する', () => {
+      const text = '| カテゴリ | PASS | - 項目。 |';
+      const tokenStart = text.indexOf('項目');
+      const tokens = [createToken('項目', '名詞', tokenStart)];
+      const context = createContext(text, tokens);
+
+      const diagnostics = rule.check(tokens, context);
+
+      expect(diagnostics.length).toBe(1);
+      expect(diagnostics[0].code).toBe('bullet-punctuation');
+    });
   });
 
   describe('isEnabled', () => {
