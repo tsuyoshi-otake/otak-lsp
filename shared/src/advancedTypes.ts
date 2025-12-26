@@ -67,7 +67,8 @@ export type AdvancedGrammarErrorType =
   // Feature: official-document-rules（公文書表記ルール）
   | 'oyobi-narabini'      // 及び/並びに使い分け
   | 'matawa-wakushikuwa'  // 又は/若しくは使い分け
-  | 'jouyou-kanji';       // 常用漢字外検出
+  | 'jouyou-kanji'        // 常用漢字外検出
+  | 'bullet-punctuation'; // 箇条書き句点運用
 
 /**
  * 文体タイプ
@@ -534,6 +535,7 @@ export interface AdvancedRulesConfig {
   enableOyobiNarabini: boolean;
   enableMatawaWakushikuwa: boolean;
   enableJouyouKanji: boolean;
+  enableBulletPunctuation: boolean;
   excludeProperNounsFromJouyouKanji: boolean;
   /** 人名用漢字・旧字体姓を常用漢字チェックから除外 */
   excludeJinmeiKanji: boolean;
@@ -645,6 +647,7 @@ export const DEFAULT_ADVANCED_RULES_CONFIG: AdvancedRulesConfig = {
   enableOyobiNarabini: true,
   enableMatawaWakushikuwa: true,
   enableJouyouKanji: true,
+  enableBulletPunctuation: false,
   excludeProperNounsFromJouyouKanji: true,
   // 人名用漢字・旧字体姓・地名はデフォルトで除外（誤検知防止）
   excludeJinmeiKanji: true,

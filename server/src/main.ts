@@ -387,6 +387,12 @@ function applyOfficialConfigFromSettings(settings: unknown, patch: Partial<Advan
   if (typeof excludeProperNounsFromJouyouKanji === 'boolean') {
     patch.excludeProperNounsFromJouyouKanji = excludeProperNounsFromJouyouKanji;
   }
+
+  // 箇条書き句点運用チェック
+  const enableBulletPunctuation = getSetting(settings, 'official.enableBulletPunctuation');
+  if (typeof enableBulletPunctuation === 'boolean') {
+    patch.enableBulletPunctuation = enableBulletPunctuation;
+  }
 }
 
 /**

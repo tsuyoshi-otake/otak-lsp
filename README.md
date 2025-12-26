@@ -7,7 +7,7 @@
 - **辞書内蔵**: 様々なの辞書を内蔵
 - **軽量**: 純粋なJavaScript実装
 - **高度な文法チェック**: 文体統一、ら抜き言葉、技術用語表記など50種類以上のルールをサポート
-- **公文書対応**: 常用漢字チェック、「及び/並びに」「又は/若しくは」使い分け、人名・地名自動除外
+- **公文書対応**: 常用漢字チェック、「及び/並びに」「又は/若しくは」使い分け、箇条書き句点運用、人名・地名自動除外
 - **高速な解析**: 段階実行・事前検索キャッシュにより、入力中もスムーズに動作
 
 ![otak-lsp セマンティックハイライト例](https://raw.githubusercontent.com/tsuyoshi-otake/otak-lsp/main/images/01.png)
@@ -278,13 +278,51 @@
 -> 「句点（。）に変更するか、文を続けてください」と提案
 ```
 
-**注意**: 箇条書きの前置き文（次の行が箇条書きの場合）も警告対象です。
+**注意**: 箇条書きの前置き文（次の行が箇条書きの場合）は対象外です。
 
 ```markdown
 以下の項目を確認してください：
 - 項目1
 - 項目2
 ```
+
+#### その他の高度ルール（一覧）
+
+| カテゴリ | ルール | 内容 | 設定キー |
+|---|---|---|---|
+| 構文/文体 | サ変動詞の誤用 | 「勉強をする」など不要な「を」を指摘 | `otakLsp.advanced.enableSahenVerb` |
+| 構文/文体 | 主語の欠如 | 主語が省略されすぎて読みづらい文を検出 | `otakLsp.advanced.enableMissingSubject` |
+| 構文/文体 | ねじれ文 | 主語と述語の対応が崩れた文を検出 | `otakLsp.advanced.enableTwistedSentence` |
+| 構文/文体 | 同音異義語 | 文脈に合わない同音異義語の使用を検出 | `otakLsp.advanced.enableHomophone` |
+| 構文/文体 | 敬語の誤用 | 二重敬語・誤用・不統一を検出 | `otakLsp.advanced.enableHonorificError` |
+| 構文/文体 | 副詞の呼応 | 「決して〜ない」など呼応の不一致を検出 | `otakLsp.advanced.enableAdverbAgreement` |
+| 構文/文体 | 修飾語の位置 | 修飾語と被修飾語の順序不整合を検出 | `otakLsp.advanced.enableModifierPosition` |
+| 構文/文体 | 曖昧な指示語 | 「それ」「これ」などの参照が不明瞭なケースを検出 | `otakLsp.advanced.enableAmbiguousDemonstrative` |
+| 構文/文体 | 受身表現の多用 | 受身表現の過剰な連続を検出 | `otakLsp.advanced.enablePassiveOveruse` |
+| 構文/文体 | 名詞の連続 | 名詞の過度な連結を検出 | `otakLsp.advanced.enableNounChain` |
+| 構文/文体 | 接続詞の誤用 | 逆接/順接など関係に合わない接続詞を検出 | `otakLsp.advanced.enableConjunctionMisuse` |
+| 表記/字種 | 送り仮名の揺れ | 「表わす/表す」などの揺れを検出 | `otakLsp.advanced.enableOkuriganaVariant` |
+| 表記/字種 | 表記ゆれ | 「出来る/できる」などの揺れを検出 | `otakLsp.advanced.enableOrthographyVariant` |
+| 表記/字種 | 数字の全角/半角混在 | 数字の表記ゆれを検出 | `otakLsp.advanced.enableNumberWidthMix` |
+| 表記/字種 | カタカナ長音 | 「サーバ/サーバー」などの揺れを検出 | `otakLsp.advanced.enableKatakanaChouon` |
+| 表記/字種 | 半角カナ | 半角カナの使用を検出 | `otakLsp.advanced.enableHalfwidthKana` |
+| 表記/字種 | 数字表記の混在 | 漢数字とアラビア数字の混在を検出 | `otakLsp.advanced.enableNumeralStyleMix` |
+| 表記/字種 | 単位前後スペース | 数字/単位間のスペース過不足を検出 | `otakLsp.advanced.enableSpaceAroundUnit` |
+| 表記/字種 | 括弧・引用符の不一致 | 括弧/引用符の対応ミスを検出 | `otakLsp.advanced.enableBracketQuoteMismatch` |
+| 表記/字種 | 日付表記ゆれ | 日付表記の混在を検出 | `otakLsp.advanced.enableDateFormatVariant` |
+| 表記/字種 | ダッシュ/チルダ不統一 | 記号の揺れを検出 | `otakLsp.advanced.enableDashTildeNormalization` |
+| 表記/字種 | 中黒の過不足 | 中黒の連続/不足を検出 | `otakLsp.advanced.enableNakaguroUsage` |
+| 表記/字種 | 記号の全角/半角混在 | 記号の表記ゆれを検出 | `otakLsp.advanced.enableSymbolWidthMix` |
+| 混在検出 | 句読点スタイル混在 | 「、/，」「。/．」の混在を検出 | `otakLsp.advanced.enablePunctuationStyleMix` |
+| 混在検出 | 引用符スタイル混在 | 「」/"" の混在を検出 | `otakLsp.advanced.enableQuotationStyleMix` |
+| 混在検出 | 箇条書き記号混在 | 「・/-/*」などの混在を検出 | `otakLsp.advanced.enableBulletStyleMix` |
+| 混在検出 | 強調記号混在 | ** と __ の混在を検出 | `otakLsp.advanced.enableEmphasisStyleMix` |
+| 混在検出 | 英語表記大小文字混在 | api/API/Api などの混在を検出 | `otakLsp.advanced.enableEnglishCaseMix` |
+| 混在検出 | 単位表記混在 | km/h と キロメートル などの混在を検出 | `otakLsp.advanced.enableUnitNotationMix` |
+| 混在検出 | 人称代名詞混在 | 私/僕/当方 などの混在を検出 | `otakLsp.advanced.enablePronounMix` |
+| Markdown構造 | 見出しレベル飛び | h1→h3 などの飛びを検出 | `otakLsp.advanced.enableHeadingLevelSkip` |
+| Markdown構造 | テーブル列数不一致 | Markdownテーブルの列数不一致を検出 | `otakLsp.advanced.enableTableColumnMismatch` |
+| Markdown構造 | コードブロック言語指定欠落 | 言語指定のないコードブロックを検出 | `otakLsp.advanced.enableCodeBlockLanguage` |
 
 ### 公文書対応ルール
 
@@ -312,8 +350,9 @@
 **対応する旧字体姓**: 澤、濱、齋、邊、邉、廣、國、龍、嶋、髙 など
 
 **設定オプション**:
-- `excludeJinmeiKanji`: 人名用漢字・旧字体姓を除外（デフォルト: true）
-- `excludePlaceNames`: 地名を除外（デフォルト: true）
+- `otakLsp.official.excludeProperNounsFromJouyouKanji`: 固有名詞（人名・地名・組織名）を除外（デフォルト: true）
+
+※ 人名・地名の自動除外は内部ロジックで有効化されており、現状は個別の設定項目として公開していません。
 
 #### 19.「及び/並びに」使い分け（Oyobi Narabini）
 
@@ -338,6 +377,17 @@ A若しくはBを選択する（2項目の場合）
 A、B又はC若しくはD、E又はFを選択する（正しい使用例）
 -> 小さなグループは「又は」、大きなグループは「若しくは」
 ```
+
+#### 21. 箇条書き句点運用（Bullet Punctuation）
+
+名詞句の箇条書きは句点なし、文の箇条書きは句点ありを推奨します。曖昧な場合や末尾が「：」/括弧/引用符閉じの場合は対象外です。
+
+```markdown
+- 提出書類。 -> 名詞句なので句点を外す提案
+- 必要書類を提出する -> 文なので句点を付ける提案
+```
+
+※ 既定では無効のため、`otakLsp.official.enableBulletPunctuation` を有効にしてください。
 
 ### セマンティックハイライト
 
@@ -449,6 +499,8 @@ A、B又はC若しくはD、E又はFを選択する（正しい使用例）
 
 ### 高度な文法ルール設定
 
+#### 文体・構文・表現
+
 | 設定項目 | 説明 | デフォルト値 |
 |---------|------|-------------|
 | `otakLsp.advanced.enableStyleConsistency` | 文体混在チェック | `true` |
@@ -457,20 +509,60 @@ A、B又はC若しくはD、E又はFを選択する（正しい使用例）
 | `otakLsp.advanced.enableParticleRepetition` | 助詞連続使用チェック | `true` |
 | `otakLsp.advanced.enableConjunctionRepetition` | 接続詞連続使用チェック | `true` |
 | `otakLsp.advanced.enableAdversativeGa` | 逆接「が」連続使用チェック | `true` |
-| `otakLsp.advanced.enableAlphabetWidth` | 全角/半角混在チェック | `true` |
 | `otakLsp.advanced.enableWeakExpression` | 弱い表現チェック | `true` |
 | `otakLsp.advanced.enableCommaCount` | 読点数チェック | `true` |
-| `otakLsp.advanced.enableTermNotation` | 技術用語表記チェック | `true` |
-| `otakLsp.advanced.enableKanjiOpening` | 漢字開きチェック | `true` |
 | `otakLsp.advanced.enableRedundantExpression` | 冗長表現チェック | `true` |
 | `otakLsp.advanced.enableTautology` | 重複表現（同語反復）チェック | `true` |
 | `otakLsp.advanced.enableNoParticleChain` | 助詞「の」連続チェック | `true` |
 | `otakLsp.advanced.enableMonotonousEnding` | 文末単調さチェック | `true` |
 | `otakLsp.advanced.enableLongSentence` | 長文チェック | `true` |
+| `otakLsp.advanced.enableSahenVerb` | サ変動詞誤用チェック | `true` |
+| `otakLsp.advanced.enableMissingSubject` | 主語欠如チェック | `true` |
+| `otakLsp.advanced.enableTwistedSentence` | ねじれ文チェック | `true` |
+| `otakLsp.advanced.enableHomophone` | 同音異義語チェック | `true` |
+| `otakLsp.advanced.enableHonorificError` | 敬語誤用チェック | `true` |
+| `otakLsp.advanced.enableAdverbAgreement` | 副詞呼応チェック | `true` |
+| `otakLsp.advanced.enableModifierPosition` | 修飾語位置チェック | `true` |
+| `otakLsp.advanced.enableAmbiguousDemonstrative` | 曖昧な指示語チェック | `true` |
+| `otakLsp.advanced.enablePassiveOveruse` | 受身表現多用チェック | `true` |
+| `otakLsp.advanced.enableNounChain` | 名詞連続チェック | `true` |
+| `otakLsp.advanced.enableConjunctionMisuse` | 接続詞誤用チェック | `true` |
 | `otakLsp.advanced.enableSentenceEndingColon` | 文末コロン検出 | `true` |
-| `otakLsp.advanced.enableJouyouKanji` | 常用漢字チェック | `true` |
-| `otakLsp.advanced.enableOyobiNarabini` | 「及び/並びに」使い分けチェック | `true` |
-| `otakLsp.advanced.enableMatawaWakushikuwa` | 「又は/若しくは」使い分けチェック | `true` |
+
+#### 表記・字種・表記ゆれ
+
+| 設定項目 | 説明 | デフォルト値 |
+|---------|------|-------------|
+| `otakLsp.advanced.enableAlphabetWidth` | 全角/半角アルファベット混在チェック | `true` |
+| `otakLsp.advanced.enableTermNotation` | 技術用語表記チェック | `true` |
+| `otakLsp.advanced.enableKanjiOpening` | 漢字開きチェック | `true` |
+| `otakLsp.advanced.enableOkuriganaVariant` | 送り仮名の揺れチェック | `true` |
+| `otakLsp.advanced.enableOrthographyVariant` | 表記ゆれチェック | `true` |
+| `otakLsp.advanced.enableNumberWidthMix` | 数字の全角/半角混在チェック | `true` |
+| `otakLsp.advanced.enableKatakanaChouon` | カタカナ長音チェック | `true` |
+| `otakLsp.advanced.enableHalfwidthKana` | 半角カナ検出 | `true` |
+| `otakLsp.advanced.enableNumeralStyleMix` | 数字表記混在チェック | `true` |
+| `otakLsp.advanced.enableSpaceAroundUnit` | 単位前後スペースチェック | `true` |
+| `otakLsp.advanced.enableBracketQuoteMismatch` | 括弧・引用符不一致チェック | `true` |
+| `otakLsp.advanced.enableDateFormatVariant` | 日付表記ゆれチェック | `true` |
+| `otakLsp.advanced.enableDashTildeNormalization` | ダッシュ・チルダ不統一チェック | `true` |
+| `otakLsp.advanced.enableNakaguroUsage` | 中黒の過不足チェック | `true` |
+| `otakLsp.advanced.enableSymbolWidthMix` | 記号の全角/半角混在チェック | `true` |
+
+#### 混在検出・Markdown構造
+
+| 設定項目 | 説明 | デフォルト値 |
+|---------|------|-------------|
+| `otakLsp.advanced.enablePunctuationStyleMix` | 句読点スタイル混在チェック | `true` |
+| `otakLsp.advanced.enableQuotationStyleMix` | 引用符スタイル混在チェック | `true` |
+| `otakLsp.advanced.enableBulletStyleMix` | 箇条書き記号混在チェック | `true` |
+| `otakLsp.advanced.enableEmphasisStyleMix` | 強調記号混在チェック | `true` |
+| `otakLsp.advanced.enableEnglishCaseMix` | 英語表記大小文字混在チェック | `true` |
+| `otakLsp.advanced.enableUnitNotationMix` | 単位表記混在チェック | `true` |
+| `otakLsp.advanced.enablePronounMix` | 人称代名詞混在チェック | `true` |
+| `otakLsp.advanced.enableHeadingLevelSkip` | 見出しレベル飛びチェック | `true` |
+| `otakLsp.advanced.enableTableColumnMismatch` | テーブル列数不一致チェック | `true` |
+| `otakLsp.advanced.enableCodeBlockLanguage` | コードブロック言語指定欠落チェック | `true` |
 
 ### パフォーマンス設定
 
@@ -483,9 +575,11 @@ A、B又はC若しくはD、E又はFを選択する（正しい使用例）
 
 | 設定項目 | 説明 | デフォルト値 |
 |---------|------|-------------|
-| `otakLsp.advanced.excludeProperNounsFromJouyouKanji` | 固有名詞を常用漢字チェックから除外 | `true` |
-| `otakLsp.advanced.excludeJinmeiKanji` | 人名用漢字・旧字体姓を常用漢字チェックから除外 | `true` |
-| `otakLsp.advanced.excludePlaceNames` | 地名を常用漢字チェックから除外 | `true` |
+| `otakLsp.official.enableJouyouKanji` | 常用漢字チェック | `true` |
+| `otakLsp.official.enableOyobiNarabini` | 「及び/並びに」使い分けチェック | `true` |
+| `otakLsp.official.enableMatawaWakushikuwa` | 「又は/若しくは」使い分けチェック | `true` |
+| `otakLsp.official.enableBulletPunctuation` | 箇条書き句点運用チェック（名詞句は句点なし、文は句点あり） | `false` |
+| `otakLsp.official.excludeProperNounsFromJouyouKanji` | 固有名詞を常用漢字チェックから除外 | `true` |
 
 ### 技術用語辞典設定
 
@@ -583,7 +677,9 @@ A、B又はC若しくはD、E又はFを選択する（正しい使用例）
   "otakLsp.advanced.enableTermNotation": true,
   "otakLsp.advanced.enableGenerativeAIDictionary": true,
   "otakLsp.advanced.enableAWSDictionary": true,
-  "otakLsp.advanced.commaCountThreshold": 5
+  "otakLsp.advanced.commaCountThreshold": 5,
+  "otakLsp.official.enableBulletPunctuation": true,
+  "otakLsp.official.excludeProperNounsFromJouyouKanji": true
 }
 ```
 
@@ -683,7 +779,7 @@ npm run package
 <!-- EVALS-START -->
 ## Detection Coverage
 
-![Coverage](https://img.shields.io/badge/coverage-92%25-brightgreen)
+![Coverage](https://img.shields.io/badge/coverage-96%25-brightgreen)
 
 | Category | Status | Example |
 |----------|--------|---------|
@@ -743,18 +839,17 @@ npm run package
 | コードブロック言語指定の欠落 | PASS | ``` const x = 1; ``` |
 | 「及び/並びに」使い分け | PASS | A並びにBを確認する |
 | 「又は/若しくは」使い分け | PASS | A若しくはBを選択する |
-| 常用漢字外使用 | PASS | 斡旋を依頼する |
-| 人名除外 | PASS | 澤田翔太、濱口 颯 |
-| 地名除外 | PASS | 渋谷駅、埼玉県 |
-| 和暦初年の統一 | PASS | 令和1年 → 令和元年 |
-| ひらがな連続 | PASS | ああああああああああ（閾値超過時） |
-| カタカナ連続 | PASS | アアアアアアアアアアアアア（閾値超過時） |
+| 常用漢字外使用 | FAIL | 斡旋を依頼する |
+| 和暦初年の統一 | PASS | 令和1年に設立 |
+| ひらがな連続 | PASS | これはとてもながいひらがなのれんぞくぶんしょうでありますがこのぶんしょうはさらにながくつづきますので… |
+| カタカナ連続 | PASS | コレハトテモナガイカタカナノレンゾクブンショウデアリマスモット |
 | 漢字連続 | PASS | 東京都渋谷区松濤一丁目 |
-| 二点リーダー偶数 | PASS | これは‥テストです |
+| 二点リーダ偶数 | PASS | これは‥テストです |
 | ダッシュ偶数 | PASS | これは―テストです |
-| 括弧の入れ子深さ | PASS | （（（深い括弧）））|
+| 括弧の入れ子深さ | PASS | （（（（深い括弧）））） |
+| 箇条書き句点運用 | PASS | - 項目。 |
 
-Last updated: 2025-12-23
+Last updated: 2025-12-26
 <!-- EVALS-END -->
 
 ## 技術仕様

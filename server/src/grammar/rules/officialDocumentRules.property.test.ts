@@ -19,6 +19,7 @@ import {
 import { OyobiNarabiniRule } from './oyobiNarabiniRule';
 import { MatawaWakushikuwaRule } from './matawaWakushikuwaRule';
 import { JouyouKanjiRule } from './jouyouKanjiRule';
+import { BulletPunctuationRule } from './bulletPunctuationRule';
 import { AdvancedRulesManager } from '../advancedRulesManager';
 
 /**
@@ -275,8 +276,71 @@ describe('Property-Based Tests: Official Document Rules - 設定による有効/
     });
   });
 
+  describe('Property 5: BulletPunctuationRule の設定切り替え', () => {
+    const rule = new BulletPunctuationRule();
+
+    it('enableBulletPunctuation=false の場合、ルールは無効', () => {
+      fc.assert(
+        fc.property(
+          fc.boolean(),
+          (enabled) => {
+            const config = {
+              ...DEFAULT_ADVANCED_RULES_CONFIG,
+              enableBulletPunctuation: enabled
+            };
+            expect(rule.isEnabled(config)).toBe(enabled);
+          }
+        ),
+        { numRuns: 30 }
+      );
+    });
+
+    it('ルールが無効の場合、箇条書きでも診断が出力されない', () => {
+      fc.assert(
+        fc.property(
+          fc.constantFrom('- 項目。', '* 設定。', '+ データ。'),
+          (textWithBullet) => {
+            const text = textWithBullet;
+            const tokens = [createToken('項目', '名詞', 2)];
+            const context = createContext(text, [], {
+              enableBulletPunctuation: false
+            });
+
+            expect(rule.isEnabled(context.config)).toBe(false);
+          }
+        ),
+        { numRuns: 30 }
+      );
+    });
+
+    it('ルールが有効の場合、名詞句に句点があると診断が出力される', () => {
+      fc.assert(
+        fc.property(
+          fc.constantFrom('- 項目。', '* 設定。', '+ データ。'),
+          (textWithBullet) => {
+            const text = textWithBullet;
+            // マーカー + スペースの後にトークン
+            const tokenStart = text.indexOf(' ') + 1;
+            const noun = text.slice(tokenStart, -1); // 句点を除く
+            const tokens = [createToken(noun, '名詞', tokenStart)];
+            const context = createContext(text, [], {
+              enableBulletPunctuation: true
+            });
+
+            expect(rule.isEnabled(context.config)).toBe(true);
+            const diagnostics = rule.check(tokens, context);
+            // 名詞句に句点があるので警告が出る
+            expect(diagnostics.length).toBeGreaterThan(0);
+            expect(diagnostics[0].code).toBe('bullet-punctuation');
+          }
+        ),
+        { numRuns: 30 }
+      );
+    });
+  });
+
   describe('Property 5: AdvancedRulesManager での統合テスト', () => {
-    it('公文書ルールの既定は全て有効', () => {
+    it('公文書ルールの既定は全て有効（BulletPunctuationを除く）', () => {
       fc.assert(
         fc.property(
           fc.constantFrom(
@@ -285,12 +349,16 @@ describe('Property-Based Tests: Official Document Rules - 設定による有効/
             'enableJouyouKanji'
           ) as fc.Arbitrary<keyof AdvancedRulesConfig>,
           (configKey) => {
-            // 全ての公文書ルールはデフォルトで有効
+            // 全ての公文書ルールはデフォルトで有効（BulletPunctuationを除く）
             expect(DEFAULT_ADVANCED_RULES_CONFIG[configKey]).toBe(true);
           }
         ),
         { numRuns: 30 }
       );
+    });
+
+    it('enableBulletPunctuation はデフォルトで無効', () => {
+      expect(DEFAULT_ADVANCED_RULES_CONFIG.enableBulletPunctuation).toBe(false);
     });
 
     it('excludeProperNounsFromJouyouKanji はデフォルトで有効', () => {
@@ -303,7 +371,8 @@ describe('Property-Based Tests: Official Document Rules - 設定による有効/
           fc.record({
             enableOyobiNarabini: fc.boolean(),
             enableMatawaWakushikuwa: fc.boolean(),
-            enableJouyouKanji: fc.boolean()
+            enableJouyouKanji: fc.boolean(),
+            enableBulletPunctuation: fc.boolean()
           }),
           (officialRulesConfig) => {
             const manager = new AdvancedRulesManager({
@@ -383,6 +452,12 @@ describe('Property-Based Tests: Official Document Rules - 設定による有効/
             } else {
               expect(enabledRuleNames).not.toContain('jouyou-kanji');
             }
+
+            if (officialRulesConfig.enableBulletPunctuation) {
+              expect(enabledRuleNames).toContain('bullet-punctuation');
+            } else {
+              expect(enabledRuleNames).not.toContain('bullet-punctuation');
+            }
           }
         ),
         { numRuns: 30 }
@@ -395,17 +470,20 @@ describe('Property-Based Tests: Official Document Rules - 設定による有効/
           fc.record({
             enableOyobiNarabini: fc.boolean(),
             enableMatawaWakushikuwa: fc.boolean(),
-            enableJouyouKanji: fc.boolean()
+            enableJouyouKanji: fc.boolean(),
+            enableBulletPunctuation: fc.boolean()
           }),
           (newConfig) => {
             // 初期状態（デフォルト設定）
             const manager = new AdvancedRulesManager();
             const initialEnabledRules = manager.getEnabledRules().map(r => r.name);
 
-            // 既定では全ての公文書ルールが有効
+            // 既定では全ての公文書ルールが有効（BulletPunctuationを除く）
             expect(initialEnabledRules).toContain('oyobi-narabini');
             expect(initialEnabledRules).toContain('matawa-wakushikuwa');
             expect(initialEnabledRules).toContain('jouyou-kanji');
+            // BulletPunctuationはデフォルトで無効
+            expect(initialEnabledRules).not.toContain('bullet-punctuation');
 
             // 設定を更新
             manager.updateConfig(newConfig);
@@ -430,6 +508,12 @@ describe('Property-Based Tests: Official Document Rules - 設定による有効/
               expect(updatedEnabledRules).toContain('jouyou-kanji');
             } else {
               expect(updatedEnabledRules).not.toContain('jouyou-kanji');
+            }
+
+            if (newConfig.enableBulletPunctuation) {
+              expect(updatedEnabledRules).toContain('bullet-punctuation');
+            } else {
+              expect(updatedEnabledRules).not.toContain('bullet-punctuation');
             }
           }
         ),

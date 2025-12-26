@@ -11,6 +11,7 @@
 - **Official_Document_Checker**: 公文書表記ルールをチェックするシステム
 - **Conjunction_Validator**: 接続詞（及び/並びに、又は/若しくは）の使い分けを検証するコンポーネント
 - **Jouyou_Kanji_Checker**: 常用漢字表に基づき、常用漢字外の漢字を検出するコンポーネント
+- **Bullet_Punctuation_Checker**: 箇条書き項目の句点有無を検出するコンポーネント
 - **Token**: kuromoji.jsによる形態素解析結果の単位
 - **Diagnostic**: LSPの診断情報（警告・エラー）
 
@@ -75,3 +76,17 @@
 3. WHEN 問題が検出された THEN THE Official_Document_Checker SHALL 根拠となる基準（内閣告示名など）を明記する
 4. THE Official_Document_Checker SHALL 診断の重要度を「情報」レベルとする（エラーではなく提案として）
 5. THE Official_Document_Checker SHALL 日本語で診断メッセージを出力する
+
+### Requirement 6: 箇条書きの句点運用チェック
+
+**User Story:** As a 公文書作成者, I want to 箇条書きの文末句点の使い分けを確認してもらいたい, so that 名詞句と文の体裁を統一できる。
+
+#### Acceptance Criteria
+
+1. WHEN Markdownの箇条書き（「-」「*」「+」「番号.」）または行頭「・」の項目が出現する THEN THE Bullet_Punctuation_Checker SHALL 対象の項目を検出する
+2. WHEN 箇条書き項目が名詞句と判定される THEN THE Bullet_Punctuation_Checker SHALL 末尾の句点（。）の有無を確認し、句点がある場合は警告を出力する
+3. WHEN 箇条書き項目が文と判定される THEN THE Bullet_Punctuation_Checker SHALL 末尾の句点（。）の有無を確認し、句点が無い場合は警告を出力する
+4. WHEN 名詞句/文の判定が曖昧な場合 THEN THE Bullet_Punctuation_Checker SHALL 診断を出力しない
+5. WHEN 項目末尾が「：」または括弧/引用符閉じで終わる場合 THEN THE Bullet_Punctuation_Checker SHALL 診断を出力しない
+6. THE Official_Document_Checker SHALL VSCode設定（otakLsp.official.enableBulletPunctuation）で本ルールをON/OFFできる
+7. THE Official_Document_Checker SHALL 本ルールのデフォルトを無効（false）とする

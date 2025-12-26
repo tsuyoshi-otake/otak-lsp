@@ -72,7 +72,8 @@ import {
   // Official Document Rules (Feature: official-document-rules)
   OyobiNarabiniRule,
   MatawaWakushikuwaRule,
-  JouyouKanjiRule
+  JouyouKanjiRule,
+  BulletPunctuationRule
 } from '../rules';
 import { SentenceParser } from '../sentenceParser';
 import { ProofreadingRulesManager } from '../../proofreading/proofreadingRulesManager';
@@ -280,6 +281,7 @@ export class EvalsRunner {
     this.advancedRules.set('oyobi-narabini', new OyobiNarabiniRule());
     this.advancedRules.set('matawa-wakushikuwa', new MatawaWakushikuwaRule());
     this.advancedRules.set('jouyou-kanji', new JouyouKanjiRule());
+    this.advancedRules.set('bullet-punctuation', new BulletPunctuationRule());
   }
 
   /**
@@ -404,7 +406,8 @@ export class EvalsRunner {
         // Official Document Rules (Evals用に有効化)
         enableOyobiNarabini: true,
         enableMatawaWakushikuwa: true,
-        enableJouyouKanji: true
+        enableJouyouKanji: true,
+        enableBulletPunctuation: true
       }
     };
 
@@ -545,6 +548,7 @@ export class EvalsRunner {
       'oyobi-narabini': ['oyobi-narabini'],
       'matawa-wakushikuwa': ['matawa-wakushikuwa'],
       'jouyou-kanji': ['jouyou-kanji'],
+      'bullet-punctuation': ['bullet-punctuation'],
       // Proofreading Settings Compat (Feature: proofreading-settings-compat)
       'era-first-year': ['era-first-year'],
       'hiragana-run-length': ['hiragana-run-length'],

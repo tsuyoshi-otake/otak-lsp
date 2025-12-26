@@ -2,11 +2,12 @@
 
 ## Overview
 
-公文書（公用文）作成における表記・用語ルールをチェックする機能を実装する。文化審議会建議「公用文作成の考え方」（2022年）および内閣告示を根拠とし、以下の3つのルールを追加する：
+公文書（公用文）作成における表記・用語ルールをチェックする機能を実装する。文化審議会建議「公用文作成の考え方」（2022年）および内閣告示を根拠とし、以下の4つのルールを追加する：
 
 1. **「及び/並びに」使い分けルール** - 並列接続詞の階層構造チェック
 2. **「又は/若しくは」使い分けルール** - 選択接続詞の階層構造チェック
 3. **常用漢字外検出ルール** - 常用漢字表（2136字）に基づく検出
+4. **箇条書き句点運用ルール** - 名詞句は句点なし、文は句点ありの運用チェック
 
 これらのルールは既存の `AdvancedRulesManager` に統合し、VSCode設定で個別にON/OFF可能とする。
 
@@ -20,6 +21,7 @@ graph TB
             OYR[OyobiNarabiniRule]
             MWR[MatawaWakushikuwaRule]
             JKC[JouyouKanjiRule]
+            BPR[BulletPunctuationRule]
         end
     end
     
@@ -31,9 +33,11 @@ graph TB
     ARM --> OYR
     ARM --> MWR
     ARM --> JKC
+    ARM --> BPR
     OYR --> AT
     MWR --> AT
     JKC --> AT
+    BPR --> AT
     JKC --> JKD
 ```
 
@@ -115,7 +119,46 @@ export class JouyouKanjiRule implements AdvancedGrammarRule {
 }
 ```
 
-### 4. 常用漢字データ
+### 4. BulletPunctuationRule（箇条書き句点運用ルール）
+
+```typescript
+// server/src/grammar/rules/bulletPunctuationRule.ts
+
+import { Token, DiagnosticSeverity } from '../../../../shared/src/types';
+import {
+  AdvancedGrammarRule,
+  AdvancedRulesConfig,
+  RuleContext,
+  AdvancedDiagnostic
+} from '../../../../shared/src/advancedTypes';
+import { stripMarkdownBlockquotePrefix } from '../../../../shared/src/markdownSyntax';
+
+/**
+ * 箇条書き句点運用をチェックするルール
+ *
+ * 公用文の運用（実例・スタイルガイドの整理）:
+ * - 名詞句の箇条書き: 句点「。」は付けない
+ * - 文の箇条書き: 句点「。」を付ける
+ * - 判定が曖昧な場合は診断しない
+ * - 末尾が「：」や括弧/引用符閉じの場合は診断しない
+ */
+export class BulletPunctuationRule implements AdvancedGrammarRule {
+  name = 'bullet-punctuation';
+  description = '箇条書き項目の句点運用をチェックします';
+
+  check(tokens: Token[], context: RuleContext): AdvancedDiagnostic[];
+  isEnabled(config: AdvancedRulesConfig): boolean;
+}
+```
+
+判定手順の概要：
+
+- 行単位で箇条書きマーカー（「-」「*」「+」「番号.」「・」）を検出し、項目本文を抽出する
+- 複数行にまたがる項目は曖昧とみなし診断しない
+- 末尾が「：」「:」または括弧/引用符閉じの場合は診断しない
+- トークン列の末尾から有効トークンを取得し、動詞/形容詞/助動詞（です/ます/だ/である等）で文、名詞で名詞句、その他は曖昧として扱う
+
+### 5. 常用漢字データ
 
 ```typescript
 // shared/src/jouyouKanjiData.ts
@@ -137,7 +180,7 @@ export const NON_JOUYOU_ALTERNATIVES: Map<string, {
 }>;
 ```
 
-### 5. 設定型の拡張
+### 6. 設定型の拡張
 
 ```typescript
 // shared/src/advancedTypes.ts に追加
@@ -147,7 +190,8 @@ export type AdvancedGrammarErrorType =
   | ... // 既存のタイプ
   | 'oyobi-narabini'      // 及び/並びに使い分け
   | 'matawa-wakushikuwa'  // 又は/若しくは使い分け
-  | 'jouyou-kanji';       // 常用漢字外
+  | 'jouyou-kanji'        // 常用漢字外
+  | 'bullet-punctuation'; // 箇条書き句点運用
 
 // 設定追加
 export interface AdvancedRulesConfig {
@@ -157,9 +201,12 @@ export interface AdvancedRulesConfig {
   enableOyobiNarabini: boolean;
   enableMatawaWakushikuwa: boolean;
   enableJouyouKanji: boolean;
+  enableBulletPunctuation: boolean;
   excludeProperNounsFromJouyouKanji: boolean;
 }
 ```
+
+デフォルト設定では `enableBulletPunctuation` を `false` とし、明示的に有効化された場合のみ診断を出力する。
 
 ## Data Models
 
@@ -184,6 +231,18 @@ interface NonJouyouKanji {
     hiragana: string;
     alternative?: string;
   };
+}
+```
+
+### 箇条書き項目の検出結果
+
+```typescript
+interface BulletItem {
+  text: string;
+  start: number;
+  end: number;
+  hasPeriod: boolean;
+  classification: 'noun-phrase' | 'sentence' | 'ambiguous';
 }
 ```
 
@@ -233,12 +292,37 @@ interface NonJouyouKanji {
 
 **Validates: Requirements 5.4**
 
+### Property 8: 箇条書き項目の検出
+
+*For any* テキストに箇条書き項目（「-」「*」「+」「番号.」「・」）が含まれる場合、該当ルールが有効であれば項目が検出される。
+
+**Validates: Requirements 6.1**
+
+### Property 9: 名詞句の句点抑制
+
+*For any* 名詞句と判定された箇条書き項目が句点「。」で終わる場合、警告が出力される。
+
+**Validates: Requirements 6.2**
+
+### Property 10: 文の句点要求
+
+*For any* 文と判定された箇条書き項目が句点「。」で終わらない場合、警告が出力される。
+
+**Validates: Requirements 6.3**
+
+### Property 11: 曖昧判定と例外の除外
+
+*For any* 名詞句/文の判定が曖昧な項目、または末尾が「：」や括弧/引用符閉じで終わる項目については診断が出力されない。
+
+**Validates: Requirements 6.4, 6.5**
+
 ## Error Handling
 
 ### 入力エラー
 
 - 空のテキスト: 診断なしで正常終了
 - 日本語以外のテキスト: 該当箇所なしとして処理
+- 箇条書き項目の判定が曖昧、または末尾が例外記号の場合: 診断を出力しない
 
 ### 設定エラー
 
@@ -272,6 +356,13 @@ interface NonJouyouKanji {
    - 常用漢字外を含む: 警告あり
    - 固有名詞除外オプション: 設定に応じた動作
 
+4. **BulletPunctuationRule**
+   - 名詞句の箇条書き + 句点あり: 警告あり
+   - 名詞句の箇条書き + 句点なし: 警告なし
+   - 文の箇条書き + 句点なし: 警告あり
+   - 文の箇条書き + 句点あり: 警告なし
+   - 末尾が「：」や括弧/引用符閉じ: 診断なし
+
 ### プロパティベーステスト
 
 fast-checkを使用し、各プロパティに対して30回のテストを実施：
@@ -282,3 +373,7 @@ fast-checkを使用し、各プロパティに対して30回のテストを実�
 - **Property 5**: 設定のON/OFFを切り替えて診断の有無を確認
 - **Property 6**: 診断メッセージの内容を確認
 - **Property 7**: 診断のseverityを確認
+- **Property 8**: 箇条書き項目の検出を確認
+- **Property 9**: 名詞句の句点抑制を確認
+- **Property 10**: 文の句点要求を確認
+- **Property 11**: 曖昧判定と例外除外を確認

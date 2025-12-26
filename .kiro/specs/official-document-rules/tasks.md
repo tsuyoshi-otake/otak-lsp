@@ -2,7 +2,7 @@
 
 ## Overview
 
-公文書（公用文）作成における表記・用語ルールをチェックする3つのルールを実装する。既存の `AdvancedRulesManager` に統合し、VSCode設定で個別にON/OFF可能とする。
+公文書（公用文）作成における表記・用語ルールをチェックする4つのルールを実装する。既存の `AdvancedRulesManager` に統合し、VSCode設定で個別にON/OFF可能とする。
 
 ## Tasks
 
@@ -118,9 +118,59 @@
   - `npm run evals`で検出率を確認
   - 問題があればユーザーに確認
 
+- [-] 11. 箇条書き句点運用ルールの追加
+  - [x] 11.1 型定義とデフォルト設定の追加
+    - `shared/src/advancedTypes.ts`に`bullet-punctuation`を追加
+    - `AdvancedRulesConfig`に`enableBulletPunctuation`を追加（デフォルトfalse）
+    - _Requirements: 6.6, 6.7_
+
+  - [x] 11.2 BulletPunctuationRuleを実装
+    - `server/src/grammar/rules/bulletPunctuationRule.ts`を作成
+    - 箇条書きマーカー（`-`/`*`/`+`/`番号.`/`・`）を検出
+    - 名詞句は句点なし、文は句点ありをチェック
+    - 曖昧判定や末尾例外（`：`/括弧/引用符閉じ）は除外
+    - 診断メッセージに根拠を含め、Informationで出力
+    - _Requirements: 6.1, 6.2, 6.3, 6.4, 6.5, 5.1, 5.2, 5.3, 5.4_
+
+  - [x] 11.3 ルールの統合
+    - `server/src/grammar/rules/index.ts`にエクスポートを追加
+    - `server/src/grammar/advancedRulesManager.ts`にルール登録
+    - _Requirements: 6.6_
+
+  - [x] 11.4 VSCode設定と反映
+    - `package.json`に`otakLsp.official.enableBulletPunctuation`を追加（デフォルトfalse）
+    - `server/src/main.ts`で`official.enableBulletPunctuation`を読み込む
+    - _Requirements: 6.6, 6.7_
+
+  - [x] 11.5 単体テストとプロパティテスト
+    - `server/src/grammar/rules/bulletPunctuationRule.test.ts`を追加
+    - `server/src/grammar/rules/bulletPunctuationRule.property.test.ts`を追加
+    - **Property 8: 箇条書き項目の検出**
+    - **Property 9: 名詞句の句点抑制**
+    - **Property 10: 文の句点要求**
+    - **Property 11: 曖昧判定と例外除外**
+    - _Requirements: 6.1, 6.2, 6.3, 6.4, 6.5_
+
+  - [x] 11.6 公文書ルール統合テストの更新
+    - `server/src/grammar/rules/officialDocumentRules.property.test.ts`に`bullet-punctuation`を追加
+    - デフォルト設定と有効/無効切り替えの検証を追加
+    - _Requirements: 6.6, 6.7_
+
+  - [x] 11.7 Evalsデータの追加
+    - `server/src/grammar/evals/ng-examples-data.ts`にカテゴリ追加
+    - 句点あり/なしの誤用例を追加
+    - `server/src/grammar/evals`の件数テストを更新
+    - _Requirements: 6.1_
+
+- [x] 12. Checkpoint - 箇条書き句点運用の再検証
+  - すべてのテストが通ることを確認
+  - `npm run evals`で検出率を確認
+  - 問題があればユーザーに確認
+
 ## Notes
 
 - すべてのタスクは必須（プロパティテストを含む）
 - 各ルールは既存のルールパターン（`ConjunctionRepetitionRule`など）を参考に実装
 - 常用漢字データは2136字すべてを含める（ファイルサイズは約10KB程度）
 - 診断メッセージは日本語で、根拠（「公用文作成の考え方」「常用漢字表」など）を明記
+- 箇条書き句点運用ルールはデフォルト無効で追加する

@@ -1001,6 +1001,29 @@ export const NG_EXAMPLE_CATEGORIES: NGExampleCategory[] = [
       { text: '（（（（深い括弧））））', description: '4階層以上の括弧（閾値3超過）' },
       { text: '「「「「深い括弧」」」」', description: '4階層以上の鉤括弧（閾値3超過）' }
     ]
+  },
+
+  // 箇条書き句点運用
+  {
+    id: 'bullet-punctuation',
+    name: '箇条書き句点運用',
+    description: '箇条書き項目の句点運用チェック（名詞句は句点なし、文は句点あり）',
+    expectedRule: 'bullet-punctuation',
+    status: 'IMPLEMENTED',
+    examples: [
+      // 名詞句に句点がある（不要な句点）
+      { text: '- 項目。', description: '名詞句に不要な句点' },
+      { text: '* 設定値。', description: '名詞句に不要な句点（*マーカー）' },
+      { text: '+ 機能一覧。', description: '名詞句に不要な句点（+マーカー）' },
+      { text: '1. 概要。', description: '名詞句に不要な句点（番号マーカー）' },
+      { text: '・ データ。', description: '名詞句に不要な句点（中黒マーカー）' },
+      // 文に句点がない（句点欠落）
+      { text: '- 実行します', description: '文に句点がない' },
+      { text: '* 処理を開始する', description: '文に句点がない（*マーカー）' },
+      { text: '+ 設定を変更した', description: '文に句点がない（+マーカー）' },
+      { text: '1. データを保存する', description: '文に句点がない（番号マーカー）' },
+      { text: '・ 結果を確認する', description: '文に句点がない（中黒マーカー）' }
+    ]
   }
 ];
 

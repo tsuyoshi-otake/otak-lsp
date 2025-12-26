@@ -71,3 +71,4 @@ export { CodeBlockLanguageRule } from './codeBlockLanguageRule';
 export { OyobiNarabiniRule } from './oyobiNarabiniRule';
 export { MatawaWakushikuwaRule } from './matawaWakushikuwaRule';
 export { JouyouKanjiRule } from './jouyouKanjiRule';
+export { BulletPunctuationRule } from './bulletPunctuationRule';

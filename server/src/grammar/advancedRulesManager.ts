@@ -81,7 +81,8 @@ import {
   // Official Document Rules (Feature: official-document-rules)
   OyobiNarabiniRule,
   MatawaWakushikuwaRule,
-  JouyouKanjiRule
+  JouyouKanjiRule,
+  BulletPunctuationRule
 } from './rules';
 
 /**
@@ -592,7 +593,8 @@ export class AdvancedRulesManager {
       // Official Document Rules (Feature: official-document-rules)
       new OyobiNarabiniRule(),
       new MatawaWakushikuwaRule(),
-      new JouyouKanjiRule()
+      new JouyouKanjiRule(),
+      new BulletPunctuationRule()
     ];
   }
 
