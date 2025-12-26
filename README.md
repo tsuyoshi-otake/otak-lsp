@@ -731,6 +731,78 @@ chatgptで文章を生成します。     <- 「ChatGPT」に修正
 私は、今日、朝、昼、夜、と、食事をしました。  <- 読点が多すぎます
 ```
 
+## MCP連携（stdio）
+
+MCPクライアントから診断を取得する場合は、stdioサーバーを起動します。
+
+### npmパッケージ版（公開済み）
+
+```bash
+npm install -g otak-mcp-lsp
+otak-mcp-lsp
+```
+
+一時利用なら `npx -y otak-mcp-lsp` でも起動できます。
+
+Claude CodeのMCP設定例:
+
+```json
+{
+  "command": "otak-mcp-lsp",
+  "args": []
+}
+```
+
+Codex CLIの設定例（`~/.codex/config.toml`）:
+
+```toml
+[mcp_servers.otak-mcp-lsp]
+command = "otak-mcp-lsp"
+args = []
+```
+
+インストールしていない場合は `npx` で起動:
+
+```toml
+[mcp_servers.otak-mcp-lsp]
+command = "npx"
+args = ["-y", "otak-mcp-lsp"]
+```
+
+### analyze ツール
+
+入力例:
+
+```json
+{
+  "name": "analyze",
+  "arguments": {
+    "text": "私はがが行きます。",
+    "languageId": "markdown",
+    "uri": "untitled:example"
+  }
+}
+```
+
+出力例:
+
+```json
+{
+  "diagnostics": [
+    {
+      "range": {
+        "start": { "line": 0, "character": 2 },
+        "end": { "line": 0, "character": 4 }
+      },
+      "severity": 1,
+      "message": "二重助詞が検出されました。",
+      "code": "double-particle",
+      "source": "otak-lsp"
+    }
+  ]
+}
+```
+
 ## トラブルシューティング
 
 ### 文法チェックが動作しない

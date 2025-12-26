@@ -9,6 +9,8 @@ client/src/**
 server/src/**
 shared/src/**
 src/**
+mcp/**
+packages/**
 
 # TypeScript build info (not needed)
 **/*.tsbuildinfo

@@ -2,7 +2,7 @@
 module.exports = {
   preset: 'ts-jest',
   testEnvironment: 'node',
-  roots: ['<rootDir>/shared/__tests__', '<rootDir>/server/src', '<rootDir>/client/src'],
+  roots: ['<rootDir>/shared/__tests__', '<rootDir>/server/src', '<rootDir>/client/src', '<rootDir>/mcp/src'],
   testMatch: ['**/*.test.ts'],
   moduleFileExtensions: ['ts', 'js', 'json'],
   transform: {
@@ -12,6 +12,7 @@ module.exports = {
     'shared/src/**/*.ts',
     'server/src/**/*.ts',
     'client/src/**/*.ts',
+    'mcp/src/**/*.ts',
     '!**/*.d.ts'
   ],
   coverageDirectory: 'coverage',

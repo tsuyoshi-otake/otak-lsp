@@ -1,0 +1,16 @@
+{
+  "name": "otak-lsp-mcp-package",
+  "description": "otak-lspのMCPサーバーをnpmでインストール可能なパッケージとして提供する",
+  "language": "ja",
+  "phases": {
+    "requirements": {
+      "status": "approved"
+    },
+    "design": {
+      "status": "approved"
+    },
+    "tasks": {
+      "status": "draft"
+    }
+  }
+}

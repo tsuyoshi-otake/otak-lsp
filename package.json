@@ -1110,10 +1110,12 @@
     }
   },
   "scripts": {
-    "vscode:prepublish": "node scripts/prepare-package.js && npm run esbuild-base -- --production",
+    "vscode:prepublish": "node scripts/prepare-package.js && npm run esbuild-base -- --production && npm run build:mcp-package",
     "compile": "npm run esbuild-base",
     "esbuild-base": "node esbuild.js",
     "watch": "node esbuild.js --watch",
+    "mcp": "node mcp/out/main.js",
+    "build:mcp-package": "node scripts/build-mcp-package.js",
     "compile:tsc": "tsc -b",
     "lint": "eslint ./client/src ./server/src ./shared/src --ext .ts",
     "lint:fix": "eslint ./client/src ./server/src ./shared/src --ext .ts --fix",

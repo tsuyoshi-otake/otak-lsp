@@ -1,0 +1,24 @@
+{
+  "name": "otak-mcp-lsp",
+  "version": "0.8.27",
+  "description": "otak-lspのMCPサーバー（LSPプロキシ）",
+  "license": "MIT",
+  "bin": {
+    "otak-mcp-lsp": "bin/otak-mcp-lsp.js"
+  },
+  "files": [
+    "bin/otak-mcp-lsp.js",
+    "mcp/out/main.js",
+    "server/out/main.js",
+    "README.md",
+    "LICENSE"
+  ],
+  "dependencies": {
+    "kuromoji": "^0.1.2",
+    "vscode-languageserver": "^9.0.0",
+    "vscode-languageserver-textdocument": "^1.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
