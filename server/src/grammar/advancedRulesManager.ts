@@ -84,7 +84,9 @@ import {
   OyobiNarabiniRule,
   MatawaWakushikuwaRule,
   JouyouKanjiRule,
-  BulletPunctuationRule
+  BulletPunctuationRule,
+  // Sentence Complexity Rule (Feature: sentence-complexity-rule)
+  SentenceComplexityRule
 } from './rules';
 
 /**
@@ -602,7 +604,9 @@ export class AdvancedRulesManager {
       new OyobiNarabiniRule(),
       new MatawaWakushikuwaRule(),
       new JouyouKanjiRule(),
-      new BulletPunctuationRule()
+      new BulletPunctuationRule(),
+      // Sentence Complexity Rule (Feature: sentence-complexity-rule)
+      new SentenceComplexityRule()
     ];
   }
 

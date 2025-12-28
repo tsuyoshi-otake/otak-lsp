@@ -27,6 +27,8 @@ import { CommentExtractor } from './parser/commentExtractor';
 import { MarkdownFilter } from './parser/markdownFilter';
 import { GrammarChecker } from './grammar/checker';
 import { AdvancedRulesManager } from './grammar/advancedRulesManager';
+import { SentenceParser } from './grammar/sentenceParser';
+import { SentenceComplexityRule } from './grammar/rules/sentenceComplexityRule';
 import { SemanticTokenProvider, tokenTypes, tokenModifiers } from './semantic/tokenProvider';
 import { TokenFilter } from './semantic/tokenFilter';
 import { HoverProvider } from './hover/provider';
@@ -39,7 +41,8 @@ import {
   SentenceSplitMode,
   WeakExpressionLevel,
   RuleProfilingCollector,
-  RuleProfilingEntry
+  RuleProfilingEntry,
+  DEFAULT_ADVANCED_RULES_CONFIG
 } from '../../shared/src/advancedTypes';
 import { AnalysisState, AnalysisStateManager, createInitialAnalysisState } from './server/languageServer';
 import { ProofreadingRulesManager } from './proofreading/proofreadingRulesManager';
@@ -151,6 +154,7 @@ let markdownFilter: MarkdownFilter;
 let tokenFilter: TokenFilter;
 let grammarChecker: GrammarChecker;
 let advancedRulesManager: AdvancedRulesManager;
+let sentenceComplexityRule: SentenceComplexityRule;
 let proofreadingRulesManager: ProofreadingRulesManager;
 let semanticTokenProvider: SemanticTokenProvider;
 let hoverProvider: HoverProvider;
@@ -518,6 +522,7 @@ connection.onInitialize((params: InitializeParams): InitializeResult => {
   tokenFilter = new TokenFilter();
   grammarChecker = new GrammarChecker();
   advancedRulesManager = new AdvancedRulesManager();
+  sentenceComplexityRule = new SentenceComplexityRule();
   proofreadingRulesManager = new ProofreadingRulesManager();
   semanticTokenProvider = new SemanticTokenProvider();
   wikipediaClient = new WikipediaClient();
@@ -1297,18 +1302,74 @@ connection.onHover(async (params: TextDocumentPositionParams): Promise<Hover | n
 
   const documentText = documentTexts.get(uri) ?? document.getText();
   const hoverResult = await hoverProvider.provideHover(tokens, offset, documentText);
-  if (!hoverResult) {
+
+  // 文複雑度を計算して追加（Feature: sentence-complexity-rule）
+  let complexityInfo = '';
+  if (tokens.length > 0 && documentText) {
+    const sentences = SentenceParser.parseSentences(documentText, tokens);
+    // 現在のオフセット位置にある文を検索
+    const currentSentence = sentences.find(s => offset >= s.start && offset < s.end);
+    if (currentSentence && currentSentence.text.trim().length >= 10) {
+      const config = advancedRulesManager.getConfig();
+      const metrics = sentenceComplexityRule.calculateMetrics(currentSentence, config);
+
+      // 複雑度レベルを判定
+      let level: string;
+      if (metrics.score <= 25) {
+        level = '低';
+      } else if (metrics.score <= 50) {
+        level = '中';
+      } else if (metrics.score <= 75) {
+        level = '高';
+      } else {
+        level = '非常に高';
+      }
+
+      // 内訳の詳細
+      const details: string[] = [];
+      details.push(`文字数: ${metrics.characterCount}`);
+      details.push(`読点: ${metrics.commaCount}`);
+      if (metrics.clauseDepth > 0) {
+        details.push(`節深度: ${metrics.clauseDepth}`);
+      }
+      if (metrics.maxNoChainLength > 1) {
+        details.push(`の連続: ${metrics.maxNoChainLength}`);
+      }
+      if (metrics.maxNounChainLength > 2) {
+        details.push(`名詞連続: ${metrics.maxNounChainLength}`);
+      }
+
+      complexityInfo = `\n\n---\n\n**文複雑度**: ${metrics.score}/100（${level}）\n\n${details.join(' | ')}`;
+    }
+  }
+
+  if (!hoverResult && !complexityInfo) {
+    return null;
+  }
+
+  const contents = (hoverResult?.contents ?? '') + complexityInfo;
+
+  // rangeが無い場合（複雑度のみ表示）はトークン範囲を使用
+  let range = hoverResult?.range;
+  if (!range && tokens.length > 0) {
+    const token = tokens.find(t => offset >= t.start && offset < t.end);
+    if (token) {
+      range = { start: token.start, end: token.end };
+    }
+  }
+
+  if (!range) {
     return null;
   }
 
   return {
     contents: {
       kind: 'markdown',
-      value: hoverResult.contents,
+      value: contents,
     },
     range: {
-      start: document.positionAt(hoverResult.range.start),
-      end: document.positionAt(hoverResult.range.end),
+      start: document.positionAt(range.start),
+      end: document.positionAt(range.end),
     },
   };
 });

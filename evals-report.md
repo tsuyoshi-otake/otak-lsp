@@ -1,15 +1,15 @@
 # Japanese Grammar Evals Report
 
-Generated: 2025-12-26
+Generated: 2025-12-28
 
 ## Summary
 
 | Metric | Value |
 |--------|-------|
-| Total Categories | 70 |
-| Implemented Categories | 70 (100%) |
-| Total Examples | 236 |
-| 期待どおりの検出数 | 236 |
+| Total Categories | 71 |
+| Implemented Categories | 71 (100%) |
+| Total Examples | 240 |
+| 期待どおりの検出数 | 240 |
 | 一致率 | 100% |
 
 ## Category Results
@@ -86,6 +86,7 @@ Generated: 2025-12-26
 | 括弧内句点 | PASS | 2 | 2 | 100% |
 | 括弧の入れ子深さ | PASS | 2 | 2 | 100% |
 | 箇条書き句点運用 | PASS | 10 | 10 | 100% |
+| 文複雑度 | PASS | 4 | 4 | 100% |
 
 ## Implemented Categories
 
@@ -438,6 +439,11 @@ Generated: 2025-12-26
 
 - Status: PASS
 - 一致率: 100% (10/10)
+
+### 文複雑度 (sentence-complexity)
+
+- Status: PASS
+- 一致率: 100% (4/4)
 
 ## Not Implemented Categories
 

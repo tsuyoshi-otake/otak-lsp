@@ -75,7 +75,9 @@ import {
   OyobiNarabiniRule,
   MatawaWakushikuwaRule,
   JouyouKanjiRule,
-  BulletPunctuationRule
+  BulletPunctuationRule,
+  // Sentence Complexity Rule (Feature: sentence-complexity-rule)
+  SentenceComplexityRule
 } from '../rules';
 import { SentenceParser } from '../sentenceParser';
 import { ProofreadingRulesManager } from '../../proofreading/proofreadingRulesManager';
@@ -290,6 +292,8 @@ export class EvalsRunner {
     this.advancedRules.set('matawa-wakushikuwa', new MatawaWakushikuwaRule());
     this.advancedRules.set('jouyou-kanji', new JouyouKanjiRule());
     this.advancedRules.set('bullet-punctuation', new BulletPunctuationRule());
+    // Sentence Complexity Rule (Feature: sentence-complexity-rule)
+    this.advancedRules.set('sentence-complexity', new SentenceComplexityRule());
   }
 
   /**
@@ -425,6 +429,9 @@ export class EvalsRunner {
         enableMatawaWakushikuwa: true,
         enableJouyouKanji: true,
         enableBulletPunctuation: true,
+        // Sentence Complexity Rule (Evals用に閾値を低く設定)
+        enableSentenceComplexity: true,
+        sentenceComplexityThreshold: 15,
         ...(isJouyouKanjiEval
           ? {
               excludeProperNounsFromJouyouKanji: false,

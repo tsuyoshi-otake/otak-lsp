@@ -70,7 +70,9 @@ export type AdvancedGrammarErrorType =
   | 'oyobi-narabini'      // 及び/並びに使い分け
   | 'matawa-wakushikuwa'  // 又は/若しくは使い分け
   | 'jouyou-kanji'        // 常用漢字外検出
-  | 'bullet-punctuation'; // 箇条書き句点運用
+  | 'bullet-punctuation'  // 箇条書き句点運用
+  // Feature: sentence-complexity-rule（文複雑度計測）
+  | 'sentence-complexity'; // 文単位の複雑度スコア
 
 /**
  * 文体タイプ
@@ -314,6 +316,42 @@ export interface LongSentence {
 }
 
 // ==========================================
+// Feature: sentence-complexity-rule
+// ==========================================
+
+/**
+ * 文複雑度メトリクス
+ * Feature: sentence-complexity-rule
+ *
+ * 5つの要素を重み付けして総合スコアを算出する
+ */
+export interface ComplexityMetrics {
+  /** 文字数 */
+  characterCount: number;
+  /** 読点数 */
+  commaCount: number;
+  /** 従属節の深さ（推定値） */
+  clauseDepth: number;
+  /** 助詞「の」連続の最大長 */
+  maxNoChainLength: number;
+  /** 名詞連続の最大長 */
+  maxNounChainLength: number;
+  /** 総合複雑度スコア（0-100） */
+  score: number;
+}
+
+/**
+ * 文複雑度検出結果
+ * Feature: sentence-complexity-rule
+ */
+export interface SentenceComplexity {
+  sentence: Sentence;
+  metrics: ComplexityMetrics;
+  range: Range;
+  suggestions: string[];
+}
+
+// ==========================================
 // Feature: remaining-grammar-rules
 // ==========================================
 
@@ -540,6 +578,9 @@ export interface AdvancedRulesConfig {
   enableMatawaWakushikuwa: boolean;
   enableJouyouKanji: boolean;
   enableBulletPunctuation: boolean;
+
+  // 文複雑度ルール（Feature: sentence-complexity-rule）
+  enableSentenceComplexity: boolean;
   excludeProperNounsFromJouyouKanji: boolean;
   /** 人名用漢字・旧字体姓を常用漢字チェックから除外 */
   excludeJinmeiKanji: boolean;
@@ -574,6 +615,10 @@ export interface AdvancedRulesConfig {
   // Feature: remaining-grammar-rules
   nounChainThreshold: number;
   passiveOveruseThreshold: number;
+
+  // 文複雑度ルールの設定
+  // Feature: sentence-complexity-rule
+  sentenceComplexityThreshold: number;
 
   // 段階実行設定
   // Feature: advanced-rules-tiered-execution
@@ -654,6 +699,9 @@ export const DEFAULT_ADVANCED_RULES_CONFIG: AdvancedRulesConfig = {
   enableMatawaWakushikuwa: true,
   enableJouyouKanji: true,
   enableBulletPunctuation: true,
+
+  // 文複雑度ルール（Feature: sentence-complexity-rule）
+  enableSentenceComplexity: true,
   excludeProperNounsFromJouyouKanji: true,
   // 人名用漢字・旧字体姓・地名はデフォルトで除外（誤検知防止）
   excludeJinmeiKanji: true,
@@ -684,6 +732,9 @@ export const DEFAULT_ADVANCED_RULES_CONFIG: AdvancedRulesConfig = {
   // 残り文法ルールの閾値設定（Feature: remaining-grammar-rules）
   nounChainThreshold: 5,
   passiveOveruseThreshold: 3,
+
+  // 文複雑度ルールの閾値設定（Feature: sentence-complexity-rule）
+  sentenceComplexityThreshold: 60,
 
   // 段階実行設定（Feature: advanced-rules-tiered-execution）
   tieredExecution: { ...DEFAULT_TIERED_EXECUTION_CONFIG }

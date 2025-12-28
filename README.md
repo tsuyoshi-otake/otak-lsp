@@ -518,6 +518,7 @@ A、B又はC若しくはD、E又はFを選択する（正しい使用例）
 | `otakLsp.advanced.enableNoParticleChain` | 助詞「の」連続チェック | `true` |
 | `otakLsp.advanced.enableMonotonousEnding` | 文末単調さチェック | `true` |
 | `otakLsp.advanced.enableLongSentence` | 長文チェック | `true` |
+| `otakLsp.advanced.enableSentenceComplexity` | 文複雑度チェック | `true` |
 | `otakLsp.advanced.enableSahenVerb` | サ変動詞誤用チェック | `true` |
 | `otakLsp.advanced.enableMissingSubject` | 主語欠如チェック | `true` |
 | `otakLsp.advanced.enableTwistedSentence` | ねじれ文チェック | `true` |
@@ -605,6 +606,7 @@ A、B又はC若しくはD、E又はFを選択する（正しい使用例）
 | `otakLsp.advanced.noParticleChainThreshold` | 助詞「の」連続の閾値 | `3` |
 | `otakLsp.advanced.monotonousEndingThreshold` | 文末表現連続の閾値 | `3` |
 | `otakLsp.advanced.longSentenceThreshold` | 長文と判定する文字数 | `120` |
+| `otakLsp.advanced.sentenceComplexityThreshold` | 文複雑度の警告閾値（0-100） | `60` |
 
 ### 校正設定
 

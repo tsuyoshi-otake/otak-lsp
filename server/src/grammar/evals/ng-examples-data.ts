@@ -1102,6 +1102,33 @@ export const NG_EXAMPLE_CATEGORIES: NGExampleCategory[] = [
       { text: '1. データを保存する', description: '文に句点がない（番号マーカー）' },
       { text: '・ 結果を確認する', description: '文に句点がない（中黒マーカー）' }
     ]
+  },
+
+  // 文複雑度（Feature: sentence-complexity-rule）
+  {
+    id: 'sentence-complexity',
+    name: '文複雑度',
+    description: '文の複雑度が高すぎる場合の警告（文字数、読点数、従属節深さ、助詞連続、名詞連続を総合評価）',
+    expectedRule: 'sentence-complexity',
+    status: 'IMPLEMENTED',
+    examples: [
+      {
+        text: '本契約に基づき甲が乙に対して負担する債務の履行に関連して生じた損害については、甲は乙に対して、その損害の発生原因の如何を問わず、一切の責任を負わないものとする。',
+        description: '法律文書的な複雑な文（長文+読点多+修飾関係複雑）'
+      },
+      {
+        text: '私の友人の妹の会社の社長の息子の学校の先生の家の庭の木の葉が落ちた。',
+        description: '「の」連続が多い複雑な文'
+      },
+      {
+        text: '東京都港区六本木一丁目交差点付近高層ビル群地下駐車場入口案内標識設置工事完了報告書',
+        description: '名詞連続が多い複雑な表現'
+      },
+      {
+        text: '昨日私が買った本を読んでいた彼女が言っていたことを聞いた友人が教えてくれた情報によると、来週開催される予定のイベントは中止になるらしい。',
+        description: '従属節が深くネストしている複雑な文'
+      }
+    ]
   }
 ];
 

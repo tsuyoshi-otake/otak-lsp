@@ -74,3 +74,6 @@ export { OyobiNarabiniRule } from './oyobiNarabiniRule';
 export { MatawaWakushikuwaRule } from './matawaWakushikuwaRule';
 export { JouyouKanjiRule } from './jouyouKanjiRule';
 export { BulletPunctuationRule } from './bulletPunctuationRule';
+
+// Sentence Complexity Rule (Feature: sentence-complexity-rule)
+export { SentenceComplexityRule } from './sentenceComplexityRule';
