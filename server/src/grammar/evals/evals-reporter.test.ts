@@ -24,7 +24,7 @@ describe('EvalsReporter', () => {
         detected: 4,
         detectionRate: 100,
         examples: [
-          { text: '私がが行く', detected: true, diagnostics: [], expectedRule: 'double-particle' }
+          { text: '私がが行く', detected: true, expectedDetection: true, actualDetected: true, diagnostics: [], expectedRule: 'double-particle' }
         ],
         representativeExample: '私がが行く'
       },
@@ -36,7 +36,7 @@ describe('EvalsReporter', () => {
         detected: 3,
         detectionRate: 75,
         examples: [
-          { text: '食べれる', detected: true, diagnostics: [], expectedRule: 'ra-nuki' }
+          { text: '食べれる', detected: true, expectedDetection: true, actualDetected: true, diagnostics: [], expectedRule: 'ra-nuki' }
         ],
         representativeExample: '食べれる'
       },
@@ -48,7 +48,7 @@ describe('EvalsReporter', () => {
         detected: 0,
         detectionRate: 0,
         examples: [
-          { text: '馬から落馬する', detected: false, diagnostics: [], expectedRule: 'redundant-expression' }
+          { text: '馬から落馬する', detected: false, expectedDetection: true, actualDetected: false, diagnostics: [], expectedRule: 'redundant-expression' }
         ],
         representativeExample: '馬から落馬する'
       }
@@ -106,7 +106,7 @@ describe('EvalsReporter', () => {
       expect(summary).toContain('=== Japanese Grammar Evals Report ===');
       expect(summary).toContain('Total Categories:');
       expect(summary).toContain('Implemented:');
-      expect(summary).toContain('Detected:');
+      expect(summary).toContain('一致:');
     });
 
     it('should include percentage in summary', () => {

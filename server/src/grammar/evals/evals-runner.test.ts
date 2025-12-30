@@ -207,9 +207,9 @@ describe('EvalsRunner', () => {
       }, 30000);
     });
 
-    // 新しいカテゴリの総数が70であることを確認
-    it('should have 70 total categories', async () => {
-      expect(NG_EXAMPLE_CATEGORIES.length).toBe(70);
+    // 新しいカテゴリの総数が71であることを確認
+    it('should have 71 total categories', async () => {
+      expect(NG_EXAMPLE_CATEGORIES.length).toBe(71);
     });
 
     // 全カテゴリが実装済み（IMPLEMENTED）であることを確認

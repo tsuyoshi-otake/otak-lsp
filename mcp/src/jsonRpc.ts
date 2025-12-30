@@ -86,7 +86,7 @@ export class JsonRpcConnection {
 
     return new Promise<T>((resolve, reject) => {
       this.pendingRequests.set(id, {
-        resolve,
+        resolve: resolve as (value: unknown) => void,
         reject
       });
     });

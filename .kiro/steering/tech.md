@@ -11,6 +11,7 @@ inclusion: always
 - **クライアント**: VSCode拡張機能（extension.ts）
 - **サーバー**: 言語サーバー（main.ts）
 - **共有**: 型定義とインターフェース
+- **MCP**: stdio MCPサーバー（LSP診断のプロキシ）
 
 ## コア技術
 

@@ -3,16 +3,100 @@
 exports[`README Regression Snapshot should match README diagnostics snapshot 1`] = `
 [
   {
+    "code": "ambiguous-term",
+    "message": "曖昧な表現「早めに」が使用されています。期限を具体的な日時で示してください。",
+    "range": {
+      "end": {
+        "character": 20,
+        "line": 300,
+      },
+      "start": {
+        "character": 17,
+        "line": 300,
+      },
+    },
+  },
+  {
+    "code": "ambiguous-term",
+    "message": "曖昧な表現「だいたい」が使用されています。範囲を具体的な数値で示してください。",
+    "range": {
+      "end": {
+        "character": 26,
+        "line": 300,
+      },
+      "start": {
+        "character": 22,
+        "line": 300,
+      },
+    },
+  },
+  {
+    "code": "ambiguous-term",
+    "message": "曖昧な表現「少人数」が使用されています。人数を具体的な数値で示してください。",
+    "range": {
+      "end": {
+        "character": 31,
+        "line": 300,
+      },
+      "start": {
+        "character": 28,
+        "line": 300,
+      },
+    },
+  },
+  {
+    "code": "ambiguous-term",
+    "message": "曖昧な表現「早めに」が使用されています。期限を具体的な日時で示してください。",
+    "range": {
+      "end": {
+        "character": 18,
+        "line": 893,
+      },
+      "start": {
+        "character": 15,
+        "line": 893,
+      },
+    },
+  },
+  {
+    "code": "beki-usage",
+    "message": "「するべき」は「すべき」に統一することを推奨します。",
+    "range": {
+      "end": {
+        "character": 25,
+        "line": 301,
+      },
+      "start": {
+        "character": 21,
+        "line": 301,
+      },
+    },
+  },
+  {
+    "code": "beki-usage",
+    "message": "「するべき」は「すべき」に統一することを推奨します。",
+    "range": {
+      "end": {
+        "character": 35,
+        "line": 894,
+      },
+      "start": {
+        "character": 31,
+        "line": 894,
+      },
+    },
+  },
+  {
     "code": "bracket-quote-mismatch",
     "message": "閉じ括弧「）」に対応する開き括弧「（」がありません。",
     "range": {
       "end": {
         "character": 121,
-        "line": 643,
+        "line": 820,
       },
       "start": {
         "character": 120,
-        "line": 643,
+        "line": 820,
       },
     },
   },
@@ -22,39 +106,151 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 142,
-        "line": 643,
+        "line": 820,
       },
       "start": {
         "character": 141,
-        "line": 643,
+        "line": 820,
+      },
+    },
+  },
+  {
+    "code": "bullet-punctuation",
+    "message": "文の箇条書きには句点「。」を付けるのが一般的です。（根拠: 公用文作成の考え方）",
+    "range": {
+      "end": {
+        "character": 50,
+        "line": 5,
+      },
+      "start": {
+        "character": 49,
+        "line": 5,
+      },
+    },
+  },
+  {
+    "code": "bullet-punctuation",
+    "message": "文の箇条書きには句点「。」を付けるのが一般的です。（根拠: 公用文作成の考え方）",
+    "range": {
+      "end": {
+        "character": 4,
+        "line": 412,
+      },
+      "start": {
+        "character": 3,
+        "line": 412,
+      },
+    },
+  },
+  {
+    "code": "bullet-punctuation",
+    "message": "文の箇条書きには句点「。」を付けるのが一般的です。（根拠: 公用文作成の考え方）",
+    "range": {
+      "end": {
+        "character": 12,
+        "line": 468,
+      },
+      "start": {
+        "character": 11,
+        "line": 468,
+      },
+    },
+  },
+  {
+    "code": "bullet-punctuation",
+    "message": "文の箇条書きには句点「。」を付けるのが一般的です。（根拠: 公用文作成の考え方）",
+    "range": {
+      "end": {
+        "character": 29,
+        "line": 469,
+      },
+      "start": {
+        "character": 28,
+        "line": 469,
+      },
+    },
+  },
+  {
+    "code": "bullet-punctuation",
+    "message": "文の箇条書きには句点「。」を付けるのが一般的です。（根拠: 公用文作成の考え方）",
+    "range": {
+      "end": {
+        "character": 12,
+        "line": 476,
+      },
+      "start": {
+        "character": 11,
+        "line": 476,
+      },
+    },
+  },
+  {
+    "code": "bullet-punctuation",
+    "message": "文の箇条書きには句点「。」を付けるのが一般的です。（根拠: 公用文作成の考え方）",
+    "range": {
+      "end": {
+        "character": 30,
+        "line": 477,
+      },
+      "start": {
+        "character": 29,
+        "line": 477,
+      },
+    },
+  },
+  {
+    "code": "bullet-punctuation",
+    "message": "文の箇条書きには句点「。」を付けるのが一般的です。（根拠: 公用文作成の考え方）",
+    "range": {
+      "end": {
+        "character": 44,
+        "line": 696,
+      },
+      "start": {
+        "character": 43,
+        "line": 696,
+      },
+    },
+  },
+  {
+    "code": "bullet-punctuation",
+    "message": "文の箇条書きには句点「。」を付けるのが一般的です。（根拠: 公用文作成の考え方）",
+    "range": {
+      "end": {
+        "character": 29,
+        "line": 697,
+      },
+      "start": {
+        "character": 28,
+        "line": 697,
       },
     },
   },
   {
     "code": "bullet-style-mix",
-    "message": "箇条書き記号が混在しています。・（1箇所）と-（31箇所）と*（1箇所）が使用されています。どれかに統一してください。 文書全体では「hyphen」が支配的です。",
+    "message": "箇条書き記号が混在しています。・（1箇所）と-（32箇所）と*（1箇所）が使用されています。どれかに統一してください。 文書全体では「hyphen」が支配的です。",
     "range": {
       "end": {
         "character": 22,
-        "line": 735,
+        "line": 914,
       },
       "start": {
         "character": 21,
-        "line": 735,
+        "line": 914,
       },
     },
   },
   {
     "code": "bullet-style-mix",
-    "message": "箇条書き記号が混在しています。・（1箇所）と-（31箇所）と*（1箇所）が使用されています。どれかに統一してください。 文書全体では「hyphen」が支配的です。",
+    "message": "箇条書き記号が混在しています。・（1箇所）と-（32箇所）と*（1箇所）が使用されています。どれかに統一してください。 文書全体では「hyphen」が支配的です。",
     "range": {
       "end": {
         "character": 33,
-        "line": 735,
+        "line": 914,
       },
       "start": {
         "character": 32,
-        "line": 735,
+        "line": 914,
       },
     },
   },
@@ -64,11 +260,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 29,
-        "line": 742,
+        "line": 921,
       },
       "start": {
         "character": 26,
-        "line": 742,
+        "line": 921,
       },
     },
   },
@@ -92,11 +288,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 36,
-        "line": 311,
+        "line": 351,
       },
       "start": {
         "character": 0,
-        "line": 311,
+        "line": 351,
       },
     },
   },
@@ -106,11 +302,25 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 23,
-        "line": 308,
+        "line": 348,
       },
       "start": {
         "character": 15,
-        "line": 308,
+        "line": 348,
+      },
+    },
+  },
+  {
+    "code": "dash-tilde-normalization",
+    "message": "範囲表現「0-100」のハイフンマイナスは、波ダッシュ「〜」に統一することを推奨します。",
+    "range": {
+      "end": {
+        "character": 66,
+        "line": 608,
+      },
+      "start": {
+        "character": 61,
+        "line": 608,
       },
     },
   },
@@ -120,11 +330,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 43,
-        "line": 729,
+        "line": 908,
       },
       "start": {
         "character": 33,
-        "line": 729,
+        "line": 908,
       },
     },
   },
@@ -134,11 +344,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 21,
-        "line": 756,
+        "line": 937,
       },
       "start": {
         "character": 14,
-        "line": 756,
+        "line": 937,
       },
     },
   },
@@ -189,12 +399,12 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "message": "強調記号のスタイルが混在しています。**（29箇所）と__（1箇所）が使用されています。どちらかに統一してください。 文書全体では「asterisk」が支配的です。",
     "range": {
       "end": {
-        "character": 27,
-        "line": 736,
+        "character": 24,
+        "line": 320,
       },
       "start": {
-        "character": 26,
-        "line": 736,
+        "character": 23,
+        "line": 320,
       },
     },
   },
@@ -204,11 +414,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 24,
-        "line": 724,
+        "line": 903,
       },
       "start": {
         "character": 16,
-        "line": 724,
+        "line": 903,
       },
     },
   },
@@ -218,11 +428,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 31,
-        "line": 740,
+        "line": 919,
       },
       "start": {
         "character": 28,
-        "line": 740,
+        "line": 919,
       },
     },
   },
@@ -274,11 +484,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 27,
-        "line": 311,
+        "line": 351,
       },
       "start": {
         "character": 26,
-        "line": 311,
+        "line": 351,
       },
     },
   },
@@ -288,11 +498,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 29,
-        "line": 311,
+        "line": 351,
       },
       "start": {
         "character": 28,
-        "line": 311,
+        "line": 351,
       },
     },
   },
@@ -302,11 +512,25 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 33,
-        "line": 311,
+        "line": 351,
       },
       "start": {
         "character": 32,
-        "line": 311,
+        "line": 351,
+      },
+    },
+  },
+  {
+    "code": "jouyou-kanji",
+    "message": "「梱」は常用漢字表にありません。ひらがな表記への書き換えを検討してください。（根拠: 常用漢字表 平成22年内閣告示第2号）",
+    "range": {
+      "end": {
+        "character": 23,
+        "line": 738,
+      },
+      "start": {
+        "character": 22,
+        "line": 738,
       },
     },
   },
@@ -386,11 +610,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 11,
-        "line": 317,
+        "line": 358,
       },
       "start": {
         "character": 9,
-        "line": 317,
+        "line": 358,
       },
     },
   },
@@ -400,11 +624,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 15,
-        "line": 317,
+        "line": 358,
       },
       "start": {
         "character": 12,
-        "line": 317,
+        "line": 358,
       },
     },
   },
@@ -414,11 +638,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 13,
-        "line": 319,
+        "line": 360,
       },
       "start": {
         "character": 11,
-        "line": 319,
+        "line": 360,
       },
     },
   },
@@ -428,11 +652,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 18,
-        "line": 319,
+        "line": 360,
       },
       "start": {
         "character": 15,
-        "line": 319,
+        "line": 360,
       },
     },
   },
@@ -442,11 +666,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 11,
-        "line": 329,
+        "line": 370,
       },
       "start": {
         "character": 9,
-        "line": 329,
+        "line": 370,
       },
     },
   },
@@ -456,11 +680,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 16,
-        "line": 329,
+        "line": 370,
       },
       "start": {
         "character": 12,
-        "line": 329,
+        "line": 370,
       },
     },
   },
@@ -470,11 +694,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 13,
-        "line": 331,
+        "line": 372,
       },
       "start": {
         "character": 11,
-        "line": 331,
+        "line": 372,
       },
     },
   },
@@ -484,11 +708,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 19,
-        "line": 331,
+        "line": 372,
       },
       "start": {
         "character": 15,
-        "line": 331,
+        "line": 372,
       },
     },
   },
@@ -498,11 +722,39 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 7,
-        "line": 540,
+        "line": 640,
       },
       "start": {
         "character": 6,
-        "line": 540,
+        "line": 640,
+      },
+    },
+  },
+  {
+    "code": "katakana-chouon",
+    "message": "カタカナ表記「カテゴリ」は「カテゴリー」が標準的です。",
+    "range": {
+      "end": {
+        "character": 6,
+        "line": 290,
+      },
+      "start": {
+        "character": 2,
+        "line": 290,
+      },
+    },
+  },
+  {
+    "code": "katakana-chouon",
+    "message": "カタカナ表記「サーバ」は「サーバー」が標準的です。",
+    "range": {
+      "end": {
+        "character": 23,
+        "line": 308,
+      },
+      "start": {
+        "character": 20,
+        "line": 308,
       },
     },
   },
@@ -512,11 +764,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 13,
-        "line": 364,
+        "line": 416,
       },
       "start": {
         "character": 9,
-        "line": 364,
+        "line": 416,
       },
     },
   },
@@ -526,11 +778,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 43,
-        "line": 366,
+        "line": 418,
       },
       "start": {
         "character": 39,
-        "line": 366,
+        "line": 418,
       },
     },
   },
@@ -540,11 +792,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 30,
-        "line": 373,
+        "line": 425,
       },
       "start": {
         "character": 27,
-        "line": 373,
+        "line": 425,
       },
     },
   },
@@ -554,11 +806,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 33,
-        "line": 374,
+        "line": 426,
       },
       "start": {
         "character": 29,
-        "line": 374,
+        "line": 426,
       },
     },
   },
@@ -568,11 +820,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 21,
-        "line": 381,
+        "line": 433,
       },
       "start": {
         "character": 15,
-        "line": 381,
+        "line": 433,
       },
     },
   },
@@ -582,11 +834,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 24,
-        "line": 387,
+        "line": 439,
       },
       "start": {
         "character": 20,
-        "line": 387,
+        "line": 439,
       },
     },
   },
@@ -596,11 +848,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 46,
-        "line": 387,
+        "line": 439,
       },
       "start": {
         "character": 42,
-        "line": 387,
+        "line": 439,
       },
     },
   },
@@ -610,11 +862,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 45,
-        "line": 396,
+        "line": 448,
       },
       "start": {
         "character": 42,
-        "line": 396,
+        "line": 448,
       },
     },
   },
@@ -624,11 +876,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 54,
-        "line": 447,
+        "line": 499,
       },
       "start": {
         "character": 50,
-        "line": 447,
+        "line": 499,
       },
     },
   },
@@ -638,11 +890,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 66,
-        "line": 447,
+        "line": 499,
       },
       "start": {
         "character": 62,
-        "line": 447,
+        "line": 499,
       },
     },
   },
@@ -652,11 +904,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 55,
-        "line": 545,
+        "line": 645,
       },
       "start": {
         "character": 52,
-        "line": 545,
+        "line": 645,
       },
     },
   },
@@ -666,11 +918,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 61,
-        "line": 644,
+        "line": 821,
       },
       "start": {
         "character": 58,
-        "line": 644,
+        "line": 821,
       },
     },
   },
@@ -680,11 +932,25 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 21,
-        "line": 723,
+        "line": 902,
       },
       "start": {
         "character": 18,
-        "line": 723,
+        "line": 902,
+      },
+    },
+  },
+  {
+    "code": "katakana-chouon",
+    "message": "カタカナ表記「リーダ」は「リーダー」が標準的です。",
+    "range": {
+      "end": {
+        "character": 7,
+        "line": 930,
+      },
+      "start": {
+        "character": 4,
+        "line": 930,
       },
     },
   },
@@ -722,11 +988,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 142,
-        "line": 643,
+        "line": 820,
       },
       "start": {
         "character": 3,
-        "line": 643,
+        "line": 820,
       },
     },
   },
@@ -749,12 +1015,26 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "message": "主語が明示されていない可能性があります。主語を明示することを検討してください",
     "range": {
       "end": {
+        "character": 10,
+        "line": 391,
+      },
+      "start": {
+        "character": 0,
+        "line": 391,
+      },
+    },
+  },
+  {
+    "code": "missing-subject",
+    "message": "主語が明示されていない可能性があります。主語を明示することを検討してください",
+    "range": {
+      "end": {
         "character": 49,
-        "line": 366,
+        "line": 418,
       },
       "start": {
         "character": 34,
-        "line": 366,
+        "line": 418,
       },
     },
   },
@@ -764,11 +1044,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 52,
-        "line": 512,
+        "line": 612,
       },
       "start": {
         "character": 31,
-        "line": 512,
+        "line": 612,
       },
     },
   },
@@ -778,11 +1058,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 22,
-        "line": 730,
+        "line": 909,
       },
       "start": {
         "character": 20,
-        "line": 730,
+        "line": 909,
       },
     },
   },
@@ -820,11 +1100,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 139,
-        "line": 643,
+        "line": 820,
       },
       "start": {
         "character": 128,
-        "line": 643,
+        "line": 820,
       },
     },
   },
@@ -886,15 +1166,29 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
   },
   {
     "code": "okurigana-variant",
+    "message": "送り仮名「表わす」は「表す」が標準的な表記です。",
+    "range": {
+      "end": {
+        "character": 24,
+        "line": 305,
+      },
+      "start": {
+        "character": 21,
+        "line": 305,
+      },
+    },
+  },
+  {
+    "code": "okurigana-variant",
     "message": "送り仮名「下さい」は「ください」が標準的な表記です。",
     "range": {
       "end": {
         "character": 23,
-        "line": 703,
+        "line": 880,
       },
       "start": {
         "character": 20,
-        "line": 703,
+        "line": 880,
       },
     },
   },
@@ -904,11 +1198,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 27,
-        "line": 720,
+        "line": 899,
       },
       "start": {
         "character": 24,
-        "line": 720,
+        "line": 899,
       },
     },
   },
@@ -918,11 +1212,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 49,
-        "line": 734,
+        "line": 913,
       },
       "start": {
         "character": 47,
-        "line": 734,
+        "line": 913,
       },
     },
   },
@@ -1138,15 +1432,29 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
   },
   {
     "code": "orthography-variant",
+    "message": "表記「出来る」は「できる」に統一することが推奨されます。",
+    "range": {
+      "end": {
+        "character": 21,
+        "line": 306,
+      },
+      "start": {
+        "character": 18,
+        "line": 306,
+      },
+    },
+  },
+  {
+    "code": "orthography-variant",
     "message": "表記「及び」は「および」に統一することが推奨されます。",
     "range": {
       "end": {
         "character": 11,
-        "line": 317,
+        "line": 358,
       },
       "start": {
         "character": 9,
-        "line": 317,
+        "line": 358,
       },
     },
   },
@@ -1156,11 +1464,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 15,
-        "line": 317,
+        "line": 358,
       },
       "start": {
         "character": 12,
-        "line": 317,
+        "line": 358,
       },
     },
   },
@@ -1170,11 +1478,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 13,
-        "line": 319,
+        "line": 360,
       },
       "start": {
         "character": 11,
-        "line": 319,
+        "line": 360,
       },
     },
   },
@@ -1184,11 +1492,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 18,
-        "line": 319,
+        "line": 360,
       },
       "start": {
         "character": 15,
-        "line": 319,
+        "line": 360,
       },
     },
   },
@@ -1198,11 +1506,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 10,
-        "line": 329,
+        "line": 370,
       },
       "start": {
         "character": 9,
-        "line": 329,
+        "line": 370,
       },
     },
   },
@@ -1212,11 +1520,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 16,
-        "line": 329,
+        "line": 370,
       },
       "start": {
         "character": 12,
-        "line": 329,
+        "line": 370,
       },
     },
   },
@@ -1226,11 +1534,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 12,
-        "line": 331,
+        "line": 372,
       },
       "start": {
         "character": 11,
-        "line": 331,
+        "line": 372,
       },
     },
   },
@@ -1240,11 +1548,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 19,
-        "line": 331,
+        "line": 372,
       },
       "start": {
         "character": 15,
-        "line": 331,
+        "line": 372,
       },
     },
   },
@@ -1254,11 +1562,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 46,
-        "line": 471,
+        "line": 583,
       },
       "start": {
         "character": 44,
-        "line": 471,
+        "line": 583,
       },
     },
   },
@@ -1268,11 +1576,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 50,
-        "line": 471,
+        "line": 583,
       },
       "start": {
         "character": 47,
-        "line": 471,
+        "line": 583,
       },
     },
   },
@@ -1282,11 +1590,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 49,
-        "line": 472,
+        "line": 584,
       },
       "start": {
         "character": 48,
-        "line": 472,
+        "line": 584,
       },
     },
   },
@@ -1296,11 +1604,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 55,
-        "line": 472,
+        "line": 584,
       },
       "start": {
         "character": 51,
-        "line": 472,
+        "line": 584,
       },
     },
   },
@@ -1310,11 +1618,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 23,
-        "line": 703,
+        "line": 880,
       },
       "start": {
         "character": 20,
-        "line": 703,
+        "line": 880,
       },
     },
   },
@@ -1324,11 +1632,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 19,
-        "line": 721,
+        "line": 900,
       },
       "start": {
         "character": 16,
-        "line": 721,
+        "line": 900,
       },
     },
   },
@@ -1338,11 +1646,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 24,
-        "line": 731,
+        "line": 910,
       },
       "start": {
         "character": 23,
-        "line": 731,
+        "line": 910,
       },
     },
   },
@@ -1352,11 +1660,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 5,
-        "line": 743,
+        "line": 922,
       },
       "start": {
         "character": 3,
-        "line": 743,
+        "line": 922,
       },
     },
   },
@@ -1366,11 +1674,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 9,
-        "line": 743,
+        "line": 922,
       },
       "start": {
         "character": 6,
-        "line": 743,
+        "line": 922,
       },
     },
   },
@@ -1380,11 +1688,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 28,
-        "line": 743,
+        "line": 922,
       },
       "start": {
         "character": 25,
-        "line": 743,
+        "line": 922,
       },
     },
   },
@@ -1394,11 +1702,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 4,
-        "line": 744,
+        "line": 923,
       },
       "start": {
         "character": 3,
-        "line": 744,
+        "line": 923,
       },
     },
   },
@@ -1408,11 +1716,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 10,
-        "line": 744,
+        "line": 923,
       },
       "start": {
         "character": 6,
-        "line": 744,
+        "line": 923,
       },
     },
   },
@@ -1422,11 +1730,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 30,
-        "line": 744,
+        "line": 923,
       },
       "start": {
         "character": 26,
-        "line": 744,
+        "line": 923,
       },
     },
   },
@@ -1460,15 +1768,29 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
   },
   {
     "code": "particle-sequence",
+    "message": "不適切な助詞連続「をに」が検出されました。文の構造を見直してください。",
+    "range": {
+      "end": {
+        "character": 73,
+        "line": 391,
+      },
+      "start": {
+        "character": 62,
+        "line": 391,
+      },
+    },
+  },
+  {
+    "code": "particle-sequence",
     "message": "不適切な助詞連続「がに」が検出されました。文の構造を見直してください。",
     "range": {
       "end": {
         "character": 31,
-        "line": 636,
+        "line": 813,
       },
       "start": {
         "character": 10,
-        "line": 636,
+        "line": 813,
       },
     },
   },
@@ -1478,11 +1800,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 26,
-        "line": 648,
+        "line": 825,
       },
       "start": {
         "character": 15,
-        "line": 648,
+        "line": 825,
       },
     },
   },
@@ -1492,67 +1814,67 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 70,
-        "line": 649,
+        "line": 826,
       },
       "start": {
         "character": 59,
-        "line": 649,
+        "line": 826,
       },
     },
   },
   {
     "code": "quotation-style-mix",
-    "message": "引用符のスタイルが混在しています。「」（64箇所）と""（4箇所）が使用されています。どれかに統一してください。 文書全体では「japanese」が支配的です。",
+    "message": "引用符のスタイルが混在しています。「」（66箇所）と""（4箇所）が使用されています。どれかに統一してください。 文書全体では「japanese」が支配的です。",
     "range": {
       "end": {
         "character": 4,
-        "line": 418,
+        "line": 470,
       },
       "start": {
         "character": 3,
-        "line": 418,
+        "line": 470,
       },
     },
   },
   {
     "code": "quotation-style-mix",
-    "message": "引用符のスタイルが混在しています。「」（64箇所）と""（4箇所）が使用されています。どれかに統一してください。 文書全体では「japanese」が支配的です。",
+    "message": "引用符のスタイルが混在しています。「」（66箇所）と""（4箇所）が使用されています。どれかに統一してください。 文書全体では「japanese」が支配的です。",
     "range": {
       "end": {
         "character": 13,
-        "line": 418,
+        "line": 470,
       },
       "start": {
         "character": 12,
-        "line": 418,
+        "line": 470,
       },
     },
   },
   {
     "code": "quotation-style-mix",
-    "message": "引用符のスタイルが混在しています。「」（64箇所）と""（4箇所）が使用されています。どれかに統一してください。 文書全体では「japanese」が支配的です。",
+    "message": "引用符のスタイルが混在しています。「」（66箇所）と""（4箇所）が使用されています。どれかに統一してください。 文書全体では「japanese」が支配的です。",
     "range": {
       "end": {
         "character": 4,
-        "line": 426,
+        "line": 478,
       },
       "start": {
         "character": 3,
-        "line": 426,
+        "line": 478,
       },
     },
   },
   {
     "code": "quotation-style-mix",
-    "message": "引用符のスタイルが混在しています。「」（64箇所）と""（4箇所）が使用されています。どれかに統一してください。 文書全体では「japanese」が支配的です。",
+    "message": "引用符のスタイルが混在しています。「」（66箇所）と""（4箇所）が使用されています。どれかに統一してください。 文書全体では「japanese」が支配的です。",
     "range": {
       "end": {
         "character": 37,
-        "line": 426,
+        "line": 478,
       },
       "start": {
         "character": 36,
-        "line": 426,
+        "line": 478,
       },
     },
   },
@@ -1716,11 +2038,25 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 21,
-        "line": 704,
+        "line": 881,
       },
       "start": {
         "character": 16,
-        "line": 704,
+        "line": 881,
+      },
+    },
+  },
+  {
+    "code": "sentence-complexity",
+    "message": "文の複雑度が高いです（スコア: 77/100、閾値: 60）（文字数:246、節深度:4、の連続:6、名詞連続:6）。文の分割や構造の簡素化を検討してください。",
+    "range": {
+      "end": {
+        "character": 286,
+        "line": 49,
+      },
+      "start": {
+        "character": 40,
+        "line": 49,
       },
     },
   },
@@ -1785,12 +2121,26 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "message": "コロン「：」は全角ですが、文書内では半角が多く使用されています。表記を統一することを推奨します。",
     "range": {
       "end": {
+        "character": 43,
+        "line": 384,
+      },
+      "start": {
+        "character": 42,
+        "line": 384,
+      },
+    },
+  },
+  {
+    "code": "symbol-width-mix",
+    "message": "コロン「：」は全角ですが、文書内では半角が多く使用されています。表記を統一することを推奨します。",
+    "range": {
+      "end": {
         "character": 24,
-        "line": 343,
+        "line": 395,
       },
       "start": {
         "character": 23,
-        "line": 343,
+        "line": 395,
       },
     },
   },
@@ -1800,11 +2150,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 37,
-        "line": 431,
+        "line": 483,
       },
       "start": {
         "character": 36,
-        "line": 431,
+        "line": 483,
       },
     },
   },
@@ -1814,11 +2164,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 71,
-        "line": 741,
+        "line": 920,
       },
       "start": {
         "character": 21,
-        "line": 741,
+        "line": 920,
       },
     },
   },
@@ -1940,11 +2290,25 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 27,
-        "line": 705,
+        "line": 882,
       },
       "start": {
         "character": 22,
-        "line": 705,
+        "line": 882,
+      },
+    },
+  },
+  {
+    "code": "term-notation",
+    "message": "技術用語の表記「mcp」は「MCP」に統一してください。",
+    "range": {
+      "end": {
+        "character": 8,
+        "line": 738,
+      },
+      "start": {
+        "character": 5,
+        "line": 738,
       },
     },
   },
@@ -1954,11 +2318,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 28,
-        "line": 702,
+        "line": 879,
       },
       "start": {
         "character": 18,
-        "line": 702,
+        "line": 879,
       },
     },
   },
@@ -1968,11 +2332,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 38,
-        "line": 762,
+        "line": 943,
       },
       "start": {
         "character": 32,
-        "line": 762,
+        "line": 943,
       },
     },
   },
@@ -2024,11 +2388,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 28,
-        "line": 700,
+        "line": 877,
       },
       "start": {
         "character": 22,
-        "line": 700,
+        "line": 877,
       },
     },
   },

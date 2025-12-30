@@ -90,5 +90,19 @@ server/src/grammar/
 - `evals-runner.ts`: 評価実行ロジック
 - `evals-runner.test.ts`: 評価テスト
 
+## MCPサーバー (`mcp/src/`)
+
+**目的**: stdio MCPサーバーとしてLSP診断機能をプロキシ
+**構成パターン**:
+- `main.ts`: MCPサーバーエントリーポイント
+- `lspClient.ts`: LSPクライアント実装
+- `jsonRpc.ts`: JSON-RPC通信
+
+## スタンドアロンパッケージ (`packages/`)
+
+**目的**: npmパッケージとして独立配布
+**例**: `packages/otak-mcp-lsp/` - MCPサーバーの単体パッケージ
+**命名規則**: `otak-*` プレフィックス
+
 ---
 _パターンと規則に焦点。ファイルの網羅的リストではない_
