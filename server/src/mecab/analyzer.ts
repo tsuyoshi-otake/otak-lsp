@@ -25,6 +25,14 @@ interface KuromojiToken {
 }
 
 /**
+ * キャッシュエントリ
+ */
+interface CacheEntry {
+  tokens: Token[];
+  accessTime: number;
+}
+
+/**
  * Kuromoji形態素解析器（MeCab互換API）
  */
 export class MeCabAnalyzer {
@@ -32,8 +40,48 @@ export class MeCabAnalyzer {
   private static tokenizer: kuromoji.Tokenizer<KuromojiToken> | null = null;
   private static initPromise: Promise<void> | null = null;
 
+  // トークンキャッシュ（テキストハッシュ → トークン配列）
+  private static tokenCache: Map<string, CacheEntry> = new Map();
+  private static readonly MAX_CACHE_SIZE = 10; // 最大キャッシュ数
+  private static cacheHits = 0;
+  private static cacheMisses = 0;
+
   constructor(_mecabPath?: string) {
     // mecabPath引数は互換性のために残すが、使用しない
+  }
+
+  /**
+   * 簡易ハッシュ関数（テキストからキャッシュキーを生成）
+   */
+  private static hashText(text: string): string {
+    // 長さとサンプリングによる簡易ハッシュ
+    const len = text.length;
+    if (len < 100) {
+      return `${len}:${text}`;
+    }
+    // 長いテキストは先頭・中央・末尾のサンプルでハッシュ
+    const sample = text.slice(0, 50) + text.slice(len / 2 - 25, len / 2 + 25) + text.slice(-50);
+    return `${len}:${sample}`;
+  }
+
+  /**
+   * キャッシュ統計を取得
+   */
+  static getCacheStats(): { hits: number; misses: number; size: number } {
+    return {
+      hits: MeCabAnalyzer.cacheHits,
+      misses: MeCabAnalyzer.cacheMisses,
+      size: MeCabAnalyzer.tokenCache.size,
+    };
+  }
+
+  /**
+   * キャッシュをクリア
+   */
+  static clearCache(): void {
+    MeCabAnalyzer.tokenCache.clear();
+    MeCabAnalyzer.cacheHits = 0;
+    MeCabAnalyzer.cacheMisses = 0;
   }
 
   /**
@@ -99,11 +147,21 @@ export class MeCabAnalyzer {
   }
 
   /**
-   * テキストを形態素解析
+   * テキストを形態素解析（キャッシュ付き）
    */
   async analyze(text: string): Promise<Token[]> {
     if (!text || text.trim() === '') {
       return [];
+    }
+
+    // キャッシュチェック
+    const cacheKey = MeCabAnalyzer.hashText(text);
+    const cached = MeCabAnalyzer.tokenCache.get(cacheKey);
+    if (cached) {
+      // キャッシュヒット
+      cached.accessTime = Date.now();
+      MeCabAnalyzer.cacheHits++;
+      return cached.tokens;
     }
 
     await this.initialize();
@@ -112,8 +170,40 @@ export class MeCabAnalyzer {
       throw new Error('トークナイザーの初期化に失敗しました');
     }
 
+    MeCabAnalyzer.cacheMisses++;
     const kuromojiTokens = MeCabAnalyzer.tokenizer.tokenize(text);
-    return this.convertToTokens(kuromojiTokens);
+    const tokens = this.convertToTokens(kuromojiTokens);
+
+    // キャッシュに保存
+    this.addToCache(cacheKey, tokens);
+
+    return tokens;
+  }
+
+  /**
+   * キャッシュに追加（LRU方式で古いエントリを削除）
+   */
+  private addToCache(key: string, tokens: Token[]): void {
+    // キャッシュサイズ制限チェック
+    if (MeCabAnalyzer.tokenCache.size >= MeCabAnalyzer.MAX_CACHE_SIZE) {
+      // 最も古いエントリを削除
+      let oldestKey: string | null = null;
+      let oldestTime = Infinity;
+      for (const [k, v] of MeCabAnalyzer.tokenCache) {
+        if (v.accessTime < oldestTime) {
+          oldestTime = v.accessTime;
+          oldestKey = k;
+        }
+      }
+      if (oldestKey) {
+        MeCabAnalyzer.tokenCache.delete(oldestKey);
+      }
+    }
+
+    MeCabAnalyzer.tokenCache.set(key, {
+      tokens,
+      accessTime: Date.now(),
+    });
   }
 
   /**

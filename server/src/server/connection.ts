@@ -180,7 +180,6 @@ export function createConnectionHandler(
       ? { entries: [], totalTimeMs: 0 }
       : undefined;
 
-    const profileSteps: Array<{ name: string; ms: number; meta?: string }> = [];
     const analysisStart = isProfileLogsEnabled() ? Date.now() : 0;
 
     try {
@@ -224,13 +223,18 @@ export function createConnectionHandler(
         profiler.logRuleProfilingBlock(uri, analysisVersion, ruleProfilingCollector);
       }
 
-      // 全体プロファイルログ
+      // 全体プロファイルログ（ステップ別内訳付き）
       if (isProfileLogsEnabled() && analysisStart > 0) {
         const totalMs = Date.now() - analysisStart;
+        const steps = result.profileSteps.map(s => ({
+          name: s.name,
+          ms: s.ms,
+          meta: s.meta
+        }));
         profiler.logBlock(
           '解析',
           `uri=${uri} version=${analysisVersion} stale=false tokens=${result.tokens.length} diagnostics=${result.diagnostics.length}`,
-          profileSteps,
+          steps,
           totalMs
         );
       }

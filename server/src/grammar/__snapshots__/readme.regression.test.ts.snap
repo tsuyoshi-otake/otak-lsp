@@ -228,7 +228,7 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
   },
   {
     "code": "bullet-style-mix",
-    "message": "箇条書き記号が混在しています。・（1箇所）と-（32箇所）と*（1箇所）が使用されています。どれかに統一してください。 文書全体では「hyphen」が支配的です。",
+    "message": "箇条書き記号が混在しています。・（1箇所）と-（33箇所）と*（1箇所）が使用されています。どれかに統一してください。 文書全体では「hyphen」が支配的です。",
     "range": {
       "end": {
         "character": 22,
@@ -242,7 +242,7 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
   },
   {
     "code": "bullet-style-mix",
-    "message": "箇条書き記号が混在しています。・（1箇所）と-（32箇所）と*（1箇所）が使用されています。どれかに統一してください。 文書全体では「hyphen」が支配的です。",
+    "message": "箇条書き記号が混在しています。・（1箇所）と-（33箇所）と*（1箇所）が使用されています。どれかに統一してください。 文書全体では「hyphen」が支配的です。",
     "range": {
       "end": {
         "character": 33,
@@ -396,7 +396,7 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
   },
   {
     "code": "emphasis-style-mix",
-    "message": "強調記号のスタイルが混在しています。**（29箇所）と__（1箇所）が使用されています。どちらかに統一してください。 文書全体では「asterisk」が支配的です。",
+    "message": "強調記号のスタイルが混在しています。**（30箇所）と__（1箇所）が使用されています。どちらかに統一してください。 文書全体では「asterisk」が支配的です。",
     "range": {
       "end": {
         "character": 24,
@@ -951,6 +951,34 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
       "start": {
         "character": 4,
         "line": 930,
+      },
+    },
+  },
+  {
+    "code": "katakana-chouon",
+    "message": "カタカナ表記「カテゴリ」は「カテゴリー」が標準的です。",
+    "range": {
+      "end": {
+        "character": 20,
+        "line": 945,
+      },
+      "start": {
+        "character": 16,
+        "line": 945,
+      },
+    },
+  },
+  {
+    "code": "katakana-chouon",
+    "message": "カタカナ表記「ハンドラ」は「ハンドラー」が標準的です。",
+    "range": {
+      "end": {
+        "character": 30,
+        "line": 954,
+      },
+      "start": {
+        "character": 26,
+        "line": 954,
       },
     },
   },
@@ -2155,6 +2183,20 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
       "start": {
         "character": 36,
         "line": 483,
+      },
+    },
+  },
+  {
+    "code": "symbol-width-mix",
+    "message": "コロン「：」は全角ですが、文書内では半角が多く使用されています。表記を統一することを推奨します。",
+    "range": {
+      "end": {
+        "character": 42,
+        "line": 949,
+      },
+      "start": {
+        "character": 41,
+        "line": 949,
       },
     },
   },

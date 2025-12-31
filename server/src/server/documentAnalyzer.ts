@@ -22,6 +22,15 @@ import { Profiler } from './profiler';
 import { convertSeverity } from './diagnosticsPublisher';
 
 /**
+ * プロファイルステップ
+ */
+export interface ProfileStep {
+  name: string;
+  ms: number;
+  meta?: string;
+}
+
+/**
  * 解析結果
  */
 export interface AnalysisResult {
@@ -29,6 +38,7 @@ export interface AnalysisResult {
   diagnostics: LSPDiagnostic[];
   excludedRanges: ExcludedRange[];
   lineStarts: number[];
+  profileSteps: ProfileStep[];
 }
 
 /**
@@ -100,12 +110,19 @@ export function createDocumentAnalyzer(
     ): Promise<AnalysisResult> {
       const text = document.getText();
       const languageId = document.languageId as SupportedLanguage;
+      const profileSteps: ProfileStep[] = [];
+      const isProfileEnabled = profiler?.isEnabled() ?? false;
+
+      const lineStartsStart = isProfileEnabled ? Date.now() : 0;
       const lineStarts = computeLineStarts(text);
+      if (isProfileEnabled) {
+        profileSteps.push({ name: '行開始位置計算', ms: Date.now() - lineStartsStart });
+      }
 
       // 言語がサポートされているか確認
       if (!config.targetLanguages.includes(languageId)) {
         debugLog(`Language ${languageId} not in target languages, skipping`);
-        return { tokens: [], diagnostics: [], excludedRanges: [], lineStarts };
+        return { tokens: [], diagnostics: [], excludedRanges: [], lineStarts, profileSteps };
       }
 
       // 解析対象テキストを抽出
@@ -114,21 +131,24 @@ export function createDocumentAnalyzer(
 
       if (languageId !== 'markdown' && languageId !== 'plaintext') {
         // コードファイルの場合はコメントのみ抽出
+        const commentStart = isProfileEnabled ? Date.now() : 0;
         const comments = commentExtractor.extract(text, languageId);
         textToAnalyze = comments.map((c) => c.text).join('\n');
+        if (isProfileEnabled) {
+          profileSteps.push({ name: 'コメント抽出', ms: Date.now() - commentStart, meta: `件数=${comments.length}` });
+        }
         debugLog(`Extracted ${comments.length} comments`);
       } else if (languageId === 'markdown') {
         // Markdownの場合はフィルタを適用
-        const profileStart = profiler?.isEnabled() ? Date.now() : 0;
+        const filterStart = isProfileEnabled ? Date.now() : 0;
         const filterResult = markdownFilter.filter(textToAnalyze, {
           ...markdownFilter.getConfig(),
           preserveCodeBlockContent: config.markdown.analyzeCodeBlocks,
         });
         textToAnalyze = filterResult.filteredText;
         excludedRanges = filterResult.excludedRanges;
-
-        if (profiler?.isEnabled() && profileStart > 0) {
-          profiler.recordStep('Markdownフィルタ', profileStart, `除外=${excludedRanges.length}`);
+        if (isProfileEnabled) {
+          profileSteps.push({ name: 'Markdownフィルタ', ms: Date.now() - filterStart, meta: `除外=${excludedRanges.length}` });
         }
         debugLog(`Markdown filtered: ${excludedRanges.length} ranges excluded`);
       }
@@ -136,23 +156,30 @@ export function createDocumentAnalyzer(
       // 空テキストはスキップ
       if (!textToAnalyze.trim()) {
         debugLog(`No text to analyze, skipping`);
-        return { tokens: [], diagnostics: [], excludedRanges, lineStarts };
+        return { tokens: [], diagnostics: [], excludedRanges, lineStarts, profileSteps };
       }
 
-      // 形態素解析
-      const mecabStart = profiler?.isEnabled() ? Date.now() : 0;
+      // 形態素解析（キャッシュ付き）
+      const mecabStart = isProfileEnabled ? Date.now() : 0;
+      const cacheStatsBefore = (mecabAnalyzer as any).constructor.getCacheStats?.() ?? { hits: 0, misses: 0, size: 0 };
       const allTokens = await mecabAnalyzer.analyze(textToAnalyze);
-      if (profiler?.isEnabled() && mecabStart > 0) {
-        profiler.recordStep('形態素解析', mecabStart, `tokens=${allTokens.length}`);
+      const cacheStatsAfter = (mecabAnalyzer as any).constructor.getCacheStats?.() ?? { hits: 0, misses: 0, size: 0 };
+      const cacheHit = cacheStatsAfter.hits > cacheStatsBefore.hits;
+      if (isProfileEnabled) {
+        profileSteps.push({
+          name: '形態素解析',
+          ms: Date.now() - mecabStart,
+          meta: `tokens=${allTokens.length} cache=${cacheHit ? 'HIT' : 'MISS'}`
+        });
       }
-      debugLog(`Analysis complete, ${allTokens.length} tokens found`);
+      debugLog(`Analysis complete, ${allTokens.length} tokens found (cache: ${cacheHit ? 'HIT' : 'MISS'})`);
 
       // トークンフィルタリング
       let semanticTokensList: Token[] = allTokens;
       let grammarTokensList: Token[] = allTokens;
 
       if (languageId === 'markdown') {
-        const tokenFilterStart = profiler?.isEnabled() ? Date.now() : 0;
+        const tokenFilterStart = isProfileEnabled ? Date.now() : 0;
 
         // セマンティックハイライト用のフィルタリング
         if (config.enableSemanticHighlight) {
@@ -181,8 +208,8 @@ export function createDocumentAnalyzer(
           }
         }
 
-        if (profiler?.isEnabled() && tokenFilterStart > 0) {
-          profiler.recordStep('トークンフィルタ', tokenFilterStart);
+        if (isProfileEnabled) {
+          profileSteps.push({ name: 'トークンフィルタ', ms: Date.now() - tokenFilterStart });
         }
       }
 
@@ -191,10 +218,10 @@ export function createDocumentAnalyzer(
 
       if (config.enableGrammarCheck) {
         // 基本文法ルール
-        const basicStart = profiler?.isEnabled() ? Date.now() : 0;
+        const basicStart = isProfileEnabled ? Date.now() : 0;
         const grammarDiagnostics = grammarChecker.check(grammarTokensList, textToAnalyze);
-        if (profiler?.isEnabled() && basicStart > 0) {
-          profiler.recordStep('基本ルール評価', basicStart, `件数=${grammarDiagnostics.length}`);
+        if (isProfileEnabled) {
+          profileSteps.push({ name: '基本ルール評価', ms: Date.now() - basicStart, meta: `件数=${grammarDiagnostics.length}` });
         }
         debugLog(`Basic grammar check found ${grammarDiagnostics.length} issues`);
 
@@ -212,7 +239,7 @@ export function createDocumentAnalyzer(
         }
 
         // 高度文法ルール
-        const advancedStart = profiler?.isEnabled() ? Date.now() : 0;
+        const advancedStart = isProfileEnabled ? Date.now() : 0;
         let advancedDiagnostics: Diagnostic[];
 
         if (lightweightOnly) {
@@ -231,8 +258,8 @@ export function createDocumentAnalyzer(
                 undefined,
                 ruleProfilingCollector
               );
-          if (profiler?.isEnabled() && advancedStart > 0) {
-            profiler.recordStep('軽量ルール評価', advancedStart, `件数=${advancedDiagnostics.length}`);
+          if (isProfileEnabled) {
+            profileSteps.push({ name: '軽量ルール評価', ms: Date.now() - advancedStart, meta: `件数=${advancedDiagnostics.length}` });
           }
         } else {
           advancedDiagnostics = languageId === 'markdown'
@@ -250,8 +277,8 @@ export function createDocumentAnalyzer(
                 undefined,
                 ruleProfilingCollector
               );
-          if (profiler?.isEnabled() && advancedStart > 0) {
-            profiler.recordStep('高度ルール評価', advancedStart, `件数=${advancedDiagnostics.length}`);
+          if (isProfileEnabled) {
+            profileSteps.push({ name: '高度ルール評価', ms: Date.now() - advancedStart, meta: `件数=${advancedDiagnostics.length}` });
           }
         }
         debugLog(`Advanced grammar check found ${advancedDiagnostics.length} issues`);
@@ -270,10 +297,10 @@ export function createDocumentAnalyzer(
         }
 
         // 校正ルール
-        const proofreadingStart = profiler?.isEnabled() ? Date.now() : 0;
+        const proofreadingStart = isProfileEnabled ? Date.now() : 0;
         const proofreadingDiagnostics = proofreadingRulesManager.checkText(textToAnalyze, grammarTokensList);
-        if (profiler?.isEnabled() && proofreadingStart > 0) {
-          profiler.recordStep('校正ルール評価', proofreadingStart, `件数=${proofreadingDiagnostics.length}`);
+        if (isProfileEnabled) {
+          profileSteps.push({ name: '校正ルール評価', ms: Date.now() - proofreadingStart, meta: `件数=${proofreadingDiagnostics.length}` });
         }
         debugLog(`Proofreading rules check found ${proofreadingDiagnostics.length} issues`);
 
@@ -296,6 +323,7 @@ export function createDocumentAnalyzer(
         diagnostics,
         excludedRanges,
         lineStarts,
+        profileSteps,
       };
     },
   };
