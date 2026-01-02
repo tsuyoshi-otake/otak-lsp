@@ -198,14 +198,14 @@ export class EvalsRunner {
   }
 
   /**
-   * 初期化（kuromoji辞書のロード）
+   * 初期化（kuromoji-optimized辞書のロード）
    */
   async initialize(): Promise<void> {
-    // kuromojiのロード
+    // kuromoji-optimizedのロード
     // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const kuromoji = require('kuromoji') as Kuromoji;
+    const kuromoji = require('kuromoji-optimized') as Kuromoji;
     const path = require('path');
-    const dicPath = path.join(__dirname, '../../../../node_modules/kuromoji/dict');
+    const dicPath = path.join(__dirname, '../../../../node_modules/kuromoji-optimized/dict');
 
     return new Promise((resolve, reject) => {
       kuromoji.builder({ dicPath }).build((err, tokenizer) => {

@@ -1,6 +1,6 @@
 /**
  * Analyzer Environment Checker
- * 形態素解析器（kuromoji.js）の状態を確認する
+ * 形態素解析器（kuromoji-optimized）の状態を確認する
  * Feature: japanese-grammar-analyzer
  * 要件: 8.1, 8.2, 8.3, 8.4, 8.5
  */
@@ -25,7 +25,7 @@ export interface MeCabEnvironmentStatus {
 type ExecSyncFunction = (command: string) => string;
 
 /**
- * 解析器環境チェッカー（kuromoji.js対応）
+ * 解析器環境チェッカー（kuromoji-optimized対応）
  */
 export class MeCabEnvironmentChecker {
   private platform: string;
@@ -50,7 +50,7 @@ export class MeCabEnvironmentChecker {
   }
 
   /**
-   * 解析器が利用可能かを確認（kuromoji.jsは常に利用可能）
+   * 解析器が利用可能かを確認（kuromoji-optimizedは常に利用可能）
    */
   async checkMeCabExists(_mecabPath?: string): Promise<boolean> {
     try {
@@ -64,10 +64,10 @@ export class MeCabEnvironmentChecker {
   }
 
   /**
-   * 辞書の存在を確認（kuromoji.jsは辞書内蔵）
+   * 辞書の存在を確認（kuromoji-optimizedは辞書内蔵）
    */
   async checkDictionary(_mecabPath?: string): Promise<boolean> {
-    // kuromoji.jsは辞書内蔵のため常にtrue
+    // kuromoji-optimizedは辞書内蔵のため常にtrue
     return this.checkMeCabExists();
   }
 
@@ -123,12 +123,12 @@ export class MeCabEnvironmentChecker {
    */
   getInstallationMessage(status: MeCabEnvironmentStatus): string {
     if (status.available) {
-      return `${status.version || 'kuromoji.js'} が利用可能です（外部依存なし）`;
+      return `${status.version || 'kuromoji-optimized'} が利用可能です（外部依存なし）`;
     }
 
     return `形態素解析器の初期化に問題があります: ${status.error || '不明なエラー'}
 
-この拡張機能はkuromoji.jsを使用しており、MeCabのインストールは不要です。
+この拡張機能はkuromoji-optimizedを使用しており、MeCabのインストールは不要です。
 問題が解決しない場合は、拡張機能を再インストールしてください。`;
   }
 
@@ -136,7 +136,7 @@ export class MeCabEnvironmentChecker {
    * プラットフォーム固有の説明（kuromoji使用時は簡略化）
    */
   getPlatformSpecificInstructions(): string {
-    return `この拡張機能はkuromoji.jsを使用しており、外部依存はありません。
+    return `この拡張機能はkuromoji-optimizedを使用しており、外部依存はありません。
 npm installを実行してください。`;
   }
 

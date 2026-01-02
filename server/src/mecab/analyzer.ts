@@ -1,11 +1,11 @@
 /**
  * Kuromoji Analyzer
- * kuromoji.jsを使用した形態素解析器（MeCab互換）
+ * kuromoji-optimizedを使用した形態素解析器（MeCab互換）
  * Feature: japanese-grammar-analyzer
  * 要件: 1.1, 1.2, 1.3
  */
 
-import * as kuromoji from 'kuromoji';
+import * as kuromoji from 'kuromoji-optimized';
 import * as path from 'path';
 import { Token } from '../../../shared/src/types';
 
@@ -101,11 +101,11 @@ export class MeCabAnalyzer {
       // require.resolve でkuromojiモジュールの場所を特定
       let dicPath: string;
       try {
-        const kuromojiPath = require.resolve('kuromoji');
+        const kuromojiPath = require.resolve('kuromoji-optimized');
         dicPath = path.join(path.dirname(kuromojiPath), '..', 'dict');
       } catch {
         // フォールバック: __dirnameから相対パス
-        dicPath = path.join(__dirname, '..', '..', 'node_modules', 'kuromoji', 'dict');
+        dicPath = path.join(__dirname, '..', '..', 'node_modules', 'kuromoji-optimized', 'dict');
       }
 
       try {
@@ -143,7 +143,7 @@ export class MeCabAnalyzer {
    * バージョン情報を取得
    */
   async getVersion(): Promise<string> {
-    return 'kuromoji.js 0.1.2 (IPA辞書内蔵)';
+    return 'kuromoji-optimized 1.0.0 (IPA辞書内蔵)';
   }
 
   /**

@@ -124,11 +124,11 @@ describe('MeCab Analyzer', () => {
       expect(version.length).toBeGreaterThan(0);
     });
 
-    // kuromoji.jsは常にバージョンを返す（外部依存がないため）
-    it('should return version string even with different path (kuromoji.js mode)', async () => {
+    // kuromoji-optimizedは常にバージョンを返す（外部依存がないため）
+    it('should return version string even with different path (kuromoji-optimized mode)', async () => {
       const unavailableAnalyzer = new MeCabAnalyzer('/nonexistent/path/mecab');
       const version = await unavailableAnalyzer.getVersion();
-      expect(version).toContain('kuromoji.js');
+      expect(version).toContain('kuromoji-optimized');
     });
   });
 

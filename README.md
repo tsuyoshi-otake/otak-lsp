@@ -3,12 +3,13 @@
 日本語形態素解析VSCode拡張機能です。**外部依存なし**で、文法チェック、セマンティックハイライト、ホバー情報表示などの機能を提供します。
 
 ## 特徴
-- **外部依存なし**: kuromoji.jsを内蔵しており、MeCabのインストールは不要です
-- **辞書内蔵**: 様々なの辞書を内蔵
+- **外部依存なし**: kuromoji-optimizedを内蔵しており、MeCabのインストールは不要です
+- **高速な形態素解析**: kuromoji-optimized搭載により、従来比約4.5倍の高速化を実現
+- **辞書内蔵**: IPA辞書を内蔵
 - **軽量**: 純粋なJavaScript実装
 - **高度な文法チェック**: 文体統一、ら抜き言葉、技術用語表記など71種類のルールをサポート
 - **公文書対応**: 常用漢字チェック、「及び/並びに」「又は/若しくは」使い分け、箇条書き句点運用、人名・地名自動除外
-- **高速な解析**: 段階実行・事前検索キャッシュにより、入力中もスムーズに動作
+- **スムーズな編集体験**: 段階実行・事前検索キャッシュにより、入力中もスムーズに動作
 
 ![otak-lsp セマンティックハイライト例](https://raw.githubusercontent.com/tsuyoshi-otake/otak-lsp/main/images/01.png)
 
@@ -828,7 +829,7 @@ args = ["-y", "otak-mcp-lsp"]
 
 ### 初回起動時に時間がかかる
 
-初回起動時にkuromoji.jsの辞書を読み込むため、数秒かかる場合があります。2回目以降は高速に動作します。
+初回起動時にkuromoji-optimizedの辞書を読み込むため、数秒かかる場合があります。2回目以降は高速に動作します。
 
 ## 開発
 
@@ -940,7 +941,7 @@ Last updated: 2025-12-26
 
 ## 技術仕様
 
-- **形態素解析**: kuromoji.js 0.1.2 (IPA辞書内蔵)
+- **形態素解析**: kuromoji-optimized 1.0.0 (IPA辞書内蔵、従来比約4.5倍高速)
 - **Language Server Protocol**: vscode-languageserver 9.0
 - **対応VSCodeバージョン**: 1.60.0以上
 - **文法ルール数**: 71カテゴリ（基本ルール + 高度ルール + 公文書ルール + 校正ルール）
@@ -965,7 +966,7 @@ MIT License
 
 ## 謝辞
 
-- [kuromoji.js](https://github.com/takuyaa/kuromoji.js) - JavaScript形態素解析エンジン
+- [kuromoji-optimized](https://github.com/tsuyoshi-otake/kuromoji-optimized) - 高速化JavaScript形態素解析エンジン（kuromoji.jsフォーク）
 - [VSCode Language Server Protocol](https://microsoft.github.io/language-server-protocol/) - LSP実装
 
 ## 関連リンク

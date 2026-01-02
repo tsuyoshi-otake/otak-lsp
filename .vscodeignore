@@ -59,7 +59,7 @@ out/**
 node_modules/**
 
 # Re-include only required runtime dependencies
-!node_modules/kuromoji/**
+!node_modules/kuromoji-optimized/**
 !node_modules/async/**
 !node_modules/doublearray/**
 !node_modules/zlibjs/**

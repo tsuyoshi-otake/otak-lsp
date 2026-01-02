@@ -1,6 +1,6 @@
 {
   "name": "otak-mcp-lsp",
-  "version": "0.8.36",
+  "version": "1.0.0",
   "description": "otak-lspのMCPサーバー（LSPプロキシ）",
   "license": "MIT",
   "bin": {
@@ -14,7 +14,7 @@
     "LICENSE"
   ],
   "dependencies": {
-    "kuromoji": "^0.1.2",
+    "kuromoji-optimized": "github:tsuyoshi-otake/kuromoji-optimized",
     "vscode-languageserver": "^9.0.0",
     "vscode-languageserver-textdocument": "^1.0.0"
   },

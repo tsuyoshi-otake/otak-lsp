@@ -14,7 +14,7 @@ describe('MeCab Environment Checker', () => {
   });
 
   describe('checkMeCabExists', () => {
-    // kuromoji.jsの初期化に時間がかかるため、タイムアウトを延長
+    // kuromoji-optimizedの初期化に時間がかかるため、タイムアウトを延長
     it('should return true for valid mecab path', async () => {
       // モックでMeCabが存在する場合をシミュレート
       checker.setExecSync((cmd: string) => {
@@ -28,13 +28,13 @@ describe('MeCab Environment Checker', () => {
       expect(result).toBe(true);
     }, 30000);
 
-    // kuromoji.jsは常に利用可能（パスに関係なく）
-    it('should return true regardless of path (kuromoji.js mode)', async () => {
+    // kuromoji-optimizedは常に利用可能（パスに関係なく）
+    it('should return true regardless of path (kuromoji-optimized mode)', async () => {
       checker.setExecSync(() => {
         throw new Error('Command not found');
       });
 
-      // kuromoji.jsは外部コマンドに依存しない
+      // kuromoji-optimizedは外部コマンドに依存しない
       const result = await checker.checkMeCabExists('/invalid/path/mecab');
       expect(result).toBe(true);
     }, 30000);
@@ -53,8 +53,8 @@ describe('MeCab Environment Checker', () => {
       expect(result).toBe(true);
     }, 30000);
 
-    // kuromoji.jsは辞書内蔵のため常にtrue
-    it('should return true regardless of execSync (kuromoji.js has embedded dictionary)', async () => {
+    // kuromoji-optimizedは辞書内蔵のため常にtrue
+    it('should return true regardless of execSync (kuromoji-optimized has embedded dictionary)', async () => {
       checker.setExecSync(() => {
         throw new Error('Dictionary not found');
       });
@@ -65,48 +65,48 @@ describe('MeCab Environment Checker', () => {
   });
 
   describe('getVersion', () => {
-    // kuromoji.jsは常にバージョンを返す
-    it('should return kuromoji.js version string', async () => {
+    // kuromoji-optimizedは常にバージョンを返す
+    it('should return kuromoji-optimized version string', async () => {
       const version = await checker.getVersion('mecab');
-      expect(version).toContain('kuromoji.js');
+      expect(version).toContain('kuromoji-optimized');
     }, 30000);
 
-    it('should return version even when setExecSync throws (kuromoji.js mode)', async () => {
+    it('should return version even when setExecSync throws (kuromoji-optimized mode)', async () => {
       checker.setExecSync(() => {
         throw new Error('Not found');
       });
 
-      // kuromoji.jsは常にバージョンを返す
+      // kuromoji-optimizedは常にバージョンを返す
       const version = await checker.getVersion('mecab');
-      expect(version).toContain('kuromoji.js');
+      expect(version).toContain('kuromoji-optimized');
     }, 30000);
   });
 
   describe('checkEnvironment', () => {
-    // kuromoji.jsは外部依存がないため常に利用可能
-    it('should return available status with kuromoji.js', async () => {
+    // kuromoji-optimizedは外部依存がないため常に利用可能
+    it('should return available status with kuromoji-optimized', async () => {
       const status = await checker.checkEnvironment('mecab');
 
       expect(status.available).toBe(true);
       expect(status.mecabFound).toBe(true);
       expect(status.dictionaryFound).toBe(true);
-      expect(status.version).toContain('kuromoji.js');
+      expect(status.version).toContain('kuromoji-optimized');
       expect(status.error).toBeUndefined();
     }, 30000);
 
-    it('should return available even with setExecSync error (kuromoji.js mode)', async () => {
+    it('should return available even with setExecSync error (kuromoji-optimized mode)', async () => {
       checker.setExecSync(() => {
         throw new Error('Command not found');
       });
 
-      // kuromoji.jsは常に利用可能
+      // kuromoji-optimizedは常に利用可能
       const status = await checker.checkEnvironment('mecab');
 
       expect(status.available).toBe(true);
       expect(status.mecabFound).toBe(true);
     }, 30000);
 
-    it('should return available for any path (kuromoji.js has embedded dictionary)', async () => {
+    it('should return available for any path (kuromoji-optimized has embedded dictionary)', async () => {
       checker.setExecSync((cmd: string) => {
         if (cmd.includes('--version')) {
           return 'mecab of 0.996';
@@ -114,7 +114,7 @@ describe('MeCab Environment Checker', () => {
         throw new Error('Dictionary not found');
       });
 
-      // kuromoji.jsは辞書内蔵のため常に利用可能
+      // kuromoji-optimizedは辞書内蔵のため常に利用可能
       const status = await checker.checkEnvironment('mecab');
 
       expect(status.available).toBe(true);
@@ -123,7 +123,7 @@ describe('MeCab Environment Checker', () => {
   });
 
   describe('getInstallationMessage', () => {
-    it('should return kuromoji.js message for unavailable status', () => {
+    it('should return kuromoji-optimized message for unavailable status', () => {
       const status: MeCabEnvironmentStatus = {
         available: false,
         mecabFound: false,
@@ -132,11 +132,11 @@ describe('MeCab Environment Checker', () => {
 
       const message = checker.getInstallationMessage(status);
 
-      expect(message).toContain('kuromoji.js');
+      expect(message).toContain('kuromoji-optimized');
       expect(message).toContain('MeCabのインストールは不要');
     });
 
-    it('should return kuromoji.js message when status shows error', () => {
+    it('should return kuromoji-optimized message when status shows error', () => {
       const status: MeCabEnvironmentStatus = {
         available: false,
         mecabFound: true,
@@ -145,7 +145,7 @@ describe('MeCab Environment Checker', () => {
 
       const message = checker.getInstallationMessage(status);
 
-      expect(message).toContain('kuromoji.js');
+      expect(message).toContain('kuromoji-optimized');
     });
 
     it('should return success message when available', () => {
@@ -170,31 +170,31 @@ describe('MeCab Environment Checker', () => {
       expect(isValid).toBe(true);
     });
 
-    // kuromoji.jsはパス検証不要のため、常にtrueを返す
-    it('should always return true for kuromoji.js (no path needed)', async () => {
+    // kuromoji-optimizedはパス検証不要のため、常にtrueを返す
+    it('should always return true for kuromoji-optimized (no path needed)', async () => {
       // 任意のパスに対してtrueを返す
       const isValid = await checker.validatePath('/nonexistent/mecab');
       expect(isValid).toBe(true);
     });
 
-    it('should return true for empty path (kuromoji.js mode)', async () => {
+    it('should return true for empty path (kuromoji-optimized mode)', async () => {
       const isValid = await checker.validatePath('');
       expect(isValid).toBe(true);
     });
 
-    it('should return true regardless of path characters (kuromoji.js mode)', async () => {
+    it('should return true regardless of path characters (kuromoji-optimized mode)', async () => {
       const isValid = await checker.validatePath('/path/with;command');
       expect(isValid).toBe(true);
     });
   });
 
   describe('getPlatformSpecificInstructions', () => {
-    // kuromoji.jsは外部依存がないため、プラットフォーム固有の手順は不要
-    it('should return kuromoji.js message regardless of platform', () => {
+    // kuromoji-optimizedは外部依存がないため、プラットフォーム固有の手順は不要
+    it('should return kuromoji-optimized message regardless of platform', () => {
       checker.setPlatform('win32');
       const instructions = checker.getPlatformSpecificInstructions();
 
-      expect(instructions).toContain('kuromoji.js');
+      expect(instructions).toContain('kuromoji-optimized');
       expect(instructions).toContain('外部依存はありません');
     });
 
@@ -202,14 +202,14 @@ describe('MeCab Environment Checker', () => {
       checker.setPlatform('darwin');
       const instructions = checker.getPlatformSpecificInstructions();
 
-      expect(instructions).toContain('kuromoji.js');
+      expect(instructions).toContain('kuromoji-optimized');
     });
 
     it('should return same message for Linux', () => {
       checker.setPlatform('linux');
       const instructions = checker.getPlatformSpecificInstructions();
 
-      expect(instructions).toContain('kuromoji.js');
+      expect(instructions).toContain('kuromoji-optimized');
     });
   });
 });
