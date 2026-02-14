@@ -73,7 +73,9 @@ type LspLaunchConfig = {
   env: NodeJS.ProcessEnv;
 };
 
-const DEFAULT_TIMEOUT_MS = 5000;
+// MCPは別プロセスでLSPを起動するため、CI/並列テスト時に初回解析が遅れることがある。
+// 5sだとフレークしやすいので余裕を持たせる。
+const DEFAULT_TIMEOUT_MS = 15000;
 const MCP_DEBOUNCE_DELAY_MS = 0;
 const MCP_TIERED_EXECUTION = {
   enabled: false,
