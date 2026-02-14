@@ -17,7 +17,9 @@ import {
 /**
  * 全角記号と半角記号のペア
  */
-const SYMBOL_PAIRS: Array<{ fullwidth: string; halfwidth: string; name: string }> = [
+type SymbolPair = { fullwidth: string; halfwidth: string; name: string };
+
+const SYMBOL_PAIRS: SymbolPair[] = [
   { fullwidth: '：', halfwidth: ':', name: 'コロン' },
   { fullwidth: '；', halfwidth: ';', name: 'セミコロン' },
   { fullwidth: '／', halfwidth: '/', name: 'スラッシュ' },
@@ -33,6 +35,15 @@ const SYMBOL_PAIRS: Array<{ fullwidth: string; halfwidth: string; name: string }
   { fullwidth: '％', halfwidth: '%', name: 'パーセント' },
   { fullwidth: '＠', halfwidth: '@', name: 'アットマーク' },
 ];
+
+const SYMBOL_PAIR_BY_CHAR: Record<string, SymbolPair> = (() => {
+  const map: Record<string, SymbolPair> = Object.create(null);
+  for (const pair of SYMBOL_PAIRS) {
+    map[pair.fullwidth] = pair;
+    map[pair.halfwidth] = pair;
+  }
+  return map;
+})();
 
 /**
  * 検出された記号情報
@@ -56,15 +67,14 @@ export class SymbolWidthMixRule implements AdvancedGrammarRule {
    * 記号情報を取得
    */
   getSymbolInfo(char: string): { isFullwidth: boolean; name: string; counterpart: string } | null {
-    for (const pair of SYMBOL_PAIRS) {
-      if (char === pair.fullwidth) {
-        return { isFullwidth: true, name: pair.name, counterpart: pair.halfwidth };
-      }
-      if (char === pair.halfwidth) {
-        return { isFullwidth: false, name: pair.name, counterpart: pair.fullwidth };
-      }
+    const pair = SYMBOL_PAIR_BY_CHAR[char];
+    if (!pair) {
+      return null;
     }
-    return null;
+    if (char === pair.fullwidth) {
+      return { isFullwidth: true, name: pair.name, counterpart: pair.halfwidth };
+    }
+    return { isFullwidth: false, name: pair.name, counterpart: pair.fullwidth };
   }
 
   /**
@@ -95,45 +105,69 @@ export class SymbolWidthMixRule implements AdvancedGrammarRule {
    */
   check(tokens: Token[], context: RuleContext): AdvancedDiagnostic[] {
     const diagnostics: AdvancedDiagnostic[] = [];
-    const symbols = this.findSymbols(context.documentText);
+    const text = context.documentText;
 
-    // 記号タイプごとにグループ化
-    const symbolsByName = new Map<string, SymbolInfo[]>();
-    for (const symbol of symbols) {
-      const list = symbolsByName.get(symbol.name) || [];
-      list.push(symbol);
-      symbolsByName.set(symbol.name, list);
-    }
+    type Group = {
+      pair: SymbolPair;
+      fullwidthPositions: number[];
+      halfwidthPositions: number[];
+    };
 
-    // 各記号タイプについて混在をチェック
-    for (const [name, symbolList] of symbolsByName) {
-      const hasFullwidth = symbolList.some(s => s.isFullwidth);
-      const hasHalfwidth = symbolList.some(s => !s.isFullwidth);
-
-      // 混在していない場合は問題なし
-      if (!hasFullwidth || !hasHalfwidth) {
+    // 記号タイプごとに位置を収集（SymbolInfoオブジェクトを大量生成しない）
+    const groups = new Map<string, Group>();
+    for (let i = 0; i < text.length; i++) {
+      const char = text[i];
+      const pair = SYMBOL_PAIR_BY_CHAR[char];
+      if (!pair) {
         continue;
       }
 
-      // 多数派を判定
-      const fullwidthCount = symbolList.filter(s => s.isFullwidth).length;
-      const halfwidthCount = symbolList.filter(s => !s.isFullwidth).length;
+      let group = groups.get(pair.name);
+      if (!group) {
+        group = {
+          pair,
+          fullwidthPositions: [],
+          halfwidthPositions: []
+        };
+        groups.set(pair.name, group);
+      }
+
+      if (char === pair.fullwidth) {
+        group.fullwidthPositions.push(i);
+      } else {
+        group.halfwidthPositions.push(i);
+      }
+    }
+
+    // 各記号タイプについて混在をチェック
+    for (const group of groups.values()) {
+      const fullwidthCount = group.fullwidthPositions.length;
+      const halfwidthCount = group.halfwidthPositions.length;
+
+      // 混在していない場合は問題なし
+      if (fullwidthCount === 0 || halfwidthCount === 0) {
+        continue;
+      }
+
+      // 多数派を判定（同数は halfwidth を支配的として扱う: 既存実装互換）
       const dominantIsFullwidth = fullwidthCount > halfwidthCount;
 
-      // 少数派を警告
-      for (const symbol of symbolList) {
-        if (symbol.isFullwidth !== dominantIsFullwidth) {
-          diagnostics.push(new AdvancedDiagnostic({
-            range: {
-              start: { line: 0, character: symbol.index },
-              end: { line: 0, character: symbol.index + 1 }
-            },
-            message: `${symbol.name}「${symbol.char}」は${symbol.isFullwidth ? '全角' : '半角'}ですが、文書内では${dominantIsFullwidth ? '全角' : '半角'}が多く使用されています。表記を統一することを推奨します。`,
-            code: 'symbol-width-mix',
-            ruleName: this.name,
-            suggestions: [`「${symbol.counterpart}」に変更して統一する`]
-          }));
-        }
+      const minorityIsFullwidth = !dominantIsFullwidth;
+      const minorityPositions = dominantIsFullwidth ? group.halfwidthPositions : group.fullwidthPositions;
+      const minorityChar = dominantIsFullwidth ? group.pair.halfwidth : group.pair.fullwidth;
+      const counterpart = dominantIsFullwidth ? group.pair.fullwidth : group.pair.halfwidth;
+
+      for (const index of minorityPositions) {
+        diagnostics.push(new AdvancedDiagnostic({
+          range: {
+            start: { line: 0, character: index },
+            end: { line: 0, character: index + 1 }
+          },
+          message: `${group.pair.name}「${minorityChar}」は${minorityIsFullwidth ? '全角' : '半角'}ですが、文書内では${dominantIsFullwidth ? '全角' : '半角'}が多く使用されています。表記を統一することを推奨します。`,
+          code: 'symbol-width-mix',
+          ruleName: this.name,
+          suggestions: [`「${counterpart}」に変更して統一する`]
+        }));
       }
     }
 

@@ -2,7 +2,7 @@
   "name": "otak-lsp",
   "displayName": "otak-lsp",
   "description": "日本語形態素解析VSCode拡張機能（外部依存なし）。文法チェック、セマンティックハイライト、ホバー情報を提供します。kuromoji-optimized内蔵でMeCab不要。",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "publisher": "odangoo",
   "license": "MIT",
   "icon": "images/otak-lsp.png",
@@ -694,14 +694,20 @@
         },
         "otakLsp.proofreading.preset": {
           "type": "string",
-          "enum": ["video-default", "custom"],
+          "enum": [
+            "video-default",
+            "custom"
+          ],
           "default": "custom",
           "description": "校正設定のプリセット。video-default: 動画のチェック状態を一括適用、custom: カスタム設定",
           "scope": "resource"
         },
         "otakLsp.proofreading.mergeMode": {
           "type": "string",
-          "enum": ["override", "merge"],
+          "enum": [
+            "override",
+            "merge"
+          ],
           "default": "override",
           "description": "advanced設定との統合方式。override: 校正設定を優先、merge: ORで統合",
           "scope": "resource"
@@ -756,7 +762,11 @@
         },
         "otakLsp.proofreading.termBase.okuriganaMode": {
           "type": "string",
-          "enum": ["public-text", "public-text-honkoku", "custom"],
+          "enum": [
+            "public-text",
+            "public-text-honkoku",
+            "custom"
+          ],
           "default": "public-text",
           "description": "送り仮名チェックモード。public-text: 公用文（解説・広報）、public-text-honkoku: 公用文（本則）",
           "scope": "resource"
@@ -841,14 +851,21 @@
         },
         "otakLsp.proofreading.charType.preferredNumeral": {
           "type": "string",
-          "enum": ["full", "half", "mix"],
+          "enum": [
+            "full",
+            "half",
+            "mix"
+          ],
           "default": "half",
           "description": "数字の優先表記（全角/半角/混在）",
           "scope": "resource"
         },
         "otakLsp.proofreading.charType.preferredAlphabet": {
           "type": "string",
-          "enum": ["full", "half"],
+          "enum": [
+            "full",
+            "half"
+          ],
           "default": "half",
           "description": "アルファベットの優先表記（全角/半角）",
           "scope": "resource"
@@ -907,7 +924,10 @@
         },
         "otakLsp.proofreading.envDependent.mode": {
           "type": "string",
-          "enum": ["all", "partial"],
+          "enum": [
+            "all",
+            "partial"
+          ],
           "default": "all",
           "description": "機種依存文字の検出モード。all: すべて指摘、partial: 一部のみ指摘",
           "scope": "resource"
@@ -1000,7 +1020,9 @@
         },
         "otakLsp.proofreading.dictionaries.rule": {
           "type": "array",
-          "items": { "type": "string" },
+          "items": {
+            "type": "string"
+          },
           "default": [],
           "maxItems": 3,
           "description": "ルール辞書のファイルパス（最大3つ）",
@@ -1008,7 +1030,9 @@
         },
         "otakLsp.proofreading.dictionaries.proofreading": {
           "type": "array",
-          "items": { "type": "string" },
+          "items": {
+            "type": "string"
+          },
           "default": [],
           "maxItems": 5,
           "description": "校正用辞書の拡張辞書パス（最大5つ）",
@@ -1016,7 +1040,9 @@
         },
         "otakLsp.proofreading.dictionaries.spell": {
           "type": "array",
-          "items": { "type": "string" },
+          "items": {
+            "type": "string"
+          },
           "default": [],
           "maxItems": 3,
           "description": "スペルチェック用辞書のパス（最大3つ）",
