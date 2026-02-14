@@ -70,6 +70,14 @@ let isEnabled: boolean = true;
 let currentThemeId: SemanticThemeId = 'pastel';
 
 /**
+ * 設定書き込み先（ワークスペースがあればWorkspace、なければGlobal）
+ */
+function getConfigUpdateTarget(): vscode.ConfigurationTarget {
+  const hasWorkspace = (vscode.workspace.workspaceFolders?.length ?? 0) > 0;
+  return hasWorkspace ? vscode.ConfigurationTarget.Workspace : vscode.ConfigurationTarget.Global;
+}
+
+/**
  * ドキュメントセレクターを作成
  * @param languages 対象言語リスト
  * @returns ドキュメントフィルター配列
@@ -299,6 +307,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   // Extension Clientを作成
   const extensionClient = new ExtensionClient();
   const configuration = extensionClient.getConfiguration();
+  const initialEnabled = configuration.enableGrammarCheck || configuration.enableSemanticHighlight;
 
   // Server Optionsを設定
   const serverModule = context.asAbsolutePath(
@@ -337,7 +346,10 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   const configDisposable = vscode.workspace.onDidChangeConfiguration((event) => {
     if (event.affectsConfiguration('otakLsp')) {
       extensionClient.loadConfiguration();
-      outputChannel?.appendLine('Configuration changed');
+      const newConfig = extensionClient.getConfiguration();
+      const enabled = newConfig.enableGrammarCheck || newConfig.enableSemanticHighlight;
+      updateStatusBar(enabled);
+      outputChannel?.appendLine(`Configuration changed: enabled=${enabled}`);
     }
   });
   context.subscriptions.push(configDisposable);
@@ -348,7 +360,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     outputChannel.appendLine('Language Server started successfully');
 
     // ステータスバーを更新（成功）
-    updateStatusBar(true);
+    updateStatusBar(initialEnabled);
   } catch (error) {
     outputChannel.appendLine(`Failed to start Language Server: ${error}`);
     vscode.window.showErrorMessage(
@@ -366,27 +378,29 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
   // コマンド: ON/OFF切り替え
   const toggleCommand = vscode.commands.registerCommand(
     'otakLsp.toggle',
-    () => {
+    async () => {
       const newState = !isEnabled;
-      updateStatusBar(newState);
+      const config = vscode.workspace.getConfiguration('otakLsp');
+      const target = getConfigUpdateTarget();
 
-      const message = newState ? '日本語文法チェックを有効にしました' : '日本語文法チェックを無効にしました';
-      outputChannel?.appendLine(message);
+      try {
+        // VS Code設定に永続化（次回起動時も反映される）
+        await Promise.all([
+          config.update('enableGrammarCheck', newState, target),
+          config.update('enableSemanticHighlight', newState, target),
+        ]);
 
-      // サーバーに設定変更を通知
-      if (client) {
-        client.sendNotification('workspace/didChangeConfiguration', {
-          settings: {
-            otakLsp: {
-              enableGrammarCheck: newState,
-              enableSemanticHighlight: newState,
-            },
-          },
-        });
+        updateStatusBar(newState);
+
+        const message = newState ? 'otak-lspを有効にしました' : 'otak-lspを無効にしました';
+        outputChannel?.appendLine(message);
+
+        // 2秒後に自動で消える通知
+        vscode.window.setStatusBarMessage(message, 2000);
+      } catch (error) {
+        outputChannel?.appendLine(`Failed to update configuration: ${error}`);
+        vscode.window.showErrorMessage('otak-lsp: 設定の更新に失敗しました');
       }
-
-      // 2秒後に自動で消える通知
-      vscode.window.setStatusBarMessage(message, 2000);
     }
   );
   context.subscriptions.push(toggleCommand);

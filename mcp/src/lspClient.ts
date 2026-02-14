@@ -266,7 +266,8 @@ function resolveLspLaunchConfig(serverPath?: string): LspLaunchConfig {
     }
     return {
       command: process.execPath,
-      args: [serverPath],
+      // LSPはstdioで起動する（vscode-languageserverは --stdio/--node-ipc 等の指定が必要）
+      args: [serverPath, '--stdio'],
       env: { ...process.env }
     };
   }
@@ -275,7 +276,8 @@ function resolveLspLaunchConfig(serverPath?: string): LspLaunchConfig {
   if (fs.existsSync(compiledPath)) {
     return {
       command: process.execPath,
-      args: [compiledPath],
+      // LSPはstdioで起動する（vscode-languageserverは --stdio/--node-ipc 等の指定が必要）
+      args: [compiledPath, '--stdio'],
       env: { ...process.env }
     };
   }
@@ -284,7 +286,8 @@ function resolveLspLaunchConfig(serverPath?: string): LspLaunchConfig {
   if (fs.existsSync(tsPath)) {
     return {
       command: process.execPath,
-      args: ['-r', 'ts-node/register', tsPath],
+      // LSPはstdioで起動する（vscode-languageserverは --stdio/--node-ipc 等の指定が必要）
+      args: ['-r', 'ts-node/register', tsPath, '--stdio'],
       env: {
         ...process.env,
         TS_NODE_TRANSPILE_ONLY: '1',
