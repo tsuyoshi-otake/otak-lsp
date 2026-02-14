@@ -18,7 +18,7 @@ inclusion: always
 - **言語**: TypeScript 5.3+
 - **ランタイム**: Node.js 18+
 - **ビルドツール**: esbuild
-- **形態素解析**: kuromoji.js 0.1.2（IPA辞書内蔵）
+- **形態素解析**: kuromoji-optimized（kuromoji.jsフォーク版、IPA辞書内蔵、高速化済み）
 
 ## 主要ライブラリ
 
@@ -26,7 +26,7 @@ inclusion: always
 |-----------|------|
 | vscode-languageserver | LSPサーバー実装 |
 | vscode-languageclient | LSPクライアント実装 |
-| kuromoji | 日本語形態素解析 |
+| kuromoji-optimized | 日本語形態素解析（高速化フォーク版） |
 
 ## 開発標準
 
@@ -85,6 +85,22 @@ npm run evals
 - strict: 改行を常に区切りとして扱う
 - normal: 文脈を考慮（推奨）
 - loose: 段落区切り（空行）のみ
+
+### 段階実行（Tiered Execution）
+- 入力中（typing）: 軽量ルールのみ実行（低レイテンシ）
+- アイドル/保存時: 全ルールを実行（完全な解析）
+- `analysisScheduler.ts`がスケジューリングを管理
+- 設定: `tieredExecution.enabled`, `tieredExecution.idleDelayMs`
+
+### 校正設定システム（Proofreading）
+- プリセット（`video-default`, `custom`）による一括設定
+- カテゴリ別の細粒度制御（typo, termBase, expression, charType, length等）
+- advanced設定との統合方式: `override`（校正優先）/ `merge`（OR統合）
+
+### 用語図鑑（Glossary）
+- 30以上のドメイン別オフラインIT用語辞書
+- ホバー時にWikipediaサマリーと併せて表示
+- カテゴリ単位での有効/無効制御
 
 ---
 _技術標準とパターンに焦点。全依存関係のリストではない_
