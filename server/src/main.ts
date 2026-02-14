@@ -91,7 +91,7 @@ const analysisScheduler = createAnalysisScheduler(
   analysisStates,
   configManager,
   (uri, lightweightOnly) => executeAnalysisFn(uri, lightweightOnly),
-  (msg) => connection.console.log(msg)  // 常にログを出力（デバッグ用）
+  DEBUG_LOGS ? (msg) => connection.console.log(msg) : undefined
 );
 
 // Create connection handler

@@ -134,15 +134,10 @@ export function createAnalysisScheduler(
     scheduleAnalysis(document: TextDocument): void {
       const config = configManager.getConfig();
 
-      // 診断用ログ（常に出力）
-      if (logger) {
-        logger(`[SCHEDULER] scheduleAnalysis called: uri=${document.uri}, grammarCheck=${config.enableGrammarCheck}, semanticHighlight=${config.enableSemanticHighlight}`);
-      }
+      debugLog(`scheduleAnalysis called: uri=${document.uri}, grammarCheck=${config.enableGrammarCheck}, semanticHighlight=${config.enableSemanticHighlight}`);
 
       if (!config.enableGrammarCheck && !config.enableSemanticHighlight) {
-        if (logger) {
-          logger(`[SCHEDULER] Skipping analysis: both grammar and semantic disabled`);
-        }
+        debugLog(`Skipping analysis: both grammar and semantic disabled (uri=${document.uri})`);
         return;
       }
 

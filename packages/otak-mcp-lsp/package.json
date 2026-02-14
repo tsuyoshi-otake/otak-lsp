@@ -1,6 +1,6 @@
 {
   "name": "otak-mcp-lsp",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "otak-lspのMCPサーバー（LSPプロキシ）",
   "license": "MIT",
   "bin": {

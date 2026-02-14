@@ -161,13 +161,13 @@ export function createConnectionHandler(
    * 文書解析を実行
    */
   async function executeAnalysis(uri: string, lightweightOnly: boolean): Promise<void> {
-    connection.console.log(`[ANALYSIS] executeAnalysis called: uri=${uri}, lightweightOnly=${lightweightOnly}`);
+    debugLog(`executeAnalysis called: uri=${uri}, lightweightOnly=${lightweightOnly}`);
 
     const state = analysisStates.getState(uri);
     const document = state.latestDocument;
 
     if (!document) {
-      connection.console.log(`[ANALYSIS] No document found for ${uri}`);
+      debugLog(`No document found for ${uri}`);
       return;
     }
 
