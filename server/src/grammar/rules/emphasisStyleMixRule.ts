@@ -57,11 +57,13 @@ export class EmphasisStyleMixRule extends MixDetectionRule {
    */
   protected createDiagnosticMessage(patterns: Map<string, PatternInfo>): string {
     const styleNames: string[] = [];
-    if (patterns.has('asterisk')) {
-      styleNames.push(`**（${patterns.get('asterisk')!.count}箇所）`);
+    const asterisk = patterns.get('asterisk');
+    if (asterisk) {
+      styleNames.push(`**（${asterisk.count}箇所）`);
     }
-    if (patterns.has('underscore')) {
-      styleNames.push(`__（${patterns.get('underscore')!.count}箇所）`);
+    const underscore = patterns.get('underscore');
+    if (underscore) {
+      styleNames.push(`__（${underscore.count}箇所）`);
     }
 
     return `強調記号のスタイルが混在しています。${styleNames.join('と')}が使用されています。どちらかに統一してください。`;

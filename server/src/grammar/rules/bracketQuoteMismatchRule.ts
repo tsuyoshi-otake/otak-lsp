@@ -87,8 +87,8 @@ export class BracketQuoteMismatchRule implements AdvancedGrammarRule {
       }
 
       // 閉じ括弧の処理
-      if (CLOSING_TO_OPENING.has(char)) {
-        const expectedOpen = CLOSING_TO_OPENING.get(char)!;
+      const expectedOpen = CLOSING_TO_OPENING.get(char);
+      if (expectedOpen !== undefined) {
 
         if (stack.length === 0) {
           // スタックが空なのに閉じ括弧が出現

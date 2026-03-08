@@ -7,7 +7,7 @@
 import { Token } from '../../../shared/src/types';
 import { Sentence } from '../../../shared/src/advancedTypes';
 import { ExcludedRange } from '../../../shared/src/markdownFilterTypes';
-import { isBlank, isNotBlank } from '../utils/stringUtils';
+import { isBlank, isNotBlank, splitLines } from '../utils/stringUtils';
 import { isNotEmpty } from '../utils/arrayUtils';
 
 /**
@@ -227,7 +227,7 @@ export class SentenceParser {
       }
     }
 
-    const lines = text.split('\n');
+    const lines = splitLines(text);
     let position = 0;
     for (let i = 0; i < lines.length; i++) {
       let line = lines[i];

@@ -9,7 +9,7 @@ import * as kuromoji from 'kuromoji-optimized';
 import * as path from 'path';
 import { Token } from '../../../shared/src/types';
 import { formatError } from '../utils/errorHandler';
-import { isBlank } from '../utils/stringUtils';
+import { isBlank, splitLines } from '../utils/stringUtils';
 
 // kuromoji のトークン型定義
 interface KuromojiToken {
@@ -244,7 +244,7 @@ export class MeCabAnalyzer {
    */
   parseMeCabOutput(output: string): Token[] {
     const tokens: Token[] = [];
-    const lines = output.split('\n');
+    const lines = splitLines(output);
     let currentPosition = 0;
 
     for (const line of lines) {

@@ -18,6 +18,7 @@ import {
 import { MixDetectionRule, PatternInfo } from './mixDetectionRule';
 import { splitMarkdownPipeTableRowCells, stripMarkdownBlockquotePrefix } from '../../../../shared/src/markdownSyntax';
 import { isNotEmpty } from '../../utils/arrayUtils';
+import { splitLines } from '../../utils/stringUtils';
 
 /**
  * Bullet Style Mix Detection Rule
@@ -44,7 +45,7 @@ export class BulletStyleMixRule extends MixDetectionRule {
    */
   protected collectPatterns(text: string): Map<string, PatternInfo> {
     const patterns = new Map<string, PatternInfo>();
-    const lines = text.split('\n');
+    const lines = splitLines(text);
 
     const nakaguroPositions: number[] = [];
     const hyphenPositions: number[] = [];
@@ -143,14 +144,17 @@ export class BulletStyleMixRule extends MixDetectionRule {
    */
   protected createDiagnosticMessage(patterns: Map<string, PatternInfo>): string {
     const styleNames: string[] = [];
-    if (patterns.has('nakaguro')) {
-      styleNames.push(`・（${patterns.get('nakaguro')!.count}箇所）`);
+    const nakaguro = patterns.get('nakaguro');
+    if (nakaguro) {
+      styleNames.push(`・（${nakaguro.count}箇所）`);
     }
-    if (patterns.has('hyphen')) {
-      styleNames.push(`-（${patterns.get('hyphen')!.count}箇所）`);
+    const hyphen = patterns.get('hyphen');
+    if (hyphen) {
+      styleNames.push(`-（${hyphen.count}箇所）`);
     }
-    if (patterns.has('asterisk')) {
-      styleNames.push(`*（${patterns.get('asterisk')!.count}箇所）`);
+    const asterisk = patterns.get('asterisk');
+    if (asterisk) {
+      styleNames.push(`*（${asterisk.count}箇所）`);
     }
 
     return `箇条書き記号が混在しています。${styleNames.join('と')}が使用されています。どれかに統一してください。`;

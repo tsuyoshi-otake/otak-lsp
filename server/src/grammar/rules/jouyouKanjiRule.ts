@@ -258,8 +258,9 @@ export class JouyouKanjiRule implements AdvancedGrammarRule {
     ctx: PreprocessedContext
   ): ExclusionReason {
     // キャッシュチェック
-    if (this.exclusionCache.has(position)) {
-      return this.exclusionCache.get(position)!;
+    const cached = this.exclusionCache.get(position);
+    if (cached !== undefined) {
+      return cached;
     }
 
     let reason: ExclusionReason = null;

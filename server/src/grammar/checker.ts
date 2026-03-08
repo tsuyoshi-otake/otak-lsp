@@ -92,6 +92,15 @@ export class GrammarChecker {
 }
 
 /**
+ * トークン範囲からLSP Rangeを作成するヘルパー
+ */
+function createTokenRange(checker: GrammarChecker, start: Token, end: Token): Range {
+  const startPos = checker.getLineAndChar(start.start);
+  const endPos = checker.getLineAndChar(end.end);
+  return { start: startPos, end: endPos };
+}
+
+/**
  * 二重助詞検出ルール
  * 同じ助詞が連続して出現する場合を検出
  */
@@ -113,7 +122,7 @@ class DoubleParticleRule implements GrammarRule {
 
     // 両方が助詞で、同じ表層形の場合
     if (current.isParticle() && next.isParticle() && current.surface === next.surface) {
-      const range = this.createRange(current, next);
+      const range = createTokenRange(this.checker, current, next);
       return new GrammarError({
         type: 'double-particle',
         tokens: [current, next],
@@ -124,15 +133,6 @@ class DoubleParticleRule implements GrammarRule {
     }
 
     return null;
-  }
-
-  private createRange(start: Token, end: Token): Range {
-    const startPos = this.checker.getLineAndChar(start.start);
-    const endPos = this.checker.getLineAndChar(end.end);
-    return {
-      start: startPos,
-      end: endPos
-    };
   }
 }
 
@@ -188,7 +188,7 @@ class ParticleSequenceRule implements GrammarRule {
 
     // 問題のある組み合わせを検出
     if (PROBLEMATIC_PARTICLE_COMBINATIONS.has(combination)) {
-      const range = this.createRange(current, next);
+      const range = createTokenRange(this.checker, current, next);
       return new GrammarError({
         type: 'particle-sequence',
         tokens: [current, next],
@@ -219,7 +219,7 @@ class ParticleSequenceRule implements GrammarRule {
     // 問題のある組み合わせを検出
     if (PROBLEMATIC_PARTICLE_COMBINATIONS.has(combination)) {
       // 副詞トークン全体と次の助詞を範囲とする
-      const range = this.createRange(adverb, particle);
+      const range = createTokenRange(this.checker, adverb, particle);
       return new GrammarError({
         type: 'particle-sequence',
         tokens: [adverb, particle],
@@ -230,15 +230,6 @@ class ParticleSequenceRule implements GrammarRule {
     }
 
     return null;
-  }
-
-  private createRange(start: Token, end: Token): Range {
-    const startPos = this.checker.getLineAndChar(start.start);
-    const endPos = this.checker.getLineAndChar(end.end);
-    return {
-      start: startPos,
-      end: endPos
-    };
   }
 }
 
@@ -266,7 +257,7 @@ class VerbParticleMismatchRule implements GrammarRule {
     if (current.isParticle() && current.surface === 'を' && next.isVerb()) {
       // 自動詞との組み合わせをチェック
       if (INTRANSITIVE_VERBS.has(next.baseForm) || INTRANSITIVE_VERBS.has(next.surface)) {
-        const range = this.createRange(current, next);
+        const range = createTokenRange(this.checker, current, next);
         return new GrammarError({
           type: 'verb-particle-mismatch',
           tokens: [current, next],
@@ -278,15 +269,6 @@ class VerbParticleMismatchRule implements GrammarRule {
     }
 
     return null;
-  }
-
-  private createRange(start: Token, end: Token): Range {
-    const startPos = this.checker.getLineAndChar(start.start);
-    const endPos = this.checker.getLineAndChar(end.end);
-    return {
-      start: startPos,
-      end: endPos
-    };
   }
 }
 
@@ -359,7 +341,7 @@ class RedundantCopulaRule implements GrammarRule {
         current.surface === pattern.first &&
         next.surface === pattern.second
       ) {
-        const range = this.createRange(current, next);
+        const range = createTokenRange(this.checker, current, next);
         return new GrammarError({
           type: 'particle-sequence' as GrammarErrorType,
           tokens: [current, next],
@@ -371,14 +353,5 @@ class RedundantCopulaRule implements GrammarRule {
     }
 
     return null;
-  }
-
-  private createRange(start: Token, end: Token): Range {
-    const startPos = this.checker.getLineAndChar(start.start);
-    const endPos = this.checker.getLineAndChar(end.end);
-    return {
-      start: startPos,
-      end: endPos
-    };
   }
 }

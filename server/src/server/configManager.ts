@@ -327,9 +327,7 @@ export function createConfigManager(
     const mergedConfig = applyProofreadingSettings(proofreadingConfig, currentAdvancedConfig);
     advancedRulesManager.updateConfig(mergedConfig);
 
-    if (logger) {
-      logger.debug(`Proofreading config applied: preset=${proofreadingConfig.preset}, mergeMode=${proofreadingConfig.mergeMode}`);
-    }
+    logger?.debug(`Proofreading config applied: preset=${proofreadingConfig.preset}, mergeMode=${proofreadingConfig.mergeMode}`);
   }
 
   /**

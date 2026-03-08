@@ -55,9 +55,7 @@ export function createAnalysisScheduler(
   logger?: Logger
 ): AnalysisScheduler {
   function debugLog(message: string): void {
-    if (logger) {
-      logger.debug(message);
-    }
+    logger?.debug(message);
   }
 
   // 解析実行関数（setExecuteAnalysisで後から設定）

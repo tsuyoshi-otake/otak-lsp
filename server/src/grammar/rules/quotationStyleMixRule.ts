@@ -142,14 +142,17 @@ export class QuotationStyleMixRule extends MixDetectionRule {
    */
   protected createDiagnosticMessage(patterns: Map<string, PatternInfo>): string {
     const styleNames: string[] = [];
-    if (patterns.has('japanese')) {
-      styleNames.push(`「」（${patterns.get('japanese')!.count}箇所）`);
+    const japanese = patterns.get('japanese');
+    if (japanese) {
+      styleNames.push(`「」（${japanese.count}箇所）`);
     }
-    if (patterns.has('double')) {
-      styleNames.push(`""（${patterns.get('double')!.count}箇所）`);
+    const double = patterns.get('double');
+    if (double) {
+      styleNames.push(`""（${double.count}箇所）`);
     }
-    if (patterns.has('single')) {
-      styleNames.push(`''（${patterns.get('single')!.count}箇所）`);
+    const single = patterns.get('single');
+    if (single) {
+      styleNames.push(`''（${single.count}箇所）`);
     }
 
     return `引用符のスタイルが混在しています。${styleNames.join('と')}が使用されています。どれかに統一してください。`;

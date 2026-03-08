@@ -115,9 +115,7 @@ export function createConnectionHandler(
   const sentenceComplexityRule = new SentenceComplexityRule();
 
   function debugLog(message: string): void {
-    if (logger) {
-      logger.debug(message);
-    }
+    logger?.debug(message);
   }
 
   function isProfileLogsEnabled(): boolean {
@@ -127,7 +125,7 @@ export function createConnectionHandler(
 
   // プロファイラを作成
   const profiler = createProfiler(
-    (msg) => logger.info(msg),
+    (msg) => logger?.info(msg),
     isProfileLogsEnabled
   );
 
@@ -251,9 +249,7 @@ export function createConnectionHandler(
     initialize(): void {
       // onInitialize
       connection.onInitialize((params: InitializeParams): InitializeResult => {
-        if (logger) {
-          logger.info('otak-lsp Language Server initializing...');
-        }
+        logger?.info('otak-lsp Language Server initializing...');
 
         return {
           capabilities: getCapabilities(),
@@ -262,9 +258,7 @@ export function createConnectionHandler(
 
       // onInitialized
       connection.onInitialized(() => {
-        if (logger) {
-          logger.info('otak-lsp Language Server initialized');
-        }
+        logger?.info('otak-lsp Language Server initialized');
         connection.client.register(DidChangeConfigurationNotification.type, undefined);
 
         // 初期設定を読み込み
@@ -302,15 +296,11 @@ export function createConnectionHandler(
         const config = configManager.getConfig();
         const advancedConfig = configManager.getAdvancedConfig();
 
-        if (logger) {
-          logger.info(`Configuration updated: grammarCheck=${config.enableGrammarCheck}, semanticHighlight=${config.enableSemanticHighlight}, sentenceSplitMode=${advancedConfig.sentenceSplitMode}`);
-        }
+        logger?.info(`Configuration updated: grammarCheck=${config.enableGrammarCheck}, semanticHighlight=${config.enableSemanticHighlight}, sentenceSplitMode=${advancedConfig.sentenceSplitMode}`);
 
         // 文法チェックが無効になった場合、診断をクリア
         if (wasGrammarEnabled && !config.enableGrammarCheck) {
-          if (logger) {
-            logger.info('Grammar check disabled, clearing diagnostics');
-          }
+          logger?.info('Grammar check disabled, clearing diagnostics');
           for (const doc of documents.all()) {
             diagnosticsPublisher.clear(doc.uri);
           }
@@ -318,9 +308,7 @@ export function createConnectionHandler(
 
         // セマンティックハイライトが無効になった場合、トークンをクリア
         if (wasSemanticEnabled && !config.enableSemanticHighlight) {
-          if (logger) {
-            logger.info('Semantic highlight disabled, clearing tokens');
-          }
+          logger?.info('Semantic highlight disabled, clearing tokens');
           documentTokens.clear();
           documentTexts.clear();
           documentExcludedRanges.clear();
@@ -435,8 +423,9 @@ export function createConnectionHandler(
             return { data: [] };
           }
 
-          const lineStarts = documentLineStarts.get(uri) ?? computeLineStarts(text);
-          if (!documentLineStarts.has(uri)) {
+          let lineStarts = documentLineStarts.get(uri);
+          if (!lineStarts) {
+            lineStarts = computeLineStarts(text);
             documentLineStarts.set(uri, lineStarts);
           }
 
@@ -455,9 +444,7 @@ export function createConnectionHandler(
 
       // Document events
       documents.onDidOpen((event) => {
-        if (logger) {
-          logger.info(`Document opened: ${event.document.uri}`);
-        }
+        logger?.info(`Document opened: ${event.document.uri}`);
         analysisScheduler.scheduleAnalysis(event.document);
       });
 
@@ -478,9 +465,7 @@ export function createConnectionHandler(
 
       documents.onDidClose((event) => {
         const uri = event.document.uri;
-        if (logger) {
-          logger.info(`Document closed: ${uri}`);
-        }
+        logger?.info(`Document closed: ${uri}`);
 
         analysisScheduler.cancelAnalysis(uri);
         analysisStates.deleteState(uri);

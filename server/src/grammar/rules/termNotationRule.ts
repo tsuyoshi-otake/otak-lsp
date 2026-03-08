@@ -20,7 +20,7 @@ import {
   WEB_TECH_NOTATION_RULES
 } from '../../dictionaries/termNotationDictionary';
 import { findCodeBlockRanges, findInlineCodeRanges, TERM_TOKEN_PATTERN, WORD_SEGMENT_PATTERN } from '../../utils/regexPatterns';
-import { isNotBlank } from '../../utils/stringUtils';
+import { isNotBlank, splitLines } from '../../utils/stringUtils';
 
 type PhraseTrieNode = {
   correct?: string;
@@ -66,7 +66,7 @@ export class TermNotationRule implements AdvancedGrammarRule {
    */
   private getTableExampleColumnRanges(text: string): Array<{ start: number; end: number }> {
     const ranges: Array<{ start: number; end: number }> = [];
-    const lines = text.split('\n');
+    const lines = splitLines(text);
     let offset = 0;
 
     for (const line of lines) {
@@ -150,9 +150,13 @@ export class TermNotationRule implements AdvancedGrammarRule {
 
     // カスタムルールを追加
     if (config.customNotationRules) {
-      config.customNotationRules.forEach((v, k) => combined.set(k, v));
+      for (const [k, v] of config.customNotationRules) {
+        combined.set(k, v);
+      }
     }
-    this.customRules.forEach((v, k) => combined.set(k, v));
+    for (const [k, v] of this.customRules) {
+      combined.set(k, v);
+    }
 
     this.cachedDictionaryKey = cacheKey;
     this.cachedDictionaries = combined;
@@ -278,9 +282,13 @@ export class TermNotationRule implements AdvancedGrammarRule {
 
     const customEntries: Array<[string, string]> = [];
     if (config.customNotationRules) {
-      config.customNotationRules.forEach((v, k) => customEntries.push([k, v]));
+      for (const [k, v] of config.customNotationRules) {
+        customEntries.push([k, v]);
+      }
     }
-    this.customRules.forEach((v, k) => customEntries.push([k, v]));
+    for (const [k, v] of this.customRules) {
+      customEntries.push([k, v]);
+    }
 
     customEntries.sort((a, b) => {
       if (a[0] < b[0]) return -1;

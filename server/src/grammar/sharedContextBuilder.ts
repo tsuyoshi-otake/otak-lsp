@@ -10,6 +10,7 @@ import {
   CodeRange
 } from '../../../shared/src/advancedTypes';
 import { computeLineStarts } from '../utils/lineStarts';
+import { splitLines } from '../utils/stringUtils';
 
 /**
  * コードブロック（```...```）の範囲を取得
@@ -44,13 +45,6 @@ function getInlineCodeRanges(text: string, codeBlockRanges: CodeRange[]): CodeRa
     }
   }
   return ranges;
-}
-
-/**
- * 行テキストを抽出
- */
-function splitLines(text: string): string[] {
-  return text.split('\n');
 }
 
 /**

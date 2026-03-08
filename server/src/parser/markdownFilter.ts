@@ -21,7 +21,7 @@ import {
   stripMarkdownBlockquotePrefix as stripMarkdownBlockquotePrefixShared
 } from '../../../shared/src/markdownSyntax';
 import { formatError } from '../utils/errorHandler';
-import { isBlank } from '../utils/stringUtils';
+import { isBlank, splitLines } from '../utils/stringUtils';
 import { isNotEmpty } from '../utils/arrayUtils';
 
 /**
@@ -211,7 +211,7 @@ export class MarkdownFilter implements IMarkdownFilter {
     // テーブル検出を阻害する（README の evals など）ため、
     // CommonMark 互換の「行頭フェンス」を優先しつつ、
     // 後方互換のため単一行の ```code``` 形式も検出する。
-    const lines = text.split('\n');
+    const lines = splitLines(text);
     let position = 0;
 
     let inCodeBlock = false;
@@ -290,7 +290,7 @@ export class MarkdownFilter implements IMarkdownFilter {
    */
   private findInlineCode(text: string, existingRanges: ExcludedRange[]): ExcludedRange[] {
     const ranges: ExcludedRange[] = [];
-    const lines = text.split('\n');
+    const lines = splitLines(text);
     let position = 0;
 
     for (const line of lines) {
@@ -620,7 +620,7 @@ export class MarkdownFilter implements IMarkdownFilter {
    */
   private findTables(text: string, existingRanges: ExcludedRange[]): ExcludedRange[] {
     const ranges: ExcludedRange[] = [];
-    const lines = text.split('\n');
+    const lines = splitLines(text);
 
     // 行開始オフセットを構築（テーブル範囲算出に使用）
     const lineStartOffsets: number[] = [];
@@ -696,7 +696,7 @@ export class MarkdownFilter implements IMarkdownFilter {
    */
   private findHeadings(text: string, existingRanges: ExcludedRange[]): ExcludedRange[] {
     const ranges: ExcludedRange[] = [];
-    const lines = text.split('\n');
+    const lines = splitLines(text);
     let position = 0;
 
     // コードブロック範囲のみをチェック対象とする
@@ -733,7 +733,7 @@ export class MarkdownFilter implements IMarkdownFilter {
    */
   private findListMarkers(text: string, existingRanges: ExcludedRange[]): ExcludedRange[] {
     const ranges: ExcludedRange[] = [];
-    const lines = text.split('\n');
+    const lines = splitLines(text);
     let position = 0;
 
     // コードブロック範囲のみをチェック対象とする
@@ -797,7 +797,7 @@ export class MarkdownFilter implements IMarkdownFilter {
       return /[A-Za-z0-9_]/.test(ch);
     };
 
-    const lines = text.split('\n');
+    const lines = splitLines(text);
     let position = 0;
 
     for (const line of lines) {
@@ -1043,7 +1043,7 @@ export class MarkdownFilter implements IMarkdownFilter {
    * 行の開始位置を取得
    */
   private getLineStart(text: string, lineIndex: number): number {
-    const lines = text.split('\n');
+    const lines = splitLines(text);
     let position = 0;
     for (let i = 0; i < lineIndex && i < lines.length; i++) {
       position += lines[i].length + 1; // +1 for newline

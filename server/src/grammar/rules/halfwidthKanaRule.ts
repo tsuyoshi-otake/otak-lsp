@@ -78,21 +78,28 @@ export class HalfwidthKanaRule implements AdvancedGrammarRule {
       const nextChar = text[i + 1];
 
       // 濁点・半濁点のチェック
-      if (nextChar === DAKUTEN && DAKUTEN_MAP.has(char)) {
-        result += DAKUTEN_MAP.get(char);
-        i += 2;
-        continue;
+      if (nextChar === DAKUTEN) {
+        const dakutenResult = DAKUTEN_MAP.get(char);
+        if (dakutenResult !== undefined) {
+          result += dakutenResult;
+          i += 2;
+          continue;
+        }
       }
 
-      if (nextChar === HANDAKUTEN && HANDAKUTEN_MAP.has(char)) {
-        result += HANDAKUTEN_MAP.get(char);
-        i += 2;
-        continue;
+      if (nextChar === HANDAKUTEN) {
+        const handakutenResult = HANDAKUTEN_MAP.get(char);
+        if (handakutenResult !== undefined) {
+          result += handakutenResult;
+          i += 2;
+          continue;
+        }
       }
 
       // 通常の変換
-      if (HALFWIDTH_TO_FULLWIDTH.has(char)) {
-        result += HALFWIDTH_TO_FULLWIDTH.get(char);
+      const fullwidth = HALFWIDTH_TO_FULLWIDTH.get(char);
+      if (fullwidth !== undefined) {
+        result += fullwidth;
       } else {
         result += char;
       }

@@ -501,8 +501,12 @@ function mergeGlossaryEntries(existing: ReadonlyArray<GlossaryEntry>, additions:
     });
   };
 
-  existing.forEach(put);
-  additions.forEach(put);
+  for (const entry of existing) {
+    put(entry);
+  }
+  for (const entry of additions) {
+    put(entry);
+  }
 
   return order.map((k) => byKey.get(k)!).filter(Boolean);
 }
@@ -2341,7 +2345,9 @@ function bestHitForCandidate(candidate: string, rank: ReadonlyMap<GlossaryId, nu
 
 export function createGlossaryRank(enabledGlossaries: ReadonlyArray<GlossaryId>): ReadonlyMap<GlossaryId, number> {
   const rank = new Map<GlossaryId, number>();
-  enabledGlossaries.forEach((id, i) => rank.set(id, i));
+  for (const [i, id] of enabledGlossaries.entries()) {
+    rank.set(id, i);
+  }
   return rank;
 }
 

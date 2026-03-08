@@ -14,6 +14,7 @@ import {
   AdvancedDiagnostic
 } from '../../../../shared/src/advancedTypes';
 import { splitMarkdownPipeTableRowCells, stripMarkdownBlockquotePrefix } from '../../../../shared/src/markdownSyntax';
+import { splitLines } from '../../utils/stringUtils';
 
 /**
  * Heading Level Skip Detection Rule
@@ -65,7 +66,7 @@ export class HeadingLevelSkipRule implements AdvancedGrammarRule {
    */
   check(tokens: Token[], context: RuleContext): AdvancedDiagnostic[] {
     const diagnostics: AdvancedDiagnostic[] = [];
-    const lines = context.documentText.split('\n');
+    const lines = splitLines(context.documentText);
 
     // Track if we're inside a code block
     let inCodeBlock = false;

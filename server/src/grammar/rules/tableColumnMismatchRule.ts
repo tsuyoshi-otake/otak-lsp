@@ -19,6 +19,7 @@ import {
   splitMarkdownPipeTableRowCells,
   stripMarkdownBlockquotePrefix
 } from '../../../../shared/src/markdownSyntax';
+import { splitLines } from '../../utils/stringUtils';
 
 /**
  * Table information
@@ -57,7 +58,7 @@ export class TableColumnMismatchRule implements AdvancedGrammarRule {
 
   private checkInlineEscapedTableExamples(text: string): AdvancedDiagnostic[] {
     const diagnostics: AdvancedDiagnostic[] = [];
-    const lines = text.split('\n');
+    const lines = splitLines(text);
 
     for (let lineIndex = 0; lineIndex < lines.length; lineIndex++) {
       const line = lines[lineIndex];

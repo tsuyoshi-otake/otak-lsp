@@ -146,8 +146,9 @@ export class RaNukiRule implements AdvancedGrammarRule {
    */
   detectRaNuki(surface: string, conjugation?: string): string | null {
     // 辞書に登録されている場合
-    if (RA_NUKI_PATTERNS.has(surface)) {
-      return RA_NUKI_PATTERNS.get(surface) || null;
+    const registered = RA_NUKI_PATTERNS.get(surface);
+    if (registered !== undefined) {
+      return registered;
     }
 
     // 五段活用動詞の可能形は正しい（例：書ける、読める）

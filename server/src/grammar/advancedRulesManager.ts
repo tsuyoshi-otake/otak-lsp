@@ -25,6 +25,7 @@ import { SentenceParser } from './sentenceParser';
 import { computeLineStarts, offsetToLineAndCharacter } from '../utils/lineStarts';
 import { isNotEmpty } from '../utils/arrayUtils';
 import { Logger } from '../utils/logger';
+import { splitLines } from '../utils/stringUtils';
 import { logError, formatError } from '../utils/errorHandler';
 import {
   StyleConsistencyRule,
@@ -228,15 +229,10 @@ export class AdvancedRulesManager {
     codeRanges.sort((a, b) => a.start - b.start);
 
     // 行開始位置を計算
-    const lineStarts: number[] = [0];
-    for (let i = 0; i < text.length; i++) {
-      if (text[i] === '\n') {
-        lineStarts.push(i + 1);
-      }
-    }
+    const lineStarts = computeLineStarts(text);
 
     // 行テキストを分割
-    const lines = text.split('\n');
+    const lines = splitLines(text);
 
     return {
       codeBlockRanges,

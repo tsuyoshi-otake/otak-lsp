@@ -93,7 +93,7 @@ export class UnitNotationMixRule extends MixDetectionRule {
             start: { line: 0, character: startOffset },
             end: { line: 0, character: endOffset }
           },
-          message: `単位表記が混在しています。記号表記（${symbolMatches.join('、')}）とカタカナ表記（${katakanaMatches.join('、')}）が使用されています。`,
+          message: `単位表記が混在しています。記号表記（${symbolMatches!.join('、')}）とカタカナ表記（${katakanaMatches!.join('、')}）が使用されています。`,
           code: 'unit-notation-mix',
           ruleName: this.name,
           suggestions: ['記号表記（km、kg）またはカタカナ表記（キロメートル、キログラム）のどちらかに統一してください']

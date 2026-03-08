@@ -13,6 +13,7 @@ import {
   RuleContext,
   AdvancedDiagnostic
 } from '../../../../shared/src/advancedTypes';
+import { isBlank, splitLines } from '../../utils/stringUtils';
 
 /**
  * Code Block Language Detection Rule
@@ -51,7 +52,7 @@ export class CodeBlockLanguageRule implements AdvancedGrammarRule {
    */
   check(tokens: Token[], context: RuleContext): AdvancedDiagnostic[] {
     const diagnostics: AdvancedDiagnostic[] = [];
-    const lines = context.documentText.split('\n');
+    const lines = splitLines(context.documentText);
 
     let inCodeBlock = false;
     let codeBlockFenceChar = '';
@@ -95,7 +96,7 @@ export class CodeBlockLanguageRule implements AdvancedGrammarRule {
         codeBlockBlockquoteDepth = this.countBlockquoteDepth(prefix);
 
         // Check if language specification is missing
-        if (langSpec === '') {
+        if (isBlank(langSpec)) {
           diagnostics.push(new AdvancedDiagnostic({
             range: {
               start: { line: i, character: 0 },

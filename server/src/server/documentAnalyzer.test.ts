@@ -16,6 +16,7 @@ import { TextDocument } from 'vscode-languageserver-textdocument';
 import { Configuration, SupportedLanguage } from '../../../shared/src/types';
 import { DEFAULT_ADVANCED_RULES_CONFIG } from '../../../shared/src/advancedTypes';
 import { DEFAULT_ENABLED_GLOSSARIES } from '../hover/glossary';
+import { createLogger } from '../utils/logger';
 
 describe('documentAnalyzer', () => {
   let mecabAnalyzer: MeCabAnalyzer;
@@ -65,7 +66,7 @@ describe('documentAnalyzer', () => {
       grammarChecker,
       advancedRulesManager,
       proofreadingRulesManager,
-      (msg: string) => logs.push(msg)
+      createLogger((msg: string) => logs.push(msg), true)
     );
   });
 

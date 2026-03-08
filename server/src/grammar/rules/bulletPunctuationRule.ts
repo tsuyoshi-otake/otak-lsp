@@ -20,6 +20,7 @@ import {
 } from '../../../../shared/src/advancedTypes';
 import { splitMarkdownPipeTableRowCells, stripMarkdownBlockquotePrefix } from '../../../../shared/src/markdownSyntax';
 import { isEmpty } from '../../utils/arrayUtils';
+import { splitLines } from '../../utils/stringUtils';
 
 /**
  * 箇条書き項目の分類
@@ -247,7 +248,7 @@ export class BulletPunctuationRule implements AdvancedGrammarRule {
   check(tokens: Token[], context: RuleContext): AdvancedDiagnostic[] {
     const diagnostics: AdvancedDiagnostic[] = [];
     const text = context.documentText;
-    const lines = text.split('\n');
+    const lines = splitLines(text);
 
     let lineStart = 0;
     for (const line of lines) {

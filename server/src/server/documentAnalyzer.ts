@@ -89,9 +89,7 @@ export function createDocumentAnalyzer(
   logger?: Logger
 ): DocumentAnalyzer {
   function debugLog(message: string): void {
-    if (logger) {
-      logger.debug(message);
-    }
+    logger?.debug(message);
   }
 
   return {
