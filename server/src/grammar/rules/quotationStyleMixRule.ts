@@ -17,6 +17,7 @@ import {
   AdvancedGrammarErrorType
 } from '../../../../shared/src/advancedTypes';
 import { MixDetectionRule, PatternInfo } from './mixDetectionRule';
+import { isNotEmpty } from '../../utils/arrayUtils';
 
 /**
  * Quotation Style Mix Detection Rule
@@ -107,7 +108,7 @@ export class QuotationStyleMixRule extends MixDetectionRule {
 
     // Japanese quotes: 「」『』
     const japaneseQuotes = this.findAllPositionsExcluding(text, /[「」『』]/g, excludedRanges);
-    if (japaneseQuotes.length > 0) {
+    if (isNotEmpty(japaneseQuotes)) {
       patterns.set('japanese', {
         count: japaneseQuotes.length,
         positions: japaneseQuotes
@@ -117,7 +118,7 @@ export class QuotationStyleMixRule extends MixDetectionRule {
     // Double quotes: "" (curly) or "" (straight full-width)
     // Filter out Japanese quotes already counted
     const pureDoubleQuotes = this.findAllPositionsExcluding(text, /[""]|["]/g, excludedRanges);
-    if (pureDoubleQuotes.length > 0) {
+    if (isNotEmpty(pureDoubleQuotes)) {
       patterns.set('double', {
         count: pureDoubleQuotes.length,
         positions: pureDoubleQuotes
@@ -126,7 +127,7 @@ export class QuotationStyleMixRule extends MixDetectionRule {
 
     // Single quotes: '' (curly) or '' (straight)
     const singleQuotes = this.findAllPositionsExcluding(text, /['']/g, excludedRanges);
-    if (singleQuotes.length > 0) {
+    if (isNotEmpty(singleQuotes)) {
       patterns.set('single', {
         count: singleQuotes.length,
         positions: singleQuotes

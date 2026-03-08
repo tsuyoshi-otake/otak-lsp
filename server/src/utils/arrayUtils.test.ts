@@ -11,6 +11,8 @@ import {
   last,
   chunk,
   findOrDefault,
+  isEmptyObject,
+  isNotEmptyObject,
 } from './arrayUtils';
 
 describe('arrayUtils', () => {
@@ -147,6 +149,46 @@ describe('arrayUtils', () => {
     it('最初に一致した要素を返す', () => {
       const arr = [1, 2, 3, 4, 5];
       expect(findOrDefault(arr, (x) => x > 2, 0)).toBe(3);
+    });
+  });
+
+  describe('isEmptyObject', () => {
+    it('空オブジェクトの場合trueを返す', () => {
+      expect(isEmptyObject({})).toBe(true);
+    });
+
+    it('プロパティがあるオブジェクトの場合falseを返す', () => {
+      expect(isEmptyObject({ a: 1 })).toBe(false);
+    });
+
+    it('nullの場合trueを返す', () => {
+      expect(isEmptyObject(null)).toBe(true);
+    });
+
+    it('undefinedの場合trueを返す', () => {
+      expect(isEmptyObject(undefined)).toBe(true);
+    });
+  });
+
+  describe('isNotEmptyObject', () => {
+    it('空オブジェクトの場合falseを返す', () => {
+      expect(isNotEmptyObject({})).toBe(false);
+    });
+
+    it('プロパティがあるオブジェクトの場合trueを返す', () => {
+      expect(isNotEmptyObject({ a: 1 })).toBe(true);
+    });
+
+    it('nullの場合falseを返す', () => {
+      expect(isNotEmptyObject(null)).toBe(false);
+    });
+
+    it('undefinedの場合falseを返す', () => {
+      expect(isNotEmptyObject(undefined)).toBe(false);
+    });
+
+    it('複数プロパティがあるオブジェクトの場合trueを返す', () => {
+      expect(isNotEmptyObject({ a: 1, b: 2, c: 3 })).toBe(true);
     });
   });
 });

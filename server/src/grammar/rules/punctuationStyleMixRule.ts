@@ -15,6 +15,7 @@ import {
   AdvancedGrammarErrorType
 } from '../../../../shared/src/advancedTypes';
 import { MixDetectionRule, PatternInfo } from './mixDetectionRule';
+import { isNotEmpty } from '../../utils/arrayUtils';
 
 /**
  * Punctuation Style Mix Detection Rule
@@ -35,7 +36,7 @@ export class PunctuationStyleMixRule extends MixDetectionRule {
     const japanesePeriods = this.findAllPositions(text, /。/g);
     const japanesePositions = [...japaneseCommas, ...japanesePeriods].sort((a, b) => a - b);
 
-    if (japanesePositions.length > 0) {
+    if (isNotEmpty(japanesePositions)) {
       patterns.set('japanese', {
         count: japanesePositions.length,
         positions: japanesePositions
@@ -47,7 +48,7 @@ export class PunctuationStyleMixRule extends MixDetectionRule {
     const westernPeriods = this.findAllPositions(text, /．/g);
     const westernPositions = [...westernCommas, ...westernPeriods].sort((a, b) => a - b);
 
-    if (westernPositions.length > 0) {
+    if (isNotEmpty(westernPositions)) {
       patterns.set('western', {
         count: westernPositions.length,
         positions: westernPositions

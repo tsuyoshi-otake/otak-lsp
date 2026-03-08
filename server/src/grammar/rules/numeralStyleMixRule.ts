@@ -13,6 +13,7 @@ import {
   RuleContext,
   AdvancedDiagnostic
 } from '../../../../shared/src/advancedTypes';
+import { isEmpty } from '../../utils/arrayUtils';
 
 /**
  * 漢数字からアラビア数字への変換マップ
@@ -135,7 +136,7 @@ export class NumeralStyleMixRule implements AdvancedGrammarRule {
     const { kanji, arabic } = this.findNumerals(context.documentText);
 
     // 漢数字とアラビア数字の両方が存在するかチェック
-    if (kanji.length === 0 || arabic.length === 0) {
+    if (isEmpty(kanji) || isEmpty(arabic)) {
       return diagnostics;
     }
 

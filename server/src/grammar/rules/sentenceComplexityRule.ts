@@ -14,7 +14,8 @@ import {
   ComplexityMetrics,
   SentenceComplexity
 } from '../../../../shared/src/advancedTypes';
-import { isNotBlank } from '../../utils/stringUtils';
+import { isNotBlank, hasMinLength } from '../../utils/stringUtils';
+import { isNotEmpty } from '../../utils/arrayUtils';
 
 /**
  * デフォルトの重み付け（合計100）
@@ -257,7 +258,7 @@ export class SentenceComplexityRule implements AdvancedGrammarRule {
 
     for (const sentence of sentences) {
       // 空文や極端に短い文はスキップ
-      if (sentence.text.trim().length < 10) continue;
+      if (!hasMinLength(sentence.text, 10)) continue;
 
       const metrics = this.calculateMetrics(sentence, config);
 
@@ -308,7 +309,7 @@ export class SentenceComplexityRule implements AdvancedGrammarRule {
         detailParts.push(`名詞連続:${metrics.maxNounChainLength}`);
       }
 
-      const detail = detailParts.length > 0 ? `（${detailParts.join('、')}）` : '';
+      const detail = isNotEmpty(detailParts) ? `（${detailParts.join('、')}）` : '';
 
       diagnostics.push(
         new AdvancedDiagnostic({

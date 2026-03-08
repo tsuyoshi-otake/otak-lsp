@@ -25,6 +25,22 @@ import { Logger } from '../utils/logger';
 import { isEmpty, isNotEmpty } from '../utils/arrayUtils';
 
 /**
+ * 内部診断をLSP診断に変換
+ */
+function toLspDiagnostics(diags: Diagnostic[], source: string): LSPDiagnostic[] {
+  return diags.map((diag) => ({
+    severity: convertSeverity(diag.severity),
+    range: {
+      start: { line: diag.range.start.line, character: diag.range.start.character },
+      end: { line: diag.range.end.line, character: diag.range.end.character },
+    },
+    message: diag.message,
+    source,
+    code: diag.code,
+  }));
+}
+
+/**
  * 解析結果
  */
 export interface AnalysisResult {
@@ -204,18 +220,7 @@ export function createDocumentAnalyzer(
         }
         debugLog(`Basic grammar check found ${grammarDiagnostics.length} issues`);
 
-        for (const diag of grammarDiagnostics) {
-          diagnostics.push({
-            severity: convertSeverity(diag.severity),
-            range: {
-              start: { line: diag.range.start.line, character: diag.range.start.character },
-              end: { line: diag.range.end.line, character: diag.range.end.character },
-            },
-            message: diag.message,
-            source: 'otak-lsp',
-            code: diag.code,
-          });
-        }
+        diagnostics.push(...toLspDiagnostics(grammarDiagnostics, 'otak-lsp'));
 
         // 高度文法ルール
         const advancedStart = isProfileEnabled ? Date.now() : 0;
@@ -262,18 +267,7 @@ export function createDocumentAnalyzer(
         }
         debugLog(`Advanced grammar check found ${advancedDiagnostics.length} issues`);
 
-        for (const diag of advancedDiagnostics) {
-          diagnostics.push({
-            severity: convertSeverity(diag.severity),
-            range: {
-              start: { line: diag.range.start.line, character: diag.range.start.character },
-              end: { line: diag.range.end.line, character: diag.range.end.character },
-            },
-            message: diag.message,
-            source: 'otak-lsp',
-            code: diag.code,
-          });
-        }
+        diagnostics.push(...toLspDiagnostics(advancedDiagnostics, 'otak-lsp'));
 
         // 校正ルール
         const proofreadingStart = isProfileEnabled ? Date.now() : 0;
@@ -283,18 +277,7 @@ export function createDocumentAnalyzer(
         }
         debugLog(`Proofreading rules check found ${proofreadingDiagnostics.length} issues`);
 
-        for (const diag of proofreadingDiagnostics) {
-          diagnostics.push({
-            severity: convertSeverity(diag.severity),
-            range: {
-              start: { line: diag.range.start.line, character: diag.range.start.character },
-              end: { line: diag.range.end.line, character: diag.range.end.character },
-            },
-            message: diag.message,
-            source: 'otak-lsp-proofreading',
-            code: diag.code,
-          });
-        }
+        diagnostics.push(...toLspDiagnostics(proofreadingDiagnostics, 'otak-lsp-proofreading'));
       }
 
       return {

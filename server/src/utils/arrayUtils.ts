@@ -94,3 +94,23 @@ export function findOrDefault<T>(
 ): T {
   return arr.find(predicate) ?? defaultValue;
 }
+
+/**
+ * オブジェクトが空（プロパティを持たない）かどうかを判定
+ * 
+ * @param obj - チェックするオブジェクト
+ * @returns オブジェクトが空の場合true
+ */
+export function isEmptyObject(obj: object | null | undefined): boolean {
+  return !obj || Object.keys(obj).length === 0;
+}
+
+/**
+ * オブジェクトが空でない（プロパティを持つ）かどうかを判定
+ * 
+ * @param obj - チェックするオブジェクト
+ * @returns オブジェクトが空でない場合true
+ */
+export function isNotEmptyObject(obj: object | null | undefined): boolean {
+  return !!obj && Object.keys(obj).length > 0;
+}

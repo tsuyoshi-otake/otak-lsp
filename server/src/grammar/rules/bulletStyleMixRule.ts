@@ -17,6 +17,7 @@ import {
 } from '../../../../shared/src/advancedTypes';
 import { MixDetectionRule, PatternInfo } from './mixDetectionRule';
 import { splitMarkdownPipeTableRowCells, stripMarkdownBlockquotePrefix } from '../../../../shared/src/markdownSyntax';
+import { isNotEmpty } from '../../utils/arrayUtils';
 
 /**
  * Bullet Style Mix Detection Rule
@@ -113,21 +114,21 @@ export class BulletStyleMixRule extends MixDetectionRule {
       offset += line.length + 1; // +1 for newline
     }
 
-    if (nakaguroPositions.length > 0) {
+    if (isNotEmpty(nakaguroPositions)) {
       patterns.set('nakaguro', {
         count: nakaguroPositions.length,
         positions: nakaguroPositions
       });
     }
 
-    if (hyphenPositions.length > 0) {
+    if (isNotEmpty(hyphenPositions)) {
       patterns.set('hyphen', {
         count: hyphenPositions.length,
         positions: hyphenPositions
       });
     }
 
-    if (asteriskPositions.length > 0) {
+    if (isNotEmpty(asteriskPositions)) {
       patterns.set('asterisk', {
         count: asteriskPositions.length,
         positions: asteriskPositions

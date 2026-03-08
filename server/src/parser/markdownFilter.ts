@@ -22,6 +22,7 @@ import {
 } from '../../../shared/src/markdownSyntax';
 import { formatError } from '../utils/errorHandler';
 import { isBlank } from '../utils/stringUtils';
+import { isNotEmpty } from '../utils/arrayUtils';
 
 /**
  * マークダウンフィルタークラス
@@ -143,7 +144,7 @@ export class MarkdownFilter implements IMarkdownFilter {
       ranges.push(...this.findConfigKeys(text, ranges));
     }
 
-    if (effectiveConfig.customExcludePatterns.length > 0) {
+    if (isNotEmpty(effectiveConfig.customExcludePatterns)) {
       ranges.push(...this.findCustomPatterns(text, effectiveConfig.customExcludePatterns, ranges));
     }
 

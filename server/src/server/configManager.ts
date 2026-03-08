@@ -21,6 +21,7 @@ import {
 import { HoverProvider } from '../hover/provider';
 import { DEFAULT_ENABLED_GLOSSARIES } from '../hover/glossary';
 import { Logger } from '../utils/logger';
+import { isNotEmptyObject } from '../utils/arrayUtils';
 
 /**
  * 設定変更コールバック型
@@ -252,7 +253,7 @@ export function createConfigManager(
     // 公文書ルール設定
     applyOfficialConfigFromSettings(settings, patch);
 
-    if (Object.keys(patch).length > 0) {
+    if (isNotEmptyObject(patch)) {
       advancedRulesManager.updateConfig(patch);
     }
   }

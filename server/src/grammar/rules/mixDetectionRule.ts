@@ -15,6 +15,7 @@ import {
   AdvancedGrammarErrorType,
   DEFAULT_ADVANCED_RULES_CONFIG
 } from '../../../../shared/src/advancedTypes';
+import { isNotEmpty } from '../../utils/arrayUtils';
 
 /**
  * Pattern information collected from document
@@ -92,7 +93,7 @@ export abstract class MixDetectionRule implements AdvancedGrammarRule {
     // 既定では最初の出現箇所を指す（ドキュメント全体に波線を引かない）
     // サブクラスでより具体的な範囲に上書き可能
     const positions = this.getAllPositions(patterns);
-    const startOffset = positions.length > 0 ? positions[0] : 0;
+    const startOffset = isNotEmpty(positions) ? positions[0] : 0;
     const endOffset = Math.min(startOffset + 1, text.length);
     return {
       start: { line: 0, character: startOffset },
@@ -137,7 +138,7 @@ export abstract class MixDetectionRule implements AdvancedGrammarRule {
     const allPatternsName = entries.map(([name]) => name).join('と');
 
     // 少数派が存在する場合：少数派の出現箇所すべてに警告を出す
-    if (minorityPatterns.length > 0) {
+    if (isNotEmpty(minorityPatterns)) {
       const suggestion = `「${dominantPatterns.join('」または「')}」に統一してください`;
       
       for (const patternName of minorityPatterns) {

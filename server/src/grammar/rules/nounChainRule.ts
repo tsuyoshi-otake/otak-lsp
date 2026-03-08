@@ -14,6 +14,7 @@ import {
   NounChain
 } from '../../../../shared/src/advancedTypes';
 import { isBlank } from '../../utils/stringUtils';
+import { isEmpty, isNotEmpty } from '../../utils/arrayUtils';
 
 /**
  * 名詞連続パターン（読みにくい例）
@@ -198,7 +199,7 @@ export class NounChainRule implements AdvancedGrammarRule {
     }
 
     // トークンベースの名詞連続検出
-    if (tokens.length > 0) {
+    if (isNotEmpty(tokens)) {
       let consecutiveNouns: Token[] = [];
 
       for (let i = 0; i < tokens.length; i++) {

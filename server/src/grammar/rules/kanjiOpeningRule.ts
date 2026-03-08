@@ -12,6 +12,7 @@ import {
   RuleContext,
   AdvancedDiagnostic
 } from '../../../../shared/src/advancedTypes';
+import { isEmpty, isNotEmpty } from '../../utils/arrayUtils';
 
 /**
  * 漢字開きルール（漢字 → ひらがな）
@@ -171,7 +172,7 @@ export class KanjiOpeningRule implements AdvancedGrammarRule {
   detectClosedKanjiFromTokens(tokens: Token[]): Array<{ kanji: string; opened: string; start: number; end: number }> {
     const matches: Array<{ kanji: string; opened: string; start: number; end: number }> = [];
 
-    if (tokens.length === 0) {
+    if (isEmpty(tokens)) {
       return matches;
     }
 
@@ -241,7 +242,7 @@ export class KanjiOpeningRule implements AdvancedGrammarRule {
    */
   check(tokens: Token[], context: RuleContext): AdvancedDiagnostic[] {
     const diagnostics: AdvancedDiagnostic[] = [];
-    if (tokens.length > 0) {
+    if (isNotEmpty(tokens)) {
       const closedKanji = this.detectClosedKanjiFromTokens(tokens);
       for (const item of closedKanji) {
         diagnostics.push(new AdvancedDiagnostic({

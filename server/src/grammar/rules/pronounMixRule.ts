@@ -18,6 +18,7 @@ import {
   AdvancedGrammarErrorType
 } from '../../../../shared/src/advancedTypes';
 import { MixDetectionRule, PatternInfo } from './mixDetectionRule';
+import { isNotEmpty } from '../../utils/arrayUtils';
 
 /**
  * Pronoun Mix Detection Rule
@@ -43,7 +44,7 @@ export class PronounMixRule extends MixDetectionRule {
 
     for (const pronoun of this.pronouns) {
       const positions = this.findAllPositions(text, pronoun.pattern);
-      if (positions.length > 0) {
+      if (isNotEmpty(positions)) {
         patterns.set(pronoun.name, {
           count: positions.length,
           positions

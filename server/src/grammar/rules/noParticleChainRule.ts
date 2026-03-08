@@ -14,6 +14,7 @@ import {
   NoParticleChain,
   Sentence
 } from '../../../../shared/src/advancedTypes';
+import { isNotEmpty } from '../../utils/arrayUtils';
 
 /**
  * 助詞「の」連続使用検出ルール
@@ -128,7 +129,7 @@ export class NoParticleChainRule implements AdvancedGrammarRule {
     const threshold = context.config.noParticleChainThreshold || 3;
 
     const sentences =
-      context.sentences.length > 0
+      isNotEmpty(context.sentences)
         ? context.sentences
         : [new Sentence({ text: context.documentText, tokens, start: 0, end: context.documentText.length })];
 

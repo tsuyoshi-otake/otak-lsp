@@ -14,6 +14,7 @@ import {
   AdverbAgreementError,
   Sentence
 } from '../../../../shared/src/advancedTypes';
+import { isEmpty } from '../../utils/arrayUtils';
 
 /**
  * 副詞と呼応する文末表現のルール
@@ -91,7 +92,7 @@ export class AdverbAgreementRule implements AdvancedGrammarRule {
       const adverbTokens = sentence.tokens.filter((token) =>
         token.surface === rule.adverb && token.isAdverb()
       );
-      if (adverbTokens.length === 0) {
+      if (isEmpty(adverbTokens)) {
         continue;
       }
 

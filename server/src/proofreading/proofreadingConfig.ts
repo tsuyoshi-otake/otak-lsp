@@ -7,6 +7,7 @@
  */
 
 import { AdvancedRulesConfig, DEFAULT_ADVANCED_RULES_CONFIG } from '../../../shared/src/advancedTypes';
+import { splitAndTrimCommas } from '../utils/stringUtils';
 
 /**
  * 誤字チェックカテゴリの設定
@@ -650,7 +651,7 @@ export function parseProofreadingSettingsFromRaw(raw: Record<string, unknown>): 
     config.categories.quoteLine.enable = raw['quoteLine.enable'];
   }
   if (typeof raw['quoteLine.markers'] === 'string') {
-    config.categories.quoteLine.markers = raw['quoteLine.markers'].split(',').map(s => s.trim()).filter(s => s);
+    config.categories.quoteLine.markers = splitAndTrimCommas(raw['quoteLine.markers']);
   } else if (Array.isArray(raw['quoteLine.markers'])) {
     config.categories.quoteLine.markers = raw['quoteLine.markers'].filter((m): m is string => typeof m === 'string');
   }

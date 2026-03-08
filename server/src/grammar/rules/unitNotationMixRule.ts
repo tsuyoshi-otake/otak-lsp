@@ -16,6 +16,7 @@ import {
   AdvancedGrammarErrorType
 } from '../../../../shared/src/advancedTypes';
 import { MixDetectionRule, PatternInfo } from './mixDetectionRule';
+import { isNotEmpty } from '../../utils/arrayUtils';
 
 /**
  * Unit category with symbol and katakana forms
@@ -76,7 +77,7 @@ export class UnitNotationMixRule extends MixDetectionRule {
       const symbolMatches = context.documentText.match(category.symbolPattern);
       const katakanaMatches = context.documentText.match(category.katakanaPattern);
 
-      if (symbolMatches && symbolMatches.length > 0 && katakanaMatches && katakanaMatches.length > 0) {
+      if (isNotEmpty(symbolMatches) && isNotEmpty(katakanaMatches)) {
         const firstSymbol = this.findFirstMatch(context.documentText, category.symbolPattern);
         const firstKatakana = this.findFirstMatch(context.documentText, category.katakanaPattern);
 

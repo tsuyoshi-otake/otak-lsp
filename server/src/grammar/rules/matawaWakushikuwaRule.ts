@@ -12,6 +12,7 @@ import {
   RuleContext,
   AdvancedDiagnostic
 } from '../../../../shared/src/advancedTypes';
+import { isEmpty } from '../../utils/arrayUtils';
 
 /**
  * 接続詞の出現情報
@@ -99,7 +100,7 @@ export class MatawaWakushikuwaRule implements AdvancedGrammarRule {
       const text = sentence.text;
       const matches = this.findConjunctions(text);
 
-      if (matches.length === 0) {
+      if (isEmpty(matches)) {
         continue;
       }
 

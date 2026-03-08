@@ -12,6 +12,7 @@ import { BracketRangeDetector, BracketRange } from './bracketRangeDetector';
 import { DictionaryEntry } from '../dictionaries/proofreadingDictionaryLoader';
 import { computeLineStarts, offsetToLineAndCharacter } from '../utils/lineStarts';
 import { Logger } from '../utils/logger';
+import { isNotEmpty } from '../utils/arrayUtils';
 
 /**
  * 校正ルールの診断情報
@@ -111,7 +112,7 @@ export class ProofreadingRulesManager {
     }
 
     // 辞書ベースのチェック
-    if (this.dictionaryEntries.length > 0) {
+    if (isNotEmpty(this.dictionaryEntries)) {
       diagnostics.push(...this.checkDictionaryEntries(text, bracketRanges, checkInBrackets));
     }
 

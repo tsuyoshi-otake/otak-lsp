@@ -102,7 +102,7 @@ export function hasMinLength(str: string, minLength: number): boolean {
  * @returns トリムされた要素の配列
  */
 export function splitAndTrimCommas(str: string): string[] {
-  return str.split(',').map(s => s.trim()).filter(s => s.length > 0);
+  return str.split(',').map(s => s.trim()).filter(s => isNotBlank(s));
 }
 
 /**
@@ -113,7 +113,7 @@ export function splitAndTrimCommas(str: string): string[] {
  * @returns トリムされた要素の配列
  */
 export function splitAndTrim(str: string, separator: string | RegExp): string[] {
-  return str.split(separator).map(s => s.trim()).filter(s => s.length > 0);
+  return str.split(separator).map(s => s.trim()).filter(s => isNotBlank(s));
 }
 
 /**

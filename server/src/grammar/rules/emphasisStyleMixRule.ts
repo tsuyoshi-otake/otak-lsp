@@ -15,6 +15,7 @@ import {
   AdvancedGrammarErrorType
 } from '../../../../shared/src/advancedTypes';
 import { MixDetectionRule, PatternInfo } from './mixDetectionRule';
+import { isNotEmpty } from '../../utils/arrayUtils';
 
 /**
  * Emphasis Style Mix Detection Rule
@@ -32,7 +33,7 @@ export class EmphasisStyleMixRule extends MixDetectionRule {
 
     // Asterisk bold: **text**
     const asteriskBold = this.findAllPositions(text, /\*\*[^*]+\*\*/g);
-    if (asteriskBold.length > 0) {
+    if (isNotEmpty(asteriskBold)) {
       patterns.set('asterisk', {
         count: asteriskBold.length,
         positions: asteriskBold
@@ -41,7 +42,7 @@ export class EmphasisStyleMixRule extends MixDetectionRule {
 
     // Underscore bold: __text__
     const underscoreBold = this.findAllPositions(text, /__[^_]+__/g);
-    if (underscoreBold.length > 0) {
+    if (isNotEmpty(underscoreBold)) {
       patterns.set('underscore', {
         count: underscoreBold.length,
         positions: underscoreBold

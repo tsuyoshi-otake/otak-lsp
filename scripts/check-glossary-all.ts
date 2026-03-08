@@ -12,6 +12,7 @@
  */
 
 import { getGlossaryDefinitions } from '../server/src/hover/glossary';
+import { isBlank } from '../server/src/utils/stringUtils';
 
 interface Options {
   strict: boolean;
@@ -53,7 +54,7 @@ async function main(): Promise<void> {
     let fallback = 0;
     for (const e of g.entries) {
       const desc = e.description ?? '';
-      if (desc.trim().length === 0) {
+      if (isBlank(desc)) {
         empty += 1;
         findings.push({ glossaryId: g.id, glossaryTitle: g.title, term: e.term, reason: 'empty_description' });
         continue;

@@ -38,6 +38,8 @@ import { AdvancedRulesManager } from '../grammar/advancedRulesManager';
 import { computeLineStarts } from '../utils/lineStarts';
 import { Logger } from '../utils/logger';
 import { logError } from '../utils/errorHandler';
+import { hasMinLength } from '../utils/stringUtils';
+import { isNotEmpty } from '../utils/arrayUtils';
 
 /**
  * ドキュメントキャッシュのエントリ
@@ -193,7 +195,7 @@ export function createConnectionHandler(
       // キャッシュを更新
       documentTokens.set(uri, result.tokens);
       documentTexts.set(uri, document.getText());
-      if (result.excludedRanges.length > 0) {
+      if (isNotEmpty(result.excludedRanges)) {
         documentExcludedRanges.set(uri, result.excludedRanges);
       }
       documentLineStarts.set(uri, result.lineStarts);
@@ -309,9 +311,9 @@ export function createConnectionHandler(
           if (logger) {
             logger.info('Grammar check disabled, clearing diagnostics');
           }
-          documents.all().forEach((doc) => {
+          for (const doc of documents.all()) {
             diagnosticsPublisher.clear(doc.uri);
-          });
+          }
         }
 
         // セマンティックハイライトが無効になった場合、トークンをクリア
@@ -329,9 +331,9 @@ export function createConnectionHandler(
 
         // 有効になった場合、再解析
         if (config.enableGrammarCheck || config.enableSemanticHighlight) {
-          documents.all().forEach((doc) => {
+          for (const doc of documents.all()) {
             analysisScheduler.scheduleAnalysis(doc);
-          });
+          }
         }
       });
 
@@ -351,10 +353,10 @@ export function createConnectionHandler(
 
         // 文複雑度を計算して追加
         let complexityInfo = '';
-        if (tokens.length > 0 && documentText && advancedRulesManager) {
+        if (isNotEmpty(tokens) && documentText && advancedRulesManager) {
           const sentences = SentenceParser.parseSentences(documentText, tokens);
           const currentSentence = sentences.find(s => offset >= s.start && offset < s.end);
-          if (currentSentence && currentSentence.text.trim().length >= 10) {
+          if (currentSentence && hasMinLength(currentSentence.text, 10)) {
             const advConfig = configManager.getAdvancedConfig();
             const metrics = sentenceComplexityRule.calculateMetrics(currentSentence, advConfig);
 
@@ -393,7 +395,7 @@ export function createConnectionHandler(
         const contents = (hoverResult?.contents ?? '') + complexityInfo;
 
         let range = hoverResult?.range;
-        if (!range && tokens.length > 0) {
+        if (!range && isNotEmpty(tokens)) {
           const token = tokens.find(t => offset >= t.start && offset < t.end);
           if (token) {
             range = { start: token.start, end: token.end };
@@ -429,7 +431,7 @@ export function createConnectionHandler(
           const tokens = documentTokens.get(uri);
           const text = documentTexts.get(uri);
 
-          if (!tokens || tokens.length === 0 || !text) {
+          if (!isNotEmpty(tokens) || !text) {
             return { data: [] };
           }
 

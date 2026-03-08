@@ -19,6 +19,7 @@ import {
   AdvancedDiagnostic
 } from '../../../../shared/src/advancedTypes';
 import { splitMarkdownPipeTableRowCells, stripMarkdownBlockquotePrefix } from '../../../../shared/src/markdownSyntax';
+import { isEmpty } from '../../utils/arrayUtils';
 
 /**
  * 箇条書き項目の分類
@@ -184,7 +185,7 @@ export class BulletPunctuationRule implements AdvancedGrammarRule {
    */
   classifyItem(text: string, tokens: Token[]): BulletItemClassification {
     // 空のトークン列は曖昧
-    if (tokens.length === 0) {
+    if (isEmpty(tokens)) {
       return 'ambiguous';
     }
 
@@ -201,7 +202,7 @@ export class BulletPunctuationRule implements AdvancedGrammarRule {
       return surface.length > 0;
     });
 
-    if (effectiveTokens.length === 0) {
+    if (isEmpty(effectiveTokens)) {
       return 'ambiguous';
     }
 

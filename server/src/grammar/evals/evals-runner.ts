@@ -446,14 +446,14 @@ export class EvalsRunner {
       }
     };
 
-    Array.from(this.advancedRules.entries()).forEach(([ruleName, rule]) => {
+    for (const [ruleName, rule] of this.advancedRules.entries()) {
       try {
         const advancedDiagnostics = rule.check(tokens, context);
         diagnostics.push(...advancedDiagnostics.map(d => d.toDiagnostic()));
       } catch (e) {
         logError(this.logger, `Rule ${ruleName} failed`, e);
       }
-    });
+    }
 
     // 校正設定ルールのチェック (Feature: proofreading-settings-compat)
     try {
