@@ -21,6 +21,7 @@ import {
   stripMarkdownBlockquotePrefix as stripMarkdownBlockquotePrefixShared
 } from '../../../shared/src/markdownSyntax';
 import { formatError } from '../utils/errorHandler';
+import { isBlank } from '../utils/stringUtils';
 
 /**
  * マークダウンフィルタークラス
@@ -75,7 +76,7 @@ export class MarkdownFilter implements IMarkdownFilter {
 
     try {
       // 空テキストの処理
-      if (!text || text.length === 0) {
+      if (isBlank(text)) {
         this.log('空テキストが入力されました');
         return this.createResult('', [], text, startTime, effectiveConfig);
       }
@@ -106,7 +107,7 @@ export class MarkdownFilter implements IMarkdownFilter {
     const effectiveConfig = config ? { ...this.config, ...config } : this.config;
     const ranges: ExcludedRange[] = [];
 
-    if (!text || text.length === 0) {
+    if (isBlank(text)) {
       return ranges;
     }
 
@@ -772,7 +773,7 @@ export class MarkdownFilter implements IMarkdownFilter {
   private findEmphasisMarkers(text: string, existingRanges: ExcludedRange[]): ExcludedRange[] {
     const ranges: ExcludedRange[] = [];
 
-    if (!text || text.length === 0) {
+    if (isBlank(text)) {
       return ranges;
     }
 
@@ -784,7 +785,7 @@ export class MarkdownFilter implements IMarkdownFilter {
     };
 
     const isWhitespace = (ch: string): boolean => {
-      return ch.length === 0 || /\s/.test(ch);
+      return isBlank(ch) || /\s/.test(ch);
     };
 
     const isAsciiDigit = (ch: string): boolean => {
@@ -877,7 +878,7 @@ export class MarkdownFilter implements IMarkdownFilter {
   private findLinkMarkers(text: string, existingRanges: ExcludedRange[]): ExcludedRange[] {
     const ranges: ExcludedRange[] = [];
 
-    if (!text || text.length === 0) {
+    if (isBlank(text)) {
       return ranges;
     }
 
@@ -1086,7 +1087,7 @@ export class MarkdownFilter implements IMarkdownFilter {
 
       const prefixLength = match[1].length + match[2].length;
       const rest = match[3];
-      if (rest.trim().length === 0) {
+      if (isBlank(rest)) {
         return line;
       }
 

@@ -22,6 +22,7 @@ import { Profiler, ProfileStep } from './profiler';
 import { convertSeverity } from './diagnosticsPublisher';
 import { computeLineStarts } from '../utils/lineStarts';
 import { Logger } from '../utils/logger';
+import { isEmpty, isNotEmpty } from '../utils/arrayUtils';
 
 /**
  * 解析結果
@@ -168,7 +169,7 @@ export function createDocumentAnalyzer(
           if (config.markdown.analyzeCodeBlocks) {
             semanticExcludedRanges = semanticExcludedRanges.filter((r) => r.type !== 'code-block');
           }
-          if (semanticExcludedRanges.length > 0) {
+          if (isNotEmpty(semanticExcludedRanges)) {
             semanticTokensList = tokenFilter.filterTokens(allTokens, semanticExcludedRanges);
           }
         }
@@ -181,7 +182,7 @@ export function createDocumentAnalyzer(
           if (config.markdown.analyzeTables) {
             grammarExcludedRanges = grammarExcludedRanges.filter((r) => r.type !== 'table');
           }
-          if (grammarExcludedRanges.length > 0) {
+          if (isNotEmpty(grammarExcludedRanges)) {
             grammarTokensList = tokenFilter.filterTokens(allTokens, grammarExcludedRanges);
           }
         }

@@ -23,6 +23,7 @@ import {
 import { ExcludedRange } from '../../../shared/src/markdownFilterTypes';
 import { SentenceParser } from './sentenceParser';
 import { computeLineStarts, offsetToLineAndCharacter } from '../utils/lineStarts';
+import { isNotEmpty } from '../utils/arrayUtils';
 import { Logger } from '../utils/logger';
 import { logError, formatError } from '../utils/errorHandler';
 import {
@@ -421,11 +422,12 @@ export class AdvancedRulesManager {
     excludedRanges: ExcludedRange[] | undefined,
     types: ExcludedRange['type'][]
   ): Sentence[] {
-    if (!excludedRanges || excludedRanges.length === 0) {
+    if (!isNotEmpty(excludedRanges)) {
       return sentences;
     }
 
-    const targets = excludedRanges.filter((r) => types.includes(r.type));
+    // TypeScriptの型ガード: isNotEmptyがtrueの場合、excludedRangesは配列
+    const targets = excludedRanges!.filter((r) => types.includes(r.type));
     if (targets.length === 0) {
       return sentences;
     }

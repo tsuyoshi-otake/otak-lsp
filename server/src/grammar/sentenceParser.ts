@@ -7,6 +7,8 @@
 import { Token } from '../../../shared/src/types';
 import { Sentence } from '../../../shared/src/advancedTypes';
 import { ExcludedRange } from '../../../shared/src/markdownFilterTypes';
+import { isBlank, isNotBlank } from '../utils/stringUtils';
+import { isNotEmpty } from '../utils/arrayUtils';
 
 /**
  * 文分割の終端記号
@@ -32,10 +34,11 @@ export class SentenceParser {
     excludedRanges: ExcludedRange[] | undefined,
     type: ExcludedRange['type']
   ): boolean {
-    if (!excludedRanges || excludedRanges.length === 0) {
+    if (!isNotEmpty(excludedRanges)) {
       return false;
     }
-    return excludedRanges.some((range) => range.type === type && SentenceParser.isOffsetInsideRange(offset, range));
+    // TypeScriptの型ガード: isNotEmptyがtrueの場合、excludedRangesは配列
+    return excludedRanges!.some((range) => range.type === type && SentenceParser.isOffsetInsideRange(offset, range));
   }
 
   /**
@@ -52,7 +55,7 @@ export class SentenceParser {
     excludedRanges?: ExcludedRange[], 
     splitMode: 'strict' | 'normal' | 'loose' = 'normal'
   ): Sentence[] {
-    if (!text || text.trim().length === 0) {
+    if (isBlank(text)) {
       return [];
     }
 
@@ -315,7 +318,7 @@ export class SentenceParser {
     }
 
     const sentenceText = text.substring(effectiveStart, end);
-    if (sentenceText.trim().length === 0) {
+    if (isBlank(sentenceText)) {
       return;
     }
 
@@ -355,7 +358,7 @@ export class SentenceParser {
       return;
     }
     const sentenceText = text.substring(start, end);
-    if (sentenceText.trim().length === 0) {
+    if (isBlank(sentenceText)) {
       return;
     }
 
@@ -565,7 +568,7 @@ export class SentenceParser {
     const afterLine = SentenceParser.getLineContent(text, newlinePos, 'after');
 
     // 空行の場合は分割
-    if (beforeLine.trim().length === 0 || afterLine.trim().length === 0) {
+    if (isBlank(beforeLine) || isBlank(afterLine)) {
       return true;
     }
 

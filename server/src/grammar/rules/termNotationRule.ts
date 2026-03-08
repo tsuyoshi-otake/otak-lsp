@@ -19,6 +19,8 @@ import {
   OCI_NOTATION_RULES,
   WEB_TECH_NOTATION_RULES
 } from '../../dictionaries/termNotationDictionary';
+import { findCodeBlockRanges, findInlineCodeRanges, TERM_TOKEN_PATTERN, WORD_SEGMENT_PATTERN } from '../../utils/regexPatterns';
+import { isNotBlank } from '../../utils/stringUtils';
 
 type PhraseTrieNode = {
   correct?: string;
@@ -48,27 +50,14 @@ export class TermNotationRule implements AdvancedGrammarRule {
    * コードブロック（```...```）の範囲を取得
    */
   private getCodeBlockRanges(text: string): Array<{ start: number; end: number }> {
-    const ranges: Array<{ start: number; end: number }> = [];
-    const codeBlockRegex = /```[\s\S]*?```/g;
-    let match;
-    while ((match = codeBlockRegex.exec(text)) !== null) {
-      ranges.push({ start: match.index, end: match.index + match[0].length });
-    }
-    return ranges;
+    return findCodeBlockRanges(text);
   }
 
   /**
    * インラインコード（`...`）の範囲を取得
    */
   private getInlineCodeRanges(text: string): Array<{ start: number; end: number }> {
-    const ranges: Array<{ start: number; end: number }> = [];
-    // コードブロック内のバッククォートを除外するため、コードブロック外でのみマッチ
-    const inlineCodeRegex = /`[^`\n]+`/g;
-    let match;
-    while ((match = inlineCodeRegex.exec(text)) !== null) {
-      ranges.push({ start: match.index, end: match.index + match[0].length });
-    }
-    return ranges;
+    return findInlineCodeRanges(text);
   }
 
   /**
@@ -92,7 +81,7 @@ export class TermNotationRule implements AdvancedGrammarRule {
               cellStart = cells[i].length + 1; // 最初の空セル + |
               continue;
             }
-            if (i === 1 && cells[i].trim() !== '' && !/^[-:]+$/.test(cells[i].trim())) {
+            if (i === 1 && isNotBlank(cells[i]) && !/^[-:]+$/.test(cells[i].trim())) {
               // 最初の内容セル（誤表記例）を除外範囲に追加
               const cellEnd = cellStart + cells[i].length;
               ranges.push({ start: offset + cellStart, end: offset + cellEnd });
@@ -195,7 +184,7 @@ export class TermNotationRule implements AdvancedGrammarRule {
   detectIncorrectNotation(text: string, config: AdvancedRulesConfig): Array<{ incorrect: string; correct: string; index: number }> {
     const { singleWord, phraseTrieRoot, maxPhraseWords } = this.getCompiledDictionaries(config);
 
-    const termTokenRegex = /[A-Za-z0-9.+#/_:-]+/g;
+    const termTokenRegex = new RegExp(TERM_TOKEN_PATTERN.source, TERM_TOKEN_PATTERN.flags);
     const tokens: Array<{ value: string; start: number; end: number }> = [];
     let m: RegExpExecArray | null;
     while ((m = termTokenRegex.exec(text)) !== null) {
@@ -256,7 +245,7 @@ export class TermNotationRule implements AdvancedGrammarRule {
 
       // vscode-languageclient のような複合語に対して、区切り文字（-/.など）で分割して部分一致も拾う。
       // 既存実装（正規表現 + \\b）と同等の検出を目指す。
-      const segmentRegex = /[A-Za-z0-9_]+/g;
+      const segmentRegex = new RegExp(WORD_SEGMENT_PATTERN.source, WORD_SEGMENT_PATTERN.flags);
       let segment: RegExpExecArray | null;
       while ((segment = segmentRegex.exec(token.value)) !== null) {
         const part = segment[0];

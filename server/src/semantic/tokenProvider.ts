@@ -7,6 +7,7 @@
 
 import { Token, SemanticTokens } from '../../../shared/src/types';
 import { computeLineStarts } from '../utils/lineStarts';
+import { isEmpty } from '../utils/arrayUtils';
 
 const ASCII_ONLY_RE = /^[\x00-\x7F]+$/;
 
@@ -119,7 +120,7 @@ export class SemanticTokenProvider {
    * 位置情報は相対位置で表現される
    */
   provideSemanticTokens(tokens: Token[], text: string, lineStarts?: number[]): SemanticTokens {
-    if (!tokens || tokens.length === 0) {
+    if (isEmpty(tokens)) {
       return { data: [] };
     }
 

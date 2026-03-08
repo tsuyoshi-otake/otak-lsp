@@ -13,6 +13,8 @@ import {
   AdvancedDiagnostic,
   Sentence
 } from '../../../../shared/src/advancedTypes';
+import { containsJapanese } from '../../utils/regexPatterns';
+import { isBlank } from '../../utils/stringUtils';
 
 /**
  * 助詞連続使用検出ルール
@@ -70,8 +72,8 @@ export class ParticleRepetitionRule implements AdvancedGrammarRule {
     for (const m of matches) {
       const candidate = m[1] ?? '';
       const bestCandidate = best[1] ?? '';
-      const candidateLooksJapanese = /[ぁ-んァ-ン一-龠]/.test(candidate);
-      const bestLooksJapanese = /[ぁ-んァ-ン一-龠]/.test(bestCandidate);
+      const candidateLooksJapanese = containsJapanese(candidate);
+      const bestLooksJapanese = containsJapanese(bestCandidate);
       if (candidateLooksJapanese && !bestLooksJapanese) {
         best = m;
         continue;
@@ -110,7 +112,7 @@ export class ParticleRepetitionRule implements AdvancedGrammarRule {
 
     // 最後のセル（末尾の空セルを除く）
     let lastCellIndex = cells.length - 1;
-    while (lastCellIndex > 0 && cells[lastCellIndex].trim() === '') {
+    while (lastCellIndex > 0 && isBlank(cells[lastCellIndex])) {
       lastCellIndex--;
     }
 

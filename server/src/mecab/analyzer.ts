@@ -9,6 +9,7 @@ import * as kuromoji from 'kuromoji-optimized';
 import * as path from 'path';
 import { Token } from '../../../shared/src/types';
 import { formatError } from '../utils/errorHandler';
+import { isBlank } from '../utils/stringUtils';
 
 // kuromoji のトークン型定義
 interface KuromojiToken {
@@ -152,7 +153,7 @@ export class MeCabAnalyzer {
    * テキストを形態素解析（キャッシュ付き）
    */
   async analyze(text: string): Promise<Token[]> {
-    if (!text || text.trim() === '') {
+    if (isBlank(text)) {
       return [];
     }
 
@@ -247,7 +248,7 @@ export class MeCabAnalyzer {
     let currentPosition = 0;
 
     for (const line of lines) {
-      if (line === 'EOS' || line.trim() === '') {
+      if (line === 'EOS' || isBlank(line)) {
         continue;
       }
 

@@ -13,6 +13,7 @@ import {
   AdvancedDiagnostic,
   Sentence
 } from '../../../../shared/src/advancedTypes';
+import { isNotBlank, isBlank } from '../../utils/stringUtils';
 
 /**
  * 文末コロン検出ルール
@@ -33,7 +34,7 @@ export class SentenceEndingColonRule implements AdvancedGrammarRule {
         line = line.slice(0, -1);
       }
 
-      if (line.trim().length > 0) {
+      if (isNotBlank(line)) {
         return line;
       }
 
@@ -98,7 +99,7 @@ export class SentenceEndingColonRule implements AdvancedGrammarRule {
 
     for (const sentence of context.sentences) {
       // 空の文はスキップ
-      if (!sentence.text || sentence.text.trim().length === 0) {
+      if (isBlank(sentence.text)) {
         continue;
       }
 

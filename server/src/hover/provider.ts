@@ -8,6 +8,7 @@
 import { GlossaryId, Token } from '../../../shared/src/types';
 import { WikipediaClient } from '../wikipedia/client';
 import { createGlossaryRank, DEFAULT_ENABLED_GLOSSARIES, findGlossaryHitWithRank, findGlossaryMatchWithRank } from './glossary';
+import { isNotEmpty } from '../utils/arrayUtils';
 
 /**
  * ホバー結果
@@ -75,7 +76,7 @@ export class HoverProvider {
    * @returns 該当トークン、または見つからない場合はnull
    */
   getTokenAtPosition(tokens: Token[], position: number): Token | null {
-    if (!tokens || tokens.length === 0) {
+    if (!isNotEmpty(tokens)) {
       return null;
     }
 

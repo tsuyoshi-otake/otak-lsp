@@ -5,6 +5,8 @@
  * 要件: 5.4, 5.5
  */
 
+import { isBlank } from '../utils/stringUtils';
+
 /**
  * デフォルト設定値
  */
@@ -106,7 +108,7 @@ export class WikipediaClient {
    * - キャッシュが無い場合はnull
    */
   getCachedSummary(term: string): string | null {
-    if (!term || term.trim() === '') {
+    if (isBlank(term)) {
       return null;
     }
     return this.getFromCache(term.trim());
@@ -118,7 +120,7 @@ export class WikipediaClient {
    * - 既にキャッシュ済み/取得中の場合は何もしない
    */
   prefetchSummary(term: string): void {
-    if (!term || term.trim() === '') {
+    if (isBlank(term)) {
       return;
     }
 
@@ -142,7 +144,7 @@ export class WikipediaClient {
    */
   async getSummary(term: string): Promise<string | null> {
     // 空文字チェック
-    if (!term || term.trim() === '') {
+    if (isBlank(term)) {
       return null;
     }
 

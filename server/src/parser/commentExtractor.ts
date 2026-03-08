@@ -6,6 +6,7 @@
  */
 
 import { CommentRange, SupportedLanguage } from '../../../shared/src/types';
+import { isBlank } from '../utils/stringUtils';
 
 /**
  * コメント抽出器
@@ -15,7 +16,7 @@ export class CommentExtractor {
    * テキストからコメントを抽出
    */
   extract(text: string, languageId: string): CommentRange[] {
-    if (!text || text.length === 0) {
+    if (isBlank(text)) {
       return [];
     }
 
@@ -338,7 +339,7 @@ export class CommentExtractor {
    * Markdownファイル全体を抽出
    */
   private extractMarkdown(text: string): CommentRange[] {
-    if (!text || text.length === 0) {
+    if (isBlank(text)) {
       return [];
     }
 

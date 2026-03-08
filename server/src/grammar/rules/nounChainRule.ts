@@ -13,6 +13,7 @@ import {
   AdvancedDiagnostic,
   NounChain
 } from '../../../../shared/src/advancedTypes';
+import { isBlank } from '../../utils/stringUtils';
 
 /**
  * 名詞連続パターン（読みにくい例）
@@ -162,7 +163,7 @@ export class NounChainRule implements AdvancedGrammarRule {
     if ((core.startsWith('**') && core.endsWith('**')) || (core.startsWith('__') && core.endsWith('__'))) {
       core = core.slice(2, -2);
     }
-    if (core.trim().length === 0) {
+    if (isBlank(core)) {
       return false;
     }
 

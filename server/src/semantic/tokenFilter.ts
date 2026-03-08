@@ -7,6 +7,7 @@
 
 import { Token } from '../../../shared/src/types';
 import { ExcludedRange } from '../../../shared/src/markdownFilterTypes';
+import { isEmpty } from '../utils/arrayUtils';
 
 /**
  * トークンフィルタークラス
@@ -20,17 +21,17 @@ export class TokenFilter {
    * @returns フィルタリングされたトークンリスト
    */
   filterTokens(tokens: Token[], excludedRanges: ExcludedRange[]): Token[] {
-    if (tokens.length === 0) {
+    if (isEmpty(tokens)) {
       return [];
     }
 
-    if (excludedRanges.length === 0) {
+    if (isEmpty(excludedRanges)) {
       return [...tokens];
     }
 
     // 有効な除外範囲のみを使用（start < end）
     const validRanges = excludedRanges.filter((range) => range.start < range.end);
-    if (validRanges.length === 0) {
+    if (isEmpty(validRanges)) {
       return [...tokens];
     }
 
@@ -106,7 +107,7 @@ export class TokenFilter {
    * @returns 除外範囲内の場合true
    */
   isTokenInExcludedRange(token: Token, excludedRanges: ExcludedRange[]): boolean {
-    if (excludedRanges.length === 0) {
+    if (isEmpty(excludedRanges)) {
       return false;
     }
 

@@ -7,6 +7,7 @@
 
 import { Token, Diagnostic, DiagnosticSeverity, Range, GrammarError, GrammarErrorType } from '../../../shared/src/types';
 import { computeLineStarts, offsetToLineAndCharacter } from '../utils/lineStarts';
+import { isNotEmpty } from '../utils/arrayUtils';
 
 /**
  * 文法ルールインターフェース
@@ -66,7 +67,7 @@ export class GrammarChecker {
    * トークンリストをチェックして文法エラーを検出
    */
   check(tokens: Token[], text?: string): Diagnostic[] {
-    if (!tokens || tokens.length === 0) {
+    if (!isNotEmpty(tokens)) {
       return [];
     }
 

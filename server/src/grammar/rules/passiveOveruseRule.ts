@@ -14,6 +14,7 @@ import {
   PassiveOveruse,
   Sentence
 } from '../../../../shared/src/advancedTypes';
+import { isNotEmpty } from '../../utils/arrayUtils';
 
 /**
  * 受身（れる/られる）を表すトークンの原形
@@ -35,7 +36,7 @@ export class PassiveOveruseRule implements AdvancedGrammarRule {
   ): Array<{ start: number; end: number }> {
     const occurrences: Array<{ start: number; end: number }> = [];
     const tokens = sentence.tokens;
-    if (!tokens || tokens.length === 0) {
+    if (!isNotEmpty(tokens)) {
       return occurrences;
     }
 
@@ -71,7 +72,7 @@ export class PassiveOveruseRule implements AdvancedGrammarRule {
    */
   detectPassiveOveruse(sentences: Sentence[], threshold: number): PassiveOveruse[] {
     const results: PassiveOveruse[] = [];
-    if (!sentences || sentences.length === 0) {
+    if (!isNotEmpty(sentences)) {
       return results;
     }
 

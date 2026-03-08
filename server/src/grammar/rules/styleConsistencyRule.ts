@@ -15,6 +15,7 @@ import {
   StyleType,
   StyleInconsistency
 } from '../../../../shared/src/advancedTypes';
+import { containsJapanese } from '../../utils/regexPatterns';
 
 /**
  * 文体一貫性チェックルール
@@ -45,8 +46,8 @@ export class StyleConsistencyRule implements AdvancedGrammarRule {
     for (const m of matches) {
       const candidate = m[1] ?? '';
       const bestCandidate = best[1] ?? '';
-      const candidateLooksJapanese = /[ぁ-んァ-ン一-龠]/.test(candidate);
-      const bestLooksJapanese = /[ぁ-んァ-ン一-龠]/.test(bestCandidate);
+      const candidateLooksJapanese = containsJapanese(candidate);
+      const bestLooksJapanese = containsJapanese(bestCandidate);
       if (candidateLooksJapanese && !bestLooksJapanese) {
         best = m;
         continue;

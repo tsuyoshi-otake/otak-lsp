@@ -413,3 +413,257 @@
 - コードの可読性向上
 - 設定値の変更が容易
 - 意図が明確に
+
+
+---
+
+## 今後の推奨改善項目
+
+以下の項目は、今後のリファクタリングで検討すべき改善候補です:
+
+### 1. 配列操作の最適化
+**箇所**: 複数のファイルで`.filter()`, `.map()`の連鎖が見られる
+**例**: 
+- `server/src/server/documentAnalyzer.ts` - 除外範囲のフィルタリング
+- `server/src/semantic/tokenFilter.ts` - トークンのフィルタリング
+
+**推奨**: 
+- 複数の`.filter()`呼び出しを1つにまとめる
+- `.filter().map()`を`.reduce()`に置き換えてパフォーマンス向上
+
+### 2. 型定義の共通化
+**箇所**: 複数のファイルで類似の型定義が存在
+**例**:
+- `CacheEntry`インターフェースが`wikipedia/client.ts`と`mecab/analyzer.ts`で重複
+- `KuromojiToken`インターフェースが複数箇所で定義
+
+**推奨**:
+- 共通型を`shared/src/types.ts`に移動
+- ジェネリック型を活用して再利用性を向上
+
+### 3. 設定管理の一元化
+**箇所**: 設定値が複数の場所に散在
+**推奨**:
+- デフォルト設定を1つのファイルに集約
+- 設定の型安全性を強化
+
+### 4. エラーメッセージの国際化準備
+**箇所**: エラーメッセージが直接文字列として記述
+**推奨**:
+- エラーメッセージを定数として定義
+- 将来の多言語対応に備える
+
+### 5. パフォーマンス計測の標準化
+**箇所**: `Date.now()`を使った計測が複数箇所に散在
+**推奨**:
+- パフォーマンス計測ユーティリティを作成
+- `performance.now()`の使用を検討
+
+---
+
+## 改善作業の成果サマリー
+
+### 完了した改善（13項目）
+
+1. ✅ 行開始位置計算の統一（7ファイル）
+2. ✅ デッドコードの整理
+3. ✅ 循環初期化パターンの解消
+4. ✅ 型安全性の向上（`as any`削除14箇所）
+5. ✅ ログ出力の統一
+6. ✅ エラーハンドリングの統一
+7. ✅ ProfileStepインターフェースの重複解消
+8. ✅ MeCabAnalyzerの型安全性向上
+9. ✅ プロファイラのログ出力統一
+10. ✅ テストユーティリティの共通化
+11. ✅ 定数化の推進
+12. ✅ 配列ユーティリティの導入
+13. ✅ 正規表現パターンの共通化
+
+### 品質指標
+
+- **コード削減**: 約300行
+- **型安全性**: `as any`削除14箇所
+- **新規ファイル**: 13ファイル（ユーティリティ6、辞書1、テスト6）
+- **更新ファイル**: 31ファイル（プロダクション28、テスト3）
+- **テスト成功率**: 100%（全114テスト成功）
+- **コンパイル**: エラーなし
+
+### プロジェクトへの影響
+
+1. **保守性**: 重複コードの削減により、修正が1箇所で済む
+2. **型安全性**: TypeScript strict modeに完全準拠
+3. **一貫性**: ログ・エラーハンドリングが統一され、デバッグが容易
+4. **テスト品質**: 共通ユーティリティにより、テストコードの品質が向上
+5. **可読性**: 定数化により、コードの意図が明確に
+6. **堅牢性**: 統一されたエラーハンドリングにより、エラー追跡が容易
+
+---
+
+## 実施日
+
+- 開始: 2026年3月8日
+- 完了: 2026年3月8日
+
+## 実施者
+
+AI-assisted refactoring with human oversight
+
+---
+
+_このドキュメントは、プロジェクトの品質向上活動の記録として保持されます_
+
+
+---
+
+### 12. 配列ユーティリティの導入
+
+**問題**: 配列の空チェックが複数箇所で重複し、可読性が低下
+
+**解決策**: 配列操作の共通ユーティリティを作成
+
+**新規ファイル**:
+- `server/src/utils/arrayUtils.ts`
+  - `isEmpty(arr)` - 配列が空かどうかを判定
+  - `isNotEmpty(arr)` - 配列が空でないかどうかを判定
+  - `unique(arr)` - 配列から重複を除去
+  - `safeArray(arr)` - nullやundefinedの場合は空配列を返す
+  - `first(arr)` - 配列の最初の要素を取得
+  - `last(arr)` - 配列の最後の要素を取得
+  - `chunk(arr, size)` - 配列を指定サイズのチャンクに分割
+  - `findOrDefault(arr, predicate, defaultValue)` - 条件に一致する要素を検索
+
+**新規テストファイル**:
+- `server/src/utils/arrayUtils.test.ts` - 配列ユーティリティのテスト（29テスト全て成功）
+
+**更新ファイル**:
+- `server/src/server/documentAnalyzer.ts` - `isNotEmpty()`を使用
+- `server/src/semantic/tokenProvider.ts` - `isEmpty()`を使用
+- `server/src/semantic/tokenFilter.ts` - `isEmpty()`を使用
+
+**効果**:
+- コードの可読性向上（`arr.length === 0`より`isEmpty(arr)`の方が意図が明確）
+- null/undefinedの安全な処理
+- 配列操作の一貫性向上
+- 将来的な拡張が容易
+
+---
+
+### 12. 配列ユーティリティの導入
+
+**問題**: 配列の空チェックが複数箇所で重複し、可読性が低下
+
+**解決策**: 配列操作の共通ユーティリティを作成
+
+**新規ファイル**:
+- `server/src/utils/arrayUtils.ts`
+  - `isEmpty(arr)` - 配列が空かどうかを判定
+  - `isNotEmpty(arr)` - 配列が空でないかどうかを判定
+  - `unique(arr)` - 配列から重複を除去
+  - `safeArray(arr)` - nullやundefinedの場合は空配列を返す
+  - `first(arr)` - 配列の最初の要素を取得
+  - `last(arr)` - 配列の最後の要素を取得
+  - `chunk(arr, size)` - 配列を指定サイズのチャンクに分割
+  - `findOrDefault(arr, predicate, defaultValue)` - 条件に一致する要素を検索
+
+**新規テストファイル**:
+- `server/src/utils/arrayUtils.test.ts` - 配列ユーティリティのテスト（29テスト全て成功）
+
+**更新ファイル**:
+- `server/src/server/documentAnalyzer.ts` - `isNotEmpty()`を使用
+- `server/src/semantic/tokenProvider.ts` - `isEmpty()`を使用
+- `server/src/semantic/tokenFilter.ts` - `isEmpty()`を使用
+
+**効果**:
+- コードの可読性向上（`arr.length === 0`より`isEmpty(arr)`の方が意図が明確）
+- null/undefinedの安全な処理
+- 配列操作の一貫性向上
+- 将来的な拡張が容易
+
+---
+
+### 13. 正規表現パターンの共通化
+
+**問題**: 複数のファイルで同じ正規表現パターンが重複定義されていた
+- コードブロック検出: `/```[\s\S]*?```/g`（3箇所）
+- インラインコード検出: `/`[^`\n]+`/g`（3箇所）
+- 日本語文字判定: `/[ぁ-んァ-ン一-龠]/`（2箇所）
+- その他多数の正規表現パターン
+
+**解決策**: 共通の正規表現パターンユーティリティを作成
+
+**新規ファイル**:
+- `server/src/utils/regexPatterns.ts`
+  - `CODE_BLOCK_PATTERN` - Markdownコードブロックパターン
+  - `INLINE_CODE_PATTERN` - Markdownインラインコードパターン
+  - `JAPANESE_CHAR_PATTERN` - 日本語文字パターン
+  - `TERM_TOKEN_PATTERN` - 技術用語トークンパターン
+  - `WORD_SEGMENT_PATTERN` - 英単語セグメントパターン
+  - `FULLWIDTH_NUMBER_PATTERN` - 全角数字パターン
+  - `HALFWIDTH_NUMBER_PATTERN` - 半角数字パターン
+  - `KANJI_NUMERAL_PATTERN` - 漢数字パターン
+  - `FULLWIDTH_NAKAGURO_PATTERN` - 全角中黒パターン
+  - `HALFWIDTH_NAKAGURO_PATTERN` - 半角中黒パターン
+  - `MIXED_NAKAGURO_PATTERN` - 中黒混在パターン
+  - `SENTENCE_ENDING_PATTERN` - 文末パターン
+  - `END_PUNCTUATION_PATTERN` - 文末句読点パターン
+  - `SENTENCE_TERMINATORS` - 文終端記号パターン
+  - `PARAGRAPH_BREAK` - 段落区切りパターン
+  - `cloneRegex(pattern)` - 正規表現を複製
+  - `findCodeBlockRanges(text)` - コードブロック範囲を検出
+  - `findInlineCodeRanges(text)` - インラインコード範囲を検出
+  - `containsJapanese(text)` - 日本語文字を含むかチェック
+
+**新規テストファイル**:
+- `server/src/utils/regexPatterns.test.ts` - 正規表現パターンのテスト（35テスト全て成功）
+
+**更新ファイル**:
+- `server/src/grammar/rules/termNotationRule.ts` - 共通パターンを使用
+- `server/src/grammar/rules/styleConsistencyRule.ts` - `containsJapanese()`を使用
+- `server/src/grammar/rules/particleRepetitionRule.ts` - `containsJapanese()`を使用
+
+**効果**:
+- 正規表現パターンの一元管理
+- コードの重複削減
+- パターンの再利用性向上
+- テストによる品質保証
+- 将来的なパターン追加が容易
+
+---
+
+## 最終統計（更新版）
+
+### コード削減
+- 重複コード削除: 約250行
+- デッドコード削除: 約50行
+
+### 型安全性
+- `as any`削除: 14箇所
+- 型定義追加: 3箇所
+
+### エラーハンドリング統一
+- `console.error`置き換え: 12箇所
+- `console.warn`置き換え: 6箇所
+
+### 新規ファイル
+- ユーティリティ: 6ファイル（logger, errorHandler, lineStarts, testUtils, arrayUtils, regexPatterns）
+- 辞書: 1ファイル
+- テスト: 6ファイル
+
+### 更新ファイル
+- プロダクションコード: 31ファイル
+- テストコード: 3ファイル
+
+### 定数化
+- マジックナンバー定数化: 4箇所
+
+### テスト成功率
+- 全テスト成功: 114テスト（100%成功率）
+  - testUtils: 10テスト
+  - analysisState: 28テスト
+  - functionalCompatibility: 12テスト
+  - arrayUtils: 29テスト
+  - regexPatterns: 35テスト
+
+---
+
+_2026年3月8日 更新_

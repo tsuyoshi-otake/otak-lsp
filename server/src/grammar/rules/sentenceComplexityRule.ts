@@ -14,6 +14,7 @@ import {
   ComplexityMetrics,
   SentenceComplexity
 } from '../../../../shared/src/advancedTypes';
+import { isNotBlank } from '../../utils/stringUtils';
 
 /**
  * デフォルトの重み付け（合計100）
