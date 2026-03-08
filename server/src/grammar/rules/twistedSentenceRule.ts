@@ -76,7 +76,7 @@ export class TwistedSentenceRule implements AdvancedGrammarRule {
         results.push({
           sentence: null,
           subjectPart: pattern.split('は')[0] + 'は',
-          predicatePart: pattern.split('は')[1] || '',
+          predicatePart: pattern.split('は')[1] ?? '',
           range: {
             start: { line: 0, character: index },
             end: { line: 0, character: index + pattern.length }

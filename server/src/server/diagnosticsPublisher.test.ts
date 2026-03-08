@@ -5,14 +5,13 @@
  */
 
 import { createDiagnosticsPublisher, DiagnosticsPublisher, convertSeverity } from './diagnosticsPublisher';
-import { DiagnosticSeverity as LSPDiagnosticSeverity } from 'vscode-languageserver/node';
-import { Diagnostic } from '../../../shared/src/types';
+import { Diagnostic as LSPDiagnostic, DiagnosticSeverity as LSPDiagnosticSeverity } from 'vscode-languageserver/node';
 
 describe('diagnosticsPublisher', () => {
   describe('createDiagnosticsPublisher', () => {
     it('should create a diagnostics publisher instance', () => {
-      const publishedDiagnostics: Array<{ uri: string; diagnostics: Diagnostic[] }> = [];
-      const sendDiagnostics = (params: { uri: string; diagnostics: Diagnostic[] }) => {
+      const publishedDiagnostics: Array<{ uri: string; diagnostics: LSPDiagnostic[] }> = [];
+      const sendDiagnostics = (params: { uri: string; diagnostics: LSPDiagnostic[] }) => {
         publishedDiagnostics.push(params);
       };
 
@@ -26,20 +25,20 @@ describe('diagnosticsPublisher', () => {
 
   describe('DiagnosticsPublisher.publish', () => {
     it('should publish diagnostics to the specified URI', () => {
-      const publishedDiagnostics: Array<{ uri: string; diagnostics: Diagnostic[] }> = [];
-      const sendDiagnostics = (params: { uri: string; diagnostics: Diagnostic[] }) => {
+      const publishedDiagnostics: Array<{ uri: string; diagnostics: LSPDiagnostic[] }> = [];
+      const sendDiagnostics = (params: { uri: string; diagnostics: LSPDiagnostic[] }) => {
         publishedDiagnostics.push(params);
       };
 
       const publisher = createDiagnosticsPublisher(sendDiagnostics);
 
-      const diagnostics: Diagnostic[] = [
+      const diagnostics: LSPDiagnostic[] = [
         {
           range: {
             start: { line: 0, character: 0 },
             end: { line: 0, character: 5 },
           },
-          severity: 1,
+          severity: LSPDiagnosticSeverity.Warning,
           message: 'Test error',
           code: 'test-code',
           source: 'otak-lsp',
@@ -55,24 +54,24 @@ describe('diagnosticsPublisher', () => {
     });
 
     it('should publish multiple diagnostics', () => {
-      const publishedDiagnostics: Array<{ uri: string; diagnostics: Diagnostic[] }> = [];
-      const sendDiagnostics = (params: { uri: string; diagnostics: Diagnostic[] }) => {
+      const publishedDiagnostics: Array<{ uri: string; diagnostics: LSPDiagnostic[] }> = [];
+      const sendDiagnostics = (params: { uri: string; diagnostics: LSPDiagnostic[] }) => {
         publishedDiagnostics.push(params);
       };
 
       const publisher = createDiagnosticsPublisher(sendDiagnostics);
 
-      const diagnostics: Diagnostic[] = [
+      const diagnostics: LSPDiagnostic[] = [
         {
           range: { start: { line: 0, character: 0 }, end: { line: 0, character: 5 } },
-          severity: 1,
+          severity: LSPDiagnosticSeverity.Warning,
           message: 'Error 1',
           code: 'e1',
           source: 'otak-lsp',
         },
         {
           range: { start: { line: 1, character: 0 }, end: { line: 1, character: 5 } },
-          severity: 2,
+          severity: LSPDiagnosticSeverity.Information,
           message: 'Error 2',
           code: 'e2',
           source: 'otak-lsp',
@@ -87,8 +86,8 @@ describe('diagnosticsPublisher', () => {
 
   describe('DiagnosticsPublisher.clear', () => {
     it('should clear diagnostics by publishing empty array', () => {
-      const publishedDiagnostics: Array<{ uri: string; diagnostics: Diagnostic[] }> = [];
-      const sendDiagnostics = (params: { uri: string; diagnostics: Diagnostic[] }) => {
+      const publishedDiagnostics: Array<{ uri: string; diagnostics: LSPDiagnostic[] }> = [];
+      const sendDiagnostics = (params: { uri: string; diagnostics: LSPDiagnostic[] }) => {
         publishedDiagnostics.push(params);
       };
 

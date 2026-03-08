@@ -81,9 +81,9 @@ export class MatawaWakushikuwaRule implements AdvancedGrammarRule {
    */
   countChoiceElements(text: string): number {
     // 「又は」で区切られた要素をカウント
-    const matawaCount = (text.match(/又は/g) || []).length;
+    const matawaCount = (text.match(/又は/g) ?? []).length;
     // 「、」で区切られた要素をカウント（「又は」の前後）
-    const commaCount = (text.match(/、/g) || []).length;
+    const commaCount = (text.match(/、/g) ?? []).length;
 
     // 要素数 = 区切り数 + 1
     return matawaCount + commaCount + 1;

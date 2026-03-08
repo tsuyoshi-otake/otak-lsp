@@ -677,6 +677,6 @@ export class SentenceParser {
    * @returns 読点の数
    */
   static countCommas(text: string): number {
-    return (text.match(/、/g) || []).length;
+    return (text.match(/、/g) ?? []).length;
   }
 }

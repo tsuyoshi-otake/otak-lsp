@@ -82,9 +82,9 @@ export class OyobiNarabiniRule implements AdvancedGrammarRule {
    */
   countParallelElements(text: string): number {
     // 「及び」で区切られた要素をカウント
-    const oyobiCount = (text.match(/及び/g) || []).length;
+    const oyobiCount = (text.match(/及び/g) ?? []).length;
     // 「、」で区切られた要素をカウント（「及び」の前後）
-    const commaCount = (text.match(/、/g) || []).length;
+    const commaCount = (text.match(/、/g) ?? []).length;
 
     // 要素数 = 区切り数 + 1
     return oyobiCount + commaCount + 1;

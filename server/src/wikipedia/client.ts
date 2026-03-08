@@ -263,7 +263,7 @@ export class WikipediaClient {
       }
 
       // extractフィールドがサマリーテキスト
-      return data.extract || null;
+      return data.extract ?? null;
     } catch {
       clearTimeout(timeoutId);
       return null;

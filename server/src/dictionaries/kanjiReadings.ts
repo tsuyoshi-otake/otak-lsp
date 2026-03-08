@@ -103,5 +103,5 @@ export function getKanjiReadings(char: string): string[] {
     return [];
   }
 
-  return KANJI_READINGS[firstChar] || [];
+  return KANJI_READINGS[firstChar] ?? [];
 }

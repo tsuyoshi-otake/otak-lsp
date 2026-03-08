@@ -13,6 +13,7 @@ import { HoverProvider } from '../hover/provider';
 import { WikipediaClient } from '../wikipedia/client';
 import { createConfigManager } from './configManager';
 import { TextDocument } from 'vscode-languageserver-textdocument';
+import { createLogger } from '../utils/logger';
 
 describe('analysisScheduler', () => {
   let analysisStates: AnalysisStateManager;
@@ -37,17 +38,19 @@ describe('analysisScheduler', () => {
     const wikipediaClient = new WikipediaClient();
     const hoverProvider = new HoverProvider(wikipediaClient);
 
+    const logger = createLogger((msg: string) => { logs.push(msg); }, true);
+
     configManager = createConfigManager(
       advancedRulesManager,
       proofreadingRulesManager,
       hoverProvider,
-      (msg: string) => logs.push(msg)
+      logger
     );
 
     scheduler = createAnalysisScheduler(
       analysisStates,
       configManager,
-      (msg: string) => logs.push(msg)
+      logger
     );
     
     // Set execute analysis function after creation

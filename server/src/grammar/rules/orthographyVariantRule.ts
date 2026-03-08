@@ -169,7 +169,7 @@ export class OrthographyVariantRule implements AdvancedGrammarRule {
    * 推奨表記を取得
    */
   getRecommendedForm(variant: string): string | null {
-    return ORTHOGRAPHY_VARIANTS.get(variant) || null;
+    return ORTHOGRAPHY_VARIANTS.get(variant) ?? null;
   }
 
   /**

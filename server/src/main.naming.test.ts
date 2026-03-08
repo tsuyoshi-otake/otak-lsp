@@ -31,9 +31,9 @@ describe('Language Server 命名規則テスト', () => {
 
   describe('プロパティ2: ログメッセージの命名統一', () => {
     it('初期化ログメッセージには「otak-lsp」が使用されている', () => {
-      // main.ts or connection.ts should have the log message
-      const hasInMain = /console\.log\s*\([^)]*otak-lsp[^)]*\)/.test(mainSource);
-      const hasInConnection = /console\.log\s*\([^)]*otak-lsp[^)]*\)/.test(connectionSource);
+      // main.ts or connection.ts で logger 経由で otak-lsp メッセージを出力している
+      const hasInMain = /otak-lsp/.test(mainSource);
+      const hasInConnection = /otak-lsp/.test(connectionSource);
       expect(hasInMain || hasInConnection).toBe(true);
     });
 
@@ -52,8 +52,8 @@ describe('Language Server 命名規則テスト', () => {
     });
 
     it('診断情報のソースは「otak-lsp」を使用する', () => {
-      // documentAnalyzer.ts should have the source
-      expect(documentAnalyzerSource).toMatch(/source:\s*['"]otak-lsp['"]/);
+      // documentAnalyzer.ts で toLspDiagnostics に 'otak-lsp' を渡している
+      expect(documentAnalyzerSource).toMatch(/['"]otak-lsp['"]/);
     });
   });
 

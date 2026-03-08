@@ -361,7 +361,7 @@ export class EvalsRunner {
           diagnostics: [],
           expectedRule: category.expectedRule
         })),
-        representativeExample: category.examples[0]?.text || ''
+        representativeExample: category.examples[0]?.text ?? ''
       };
     }
 
@@ -395,7 +395,7 @@ export class EvalsRunner {
       detected: detectedCount,
       detectionRate,
       examples: exampleResults,
-      representativeExample: category.examples[0]?.text || ''
+      representativeExample: category.examples[0]?.text ?? ''
     };
   }
 
@@ -498,14 +498,14 @@ export class EvalsRunner {
       return new Token({
         surface: t.surface_form,
         pos: t.pos,
-        posDetail1: t.pos_detail_1 || '*',
-        posDetail2: t.pos_detail_2 || '*',
-        posDetail3: t.pos_detail_3 || '*',
-        conjugation: t.conjugated_type || '*',
-        conjugationForm: t.conjugated_form || '*',
+        posDetail1: t.pos_detail_1 ?? '*',
+        posDetail2: t.pos_detail_2 ?? '*',
+        posDetail3: t.pos_detail_3 ?? '*',
+        conjugation: t.conjugated_type ?? '*',
+        conjugationForm: t.conjugated_form ?? '*',
         baseForm: t.basic_form || t.surface_form,
-        reading: t.reading || '',
-        pronunciation: t.pronunciation || '',
+        reading: t.reading ?? '',
+        pronunciation: t.pronunciation ?? '',
         start,
         end
       });

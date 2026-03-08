@@ -6,7 +6,7 @@
  * 診断結果のLSPクライアントへの送信を担当
  */
 
-import { DiagnosticSeverity as LSPDiagnosticSeverity } from 'vscode-languageserver/node';
+import { DiagnosticSeverity as LSPDiagnosticSeverity, Diagnostic as LSPDiagnostic } from 'vscode-languageserver/node';
 import { Diagnostic } from '../../../shared/src/types';
 
 /**
@@ -16,7 +16,7 @@ export interface DiagnosticsPublisher {
   /**
    * 診断結果を送信
    */
-  publish(uri: string, diagnostics: Diagnostic[]): void;
+  publish(uri: string, diagnostics: LSPDiagnostic[]): void;
 
   /**
    * 診断結果をクリア
@@ -48,10 +48,10 @@ export function convertSeverity(severity: number): LSPDiagnosticSeverity {
  * @param sendDiagnostics 診断情報送信関数（connection.sendDiagnostics）
  */
 export function createDiagnosticsPublisher(
-  sendDiagnostics: (params: { uri: string; diagnostics: Diagnostic[] }) => void
+  sendDiagnostics: (params: { uri: string; diagnostics: LSPDiagnostic[] }) => void
 ): DiagnosticsPublisher {
   return {
-    publish(uri: string, diagnostics: Diagnostic[]): void {
+    publish(uri: string, diagnostics: LSPDiagnostic[]): void {
       sendDiagnostics({ uri, diagnostics });
     },
 

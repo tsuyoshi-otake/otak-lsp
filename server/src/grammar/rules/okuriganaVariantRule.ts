@@ -117,7 +117,7 @@ export class OkuriganaVariantRule implements AdvancedGrammarRule {
    * 標準形を取得
    */
   getStandardForm(variant: string): string | null {
-    return OKURIGANA_VARIANTS.get(variant) || null;
+    return OKURIGANA_VARIANTS.get(variant) ?? null;
   }
 
   /**

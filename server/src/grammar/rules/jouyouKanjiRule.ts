@@ -144,9 +144,9 @@ export class JouyouKanjiRule implements AdvancedGrammarRule {
    * トークンが固有名詞（人名・地名・組織）かどうかを判定
    */
   getProperNounType(token: Token): ProperNounType {
-    const posDetail1 = token.posDetail1 || '';
-    const posDetail2 = token.posDetail2 || '';
-    const posDetail3 = token.posDetail3 || '';
+    const posDetail1 = token.posDetail1 ?? '';
+    const posDetail2 = token.posDetail2 ?? '';
+    const posDetail3 = token.posDetail3 ?? '';
     const details = [posDetail1, posDetail2, posDetail3];
 
     if (details.includes('人名')) {
@@ -389,7 +389,7 @@ export class JouyouKanjiRule implements AdvancedGrammarRule {
 
     // トークンごとに処理
     for (const token of tokens) {
-      const surface = token.surface || '';
+      const surface = token.surface ?? '';
       const tokenStart = token.start;
 
       const properNounType = this.getProperNounType(token);

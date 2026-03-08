@@ -1242,7 +1242,7 @@ export class MarkdownFilter implements IMarkdownFilter {
     for (const range of ranges) {
       const length = range.end - range.start;
       totalExcludedCharacters += length;
-      excludedByType[range.type] = (excludedByType[range.type] || 0) + length;
+      excludedByType[range.type] = (excludedByType[range.type] ?? 0) + length;
     }
 
     return {

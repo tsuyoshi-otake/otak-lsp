@@ -150,7 +150,7 @@ export class KatakanaChouonRule implements AdvancedGrammarRule {
     if (EXCEPTIONS.has(variant)) {
       return null;
     }
-    return CHOUON_VARIANTS.get(variant) || null;
+    return CHOUON_VARIANTS.get(variant) ?? null;
   }
 
   /**
@@ -168,8 +168,8 @@ export class KatakanaChouonRule implements AdvancedGrammarRule {
       let index = text.indexOf(variant);
       while (index !== -1) {
         // 標準形が既に使用されていないかチェック（重複検出を防ぐ）
-        const nextChar = text[index + variant.length] || '';
-        const prevChar = text[index - 1] || '';
+        const nextChar = text[index + variant.length] ?? '';
+        const prevChar = text[index - 1] ?? '';
 
         // 長音符が続いている場合は既に正しい可能性があるのでスキップ
         if (nextChar === 'ー' && standard.endsWith('ー')) {

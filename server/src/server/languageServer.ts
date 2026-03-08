@@ -357,7 +357,7 @@ export class LanguageServer {
    * ドキュメントを取得
    */
   getDocument(uri: string): DocumentInfo | null {
-    return this.documents.get(uri) || null;
+    return this.documents.get(uri) ?? null;
   }
 
   /**

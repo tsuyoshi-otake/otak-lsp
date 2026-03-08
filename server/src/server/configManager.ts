@@ -6,7 +6,7 @@
  * 設定の読み込み・適用・変更通知を管理
  */
 
-import { Configuration, SupportedLanguage } from '../../../shared/src/types';
+import { Configuration, SupportedLanguage, GlossaryId } from '../../../shared/src/types';
 import {
   AdvancedRulesConfig,
   SentenceSplitMode,
@@ -165,7 +165,7 @@ export function createConfigManager(
         ...configuration.hover,
         enableWikipedia: typeof enableWikipedia === 'boolean' ? enableWikipedia : configuration.hover.enableWikipedia,
         enableGlossary: typeof enableGlossary === 'boolean' ? enableGlossary : configuration.hover.enableGlossary,
-        enabledGlossaries: Array.isArray(enabledGlossaries) ? enabledGlossaries as string[] : configuration.hover.enabledGlossaries,
+        enabledGlossaries: Array.isArray(enabledGlossaries) ? enabledGlossaries as GlossaryId[] : configuration.hover.enabledGlossaries,
       },
     };
 

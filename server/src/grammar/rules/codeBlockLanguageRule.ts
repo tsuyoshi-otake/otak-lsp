@@ -24,7 +24,7 @@ export class CodeBlockLanguageRule implements AdvancedGrammarRule {
   description = 'コードブロックの言語指定欠落を検出します';
 
   private countBlockquoteDepth(prefix: string): number {
-    return (prefix.match(/>/g) || []).length;
+    return (prefix.match(/>/g) ?? []).length;
   }
 
   private findInlineFencedCodeSnippets(line: string): Array<{ start: number; end: number }> {

@@ -134,7 +134,7 @@ export class ErrorHandler {
     // リトライ可能なエラーの場合
     if (this.isRetryable(error.code)) {
       const key = this.getContextKey(context);
-      const currentCount = this.retryCount.get(key) || 0;
+      const currentCount = this.retryCount.get(key) ?? 0;
       const newCount = currentCount + 1;
       this.retryCount.set(key, newCount);
 
@@ -176,7 +176,7 @@ export class ErrorHandler {
    */
   getRetryCount(context: ErrorContext): number {
     const key = this.getContextKey(context);
-    return this.retryCount.get(key) || 0;
+    return this.retryCount.get(key) ?? 0;
   }
 
   /**

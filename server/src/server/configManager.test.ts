@@ -10,6 +10,7 @@ import { ProofreadingRulesManager } from '../proofreading/proofreadingRulesManag
 import { HoverProvider } from '../hover/provider';
 import { WikipediaClient } from '../wikipedia/client';
 import { Configuration } from '../../../shared/src/types';
+import { createLogger } from '../utils/logger';
 
 describe('configManager', () => {
   let advancedRulesManager: AdvancedRulesManager;
@@ -17,7 +18,7 @@ describe('configManager', () => {
   let hoverProvider: HoverProvider;
   let configManager: ConfigManager;
   const logs: string[] = [];
-  const logger = (msg: string) => logs.push(msg);
+  const logger = createLogger((msg: string) => { logs.push(msg); }, true);
 
   beforeEach(() => {
     logs.length = 0;

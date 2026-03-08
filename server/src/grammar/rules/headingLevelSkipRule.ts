@@ -25,7 +25,7 @@ export class HeadingLevelSkipRule implements AdvancedGrammarRule {
   description = '見出しレベルの飛び（h1の次にh3など）を検出します';
 
   private countBlockquoteDepth(prefix: string): number {
-    return (prefix.match(/>/g) || []).length;
+    return (prefix.match(/>/g) ?? []).length;
   }
 
   private extractHeadingsFromTableLine(

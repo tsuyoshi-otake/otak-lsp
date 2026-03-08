@@ -61,8 +61,8 @@ export class AlphabetWidthRule implements AdvancedGrammarRule {
    * 支配的な幅（全角/半角）を判定
    */
   getDominantWidth(text: string): 'full' | 'half' {
-    const fullwidthCount = (text.match(FULLWIDTH_ALPHA_REGEX) || []).join('').length;
-    const halfwidthCount = (text.match(HALFWIDTH_ALPHA_REGEX) || []).join('').length;
+    const fullwidthCount = (text.match(FULLWIDTH_ALPHA_REGEX) ?? []).join('').length;
+    const halfwidthCount = (text.match(HALFWIDTH_ALPHA_REGEX) ?? []).join('').length;
     return fullwidthCount > halfwidthCount ? 'full' : 'half';
   }
 

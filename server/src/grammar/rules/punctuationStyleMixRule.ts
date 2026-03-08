@@ -62,8 +62,8 @@ export class PunctuationStyleMixRule extends MixDetectionRule {
    * Create diagnostic message
    */
   protected createDiagnosticMessage(patterns: Map<string, PatternInfo>): string {
-    const japaneseCount = patterns.get('japanese')?.count || 0;
-    const westernCount = patterns.get('western')?.count || 0;
+    const japaneseCount = patterns.get('japanese')?.count ?? 0;
+    const westernCount = patterns.get('western')?.count ?? 0;
 
     return `句読点のスタイルが混在しています。日本語スタイル（、。）が${japaneseCount}箇所、欧文スタイル（，．）が${westernCount}箇所あります。どちらかに統一してください。`;
   }

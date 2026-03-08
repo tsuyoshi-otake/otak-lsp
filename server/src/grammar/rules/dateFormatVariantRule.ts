@@ -116,7 +116,7 @@ export class DateFormatVariantRule implements AdvancedGrammarRule {
     // フォーマットの統計を取る
     const formatCounts = new Map<DateFormatType, number>();
     for (const date of dates) {
-      formatCounts.set(date.format, (formatCounts.get(date.format) || 0) + 1);
+      formatCounts.set(date.format, (formatCounts.get(date.format) ?? 0) + 1);
     }
 
     // 複数のフォーマットが存在するかチェック

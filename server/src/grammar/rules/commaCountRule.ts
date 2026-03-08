@@ -25,7 +25,7 @@ export class CommaCountRule implements AdvancedGrammarRule {
    * 文中の読点をカウント
    */
   countCommas(text: string): number {
-    return (text.match(/、/g) || []).length;
+    return (text.match(/、/g) ?? []).length;
   }
 
   /**

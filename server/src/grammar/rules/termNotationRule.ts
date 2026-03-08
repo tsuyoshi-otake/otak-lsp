@@ -179,7 +179,7 @@ export class TermNotationRule implements AdvancedGrammarRule {
    */
   getCorrectNotation(term: string, config: AdvancedRulesConfig): string | null {
     const dictionaries = this.getActiveDictionaries(config);
-    return dictionaries.get(term) || null;
+    return dictionaries.get(term) ?? null;
   }
 
   /**

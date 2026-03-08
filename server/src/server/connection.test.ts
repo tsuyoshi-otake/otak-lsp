@@ -98,6 +98,7 @@ const createMockAnalysisScheduler = (): AnalysisScheduler => ({
   scheduleFullAnalysis: jest.fn(),
   cancelAnalysis: jest.fn(),
   clearAllTimers: jest.fn(),
+  setExecuteAnalysis: jest.fn(),
 });
 
 const createMockDocumentAnalyzer = (): DocumentAnalyzer => ({

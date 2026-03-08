@@ -20,7 +20,7 @@ export function isEmpty<T>(arr: T[] | null | undefined): boolean {
  * @param arr - チェックする配列
  * @returns 配列が空でない場合true
  */
-export function isNotEmpty<T>(arr: T[] | null | undefined): boolean {
+export function isNotEmpty<T>(arr: T[] | null | undefined): arr is T[] {
   return !!arr && arr.length > 0;
 }
 

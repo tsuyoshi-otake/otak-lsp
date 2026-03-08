@@ -114,7 +114,7 @@ export class KanjiOpeningRule implements AdvancedGrammarRule {
    * ひらがな形を取得
    */
   getOpenedForm(kanji: string): string | null {
-    return KANJI_OPENING_RULES.get(kanji) || null;
+    return KANJI_OPENING_RULES.get(kanji) ?? null;
   }
 
   /**
