@@ -74,7 +74,7 @@ export class TwistedSentenceRule implements AdvancedGrammarRule {
       let index = text.indexOf(pattern);
       while (index !== -1) {
         results.push({
-          sentence: null as any,
+          sentence: null,
           subjectPart: pattern.split('は')[0] + 'は',
           predicatePart: pattern.split('は')[1] || '',
           range: {
@@ -99,7 +99,7 @@ export class TwistedSentenceRule implements AdvancedGrammarRule {
 
         if (!alreadyDetected) {
           results.push({
-            sentence: null as any,
+            sentence: null,
             subjectPart: match[0],
             predicatePart: '',
             range: {

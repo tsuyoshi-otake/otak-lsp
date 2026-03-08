@@ -6,6 +6,7 @@
  */
 
 import { Token, Diagnostic, DiagnosticSeverity, Range, GrammarError, GrammarErrorType } from '../../../shared/src/types';
+import { computeLineStarts, offsetToLineAndCharacter } from '../utils/lineStarts';
 
 /**
  * 文法ルールインターフェース
@@ -55,39 +56,10 @@ export class GrammarChecker {
   }
 
   /**
-   * テキストから行開始位置を計算
-   */
-  private calculateLineStarts(text: string): void {
-    this.lineStarts = [0];
-    for (let i = 0; i < text.length; i++) {
-      if (text[i] === '\n') {
-        this.lineStarts.push(i + 1);
-      }
-    }
-  }
-
-  /**
    * オフセットから行と文字位置を取得
    */
   getLineAndChar(offset: number): { line: number; character: number } {
-    if (this.lineStarts.length === 0) {
-      return { line: 0, character: offset };
-    }
-
-    // lineStarts は昇順。offset 以下の最大の index を二分探索で求める
-    let low = 0;
-    let high = this.lineStarts.length - 1;
-    while (low <= high) {
-      const mid = (low + high) >> 1;
-      if (this.lineStarts[mid] <= offset) {
-        low = mid + 1;
-      } else {
-        high = mid - 1;
-      }
-    }
-
-    const line = Math.max(0, high);
-    return { line, character: offset - this.lineStarts[line] };
+    return offsetToLineAndCharacter(this.lineStarts, offset);
   }
 
   /**
@@ -100,7 +72,7 @@ export class GrammarChecker {
 
     // テキストがあれば行開始位置を計算
     if (text) {
-      this.calculateLineStarts(text);
+      this.lineStarts = computeLineStarts(text);
     }
 
     const diagnostics: Diagnostic[] = [];

@@ -379,7 +379,7 @@ export interface MissingSubject {
  * ねじれ文の情報
  */
 export interface TwistedSentence {
-  sentence: Sentence;
+  sentence: Sentence | null;
   subjectPart: string;
   predicatePart: string;
   range: Range;

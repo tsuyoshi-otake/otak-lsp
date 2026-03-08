@@ -9,6 +9,7 @@
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { AnalysisStateManager } from './languageServer';
 import { ConfigManager } from './configManager';
+import { Logger } from '../utils/logger';
 
 /**
  * 解析実行関数の型
@@ -38,6 +39,11 @@ export interface AnalysisScheduler {
    * すべてのタイマーをクリア
    */
   clearAllTimers(): void;
+
+  /**
+   * 解析実行関数を後から設定する（循環依存の解消用）
+   */
+  setExecuteAnalysis(fn: ExecuteAnalysisFn): void;
 }
 
 /**
@@ -46,10 +52,16 @@ export interface AnalysisScheduler {
 export function createAnalysisScheduler(
   analysisStates: AnalysisStateManager,
   configManager: ConfigManager,
-  executeAnalysis: ExecuteAnalysisFn,
-  logger?: (message: string) => void
+  logger?: Logger
 ): AnalysisScheduler {
-  const DEBUG_LOGS = process.env.OTAK_LCP_DEBUG === '1';
+  function debugLog(message: string): void {
+    if (logger) {
+      logger.debug(message);
+    }
+  }
+
+  // 解析実行関数（setExecuteAnalysisで後から設定）
+  let executeAnalysis: ExecuteAnalysisFn = async () => {};
 
   // デバウンスタイマー
   const debounceTimers: Map<string, NodeJS.Timeout> = new Map();
@@ -59,12 +71,6 @@ export function createAnalysisScheduler(
 
   // 全ルール解析待機中のURI
   const pendingFullAnalysis: Set<string> = new Set();
-
-  function debugLog(message: string): void {
-    if (DEBUG_LOGS && logger) {
-      logger(`[DEBUG] ${message}`);
-    }
-  }
 
   /**
    * 解析を実行（直列化）
@@ -268,6 +274,10 @@ export function createAnalysisScheduler(
       pendingFullAnalysis.clear();
 
       debugLog('Cleared all timers');
+    },
+
+    setExecuteAnalysis(fn: ExecuteAnalysisFn): void {
+      executeAnalysis = fn;
     },
   };
 }

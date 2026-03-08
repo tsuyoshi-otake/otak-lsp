@@ -165,6 +165,11 @@ export class AnalysisStateManager {
 }
 
 /**
+ * デフォルト設定値
+ */
+const DEFAULT_ANALYSIS_CACHE_SIZE = 100;
+
+/**
  * ドキュメント情報
  */
 interface DocumentInfo {
@@ -181,7 +186,7 @@ export class AnalysisCache {
   private cache: Map<string, AnalysisResult> = new Map();
   private maxSize: number;
 
-  constructor(maxSize: number = 100) {
+  constructor(maxSize: number = DEFAULT_ANALYSIS_CACHE_SIZE) {
     this.maxSize = maxSize;
   }
 
@@ -262,7 +267,7 @@ export class LanguageServer {
   private configuration: Configuration;
 
   constructor() {
-    this.analysisCache = new AnalysisCache(100);
+    this.analysisCache = new AnalysisCache(DEFAULT_ANALYSIS_CACHE_SIZE);
     this.analysisStateManager = new AnalysisStateManager();
     this.configuration = this.getDefaultConfiguration();
   }

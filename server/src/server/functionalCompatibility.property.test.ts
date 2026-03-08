@@ -7,13 +7,7 @@
 import * as fc from 'fast-check';
 import { AnalysisStateManager, createInitialAnalysisState, AnalysisState } from './languageServer';
 import { TextDocument } from 'vscode-languageserver-textdocument';
-
-/**
- * テスト用のTextDocumentを生成するヘルパー
- */
-function createMockTextDocument(uri: string, version: number, text: string): TextDocument {
-  return TextDocument.create(uri, 'markdown', version, text);
-}
+import { createMockTextDocument } from '../__tests__/testUtils';
 
 /**
  * 設定状態をシミュレートするインターフェース

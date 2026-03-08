@@ -6,6 +6,7 @@
  */
 
 import { MeCabAnalyzer } from './analyzer';
+import { formatError } from '../utils/errorHandler';
 
 /**
  * 解析器環境ステータス
@@ -112,7 +113,7 @@ export class MeCabEnvironmentChecker {
         status.error = '形態素解析器の初期化に失敗しました';
       }
     } catch (err) {
-      status.error = `エラー: ${err instanceof Error ? err.message : String(err)}`;
+      status.error = `エラー: ${formatError(err)}`;
     }
 
     return status;

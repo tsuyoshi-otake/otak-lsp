@@ -14,6 +14,8 @@ import {
   AdvancedDiagnostic
 } from '../../../../shared/src/advancedTypes';
 import { GrammarChecker } from '../checker';
+import { Logger, createLogger } from '../../utils/logger';
+import { logError } from '../../utils/errorHandler';
 import {
   StyleConsistencyRule,
   RaNukiRule,
@@ -190,11 +192,13 @@ export class EvalsRunner {
     check: (tokens: Token[], context: RuleContext) => AdvancedDiagnostic[];
   }>;
   private proofreadingRulesManager: ProofreadingRulesManager;
+  private logger: Logger;
 
   constructor() {
     this.grammarChecker = new GrammarChecker();
     this.advancedRules = new Map();
     this.proofreadingRulesManager = new ProofreadingRulesManager();
+    this.logger = createLogger((msg) => console.log(msg), false);
   }
 
   /**
@@ -447,8 +451,7 @@ export class EvalsRunner {
         const advancedDiagnostics = rule.check(tokens, context);
         diagnostics.push(...advancedDiagnostics.map(d => d.toDiagnostic()));
       } catch (e) {
-        // ルール実行エラーは無視
-        console.error(`Rule ${ruleName} failed:`, e);
+        logError(this.logger, `Rule ${ruleName} failed`, e);
       }
     });
 
@@ -457,7 +460,7 @@ export class EvalsRunner {
       const proofreadingDiagnostics = this.proofreadingRulesManager.checkText(text, tokens);
       diagnostics.push(...proofreadingDiagnostics);
     } catch (e) {
-      console.error('Proofreading rules failed:', e);
+      logError(this.logger, 'Proofreading rules failed', e);
     }
 
     // 期待されるルールまたは関連するルールで検出されたかチェック

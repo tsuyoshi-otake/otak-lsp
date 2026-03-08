@@ -9,6 +9,7 @@ import {
   AdvancedRuleSharedContext,
   CodeRange
 } from '../../../shared/src/advancedTypes';
+import { computeLineStarts } from '../utils/lineStarts';
 
 /**
  * コードブロック（```...```）の範囲を取得
@@ -46,19 +47,6 @@ function getInlineCodeRanges(text: string, codeBlockRanges: CodeRange[]): CodeRa
 }
 
 /**
- * 行開始位置を計算
- */
-function calculateLineStarts(text: string): number[] {
-  const lineStarts = [0];
-  for (let i = 0; i < text.length; i++) {
-    if (text[i] === '\n') {
-      lineStarts.push(i + 1);
-    }
-  }
-  return lineStarts;
-}
-
-/**
  * 行テキストを抽出
  */
 function splitLines(text: string): string[] {
@@ -75,7 +63,7 @@ export function buildSharedContext(text: string): AdvancedRuleSharedContext {
   const codeBlockRanges = getCodeBlockRanges(text);
   const inlineCodeRanges = getInlineCodeRanges(text, codeBlockRanges);
   const codeRanges = [...inlineCodeRanges, ...codeBlockRanges].sort((a, b) => a.start - b.start);
-  const lineStarts = calculateLineStarts(text);
+  const lineStarts = computeLineStarts(text);
   const lines = splitLines(text);
 
   return {

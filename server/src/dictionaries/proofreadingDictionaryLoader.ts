@@ -6,6 +6,9 @@
  * JSON辞書/単語リスト/ルール辞書を読み込み、カテゴリ別に索引化する
  */
 
+import { Logger } from '../utils/logger';
+import { logWarning, formatError } from '../utils/errorHandler';
+
 /**
  * 辞書エントリ
  */
@@ -58,6 +61,12 @@ export interface DictionaryLoadResult<T> {
  * 校正辞書ローダークラス
  */
 export class ProofreadingDictionaryLoader {
+  private logger: Logger | undefined;
+
+  constructor(logger?: Logger) {
+    this.logger = logger;
+  }
+
   /**
    * JSON辞書をパース
    * @param json JSON文字列
@@ -67,7 +76,7 @@ export class ProofreadingDictionaryLoader {
     try {
       const data = JSON.parse(json);
       if (!Array.isArray(data)) {
-        console.warn('Dictionary is not an array');
+        logWarning(this.logger, 'Dictionary is not an array', 'Invalid dictionary format');
         return [];
       }
 
@@ -92,7 +101,7 @@ export class ProofreadingDictionaryLoader {
 
       return entries;
     } catch (e) {
-      console.warn('Failed to parse JSON dictionary:', e);
+      logWarning(this.logger, 'Failed to parse JSON dictionary', e);
       return [];
     }
   }
@@ -129,7 +138,7 @@ export class ProofreadingDictionaryLoader {
     try {
       const data = JSON.parse(json);
       if (!Array.isArray(data)) {
-        console.warn('Rule dictionary is not an array');
+        logWarning(this.logger, 'Rule dictionary is not an array', 'Invalid dictionary format');
         return [];
       }
 
@@ -152,7 +161,7 @@ export class ProofreadingDictionaryLoader {
 
       return entries;
     } catch (e) {
-      console.warn('Failed to parse rule dictionary:', e);
+      logWarning(this.logger, 'Failed to parse rule dictionary', e);
       return [];
     }
   }
@@ -189,8 +198,8 @@ export class ProofreadingDictionaryLoader {
       const entries = this.parseJsonDictionary(content);
       return { success: true, entries };
     } catch (e) {
-      const errorMessage = e instanceof Error ? e.message : String(e);
-      console.warn(`Failed to load dictionary from ${filePath}:`, errorMessage);
+      const errorMessage = formatError(e);
+      logWarning(this.logger, `Failed to load dictionary from ${filePath}`, e);
       return { success: false, entries: [], error: errorMessage };
     }
   }
@@ -207,8 +216,8 @@ export class ProofreadingDictionaryLoader {
       const entries = this.parseSpellDictionary(content);
       return { success: true, entries };
     } catch (e) {
-      const errorMessage = e instanceof Error ? e.message : String(e);
-      console.warn(`Failed to load spell dictionary from ${filePath}:`, errorMessage);
+      const errorMessage = formatError(e);
+      logWarning(this.logger, `Failed to load spell dictionary from ${filePath}`, e);
       return { success: false, entries: [], error: errorMessage };
     }
   }
@@ -225,8 +234,8 @@ export class ProofreadingDictionaryLoader {
       const entries = this.parseRuleDictionary(content);
       return { success: true, entries };
     } catch (e) {
-      const errorMessage = e instanceof Error ? e.message : String(e);
-      console.warn(`Failed to load rule dictionary from ${filePath}:`, errorMessage);
+      const errorMessage = formatError(e);
+      logWarning(this.logger, `Failed to load rule dictionary from ${filePath}`, e);
       return { success: false, entries: [], error: errorMessage };
     }
   }

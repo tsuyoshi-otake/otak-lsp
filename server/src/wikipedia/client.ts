@@ -6,6 +6,13 @@
  */
 
 /**
+ * デフォルト設定値
+ */
+const DEFAULT_TIMEOUT_MS = 5000; // 5秒
+const DEFAULT_CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24時間
+const DEFAULT_MAX_CACHE_SIZE = 1000; // 最大キャッシュエントリ数
+
+/**
  * Wikipedia APIレスポンス
  */
 interface WikipediaResponse {
@@ -37,9 +44,9 @@ export class WikipediaClient {
   private inFlight: Map<string, Promise<string | null>> = new Map();
   private cacheGeneration: number = 0;
   private fetchFn: FetchFunction;
-  private timeoutMs: number = 5000;
-  private cacheTTL: number = 24 * 60 * 60 * 1000; // 24時間
-  private maxCacheSize: number = 1000;
+  private timeoutMs: number = DEFAULT_TIMEOUT_MS;
+  private cacheTTL: number = DEFAULT_CACHE_TTL_MS;
+  private maxCacheSize: number = DEFAULT_MAX_CACHE_SIZE;
 
   private static readonly BASE_URL = 'https://ja.wikipedia.org/api/rest_v1/page/summary';
   private static readonly USER_AGENT = 'JapaneseGrammarAnalyzer/1.0 (VSCode Extension)';

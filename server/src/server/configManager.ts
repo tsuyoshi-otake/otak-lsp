@@ -20,6 +20,7 @@ import {
 } from '../proofreading/proofreadingConfig';
 import { HoverProvider } from '../hover/provider';
 import { DEFAULT_ENABLED_GLOSSARIES } from '../hover/glossary';
+import { Logger } from '../utils/logger';
 
 /**
  * 設定変更コールバック型
@@ -106,7 +107,7 @@ export function createConfigManager(
   advancedRulesManager: AdvancedRulesManager,
   proofreadingRulesManager: ProofreadingRulesManager,
   hoverProvider: HoverProvider,
-  logger?: (message: string) => void
+  logger?: Logger
 ): ConfigManager {
   // 基本設定
   let configuration: Configuration = {
@@ -163,7 +164,7 @@ export function createConfigManager(
         ...configuration.hover,
         enableWikipedia: typeof enableWikipedia === 'boolean' ? enableWikipedia : configuration.hover.enableWikipedia,
         enableGlossary: typeof enableGlossary === 'boolean' ? enableGlossary : configuration.hover.enableGlossary,
-        enabledGlossaries: Array.isArray(enabledGlossaries) ? (enabledGlossaries as any) : configuration.hover.enabledGlossaries,
+        enabledGlossaries: Array.isArray(enabledGlossaries) ? enabledGlossaries as string[] : configuration.hover.enabledGlossaries,
       },
     };
 
@@ -211,11 +212,11 @@ export function createConfigManager(
       }
 
       if (typeof currentValue === 'boolean' && typeof incoming === 'boolean') {
-        (patch as any)[key] = incoming;
+        patch[key as keyof AdvancedRulesConfig] = incoming as never;
         continue;
       }
       if (typeof currentValue === 'number' && typeof incoming === 'number' && Number.isFinite(incoming)) {
-        (patch as any)[key] = incoming;
+        patch[key as keyof AdvancedRulesConfig] = incoming as never;
         continue;
       }
 
@@ -326,7 +327,7 @@ export function createConfigManager(
     advancedRulesManager.updateConfig(mergedConfig);
 
     if (logger) {
-      logger(`[DEBUG] Proofreading config applied: preset=${proofreadingConfig.preset}, mergeMode=${proofreadingConfig.mergeMode}`);
+      logger.debug(`Proofreading config applied: preset=${proofreadingConfig.preset}, mergeMode=${proofreadingConfig.mergeMode}`);
     }
   }
 

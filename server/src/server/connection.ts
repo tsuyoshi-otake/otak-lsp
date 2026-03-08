@@ -35,6 +35,9 @@ import { AnalysisStateManager } from './languageServer';
 import { SentenceParser } from '../grammar/sentenceParser';
 import { SentenceComplexityRule } from '../grammar/rules/sentenceComplexityRule';
 import { AdvancedRulesManager } from '../grammar/advancedRulesManager';
+import { computeLineStarts } from '../utils/lineStarts';
+import { Logger } from '../utils/logger';
+import { logError } from '../utils/errorHandler';
 
 /**
  * ドキュメントキャッシュのエントリ
@@ -82,19 +85,6 @@ export interface ConnectionHandler {
 }
 
 /**
- * 行開始位置を計算
- */
-function computeLineStarts(text: string): number[] {
-  const lineStarts: number[] = [0];
-  for (let i = 0; i < text.length; i++) {
-    if (text.charCodeAt(i) === 10) {
-      lineStarts.push(i + 1);
-    }
-  }
-  return lineStarts;
-}
-
-/**
  * ConnectionHandlerを作成
  */
 export function createConnectionHandler(
@@ -108,9 +98,8 @@ export function createConnectionHandler(
   semanticTokenProvider: SemanticTokenProvider,
   analysisStates: AnalysisStateManager,
   advancedRulesManager?: AdvancedRulesManager,
-  logger?: (message: string) => void
+  logger?: Logger
 ): ConnectionHandler {
-  const DEBUG_LOGS = process.env.OTAK_LCP_DEBUG === '1';
   const PROFILE_LOGS_ENV = process.env.OTAK_LCP_PROFILE === '1';
 
   // ドキュメントキャッシュ
@@ -124,8 +113,8 @@ export function createConnectionHandler(
   const sentenceComplexityRule = new SentenceComplexityRule();
 
   function debugLog(message: string): void {
-    if (DEBUG_LOGS) {
-      connection.console.log(`[DEBUG] ${message}`);
+    if (logger) {
+      logger.debug(message);
     }
   }
 
@@ -136,7 +125,7 @@ export function createConnectionHandler(
 
   // プロファイラを作成
   const profiler = createProfiler(
-    (msg) => connection.console.log(msg),
+    (msg) => logger.info(msg),
     isProfileLogsEnabled
   );
 
@@ -211,7 +200,7 @@ export function createConnectionHandler(
       documentSemanticTokensCache.delete(uri);
 
       // 診断を送信
-      diagnosticsPublisher.publish(uri, result.diagnostics as any[]);
+      diagnosticsPublisher.publish(uri, result.diagnostics);
 
       // セマンティックトークンのリフレッシュをリクエスト
       if (config.enableSemanticHighlight) {
@@ -239,7 +228,7 @@ export function createConnectionHandler(
         );
       }
     } catch (error) {
-      connection.console.error(`[ERROR] Analysis failed for ${uri}: ${error}`);
+      logError(logger, `Analysis failed for ${uri}`, error);
       clearDocumentCache(uri);
       diagnosticsPublisher.clear(uri);
     }
@@ -260,7 +249,9 @@ export function createConnectionHandler(
     initialize(): void {
       // onInitialize
       connection.onInitialize((params: InitializeParams): InitializeResult => {
-        connection.console.log('otak-lsp Language Server initializing...');
+        if (logger) {
+          logger.info('otak-lsp Language Server initializing...');
+        }
 
         return {
           capabilities: getCapabilities(),
@@ -269,17 +260,19 @@ export function createConnectionHandler(
 
       // onInitialized
       connection.onInitialized(() => {
-        connection.console.log('otak-lsp Language Server initialized');
+        if (logger) {
+          logger.info('otak-lsp Language Server initialized');
+        }
         connection.client.register(DidChangeConfigurationNotification.type, undefined);
 
         // 初期設定を読み込み
         void (async () => {
           try {
             const [base, advanced, official, proofreading] = await Promise.all([
-              connection.workspace.getConfiguration({ section: 'otakLsp' } as any),
-              connection.workspace.getConfiguration({ section: 'otakLsp.advanced' } as any),
-              connection.workspace.getConfiguration({ section: 'otakLsp.official' } as any),
-              connection.workspace.getConfiguration({ section: 'otakLsp.proofreading' } as any),
+              connection.workspace.getConfiguration({ section: 'otakLsp' }),
+              connection.workspace.getConfiguration({ section: 'otakLsp.advanced' }),
+              connection.workspace.getConfiguration({ section: 'otakLsp.official' }),
+              connection.workspace.getConfiguration({ section: 'otakLsp.proofreading' }),
             ]);
 
             const merged = mergeConfigurations(base, advanced, official, proofreading);
@@ -287,7 +280,7 @@ export function createConnectionHandler(
               configManager.handleLspConfigChange(merged);
             }
           } catch (error) {
-            connection.console.error(`[ERROR] Failed to load workspace configuration: ${error}`);
+            logError(logger, 'Failed to load workspace configuration', error);
           }
         })();
       });
@@ -307,11 +300,15 @@ export function createConnectionHandler(
         const config = configManager.getConfig();
         const advancedConfig = configManager.getAdvancedConfig();
 
-        connection.console.log(`Configuration updated: grammarCheck=${config.enableGrammarCheck}, semanticHighlight=${config.enableSemanticHighlight}, sentenceSplitMode=${advancedConfig.sentenceSplitMode}`);
+        if (logger) {
+          logger.info(`Configuration updated: grammarCheck=${config.enableGrammarCheck}, semanticHighlight=${config.enableSemanticHighlight}, sentenceSplitMode=${advancedConfig.sentenceSplitMode}`);
+        }
 
         // 文法チェックが無効になった場合、診断をクリア
         if (wasGrammarEnabled && !config.enableGrammarCheck) {
-          connection.console.log('Grammar check disabled, clearing diagnostics');
+          if (logger) {
+            logger.info('Grammar check disabled, clearing diagnostics');
+          }
           documents.all().forEach((doc) => {
             diagnosticsPublisher.clear(doc.uri);
           });
@@ -319,7 +316,9 @@ export function createConnectionHandler(
 
         // セマンティックハイライトが無効になった場合、トークンをクリア
         if (wasSemanticEnabled && !config.enableSemanticHighlight) {
-          connection.console.log('Semantic highlight disabled, clearing tokens');
+          if (logger) {
+            logger.info('Semantic highlight disabled, clearing tokens');
+          }
           documentTokens.clear();
           documentTexts.clear();
           documentExcludedRanges.clear();
@@ -454,7 +453,9 @@ export function createConnectionHandler(
 
       // Document events
       documents.onDidOpen((event) => {
-        connection.console.log(`Document opened: ${event.document.uri}`);
+        if (logger) {
+          logger.info(`Document opened: ${event.document.uri}`);
+        }
         analysisScheduler.scheduleAnalysis(event.document);
       });
 
@@ -475,7 +476,9 @@ export function createConnectionHandler(
 
       documents.onDidClose((event) => {
         const uri = event.document.uri;
-        connection.console.log(`Document closed: ${uri}`);
+        if (logger) {
+          logger.info(`Document closed: ${uri}`);
+        }
 
         analysisScheduler.cancelAnalysis(uri);
         analysisStates.deleteState(uri);
@@ -559,15 +562,15 @@ export function createConnectionHandler(
   async function getWorkspaceSettings(): Promise<unknown> {
     try {
       const [base, advanced, official, proofreading] = await Promise.all([
-        connection.workspace.getConfiguration({ section: 'otakLsp' } as any),
-        connection.workspace.getConfiguration({ section: 'otakLsp.advanced' } as any),
-        connection.workspace.getConfiguration({ section: 'otakLsp.official' } as any),
-        connection.workspace.getConfiguration({ section: 'otakLsp.proofreading' } as any),
+        connection.workspace.getConfiguration({ section: 'otakLsp' }),
+        connection.workspace.getConfiguration({ section: 'otakLsp.advanced' }),
+        connection.workspace.getConfiguration({ section: 'otakLsp.official' }),
+        connection.workspace.getConfiguration({ section: 'otakLsp.proofreading' }),
       ]);
 
       return mergeConfigurations(base, advanced, official, proofreading);
     } catch (error) {
-      connection.console.error(`[ERROR] Failed to load workspace configuration: ${error}`);
+      logError(logger, 'Failed to load workspace configuration', error);
       return undefined;
     }
   }

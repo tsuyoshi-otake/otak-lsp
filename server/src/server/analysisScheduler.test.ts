@@ -47,9 +47,11 @@ describe('analysisScheduler', () => {
     scheduler = createAnalysisScheduler(
       analysisStates,
       configManager,
-      executeAnalysis,
       (msg: string) => logs.push(msg)
     );
+    
+    // Set execute analysis function after creation
+    scheduler.setExecuteAnalysis(executeAnalysis);
   });
 
   afterEach(() => {

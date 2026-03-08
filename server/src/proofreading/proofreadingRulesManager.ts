@@ -10,6 +10,8 @@ import { Token, Diagnostic, DiagnosticSeverity, Range, Position } from '../../..
 import { ProofreadingSettingsConfig, DEFAULT_PROOFREADING_CONFIG } from './proofreadingConfig';
 import { BracketRangeDetector, BracketRange } from './bracketRangeDetector';
 import { DictionaryEntry } from '../dictionaries/proofreadingDictionaryLoader';
+import { computeLineStarts, offsetToLineAndCharacter } from '../utils/lineStarts';
+import { Logger } from '../utils/logger';
 
 /**
  * 校正ルールの診断情報
@@ -29,10 +31,12 @@ export class ProofreadingRulesManager {
   private bracketDetector: BracketRangeDetector;
   private dictionaryEntries: DictionaryEntry[] = [];
   private lineStarts: number[] = [];
+  private logger: Logger | undefined;
 
-  constructor(config?: ProofreadingSettingsConfig) {
+  constructor(config?: ProofreadingSettingsConfig, logger?: Logger) {
     this.config = config ?? DEFAULT_PROOFREADING_CONFIG;
     this.bracketDetector = new BracketRangeDetector();
+    this.logger = logger;
   }
 
   /**
@@ -60,26 +64,14 @@ export class ProofreadingRulesManager {
    * 行開始位置を計算
    */
   private calculateLineStarts(text: string): void {
-    this.lineStarts = [0];
-    for (let i = 0; i < text.length; i++) {
-      if (text[i] === '\n') {
-        this.lineStarts.push(i + 1);
-      }
-    }
+    this.lineStarts = computeLineStarts(text);
   }
 
   /**
    * オフセットから位置を取得
    */
   private offsetToPosition(offset: number): Position {
-    let line = 0;
-    for (let i = 1; i < this.lineStarts.length; i++) {
-      if (offset < this.lineStarts[i]) {
-        break;
-      }
-      line = i;
-    }
-    return { line, character: offset - this.lineStarts[line] };
+    return offsetToLineAndCharacter(this.lineStarts, offset);
   }
 
   /**

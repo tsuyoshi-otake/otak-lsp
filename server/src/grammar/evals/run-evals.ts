@@ -10,6 +10,8 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { EvalsRunner } from './evals-runner';
 import { EvalsReporter } from './evals-reporter';
+import { createLogger } from '../../utils/logger';
+import { logError } from '../../utils/errorHandler';
 
 /**
  * Evalsを実行してレポートを出力
@@ -55,7 +57,8 @@ async function main(): Promise<void> {
     process.exit(0);
 
   } catch (error) {
-    console.error('Error running evals:', error);
+    const logger = createLogger((msg) => console.error(msg), false);
+    logError(logger, 'Error running evals', error);
     process.exit(1);
   }
 }

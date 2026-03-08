@@ -8,6 +8,7 @@
 import * as kuromoji from 'kuromoji-optimized';
 import * as path from 'path';
 import { Token } from '../../../shared/src/types';
+import { formatError } from '../utils/errorHandler';
 
 // kuromoji のトークン型定義
 interface KuromojiToken {
@@ -46,8 +47,9 @@ export class MeCabAnalyzer {
   private static cacheHits = 0;
   private static cacheMisses = 0;
 
+  // mecabPathパラメータは互換性のために残すが使用しない（kuromoji-optimizedを使用）
   constructor(_mecabPath?: string) {
-    // mecabPath引数は互換性のために残すが、使用しない
+    // 何もしない - kuromoji-optimizedは外部依存なし
   }
 
   /**
@@ -120,7 +122,7 @@ export class MeCabAnalyzer {
         });
       } catch (err) {
         MeCabAnalyzer.initPromise = null;
-        reject(err instanceof Error ? err : new Error(String(err)));
+        reject(err instanceof Error ? err : new Error(formatError(err)));
       }
     });
 

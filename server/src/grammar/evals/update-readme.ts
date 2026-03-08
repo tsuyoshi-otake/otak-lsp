@@ -10,6 +10,8 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { EvalsRunner } from './evals-runner';
 import { EvalsReporter } from './evals-reporter';
+import { createLogger } from '../../utils/logger';
+import { logError } from '../../utils/errorHandler';
 
 const START_MARKER = '<!-- EVALS-START -->';
 const END_MARKER = '<!-- EVALS-END -->';
@@ -44,7 +46,8 @@ async function main(): Promise<void> {
     try {
       readmeContent = fs.readFileSync(readmePath, 'utf-8');
     } catch (e) {
-      console.error('Error reading README.md:', e);
+      const logger = createLogger((msg) => console.error(msg), false);
+      logError(logger, 'Error reading README.md', e);
       process.exit(1);
     }
 
@@ -93,7 +96,8 @@ async function main(): Promise<void> {
     process.exit(0);
 
   } catch (error) {
-    console.error('Error updating README:', error);
+    const logger = createLogger((msg) => console.error(msg), false);
+    logError(logger, 'Error updating README', error);
     process.exit(1);
   }
 }

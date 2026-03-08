@@ -7,6 +7,8 @@
 
 import { Configuration, SupportedLanguage } from '../../../shared/src/types';
 import { DEFAULT_ENABLED_GLOSSARIES } from '../hover/glossary';
+import { Logger } from '../utils/logger';
+import { logError } from '../utils/errorHandler';
 
 /**
  * 設定変更イベント
@@ -35,9 +37,11 @@ type ConfigurationChangeListener = (event: ConfigurationChangeEvent) => void;
 export class ConfigurationManager {
   private configuration: Configuration;
   private listeners: Set<ConfigurationChangeListener> = new Set();
+  private logger: Logger | undefined;
 
-  constructor() {
+  constructor(logger?: Logger) {
     this.configuration = this.getDefaultConfiguration();
+    this.logger = logger;
   }
 
   /**
@@ -162,7 +166,7 @@ export class ConfigurationManager {
       try {
         listener(event);
       } catch (error) {
-        console.error('Configuration change listener error:', error);
+        logError(this.logger, 'Configuration change listener error', error);
       }
     }
   }

@@ -18,17 +18,10 @@ import { ProofreadingRulesManager } from '../proofreading/proofreadingRulesManag
 import { Configuration, Token, SupportedLanguage, Diagnostic } from '../../../shared/src/types';
 import { ExcludedRange } from '../../../shared/src/markdownFilterTypes';
 import { AdvancedRulesConfig, RuleProfilingCollector } from '../../../shared/src/advancedTypes';
-import { Profiler } from './profiler';
+import { Profiler, ProfileStep } from './profiler';
 import { convertSeverity } from './diagnosticsPublisher';
-
-/**
- * プロファイルステップ
- */
-export interface ProfileStep {
-  name: string;
-  ms: number;
-  meta?: string;
-}
+import { computeLineStarts } from '../utils/lineStarts';
+import { Logger } from '../utils/logger';
 
 /**
  * 解析結果
@@ -66,19 +59,6 @@ export interface DocumentAnalyzer {
 }
 
 /**
- * 行開始位置を計算
- */
-function computeLineStarts(text: string): number[] {
-  const lineStarts: number[] = [0];
-  for (let i = 0; i < text.length; i++) {
-    if (text.charCodeAt(i) === 10) {
-      lineStarts.push(i + 1);
-    }
-  }
-  return lineStarts;
-}
-
-/**
  * DocumentAnalyzerを作成
  */
 export function createDocumentAnalyzer(
@@ -89,13 +69,11 @@ export function createDocumentAnalyzer(
   grammarChecker: GrammarChecker,
   advancedRulesManager: AdvancedRulesManager,
   proofreadingRulesManager: ProofreadingRulesManager,
-  logger?: (message: string) => void
+  logger?: Logger
 ): DocumentAnalyzer {
-  const DEBUG_LOGS = process.env.OTAK_LCP_DEBUG === '1';
-
   function debugLog(message: string): void {
-    if (DEBUG_LOGS && logger) {
-      logger(`[DEBUG] ${message}`);
+    if (logger) {
+      logger.debug(message);
     }
   }
 
@@ -161,9 +139,9 @@ export function createDocumentAnalyzer(
 
       // 形態素解析（キャッシュ付き）
       const mecabStart = isProfileEnabled ? Date.now() : 0;
-      const cacheStatsBefore = (mecabAnalyzer as any).constructor.getCacheStats?.() ?? { hits: 0, misses: 0, size: 0 };
+      const cacheStatsBefore = MeCabAnalyzer.getCacheStats();
       const allTokens = await mecabAnalyzer.analyze(textToAnalyze);
-      const cacheStatsAfter = (mecabAnalyzer as any).constructor.getCacheStats?.() ?? { hits: 0, misses: 0, size: 0 };
+      const cacheStatsAfter = MeCabAnalyzer.getCacheStats();
       const cacheHit = cacheStatsAfter.hits > cacheStatsBefore.hits;
       if (isProfileEnabled) {
         profileSteps.push({

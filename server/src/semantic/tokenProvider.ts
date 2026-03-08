@@ -6,6 +6,7 @@
  */
 
 import { Token, SemanticTokens } from '../../../shared/src/types';
+import { computeLineStarts } from '../utils/lineStarts';
 
 const ASCII_ONLY_RE = /^[\x00-\x7F]+$/;
 
@@ -63,16 +64,6 @@ const POS_TO_TOKEN_TYPE: Record<string, TokenType> = {
  * セマンティックトークンプロバイダー
  */
 export class SemanticTokenProvider {
-  private computeLineStarts(text: string): number[] {
-    const lineStarts: number[] = [0];
-    for (let i = 0; i < text.length; i++) {
-      if (text.charCodeAt(i) === 10) {
-        lineStarts.push(i + 1);
-      }
-    }
-    return lineStarts;
-  }
-
   /**
    * 品詞からTokenTypeへのマッピング
    */
@@ -132,7 +123,7 @@ export class SemanticTokenProvider {
       return { data: [] };
     }
 
-    const effectiveLineStarts = lineStarts ?? this.computeLineStarts(text);
+    const effectiveLineStarts = lineStarts ?? computeLineStarts(text);
 
     const isSortedByStart = (() => {
       for (let i = 1; i < tokens.length; i++) {

@@ -460,11 +460,11 @@ export class ProofreadingConfigMapper {
       const merged: AdvancedRulesConfig = { ...advancedConfig };
       for (const [key, value] of Object.entries(patch)) {
         if (typeof value === 'boolean') {
-          const advancedValue = (advancedConfig as any)[key];
-          (merged as any)[key] = advancedValue || value;
+          const advancedValue = advancedConfig[key as keyof AdvancedRulesConfig];
+          merged[key as keyof AdvancedRulesConfig] = (advancedValue || value) as never;
         } else if (typeof value === 'number') {
           // 数値はpatchの値を使用（ただしpatchが設定されている場合のみ）
-          (merged as any)[key] = value;
+          merged[key as keyof AdvancedRulesConfig] = value as never;
         }
       }
       return merged;

@@ -22,6 +22,9 @@ import {
 } from '../../../shared/src/advancedTypes';
 import { ExcludedRange } from '../../../shared/src/markdownFilterTypes';
 import { SentenceParser } from './sentenceParser';
+import { computeLineStarts, offsetToLineAndCharacter } from '../utils/lineStarts';
+import { Logger } from '../utils/logger';
+import { logError, formatError } from '../utils/errorHandler';
 import {
   StyleConsistencyRule,
   RaNukiRule,
@@ -128,6 +131,7 @@ export class AdvancedRulesManager {
   private config: AdvancedRulesConfig;
   private lineStarts: number[] = [];
   private firstLineLength: number = 0;
+  private logger: Logger | undefined;
 
   /**
    * code-block が「自然言語の例文」として書かれているかを判定
@@ -172,15 +176,9 @@ export class AdvancedRulesManager {
    * (Feature: diagnostic-range-fix)
    */
   private calculateLineStarts(text: string): void {
-    this.lineStarts = [0];
+    this.lineStarts = computeLineStarts(text);
     let firstNewlineIndex = text.indexOf('\n');
     this.firstLineLength = firstNewlineIndex === -1 ? text.length : firstNewlineIndex;
-
-    for (let i = 0; i < text.length; i++) {
-      if (text[i] === '\n') {
-        this.lineStarts.push(i + 1);
-      }
-    }
   }
 
   /**
@@ -253,14 +251,7 @@ export class AdvancedRulesManager {
    * (Feature: diagnostic-range-fix)
    */
   private offsetToPosition(offset: number): Position {
-    let line = 0;
-    for (let i = 1; i < this.lineStarts.length; i++) {
-      if (offset < this.lineStarts[i]) {
-        break;
-      }
-      line = i;
-    }
-    return { line, character: offset - this.lineStarts[line] };
+    return offsetToLineAndCharacter(this.lineStarts, offset);
   }
 
   /**
@@ -540,8 +531,9 @@ export class AdvancedRulesManager {
     return baseContext;
   }
 
-  constructor(config?: Partial<AdvancedRulesConfig>) {
+  constructor(config?: Partial<AdvancedRulesConfig>, logger?: Logger) {
     this.config = { ...DEFAULT_ADVANCED_RULES_CONFIG, ...config };
+    this.logger = logger;
     this.rules = [
       new StyleConsistencyRule(),
       new RaNukiRule(),
@@ -737,9 +729,9 @@ export class AdvancedRulesManager {
         ruleDiagnostics = rule.check(tokens, ruleContext);
         diagnostics.push(...ruleDiagnostics);
       } catch (error) {
-        console.error(`Error in rule ${rule.name}:`, error);
+        logError(this.logger, `Error in rule ${rule.name}`, error);
         ruleSuccess = false;
-        ruleErrorMessage = error instanceof Error ? error.message : String(error);
+        ruleErrorMessage = formatError(error);
       }
 
       // Feature: advanced-rules-profiling - 計測結果を記録
@@ -815,9 +807,9 @@ export class AdvancedRulesManager {
         ruleDiagnostics = rule.check(tokens, ruleContext);
         diagnostics.push(...ruleDiagnostics);
       } catch (error) {
-        console.error(`Error in rule ${rule.name}:`, error);
+        logError(this.logger, `Error in rule ${rule.name}`, error);
         ruleSuccess = false;
-        ruleErrorMessage = error instanceof Error ? error.message : String(error);
+        ruleErrorMessage = formatError(error);
       }
 
       // Feature: advanced-rules-profiling - 計測結果を記録

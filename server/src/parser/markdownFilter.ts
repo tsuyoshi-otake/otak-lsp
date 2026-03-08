@@ -20,6 +20,7 @@ import {
   isMarkdownPipeTableSeparatorLine,
   stripMarkdownBlockquotePrefix as stripMarkdownBlockquotePrefixShared
 } from '../../../shared/src/markdownSyntax';
+import { formatError } from '../utils/errorHandler';
 
 /**
  * マークダウンフィルタークラス
@@ -89,7 +90,7 @@ export class MarkdownFilter implements IMarkdownFilter {
 
       return this.createResult(filteredText, excludedRanges, text, startTime, effectiveConfig);
     } catch (error) {
-      this.log(`エラー発生: ${error instanceof Error ? error.message : String(error)}`);
+      this.log(`エラー発生: ${formatError(error)}`);
       // エラー時はGraceful Degradation: 元のテキストを返却
       return this.createResult(text, [], text, startTime, effectiveConfig);
     }
