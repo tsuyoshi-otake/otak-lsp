@@ -24,3 +24,6 @@ npm-debug.log*
 # Package
 *.vsix
 node_modules
+
+# 用語辞書ソースデータ（生成済みTSファイルのみコミット）
+ja.json

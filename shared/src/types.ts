@@ -328,7 +328,56 @@ export type GlossaryId =
   | 'maven'
   | 'gradle'
   | 'devProcess'
-  | 'ipaMetrics';
+  | 'ipaMetrics'
+  | 'enterpriseArch';
+
+/** カテゴリグループID */
+export type GlossaryGroupId =
+  | 'general'
+  | 'webDevelopment'
+  | 'designArchitecture'
+  | 'languagesFrameworks'
+  | 'packageManagersBuild'
+  | 'versionControl'
+  | 'databases'
+  | 'securityAuth'
+  | 'networkApi'
+  | 'operationsMonitoring'
+  | 'messaging'
+  | 'aiMl'
+  | 'projectManagement'
+  | 'infrastructure'
+  | 'cloudServices';
+
+/** カテゴリグループ定義 */
+export interface GlossaryGroupDefinition {
+  readonly id: GlossaryGroupId;
+  /** 日本語表示名 */
+  readonly label: string;
+  /** グループに属するカテゴリIDの配列 */
+  readonly members: ReadonlyArray<GlossaryId>;
+  /** グループの優先度（小さいほど高優先度、0始まり） */
+  readonly priority: number;
+}
+
+/** グループ定義の定数（priority順） */
+export const GLOSSARY_GROUPS: ReadonlyArray<GlossaryGroupDefinition> = [
+  { id: 'general', label: '一般', members: ['it', 'otakLspSettings'], priority: 0 },
+  { id: 'webDevelopment', label: 'Web開発', members: ['backend', 'frontend'], priority: 1 },
+  { id: 'designArchitecture', label: '設計・アーキテクチャ', members: ['ddd', 'tdd', 'architecturePatterns', 'distributedSystems', 'enterpriseArch'], priority: 2 },
+  { id: 'languagesFrameworks', label: '開発言語・フレームワーク', members: ['java', 'javaCli', 'nextjs', 'dotnet', 'pip'], priority: 3 },
+  { id: 'packageManagersBuild', label: 'パッケージマネージャ・ビルドツール', members: ['npm', 'yarn', 'pnpm', 'maven', 'gradle'], priority: 4 },
+  { id: 'versionControl', label: 'バージョン管理', members: ['git'], priority: 5 },
+  { id: 'databases', label: 'データベース', members: ['dbSqlTx', 'oracle', 'mysql'], priority: 6 },
+  { id: 'securityAuth', label: 'セキュリティ・認証', members: ['security', 'authIam'], priority: 7 },
+  { id: 'networkApi', label: 'ネットワーク・API', members: ['networkHttp', 'apiDesign'], priority: 8 },
+  { id: 'operationsMonitoring', label: '運用・監視', members: ['devopsCicd', 'observabilitySre', 'performanceCache'], priority: 9 },
+  { id: 'messaging', label: 'メッセージング', members: ['messagingEda'], priority: 10 },
+  { id: 'aiMl', label: 'AI・機械学習', members: ['aiLlm'], priority: 11 },
+  { id: 'projectManagement', label: 'プロジェクト管理・プロセス', members: ['pmbok', 'agileProduct', 'devProcess', 'ipaMetrics', 'contractLegal'], priority: 12 },
+  { id: 'infrastructure', label: '基盤・インフラ', members: ['cloud', 'containersK8s', 'linux', 'windows', 'powershell', 'docker', 'iotEmbedded'], priority: 13 },
+  { id: 'cloudServices', label: 'クラウドサービス', members: ['awsServices', 'azureServices', 'gcpServices', 'ociServices', 'cloudflareServices'], priority: 14 },
+];
 
 export interface Configuration {
   /** 文法チェックの有効/無効 */
@@ -358,6 +407,8 @@ export interface Configuration {
     enableGlossary: boolean;
     /** 有効な用語図鑑 */
     enabledGlossaries: GlossaryId[];
+    /** 有効な用語図鑑カテゴリグループ */
+    enabledGlossaryGroups: GlossaryGroupId[];
   };
 }
 

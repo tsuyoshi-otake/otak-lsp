@@ -5,7 +5,7 @@
  * 要件: 5.1, 5.2, 5.3, 5.4, 5.5
  */
 
-import { GlossaryId, Token } from '../../../shared/src/types';
+import { GlossaryId, GlossaryGroupId, GLOSSARY_GROUPS, Token } from '../../../shared/src/types';
 import { WikipediaClient } from '../wikipedia/client';
 import { createGlossaryRank, DEFAULT_ENABLED_GLOSSARIES, findGlossaryHitWithRank, findGlossaryMatchWithRank } from './glossary';
 import { isNotEmpty } from '../utils/arrayUtils';
@@ -30,6 +30,9 @@ export class HoverProvider {
   private wikipediaEnabled: boolean = true;
   private glossaryEnabled: boolean = true;
   private enabledGlossaries: GlossaryId[] = [...DEFAULT_ENABLED_GLOSSARIES];
+  private enabledGlossaryGroups: GlossaryGroupId[] = GLOSSARY_GROUPS.map(g => g.id);
+  /** 個別カテゴリ設定が明示的に指定されたかどうか */
+  private glossariesExplicitlySet: boolean = false;
   private glossaryRank: ReadonlyMap<GlossaryId, number> = createGlossaryRank(DEFAULT_ENABLED_GLOSSARIES);
 
   // Wikipedia検索をスキップする品詞
@@ -66,7 +69,30 @@ export class HoverProvider {
    */
   setEnabledGlossaries(glossaries: GlossaryId[]): void {
     this.enabledGlossaries = Array.isArray(glossaries) ? [...glossaries] : [...DEFAULT_ENABLED_GLOSSARIES];
+    this.glossariesExplicitlySet = true;
     this.refreshGlossaryRank();
+  }
+
+  /**
+   * 有効な用語図鑑カテゴリグループを設定
+   * 個別カテゴリ設定（enabledGlossaries）がグループ設定より優先される
+   */
+  setEnabledGlossaryGroups(groups: GlossaryGroupId[]): void {
+    this.enabledGlossaryGroups = Array.isArray(groups) ? [...groups] : GLOSSARY_GROUPS.map(g => g.id);
+    // 個別カテゴリが明示的に設定されていない場合のみ、グループからカテゴリを展開
+    if (!this.glossariesExplicitlySet) {
+      const groupMembers = new Set<GlossaryId>();
+      for (const groupId of this.enabledGlossaryGroups) {
+        const group = GLOSSARY_GROUPS.find(g => g.id === groupId);
+        if (group) {
+          for (const member of group.members) {
+            groupMembers.add(member);
+          }
+        }
+      }
+      this.enabledGlossaries = [...groupMembers];
+      this.refreshGlossaryRank();
+    }
   }
 
   /**

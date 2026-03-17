@@ -2,7 +2,7 @@
 module.exports = {
   preset: 'ts-jest',
   testEnvironment: 'node',
-  roots: ['<rootDir>/shared/__tests__', '<rootDir>/server/src', '<rootDir>/client/src', '<rootDir>/mcp/src'],
+  roots: ['<rootDir>/shared/__tests__', '<rootDir>/server/src', '<rootDir>/client/src', '<rootDir>/mcp/src', '<rootDir>/scripts'],
   testMatch: ['**/*.test.ts'],
   moduleFileExtensions: ['ts', 'js', 'json'],
   transform: {
