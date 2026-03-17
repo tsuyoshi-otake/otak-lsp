@@ -1,25 +1,13 @@
 /**
  * 用語図鑑のデータ定義
- * BASE_GLOSSARIES、CLOUDFLARE_CONSOLE_SPLIT、GLOSSARIES、DEFAULT_ENABLED_GLOSSARIES、GLOSSARY_INDEXを提供
+ * BASE_GLOSSARIES、GLOSSARIES、DEFAULT_ENABLED_GLOSSARIES、GLOSSARY_INDEXを提供
  */
 
 import { GlossaryId } from '../../../shared/src/types';
 import { GlossaryDefinition, GlossaryEntry, GlossaryHit } from './glossaryTypes';
-import { normalizeKey, mergeGlossaryEntries } from './glossaryUtils';
-import {
-  buildAwsConsoleGlossaryEntries,
-  buildAzureConsoleGlossaryEntries,
-  buildOciConsoleGlossaryEntries,
-  splitCloudflareConsoleGlossaryEntries,
-  CloudflareConsoleGlossarySplit,
-} from './consoleGlossaryBuilder';
+import { normalizeKey } from './glossaryUtils';
 import { TERM_NOTATION_DICTIONARIES, TermNotationDictionaryId } from '../dictionaries/termNotationDictionary';
 import { GENERATED_GLOSSARY_DATA } from './generatedGlossaryData';
-
-/**
- * Cloudflareコンソール用語の分割結果（一部を他カテゴリへ移動）
- */
-export const CLOUDFLARE_CONSOLE_SPLIT: CloudflareConsoleGlossarySplit = splitCloudflareConsoleGlossaryEntries();
 
 /**
  * otak-lsp設定用語（ja.jsonに含まれないため手動定義を維持）
@@ -71,40 +59,16 @@ const OTAK_LSP_SETTINGS_ENTRIES: ReadonlyArray<GlossaryEntry> = [
 ];
 
 /**
- * consoleGlossaryBuilderとの統合が必要なカテゴリIDのマッピング
- */
-const CONSOLE_GLOSSARY_BUILDERS: Partial<Record<GlossaryId, () => GlossaryEntry[]>> = {
-  awsServices: buildAwsConsoleGlossaryEntries,
-  azureServices: buildAzureConsoleGlossaryEntries,
-  ociServices: buildOciConsoleGlossaryEntries,
-};
-
-/**
  * 基本用語図鑑定義（用語表記統一の統合前）
- * 生成データからカテゴリを構築し、consoleGlossaryBuilder統合とotakLspSettings手動定義を維持する
+ * 生成データからカテゴリを構築し、otakLspSettings手動定義を維持する
  */
 const BASE_GLOSSARIES: ReadonlyArray<GlossaryDefinition> = (() => {
   const result: GlossaryDefinition[] = [];
 
   // 生成データからカテゴリを構築
   for (const category of GENERATED_GLOSSARY_DATA) {
-    let entries: GlossaryEntry[] = [...category.entries];
-
-    // クラウドサービス系はconsoleGlossaryBuilderと統合
-    const builder = CONSOLE_GLOSSARY_BUILDERS[category.id];
-    if (builder) {
-      entries = mergeGlossaryEntries(entries, builder());
-    }
-
-    result.push({ id: category.id, title: category.title, entries });
+    result.push({ id: category.id, title: category.title, entries: [...category.entries] });
   }
-
-  // cloudflareServicesは生成データに含まれないため、分割後のCloudflare用語のみで構築
-  result.push({
-    id: 'cloudflareServices',
-    title: 'Cloudflareサービス用語図鑑',
-    entries: [...CLOUDFLARE_CONSOLE_SPLIT.cloudflare],
-  });
 
   // otakLspSettingsは手動定義を維持（ja.jsonに含まれない）
   result.push({

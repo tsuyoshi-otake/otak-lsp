@@ -9,7 +9,7 @@
 import { GlossaryId, Token } from '../../../shared/src/types';
 
 // 型定義を再エクスポート
-export type { GlossaryHit, GlossaryMatch, GlossaryEntry, GlossaryDefinition, ConsoleProviderId } from './glossaryTypes';
+export type { GlossaryHit, GlossaryMatch, GlossaryEntry, GlossaryDefinition } from './glossaryTypes';
 
 // データ定義をインポート
 import { DEFAULT_ENABLED_GLOSSARIES, GLOSSARY_INDEX, GLOSSARIES } from './glossaryData';

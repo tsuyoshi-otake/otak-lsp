@@ -47,8 +47,3 @@ export interface GlossaryDefinition {
   title: string;
   entries: ReadonlyArray<GlossaryEntry>;
 }
-
-/**
- * コンソール用語のプロバイダーID
- */
-export type ConsoleProviderId = 'aws' | 'azure' | 'oci' | 'cloudflare';

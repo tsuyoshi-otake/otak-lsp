@@ -3,11 +3,8 @@
  * Feature: glossary-ja-json-rebuild
  *
  * - otakLspSettings カテゴリにエントリが存在することを確認する
- * - consoleGlossaryBuilder 由来のエントリが含まれることを確認する
  * - mergeTermNotationIntoGlossaries 後のエントリが正しいことを確認する
  * - ja.jsonの全エントリが GLOSSARY_INDEX から検索可能であることを確認する
- *
- * _Requirements: 3.3, 3.4, 3.5, 4.4, 4.5, 7.1, 7.3_
  */
 
 import * as fs from 'fs';
@@ -58,24 +55,22 @@ describe('glossaryData 統合テスト', () => {
   });
 
   // ============================================================
-  // consoleGlossaryBuilder 統合（要件 3.4, 4.3）
+  // クラウドサービスカテゴリのエントリ確認
   // ============================================================
-  describe('consoleGlossaryBuilder 統合', () => {
-    it('awsServices カテゴリに consoleGlossaryBuilder 由来のエントリが含まれる', () => {
+  describe('クラウドサービスカテゴリ', () => {
+    it('awsServices カテゴリにエントリが存在する', () => {
       const awsServices = GLOSSARIES.find((g) => g.id === 'awsServices');
       expect(awsServices).toBeDefined();
-      // consoleGlossaryBuilder は AWS サービス名（例: Amazon S3, Amazon EC2 等）を生成する
-      // 生成データ + consoleGlossaryBuilder のマージ結果なので、エントリ数が0より大きいことを確認
       expect(awsServices!.entries.length).toBeGreaterThan(0);
     });
 
-    it('azureServices カテゴリに consoleGlossaryBuilder 由来のエントリが含まれる', () => {
+    it('azureServices カテゴリにエントリが存在する', () => {
       const azureServices = GLOSSARIES.find((g) => g.id === 'azureServices');
       expect(azureServices).toBeDefined();
       expect(azureServices!.entries.length).toBeGreaterThan(0);
     });
 
-    it('ociServices カテゴリに consoleGlossaryBuilder 由来のエントリが含まれる', () => {
+    it('ociServices カテゴリにエントリが存在する', () => {
       const ociServices = GLOSSARIES.find((g) => g.id === 'ociServices');
       expect(ociServices).toBeDefined();
       expect(ociServices!.entries.length).toBeGreaterThan(0);

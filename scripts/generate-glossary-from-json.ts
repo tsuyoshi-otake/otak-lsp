@@ -646,7 +646,6 @@ const CATEGORY_TITLE_MAP: Record<GlossaryId, string> = {
   'azureServices': 'Azureサービス用語図鑑',
   'gcpServices': 'GCPサービス用語図鑑',
   'ociServices': 'OCIサービス用語図鑑',
-  'cloudflareServices': 'Cloudflareサービス用語図鑑',
   'iotEmbedded': 'IoT・組み込み用語図鑑',
   'backend': 'バックエンド用語図鑑',
   'frontend': 'フロントエンド用語図鑑',

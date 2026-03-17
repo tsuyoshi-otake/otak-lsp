@@ -127,7 +127,7 @@
 
 | 誤った表記 | 正しい表記 |
 |-----------|-----------|
-| Javascript, javascript | JavaScript |
+| Javascript, javascridpt | JavaScript |
 | Typescript, typescript | TypeScript |
 | Github, github | GitHub |
 | Nodejs, nodejs | Node.js |

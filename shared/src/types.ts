@@ -288,7 +288,6 @@ export type GlossaryId =
   | 'azureServices'
   | 'gcpServices'
   | 'ociServices'
-  | 'cloudflareServices'
   | 'iotEmbedded'
   | 'backend'
   | 'frontend'
@@ -376,7 +375,7 @@ export const GLOSSARY_GROUPS: ReadonlyArray<GlossaryGroupDefinition> = [
   { id: 'aiMl', label: 'AI・機械学習', members: ['aiLlm'], priority: 11 },
   { id: 'projectManagement', label: 'プロジェクト管理・プロセス', members: ['pmbok', 'agileProduct', 'devProcess', 'ipaMetrics', 'contractLegal'], priority: 12 },
   { id: 'infrastructure', label: '基盤・インフラ', members: ['cloud', 'containersK8s', 'linux', 'windows', 'powershell', 'docker', 'iotEmbedded'], priority: 13 },
-  { id: 'cloudServices', label: 'クラウドサービス', members: ['awsServices', 'azureServices', 'gcpServices', 'ociServices', 'cloudflareServices'], priority: 14 },
+  { id: 'cloudServices', label: 'クラウドサービス', members: ['awsServices', 'azureServices', 'gcpServices', 'ociServices'], priority: 14 },
 ];
 
 export interface Configuration {
