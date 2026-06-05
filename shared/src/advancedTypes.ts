@@ -181,80 +181,12 @@ export interface DoubleNegation {
 }
 
 /**
- * 助詞連続使用の情報
- */
-export interface ParticleRepetition {
-  particle: string;
-  occurrences: Token[];
-  range: Range;
-}
-
-/**
- * 接続詞連続使用の情報
- */
-export interface ConjunctionRepetition {
-  conjunction: string;
-  sentences: Sentence[];
-  range: Range;
-  alternatives: string[];
-}
-
-/**
- * 逆接「が」連続使用の情報
- */
-export interface GaRepetition {
-  gaTokens: Token[];
-  sentences: Sentence[];
-  range: Range;
-}
-
-/**
  * 全角半角混在の情報
  */
 export interface WidthInconsistency {
   text: string;
   width: 'full' | 'half';
   dominantWidth: 'full' | 'half';
-  range: Range;
-}
-
-/**
- * 弱い表現の情報
- */
-export interface WeakExpression {
-  pattern: string;
-  tokens: Token[];
-  range: Range;
-  strongerForm?: string;
-  severity: 'info' | 'warning';
-}
-
-/**
- * 読点過多の情報
- */
-export interface CommaExcess {
-  sentence: Sentence;
-  commaCount: number;
-  threshold: number;
-  range: Range;
-}
-
-/**
- * 表記エラーの情報
- */
-export interface NotationError {
-  incorrect: string;
-  correct: string;
-  range: Range;
-}
-
-/**
- * 漢字開きの情報
- */
-export interface KanjiOpening {
-  kanji: string;
-  opened: string;
-  token: Token;
   range: Range;
 }
 
@@ -366,16 +298,6 @@ export interface SahenVerbError {
 }
 
 /**
- * 主語欠如の情報
- */
-export interface MissingSubject {
-  sentence: Sentence;
-  verbToken: Token;
-  range: Range;
-  suggestion: string;
-}
-
-/**
  * ねじれ文の情報
  */
 export interface TwistedSentence {
@@ -468,16 +390,6 @@ export interface ConjunctionMisuse {
   actualRelation: string;
   range: Range;
   suggestion: string;
-}
-
-/**
- * 文末コロンの情報
- * Feature: sentence-ending-colon-detection
- */
-export interface SentenceEndingColon {
-  sentence: Sentence;
-  colonPosition: number;
-  range: Range;
 }
 
 /**
@@ -785,33 +697,6 @@ export class AdvancedDiagnostic {
       code: this.code,
       source: this.source
     };
-  }
-}
-
-/**
- * ルール実行結果
- */
-export class RuleResult {
-  ruleName: string;
-  diagnostics: AdvancedDiagnostic[];
-  executionTime: number;
-  success: boolean;
-  error?: Error;
-
-  constructor(ruleName: string) {
-    this.ruleName = ruleName;
-    this.diagnostics = [];
-    this.executionTime = 0;
-    this.success = true;
-  }
-
-  addDiagnostic(diagnostic: AdvancedDiagnostic): void {
-    this.diagnostics.push(diagnostic);
-  }
-
-  setError(error: Error): void {
-    this.success = false;
-    this.error = error;
   }
 }
 
