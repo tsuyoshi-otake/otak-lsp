@@ -9,12 +9,20 @@
  *
  * 出力:
  *   server/src/hover/generatedGlossaryData.ts
+ *   server/src/hover/generatedGlossaryData/*.ts
  */
 
 import * as fs from 'fs';
 import * as path from 'path';
 import { GlossaryId } from '../shared/src/types';
 import { GlossaryEntry } from '../server/src/hover/glossaryTypes';
+
+export interface GeneratedGlossarySourceFile {
+  relativePath: string;
+  source: string;
+}
+
+const GLOSSARY_ENTRIES_PER_FILE = 250;
 
 // ============================================================
 // ja.json エントリの型定義
@@ -902,6 +910,172 @@ export function generateTypeScriptSource(
   return lines.join('\n');
 }
 
+/**
+ * GlossaryIdを生成ファイル名に変換する。
+ */
+export function glossaryIdToFileName(id: GlossaryId): string {
+  return id.replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase();
+}
+
+function chunkEntries(entries: ReadonlyArray<GlossaryEntry>): GlossaryEntry[][] {
+  const chunks: GlossaryEntry[][] = [];
+  for (let i = 0; i < entries.length; i += GLOSSARY_ENTRIES_PER_FILE) {
+    chunks.push(entries.slice(i, i + GLOSSARY_ENTRIES_PER_FILE));
+  }
+  return chunks;
+}
+
+function formatPartName(index: number): string {
+  return `part-${String(index + 1).padStart(3, '0')}`;
+}
+
+function formatPartExportName(index: number): string {
+  return `GLOSSARY_ENTRIES_PART_${String(index + 1).padStart(3, '0')}`;
+}
+
+/**
+ * カテゴリ別エントリの分割ファイルを生成する。
+ */
+function generateCategoryPartTypeScriptSource(
+  id: GlossaryId,
+  entries: ReadonlyArray<GlossaryEntry>,
+  statsComment: string,
+  partIndex: number,
+  totalParts: number,
+  totalEntries: number,
+  totalDomains: number,
+): string {
+  const lines: string[] = [];
+
+  lines.push('// このファイルは自動生成です。手動で編集しないでください。');
+  lines.push(`// 生成元: ja.json (${totalEntries} エントリ, ${totalDomains} ドメイン)`);
+  lines.push(`// カテゴリ: ${id} (${partIndex + 1}/${totalParts})`);
+  lines.push('// 生成コマンド: npx ts-node scripts/generate-glossary-from-json.ts');
+  lines.push('');
+  lines.push("import { GlossaryEntry } from '../../glossaryTypes';");
+  lines.push('');
+  lines.push(`export const ${formatPartExportName(partIndex)}: ReadonlyArray<GlossaryEntry> = [`);
+  if (statsComment && partIndex === 0) {
+    lines.push(`  // ${statsComment}`);
+  }
+  for (const entry of entries) {
+    lines.push(`  ${entryToTs(entry)},`);
+  }
+  lines.push('];');
+  lines.push('');
+
+  return lines.join('\n');
+}
+
+/**
+ * カテゴリ内の分割ファイルを束ねるindexファイルを生成する。
+ */
+function generateCategoryIndexTypeScriptSource(partCount: number): string {
+  const lines: string[] = [];
+
+  lines.push('// このファイルは自動生成です。手動で編集しないでください。');
+  lines.push('// 生成コマンド: npx ts-node scripts/generate-glossary-from-json.ts');
+  lines.push('');
+  lines.push("import { GlossaryEntry } from '../../glossaryTypes';");
+
+  for (let i = 0; i < partCount; i++) {
+    lines.push(`import { ${formatPartExportName(i)} } from './${formatPartName(i)}';`);
+  }
+
+  lines.push('');
+  lines.push('export const GLOSSARY_ENTRIES: ReadonlyArray<GlossaryEntry> = [');
+  for (let i = 0; i < partCount; i++) {
+    lines.push(`  ...${formatPartExportName(i)},`);
+  }
+  lines.push('];');
+  lines.push('');
+
+  return lines.join('\n');
+}
+
+/**
+ * 分割されたTypeScriptソースコード群を生成する。
+ */
+export function generateSplitTypeScriptSources(
+  grouped: Map<GlossaryId, GlossaryEntry[]>,
+  domainStats: Map<GlossaryId, Map<string, number>>,
+  totalEntries: number,
+  totalDomains: number,
+): GeneratedGlossarySourceFile[] {
+  const files: GeneratedGlossarySourceFile[] = [];
+  const categoryEntries = [...grouped.entries()];
+  const aggregateLines: string[] = [];
+
+  aggregateLines.push('// このファイルは自動生成です。手動で編集しないでください。');
+  aggregateLines.push(`// 生成元: ja.json (${totalEntries} エントリ, ${totalDomains} ドメイン)`);
+  aggregateLines.push('// 生成コマンド: npx ts-node scripts/generate-glossary-from-json.ts');
+  aggregateLines.push('');
+  aggregateLines.push("import { GlossaryId } from '../../../shared/src/types';");
+  aggregateLines.push("import { GlossaryEntry } from './glossaryTypes';");
+
+  for (const [id] of categoryEntries) {
+    const importAlias = `${id}Entries`;
+    aggregateLines.push(
+      `import { GLOSSARY_ENTRIES as ${importAlias} } from './generatedGlossaryData/${glossaryIdToFileName(id)}';`
+    );
+  }
+
+  aggregateLines.push('');
+  aggregateLines.push('export interface GeneratedGlossaryCategory {');
+  aggregateLines.push('  readonly id: GlossaryId;');
+  aggregateLines.push('  readonly title: string;');
+  aggregateLines.push('  readonly entries: ReadonlyArray<GlossaryEntry>;');
+  aggregateLines.push('}');
+  aggregateLines.push('');
+  aggregateLines.push('export const GENERATED_GLOSSARY_DATA: ReadonlyArray<GeneratedGlossaryCategory> = [');
+
+  for (const [id, entryList] of categoryEntries) {
+    const title = CATEGORY_TITLE_MAP[id] ?? `${id}用語図鑑`;
+    const fileName = glossaryIdToFileName(id);
+    const importAlias = `${id}Entries`;
+
+    const chunks = chunkEntries(entryList);
+    const statsMap = domainStats.get(id);
+    const statsComment = statsMap ? domainStatsToComment(statsMap) : '';
+
+    files.push({
+      relativePath: path.join('generatedGlossaryData', fileName, 'index.ts'),
+      source: generateCategoryIndexTypeScriptSource(chunks.length),
+    });
+
+    for (let chunkIndex = 0; chunkIndex < chunks.length; chunkIndex++) {
+      files.push({
+        relativePath: path.join('generatedGlossaryData', fileName, `${formatPartName(chunkIndex)}.ts`),
+        source: generateCategoryPartTypeScriptSource(
+          id,
+          chunks[chunkIndex],
+          statsComment,
+          chunkIndex,
+          chunks.length,
+          totalEntries,
+          totalDomains
+        ),
+      });
+    }
+
+    aggregateLines.push('  {');
+    aggregateLines.push(`    id: '${id}',`);
+    aggregateLines.push(`    title: '${escapeForTs(title)}',`);
+    aggregateLines.push(`    entries: ${importAlias},`);
+    aggregateLines.push('  },');
+  }
+
+  aggregateLines.push('];');
+  aggregateLines.push('');
+
+  files.unshift({
+    relativePath: 'generatedGlossaryData.ts',
+    source: aggregateLines.join('\n'),
+  });
+
+  return files;
+}
+
 // ============================================================
 // メイン処理（スクリプト実行時のみ）
 // ============================================================
@@ -962,7 +1136,7 @@ function main(): void {
   }
 
   // TypeScriptソースコード生成
-  const source = generateTypeScriptSource(grouped, domainStats, entries.length, allDomains.size);
+  const generatedFiles = generateSplitTypeScriptSources(grouped, domainStats, entries.length, allDomains.size);
 
   // ファイル出力
   try {
@@ -971,8 +1145,19 @@ function main(): void {
     if (!fs.existsSync(outputDir)) {
       fs.mkdirSync(outputDir, { recursive: true });
     }
-    fs.writeFileSync(outputPath, source, 'utf-8');
-    process.stdout.write(`生成完了: ${outputPath}\n`);
+
+    const categoryOutputDir = path.resolve(outputDir, 'generatedGlossaryData');
+    fs.rmSync(categoryOutputDir, { recursive: true, force: true });
+
+    for (const file of generatedFiles) {
+      const filePath = path.resolve(outputDir, file.relativePath);
+      const fileDir = path.dirname(filePath);
+      if (!fs.existsSync(fileDir)) {
+        fs.mkdirSync(fileDir, { recursive: true });
+      }
+      fs.writeFileSync(filePath, file.source, 'utf-8');
+      process.stdout.write(`生成完了: ${filePath}\n`);
+    }
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     process.stderr.write(`エラー: ファイルの書き込みに失敗しました: ${message}\n`);

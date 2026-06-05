@@ -18,6 +18,8 @@ import {
   getDomainLabel,
   escapeForTs,
   generateTypeScriptSource,
+  generateSplitTypeScriptSources,
+  glossaryIdToFileName,
   loadJaJson,
 } from './generate-glossary-from-json';
 import { GlossaryId } from '../shared/src/types';
@@ -224,6 +226,42 @@ describe('generateTypeScriptSource', () => {
     const source = generateTypeScriptSource(grouped, domainStats, 8, 2);
 
     expect(source).toContain('// software-engineering (5), programming (3)');
+  });
+});
+
+describe('generateSplitTypeScriptSources', () => {
+  test('集約ファイルとカテゴリ別ファイルを生成する', () => {
+    const grouped = new Map<GlossaryId, GlossaryEntry[]>();
+    grouped.set('it', [{ term: 'テスト', description: 'テスト説明' }]);
+    grouped.set('awsServices', [{ term: 'S3', description: 'オブジェクトストレージです。' }]);
+    const domainStats = new Map<GlossaryId, Map<string, number>>();
+    domainStats.set('it', new Map([['software-engineering', 1]]));
+    domainStats.set('awsServices', new Map([['aws', 1]]));
+
+    const files = generateSplitTypeScriptSources(grouped, domainStats, 2, 2);
+    const aggregate = files.find((file) => file.relativePath === 'generatedGlossaryData.ts');
+    const itIndexFile = files.find((file) => file.relativePath.endsWith(path.join('it', 'index.ts')));
+    const itPartFile = files.find((file) => file.relativePath.endsWith(path.join('it', 'part-001.ts')));
+    const awsIndexFile = files.find((file) => file.relativePath.endsWith(path.join('aws-services', 'index.ts')));
+    const awsPartFile = files.find((file) => file.relativePath.endsWith(path.join('aws-services', 'part-001.ts')));
+
+    expect(files).toHaveLength(5);
+    expect(aggregate?.source).toContain("import { GLOSSARY_ENTRIES as itEntries }");
+    expect(aggregate?.source).toContain("entries: itEntries");
+    expect(aggregate?.source).toContain("entries: awsServicesEntries");
+    expect(itIndexFile?.source).toContain('export const GLOSSARY_ENTRIES');
+    expect(itIndexFile?.source).toContain('...GLOSSARY_ENTRIES_PART_001');
+    expect(itPartFile?.source).toContain("{ term: 'テスト'");
+    expect(awsIndexFile?.source).toContain('...GLOSSARY_ENTRIES_PART_001');
+    expect(awsPartFile?.source).toContain("{ term: 'S3'");
+  });
+});
+
+describe('glossaryIdToFileName', () => {
+  test('camelCaseのGlossaryIdをkebab-caseに変換する', () => {
+    expect(glossaryIdToFileName('awsServices')).toBe('aws-services');
+    expect(glossaryIdToFileName('distributedSystems')).toBe('distributed-systems');
+    expect(glossaryIdToFileName('it')).toBe('it');
   });
 });
 

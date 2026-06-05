@@ -1,0 +1,9 @@
+// このファイルは自動生成です。手動で編集しないでください。
+// 生成コマンド: npx ts-node scripts/generate-glossary-from-json.ts
+
+import { GlossaryEntry } from '../../glossaryTypes';
+import { GLOSSARY_ENTRIES_PART_001 } from './part-001';
+
+export const GLOSSARY_ENTRIES: ReadonlyArray<GlossaryEntry> = [
+  ...GLOSSARY_ENTRIES_PART_001,
+];
