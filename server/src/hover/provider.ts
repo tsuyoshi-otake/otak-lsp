@@ -8,6 +8,7 @@
 import { GlossaryId, GlossaryGroupId, GLOSSARY_GROUPS, Token } from '../../../shared/src/types';
 import { WikipediaClient } from '../wikipedia/client';
 import { createGlossaryRank, DEFAULT_ENABLED_GLOSSARIES, findGlossaryHitWithRank, findGlossaryMatchWithRank } from './glossary';
+import type { GlossaryHit } from './glossaryTypes';
 import { isNotEmpty } from '../utils/arrayUtils';
 
 /**
@@ -15,11 +16,17 @@ import { isNotEmpty } from '../utils/arrayUtils';
  */
 export interface HoverResult {
   contents: string;
-  range: {
-    start: number;
-    end: number;
-  };
+  range: HoverRange;
 }
+
+type HoverRange = {
+  start: number;
+  end: number;
+};
+
+type TechTerm = HoverRange & {
+  term: string;
+};
 
 /**
  * ホバー情報プロバイダー
@@ -183,26 +190,7 @@ export class HoverProvider {
   async provideHover(tokens: Token[], position: number, documentText?: string): Promise<HoverResult | null> {
     const token = this.getTokenAtPosition(tokens, position);
     const techTerm = documentText ? this.extractTechTermAtPosition(documentText, position) : null;
-    let contents = '';
-
-    const shouldShowTechTerm = !!(
-      techTerm
-      && (!token || token.pos === '記号' || techTerm.term.length > (token.end - token.start))
-    );
-    if (shouldShowTechTerm) {
-      contents = `**用語**: ${techTerm!.term}`;
-    }
-
-    if (token) {
-      const morphemeInfo = this.formatMorphemeInfo(token);
-      if (contents.length > 0) {
-        if (token.pos !== '記号') {
-          contents += '\n\n---\n\n' + morphemeInfo;
-        }
-      } else {
-        contents = morphemeInfo;
-      }
-    }
+    let contents = this.buildInitialHoverContents(token, techTerm);
 
     // Wikipedia検索（有効かつ対象品詞の場合）
     if (this.wikipediaEnabled) {
@@ -226,39 +214,8 @@ export class HoverProvider {
       const hit = hitFromText?.hit ?? (token ? findGlossaryHitWithRank(token, this.glossaryRank) : null);
       glossaryRange = hitFromText?.range ?? null;
       if (hit) {
-        const extraLines: string[] = [];
-        const normalize = (value: string): string => value.normalize('NFKC').trim().toLowerCase();
-        const uniq = (values: ReadonlyArray<string> | undefined): string[] => {
-          const baseKey = normalize(hit.term);
-          const seen = new Set<string>();
-          return (values ?? []).filter((value) => {
-            const key = normalize(value);
-            if (!key || key === baseKey || seen.has(key)) {
-              return false;
-            }
-            seen.add(key);
-            return true;
-          });
-        };
-
-        const aliases = uniq(hit.aliases);
-        if (aliases.length > 0) {
-          extraLines.push(`**別名**: ${aliases.join(' / ')}`);
-        }
-
-        const synonyms = uniq(hit.synonyms);
-        if (synonyms.length > 0) {
-          extraLines.push(`**類義語**: ${synonyms.join(' / ')}`);
-        }
-
-        const antonyms = uniq(hit.antonyms);
-        if (antonyms.length > 0) {
-          extraLines.push(`**対義語**: ${antonyms.join(' / ')}`);
-        }
-
-        const extras = extraLines.length > 0 ? `\n\n${extraLines.join('\n\n')}` : '';
         const prefix = contents.length > 0 ? '\n\n---\n\n' : '';
-        contents += `${prefix}**${hit.title}**:\n\n${hit.description}${extras}`;
+        contents += `${prefix}${this.formatGlossaryHit(hit)}`;
       }
     }
 
@@ -266,7 +223,7 @@ export class HoverProvider {
       return null;
     }
 
-    const candidates: Array<{ start: number; end: number }> = [];
+    const candidates: HoverRange[] = [];
     if (token) {
       candidates.push({ start: token.start, end: token.end });
     }
@@ -277,19 +234,7 @@ export class HoverProvider {
       candidates.push({ start: techTerm.start, end: techTerm.end });
     }
 
-    let selectedRange = candidates[0] ?? null;
-    for (const c of candidates) {
-      if (!selectedRange) {
-        selectedRange = c;
-        continue;
-      }
-      const currentLen = selectedRange.end - selectedRange.start;
-      const nextLen = c.end - c.start;
-      if (nextLen > currentLen) {
-        selectedRange = c;
-      }
-    }
-
+    const selectedRange = this.selectLongestHoverRange(candidates);
     if (!selectedRange) {
       return null;
     }
@@ -301,6 +246,95 @@ export class HoverProvider {
         end: selectedRange.end
       }
     };
+  }
+
+  private buildInitialHoverContents(token: Token | null, techTerm: TechTerm | null): string {
+    let contents = '';
+
+    if (this.shouldShowTechTerm(token, techTerm)) {
+      contents = `**用語**: ${techTerm.term}`;
+    }
+
+    if (!token) {
+      return contents;
+    }
+
+    const morphemeInfo = this.formatMorphemeInfo(token);
+    if (contents.length === 0) {
+      return morphemeInfo;
+    }
+
+    if (token.pos === '記号') {
+      return contents;
+    }
+
+    return `${contents}\n\n---\n\n${morphemeInfo}`;
+  }
+
+  private shouldShowTechTerm(token: Token | null, techTerm: TechTerm | null): techTerm is TechTerm {
+    if (!techTerm) {
+      return false;
+    }
+
+    return !token || token.pos === '記号' || techTerm.term.length > (token.end - token.start);
+  }
+
+  private formatGlossaryHit(hit: GlossaryHit): string {
+    return `**${hit.title}**:\n\n${hit.description}${this.formatGlossaryExtras(hit)}`;
+  }
+
+  private formatGlossaryExtras(hit: GlossaryHit): string {
+    const extraLines: string[] = [];
+    const aliases = this.uniqueGlossaryValues(hit.aliases, hit.term);
+    if (aliases.length > 0) {
+      extraLines.push(`**別名**: ${aliases.join(' / ')}`);
+    }
+
+    const synonyms = this.uniqueGlossaryValues(hit.synonyms, hit.term);
+    if (synonyms.length > 0) {
+      extraLines.push(`**類義語**: ${synonyms.join(' / ')}`);
+    }
+
+    const antonyms = this.uniqueGlossaryValues(hit.antonyms, hit.term);
+    if (antonyms.length > 0) {
+      extraLines.push(`**対義語**: ${antonyms.join(' / ')}`);
+    }
+
+    return extraLines.length > 0 ? `\n\n${extraLines.join('\n\n')}` : '';
+  }
+
+  private uniqueGlossaryValues(values: ReadonlyArray<string> | undefined, baseTerm: string): string[] {
+    const baseKey = this.normalizeGlossaryValue(baseTerm);
+    const seen = new Set<string>();
+    return (values ?? []).filter((value) => {
+      const key = this.normalizeGlossaryValue(value);
+      if (!key || key === baseKey || seen.has(key)) {
+        return false;
+      }
+      seen.add(key);
+      return true;
+    });
+  }
+
+  private normalizeGlossaryValue(value: string): string {
+    return value.normalize('NFKC').trim().toLowerCase();
+  }
+
+  private selectLongestHoverRange(candidates: ReadonlyArray<HoverRange>): HoverRange | null {
+    let selectedRange = candidates[0] ?? null;
+    for (const candidate of candidates) {
+      if (!selectedRange) {
+        selectedRange = candidate;
+        continue;
+      }
+      const currentLen = selectedRange.end - selectedRange.start;
+      const nextLen = candidate.end - candidate.start;
+      if (nextLen > currentLen) {
+        selectedRange = candidate;
+      }
+    }
+
+    return selectedRange;
   }
 
   /**
@@ -315,8 +349,8 @@ export class HoverProvider {
    */
   private getWikipediaSearch(
     token: Token | null,
-    techTerm: { term: string; start: number; end: number } | null
-  ): { term: string; start: number; end: number } | null {
+    techTerm: TechTerm | null
+  ): TechTerm | null {
     if (techTerm) {
       if (!token) {
         return techTerm;
@@ -341,7 +375,7 @@ export class HoverProvider {
   /**
    * ドキュメント中の指定位置から「英数字+記号」の用語を抽出（例: C++, C#, Node.js）
    */
-  private extractTechTermAtPosition(text: string, position: number): { term: string; start: number; end: number } | null {
+  private extractTechTermAtPosition(text: string, position: number): TechTerm | null {
     if (!text || position < 0) {
       return null;
     }

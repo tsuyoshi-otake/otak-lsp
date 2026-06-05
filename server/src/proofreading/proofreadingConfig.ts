@@ -480,197 +480,212 @@ function isValidNumber(value: unknown, min: number, max: number): value is numbe
   return typeof value === 'number' && Number.isFinite(value) && value >= min && value <= max;
 }
 
+function cloneDefaultProofreadingConfig(): ProofreadingSettingsConfig {
+  return JSON.parse(JSON.stringify(DEFAULT_PROOFREADING_CONFIG));
+}
+
+function applyBoolean(raw: Record<string, unknown>, key: string, apply: (value: boolean) => void): void {
+  const value = raw[key];
+  if (typeof value === 'boolean') {
+    apply(value);
+  }
+}
+
+function applyNumber(
+  raw: Record<string, unknown>,
+  key: string,
+  min: number,
+  max: number,
+  apply: (value: number) => void
+): void {
+  const value = raw[key];
+  if (isValidNumber(value, min, max)) {
+    apply(value);
+  }
+}
+
+function readStringArray(value: unknown): string[] | undefined {
+  if (!Array.isArray(value)) {
+    return undefined;
+  }
+  return value.filter((item): item is string => typeof item === 'string');
+}
+
+function applyStringArray(
+  raw: Record<string, unknown>,
+  key: string,
+  apply: (value: string[]) => void
+): void {
+  const value = readStringArray(raw[key]);
+  if (value !== undefined) {
+    apply(value);
+  }
+}
+
+function isProofreadingPreset(value: unknown): value is ProofreadingPreset {
+  return value === 'video-default' || value === 'custom';
+}
+
+function isMergeMode(value: unknown): value is MergeMode {
+  return value === 'override' || value === 'merge';
+}
+
+function isOkuriganaMode(value: unknown): value is TermBaseConfig['okuriganaMode'] {
+  return value === 'public-text' || value === 'public-text-honkoku' || value === 'custom';
+}
+
+function isEnvDependentMode(value: unknown): value is EnvDependentConfig['mode'] {
+  return value === 'all' || value === 'partial';
+}
+
+function applyRootProofreadingSettings(
+  raw: Record<string, unknown>,
+  config: ProofreadingSettingsConfig
+): void {
+  if (isProofreadingPreset(raw.preset)) {
+    config.preset = raw.preset;
+  }
+
+  if (isMergeMode(raw.mergeMode)) {
+    config.mergeMode = raw.mergeMode;
+  }
+}
+
+function applyTypoSettings(raw: Record<string, unknown>, config: TypoCheckConfig): void {
+  applyBoolean(raw, 'typo.enable', value => { config.enable = value; });
+  applyBoolean(raw, 'typo.checkInBrackets', value => { config.checkInBrackets = value; });
+  applyBoolean(raw, 'typo.raNuki', value => { config.raNuki = value; });
+  applyBoolean(raw, 'typo.saIre', value => { config.saIre = value; });
+  applyBoolean(raw, 'typo.doubleHonorific', value => { config.doubleHonorific = value; });
+  applyBoolean(raw, 'typo.adverbAgreement', value => { config.adverbAgreement = value; });
+  applyBoolean(raw, 'typo.eraFirstYear', value => { config.eraFirstYear = value; });
+}
+
+function applyTermBaseSettings(raw: Record<string, unknown>, config: TermBaseConfig): void {
+  applyBoolean(raw, 'termBase.enable', value => { config.enable = value; });
+  if (isOkuriganaMode(raw['termBase.okuriganaMode'])) {
+    config.okuriganaMode = raw['termBase.okuriganaMode'];
+  }
+  applyBoolean(raw, 'termBase.jouyouKanji', value => { config.jouyouKanji = value; });
+  applyBoolean(raw, 'termBase.oldKanji', value => { config.oldKanji = value; });
+  applyBoolean(raw, 'termBase.kanjiOpening', value => { config.kanjiOpening = value; });
+  applyBoolean(raw, 'termBase.excludeProperNouns', value => { config.excludeProperNouns = value; });
+}
+
+function applyTermJournalistSettings(raw: Record<string, unknown>, config: TermJournalistConfig): void {
+  applyBoolean(raw, 'termJournalist.enable', value => { config.enable = value; });
+  applyBoolean(raw, 'termJournalist.journalistHandbook', value => { config.journalistHandbook = value; });
+}
+
+function applyExpressionSettings(raw: Record<string, unknown>, config: ExpressionConfig): void {
+  applyBoolean(raw, 'expression.enable', value => { config.enable = value; });
+  applyBoolean(raw, 'expression.styleConsistency', value => { config.styleConsistency = value; });
+  applyBoolean(raw, 'expression.redundant', value => { config.redundant = value; });
+  applyBoolean(raw, 'expression.particleRepetition', value => { config.particleRepetition = value; });
+  applyBoolean(raw, 'expression.doubleNegation', value => { config.doubleNegation = value; });
+  applyBoolean(raw, 'expression.twistedSentence', value => { config.twistedSentence = value; });
+}
+
+function applyCharTypeSettings(raw: Record<string, unknown>, config: CharTypeConfig): void {
+  applyBoolean(raw, 'charType.enable', value => { config.enable = value; });
+}
+
+function applyLengthSettings(raw: Record<string, unknown>, config: LengthCheckConfig): void {
+  applyBoolean(raw, 'length.enable', value => { config.enable = value; });
+  applyNumber(raw, 'length.sentence', 1, 999, value => { config.sentence = value; });
+  applyNumber(raw, 'length.comma', 1, 999, value => { config.comma = value; });
+  applyNumber(raw, 'length.hiragana', 1, 999, value => { config.hiragana = value; });
+  applyNumber(raw, 'length.katakana', 1, 999, value => { config.katakana = value; });
+  applyNumber(raw, 'length.kanji', 1, 999, value => { config.kanji = value; });
+}
+
+function applyEnvDependentSettings(raw: Record<string, unknown>, config: EnvDependentConfig): void {
+  applyBoolean(raw, 'envDependent.enable', value => { config.enable = value; });
+  if (isEnvDependentMode(raw['envDependent.mode'])) {
+    config.mode = raw['envDependent.mode'];
+  }
+}
+
+function applyPunctuationSettings(raw: Record<string, unknown>, config: PunctuationConfig): void {
+  applyBoolean(raw, 'punctuation.enable', value => { config.enable = value; });
+  applyBoolean(raw, 'punctuation.evenLeader', value => { config.evenLeader = value; });
+  applyBoolean(raw, 'punctuation.evenDash', value => { config.evenDash = value; });
+  applyBoolean(raw, 'punctuation.evenWave', value => { config.evenWave = value; });
+  applyBoolean(raw, 'punctuation.spaceAfterQE', value => { config.spaceAfterQE = value; });
+  applyBoolean(raw, 'punctuation.periodBeforeCloseBracket', value => { config.periodBeforeCloseBracket = value; });
+}
+
+function applySpellSettings(raw: Record<string, unknown>, config: SpellCheckConfig): void {
+  applyBoolean(raw, 'spell.enable', value => { config.enable = value; });
+}
+
+function applyNotationVariantSettings(raw: Record<string, unknown>, config: NotationVariantConfig): void {
+  applyBoolean(raw, 'notationVariant.enable', value => { config.enable = value; });
+  applyBoolean(raw, 'notationVariant.katakanaOnly', value => { config.katakanaOnly = value; });
+}
+
+function applyBracketSettings(raw: Record<string, unknown>, config: BracketConfig): void {
+  applyBoolean(raw, 'bracket.enable', value => { config.enable = value; });
+  applyBoolean(raw, 'bracket.checkPairing', value => { config.checkPairing = value; });
+  applyNumber(raw, 'bracket.maxDepth', 1, 10, value => { config.maxDepth = value; });
+}
+
+function readQuoteLineMarkers(value: unknown): string[] | undefined {
+  if (typeof value === 'string') {
+    return splitAndTrimCommas(value);
+  }
+  return readStringArray(value);
+}
+
+function applyQuoteLineSettings(raw: Record<string, unknown>, config: QuoteLineConfig): void {
+  applyBoolean(raw, 'quoteLine.enable', value => { config.enable = value; });
+
+  const markers = readQuoteLineMarkers(raw['quoteLine.markers']);
+  if (markers !== undefined) {
+    config.markers = markers;
+  }
+}
+
+function applyCategoryProofreadingSettings(
+  raw: Record<string, unknown>,
+  categories: ProofreadingCategories
+): void {
+  applyTypoSettings(raw, categories.typo);
+  applyTermBaseSettings(raw, categories.termBase);
+  applyTermJournalistSettings(raw, categories.termJournalist);
+  applyExpressionSettings(raw, categories.expression);
+  applyCharTypeSettings(raw, categories.charType);
+  applyLengthSettings(raw, categories.length);
+  applyEnvDependentSettings(raw, categories.envDependent);
+  applyPunctuationSettings(raw, categories.punctuation);
+  applySpellSettings(raw, categories.spell);
+  applyNotationVariantSettings(raw, categories.notationVariant);
+  applyBracketSettings(raw, categories.bracket);
+  applyQuoteLineSettings(raw, categories.quoteLine);
+}
+
+function applyDictionarySettings(raw: Record<string, unknown>, config: DictionarySettings): void {
+  applyStringArray(raw, 'dictionaries.proofreading', value => { config.proofreading = value; });
+  applyStringArray(raw, 'dictionaries.spell', value => { config.spell = value; });
+  applyStringArray(raw, 'dictionaries.rule', value => { config.rule = value; });
+}
+
+function applyProofreadingDescription(raw: Record<string, unknown>, config: ProofreadingSettingsConfig): void {
+  if (typeof raw.description === 'string') {
+    config.description = raw.description;
+  }
+}
+
 /**
  * VS Code設定形式からProofreadingSettingsConfigを生成
  */
 export function parseProofreadingSettingsFromRaw(raw: Record<string, unknown>): ProofreadingSettingsConfig {
-  const config: ProofreadingSettingsConfig = JSON.parse(JSON.stringify(DEFAULT_PROOFREADING_CONFIG));
+  const config = cloneDefaultProofreadingConfig();
 
-  // プリセット
-  if (raw.preset === 'video-default' || raw.preset === 'custom') {
-    config.preset = raw.preset;
-  }
-
-  // マージモード
-  if (raw.mergeMode === 'override' || raw.mergeMode === 'merge') {
-    config.mergeMode = raw.mergeMode;
-  }
-
-  // 誤字チェック
-  if (typeof raw['typo.enable'] === 'boolean') {
-    config.categories.typo.enable = raw['typo.enable'];
-  }
-  if (typeof raw['typo.checkInBrackets'] === 'boolean') {
-    config.categories.typo.checkInBrackets = raw['typo.checkInBrackets'];
-  }
-  if (typeof raw['typo.raNuki'] === 'boolean') {
-    config.categories.typo.raNuki = raw['typo.raNuki'];
-  }
-  if (typeof raw['typo.saIre'] === 'boolean') {
-    config.categories.typo.saIre = raw['typo.saIre'];
-  }
-  if (typeof raw['typo.doubleHonorific'] === 'boolean') {
-    config.categories.typo.doubleHonorific = raw['typo.doubleHonorific'];
-  }
-  if (typeof raw['typo.adverbAgreement'] === 'boolean') {
-    config.categories.typo.adverbAgreement = raw['typo.adverbAgreement'];
-  }
-  if (typeof raw['typo.eraFirstYear'] === 'boolean') {
-    config.categories.typo.eraFirstYear = raw['typo.eraFirstYear'];
-  }
-
-  // 用語基準
-  if (typeof raw['termBase.enable'] === 'boolean') {
-    config.categories.termBase.enable = raw['termBase.enable'];
-  }
-  if (raw['termBase.okuriganaMode'] === 'public-text' ||
-      raw['termBase.okuriganaMode'] === 'public-text-honkoku' ||
-      raw['termBase.okuriganaMode'] === 'custom') {
-    config.categories.termBase.okuriganaMode = raw['termBase.okuriganaMode'];
-  }
-  if (typeof raw['termBase.jouyouKanji'] === 'boolean') {
-    config.categories.termBase.jouyouKanji = raw['termBase.jouyouKanji'];
-  }
-  if (typeof raw['termBase.oldKanji'] === 'boolean') {
-    config.categories.termBase.oldKanji = raw['termBase.oldKanji'];
-  }
-  if (typeof raw['termBase.kanjiOpening'] === 'boolean') {
-    config.categories.termBase.kanjiOpening = raw['termBase.kanjiOpening'];
-  }
-  if (typeof raw['termBase.excludeProperNouns'] === 'boolean') {
-    config.categories.termBase.excludeProperNouns = raw['termBase.excludeProperNouns'];
-  }
-
-  // 用語基準（記者ハンドブック）
-  if (typeof raw['termJournalist.enable'] === 'boolean') {
-    config.categories.termJournalist.enable = raw['termJournalist.enable'];
-  }
-  if (typeof raw['termJournalist.journalistHandbook'] === 'boolean') {
-    config.categories.termJournalist.journalistHandbook = raw['termJournalist.journalistHandbook'];
-  }
-
-  // 表現洗練
-  if (typeof raw['expression.enable'] === 'boolean') {
-    config.categories.expression.enable = raw['expression.enable'];
-  }
-  if (typeof raw['expression.styleConsistency'] === 'boolean') {
-    config.categories.expression.styleConsistency = raw['expression.styleConsistency'];
-  }
-  if (typeof raw['expression.redundant'] === 'boolean') {
-    config.categories.expression.redundant = raw['expression.redundant'];
-  }
-  if (typeof raw['expression.particleRepetition'] === 'boolean') {
-    config.categories.expression.particleRepetition = raw['expression.particleRepetition'];
-  }
-  if (typeof raw['expression.doubleNegation'] === 'boolean') {
-    config.categories.expression.doubleNegation = raw['expression.doubleNegation'];
-  }
-  if (typeof raw['expression.twistedSentence'] === 'boolean') {
-    config.categories.expression.twistedSentence = raw['expression.twistedSentence'];
-  }
-
-  // 字種統一
-  if (typeof raw['charType.enable'] === 'boolean') {
-    config.categories.charType.enable = raw['charType.enable'];
-  }
-
-  // 長さチェック
-  if (typeof raw['length.enable'] === 'boolean') {
-    config.categories.length.enable = raw['length.enable'];
-  }
-  if (isValidNumber(raw['length.sentence'], 1, 999)) {
-    config.categories.length.sentence = raw['length.sentence'];
-  }
-  if (isValidNumber(raw['length.comma'], 1, 999)) {
-    config.categories.length.comma = raw['length.comma'];
-  }
-  if (isValidNumber(raw['length.hiragana'], 1, 999)) {
-    config.categories.length.hiragana = raw['length.hiragana'];
-  }
-  if (isValidNumber(raw['length.katakana'], 1, 999)) {
-    config.categories.length.katakana = raw['length.katakana'];
-  }
-  if (isValidNumber(raw['length.kanji'], 1, 999)) {
-    config.categories.length.kanji = raw['length.kanji'];
-  }
-
-  // 環境依存文字
-  if (typeof raw['envDependent.enable'] === 'boolean') {
-    config.categories.envDependent.enable = raw['envDependent.enable'];
-  }
-  if (raw['envDependent.mode'] === 'all' || raw['envDependent.mode'] === 'partial') {
-    config.categories.envDependent.mode = raw['envDependent.mode'];
-  }
-
-  // 約物
-  if (typeof raw['punctuation.enable'] === 'boolean') {
-    config.categories.punctuation.enable = raw['punctuation.enable'];
-  }
-  if (typeof raw['punctuation.evenLeader'] === 'boolean') {
-    config.categories.punctuation.evenLeader = raw['punctuation.evenLeader'];
-  }
-  if (typeof raw['punctuation.evenDash'] === 'boolean') {
-    config.categories.punctuation.evenDash = raw['punctuation.evenDash'];
-  }
-  if (typeof raw['punctuation.evenWave'] === 'boolean') {
-    config.categories.punctuation.evenWave = raw['punctuation.evenWave'];
-  }
-  if (typeof raw['punctuation.spaceAfterQE'] === 'boolean') {
-    config.categories.punctuation.spaceAfterQE = raw['punctuation.spaceAfterQE'];
-  }
-  if (typeof raw['punctuation.periodBeforeCloseBracket'] === 'boolean') {
-    config.categories.punctuation.periodBeforeCloseBracket = raw['punctuation.periodBeforeCloseBracket'];
-  }
-
-  // スペルチェック
-  if (typeof raw['spell.enable'] === 'boolean') {
-    config.categories.spell.enable = raw['spell.enable'];
-  }
-
-  // 表記ゆれ
-  if (typeof raw['notationVariant.enable'] === 'boolean') {
-    config.categories.notationVariant.enable = raw['notationVariant.enable'];
-  }
-  if (typeof raw['notationVariant.katakanaOnly'] === 'boolean') {
-    config.categories.notationVariant.katakanaOnly = raw['notationVariant.katakanaOnly'];
-  }
-
-  // 括弧
-  if (typeof raw['bracket.enable'] === 'boolean') {
-    config.categories.bracket.enable = raw['bracket.enable'];
-  }
-  if (typeof raw['bracket.checkPairing'] === 'boolean') {
-    config.categories.bracket.checkPairing = raw['bracket.checkPairing'];
-  }
-  if (isValidNumber(raw['bracket.maxDepth'], 1, 10)) {
-    config.categories.bracket.maxDepth = raw['bracket.maxDepth'];
-  }
-
-  // 引用行
-  if (typeof raw['quoteLine.enable'] === 'boolean') {
-    config.categories.quoteLine.enable = raw['quoteLine.enable'];
-  }
-  if (typeof raw['quoteLine.markers'] === 'string') {
-    config.categories.quoteLine.markers = splitAndTrimCommas(raw['quoteLine.markers']);
-  } else if (Array.isArray(raw['quoteLine.markers'])) {
-    config.categories.quoteLine.markers = raw['quoteLine.markers'].filter((m): m is string => typeof m === 'string');
-  }
-
-  // 辞書
-  if (Array.isArray(raw['dictionaries.proofreading'])) {
-    config.dictionaries.proofreading = raw['dictionaries.proofreading'].filter((p): p is string => typeof p === 'string');
-  }
-  if (Array.isArray(raw['dictionaries.spell'])) {
-    config.dictionaries.spell = raw['dictionaries.spell'].filter((p): p is string => typeof p === 'string');
-  }
-  if (Array.isArray(raw['dictionaries.rule'])) {
-    config.dictionaries.rule = raw['dictionaries.rule'].filter((p): p is string => typeof p === 'string');
-  }
-
-  // 説明
-  if (typeof raw.description === 'string') {
-    config.description = raw.description;
-  }
+  applyRootProofreadingSettings(raw, config);
+  applyCategoryProofreadingSettings(raw, config.categories);
+  applyDictionarySettings(raw, config.dictionaries);
+  applyProofreadingDescription(raw, config);
 
   return config;
 }
