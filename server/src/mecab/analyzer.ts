@@ -234,8 +234,9 @@ export class MeCabAnalyzer {
   }
 
   /**
-   * MeCab出力形式をパース（互換性のために残す）
-   * @deprecated kuromoji使用時は不要
+   * MeCab出力形式の TSV をパースして Token 配列を返すテストヘルパー。
+   * 本番経路は kuromoji を直接呼ぶため未使用だが、property-based テストで
+   * 任意のトークン列を組み立てるために残している（外部 MeCab 不要）。
    */
   parseMeCabOutput(output: string): Token[] {
     const tokens: Token[] = [];
