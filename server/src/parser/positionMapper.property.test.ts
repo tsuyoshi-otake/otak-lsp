@@ -64,7 +64,7 @@ describe('Property-Based Tests: PositionMapper', () => {
     it('除外範囲がない場合、すべての位置が同じにマッピングされること', () => {
       fc.assert(
         fc.property(
-          fc.stringOf(fc.constantFrom(...'あいうえおかきくけこ'), { minLength: 1, maxLength: 50 }),
+          fc.string({ unit: fc.constantFrom(...'あいうえおかきくけこ'), minLength: 1, maxLength: 50 }),
           (text) => {
             const mapper = new PositionMapper(text, text, []);
 
@@ -86,7 +86,7 @@ describe('Property-Based Tests: PositionMapper', () => {
     it('除外範囲外の位置はnull以外を返すこと', () => {
       fc.assert(
         fc.property(
-          fc.stringOf(fc.constantFrom(...'あいうえお'), { minLength: 20, maxLength: 50 }),
+          fc.string({ unit: fc.constantFrom(...'あいうえお'), minLength: 20, maxLength: 50 }),
           fc.integer({ min: 5, max: 10 }),
           fc.integer({ min: 1, max: 3 }),
           (text, rangeStart, rangeSize) => {
@@ -119,7 +119,7 @@ describe('Property-Based Tests: PositionMapper', () => {
     it('除外範囲内の位置はnullを返すこと（mapToFiltered）', () => {
       fc.assert(
         fc.property(
-          fc.stringOf(fc.constantFrom(...'あいうえおかきくけこ'), { minLength: 20, maxLength: 50 }),
+          fc.string({ unit: fc.constantFrom(...'あいうえおかきくけこ'), minLength: 20, maxLength: 50 }),
           fc.integer({ min: 3, max: 10 }),
           fc.integer({ min: 2, max: 5 }),
           (text, rangeStart, rangeSize) => {
@@ -150,7 +150,7 @@ describe('Property-Based Tests: PositionMapper', () => {
     it('スペース置換後のテキストは元のテキストと同じ長さであること', () => {
       fc.assert(
         fc.property(
-          fc.stringOf(fc.constantFrom(...'あいうえおかきくけこ日本語テスト'), { minLength: 10, maxLength: 50 }),
+          fc.string({ unit: fc.constantFrom(...'あいうえおかきくけこ日本語テスト'), minLength: 10, maxLength: 50 }),
           fc.array(
             fc.record({
               start: fc.integer({ min: 0, max: 30 }),
@@ -177,7 +177,7 @@ describe('Property-Based Tests: PositionMapper', () => {
     it('スペース置換後、除外範囲外の文字は変更されないこと', () => {
       fc.assert(
         fc.property(
-          fc.stringOf(fc.constantFrom(...'あいうえお'), { minLength: 15, maxLength: 30 }),
+          fc.string({ unit: fc.constantFrom(...'あいうえお'), minLength: 15, maxLength: 30 }),
           fc.integer({ min: 5, max: 8 }),
           fc.integer({ min: 2, max: 3 }),
           (text, rangeStart, rangeSize) => {
@@ -222,7 +222,7 @@ describe('Property-Based Tests: PositionMapper', () => {
     it('範囲外の位置を要求するとnullを返すこと', () => {
       fc.assert(
         fc.property(
-          fc.stringOf(fc.constantFrom(...'あいうえお'), { minLength: 5, maxLength: 20 }),
+          fc.string({ unit: fc.constantFrom(...'あいうえお'), minLength: 5, maxLength: 20 }),
           (text) => {
             const mapper = new PositionMapper(text, text, []);
 

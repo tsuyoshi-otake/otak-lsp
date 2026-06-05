@@ -26,7 +26,7 @@ describe('Property-Based Tests: Comment Extractor', () => {
           fc.assert(
             fc.property(
               // 日本語を含むコメントテキストを生成
-              fc.stringOf(fc.constantFrom(...'あいうえおかきくけこ日本語テスト'), { minLength: 1, maxLength: 20 }),
+              fc.string({ unit: fc.constantFrom(...'あいうえおかきくけこ日本語テスト'), minLength: 1, maxLength: 20 }),
               (commentText) => {
                 const code = `int x = 1; // ${commentText}\nint y = 2;`;
                 const comments = extractor.extract(code, lang);
@@ -45,7 +45,7 @@ describe('Property-Based Tests: Comment Extractor', () => {
         it(`should extract only valid block comments for ${lang}`, () => {
           fc.assert(
             fc.property(
-              fc.stringOf(fc.constantFrom(...'あいうえおかきくけこ日本語テスト'), { minLength: 1, maxLength: 20 }),
+              fc.string({ unit: fc.constantFrom(...'あいうえおかきくけこ日本語テスト'), minLength: 1, maxLength: 20 }),
               (commentText) => {
                 const code = `int x = 1;\n/* ${commentText} */\nint y = 2;`;
                 const comments = extractor.extract(code, lang);
@@ -63,8 +63,8 @@ describe('Property-Based Tests: Comment Extractor', () => {
           fc.assert(
             fc.property(
               fc.record({
-                code: fc.stringOf(fc.constantFrom(...'abcdefghij1234567890'), { minLength: 1, maxLength: 10 }),
-                comment: fc.stringOf(fc.constantFrom(...'あいうえお'), { minLength: 1, maxLength: 10 })
+                code: fc.string({ unit: fc.constantFrom(...'abcdefghij1234567890'), minLength: 1, maxLength: 10 }),
+                comment: fc.string({ unit: fc.constantFrom(...'あいうえお'), minLength: 1, maxLength: 10 })
               }),
               ({ code, comment }) => {
                 const fullCode = `int ${code} = 1; // ${comment}`;
@@ -85,7 +85,7 @@ describe('Property-Based Tests: Comment Extractor', () => {
       it('should extract only valid hash comments', () => {
         fc.assert(
           fc.property(
-            fc.stringOf(fc.constantFrom(...'あいうえおかきくけこ日本語'), { minLength: 1, maxLength: 20 }),
+            fc.string({ unit: fc.constantFrom(...'あいうえおかきくけこ日本語'), minLength: 1, maxLength: 20 }),
             (commentText) => {
               const code = `x = 1  # ${commentText}\ny = 2`;
               const comments = extractor.extract(code, 'python');
@@ -102,7 +102,7 @@ describe('Property-Based Tests: Comment Extractor', () => {
       it('should extract only valid docstrings', () => {
         fc.assert(
           fc.property(
-            fc.stringOf(fc.constantFrom(...'あいうえおかきくけこ日本語'), { minLength: 1, maxLength: 20 }),
+            fc.string({ unit: fc.constantFrom(...'あいうえおかきくけこ日本語'), minLength: 1, maxLength: 20 }),
             (commentText) => {
               const code = `"""\n${commentText}\n"""\nx = 1`;
               const comments = extractor.extract(code, 'python');
@@ -121,7 +121,7 @@ describe('Property-Based Tests: Comment Extractor', () => {
       it('should extract only valid line comments', () => {
         fc.assert(
           fc.property(
-            fc.stringOf(fc.constantFrom(...'あいうえおかきくけこ日本語'), { minLength: 1, maxLength: 20 }),
+            fc.string({ unit: fc.constantFrom(...'あいうえおかきくけこ日本語'), minLength: 1, maxLength: 20 }),
             (commentText) => {
               const code = `let x = 1; // ${commentText}\nlet y = 2;`;
               const comments = extractor.extract(code, 'rust');
@@ -139,8 +139,8 @@ describe('Property-Based Tests: Comment Extractor', () => {
         fc.assert(
           fc.property(
             fc.record({
-              outer: fc.stringOf(fc.constantFrom(...'あいうえお'), { minLength: 1, maxLength: 5 }),
-              inner: fc.stringOf(fc.constantFrom(...'かきくけこ'), { minLength: 1, maxLength: 5 })
+              outer: fc.string({ unit: fc.constantFrom(...'あいうえお'), minLength: 1, maxLength: 5 }),
+              inner: fc.string({ unit: fc.constantFrom(...'かきくけこ'), minLength: 1, maxLength: 5 })
             }),
             ({ outer, inner }) => {
               const code = `/* ${outer} /* ${inner} */ ${outer} */`;
@@ -161,7 +161,7 @@ describe('Property-Based Tests: Comment Extractor', () => {
       it('should return entire content', () => {
         fc.assert(
           fc.property(
-            fc.stringOf(fc.constantFrom(...'あいうえおかきくけこさしすせそたちつてとなにぬねの日本語テスト'), { minLength: 1, maxLength: 100 }),
+            fc.string({ unit: fc.constantFrom(...'あいうえおかきくけこさしすせそたちつてとなにぬねの日本語テスト'), minLength: 1, maxLength: 100 }),
             (content) => {
               const comments = extractor.extract(content, 'markdown');
 
@@ -181,7 +181,7 @@ describe('Property-Based Tests: Comment Extractor', () => {
         fc.assert(
           fc.property(
             fc.constantFrom('c', 'cpp', 'java', 'javascript', 'typescript', 'python', 'rust'),
-            fc.stringOf(fc.constantFrom(...'あいうえお'), { minLength: 1, maxLength: 10 }),
+            fc.string({ unit: fc.constantFrom(...'あいうえお'), minLength: 1, maxLength: 10 }),
             (lang, commentText) => {
               let code: string;
               if (lang === 'python') {

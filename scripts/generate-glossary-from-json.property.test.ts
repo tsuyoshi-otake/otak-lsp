@@ -17,32 +17,34 @@ import {
   resolveGlossaryId,
   getDomainLabel,
 } from './generate-glossary-from-json';
-import { GlossaryId } from '../shared/src/types';
 
 // ============================================================
 // Arbitrary（ランダムデータ生成器）
 // ============================================================
 
 /** 日本語風の文字列を生成する */
-const jaStringArb = fc.stringOf(
-  fc.constantFrom(
+const jaStringArb = fc.string({
+  unit: fc.constantFrom(
     ...'あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめもやゆよらりるれろわをん'.split(''),
   ),
-  { minLength: 1, maxLength: 10 },
-);
+  minLength: 1,
+  maxLength: 10,
+});
 
 /** 英数字の文字列を生成する */
-const asciiTermArb = fc.stringOf(
-  fc.constantFrom(...'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-'.split('')),
-  { minLength: 1, maxLength: 15 },
-);
+const asciiTermArb = fc.string({
+  unit: fc.constantFrom(...'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-'.split('')),
+  minLength: 1,
+  maxLength: 15,
+});
 
 /** DOMAIN_MAPPINGに存在するドメイン名のArbitrary */
 const knownDomainArb = fc.constantFrom(...Object.keys(DOMAIN_MAPPING));
 
 /** DOMAIN_MAPPINGに存在しないドメイン名のArbitrary */
 const unknownDomainArb = fc
-  .stringOf(fc.constantFrom(...'abcdefghijklmnopqrstuvwxyz-'.split('')), {
+  .string({
+    unit: fc.constantFrom(...'abcdefghijklmnopqrstuvwxyz-'.split('')),
     minLength: 5,
     maxLength: 20,
   })
@@ -260,7 +262,7 @@ describe('Property-Based Tests: 変換スクリプト', () => {
 
     it('DOMAIN_MAPPING は Record<string, GlossaryId> 型であり、配列値を持たない', () => {
       // 全エントリについて値が単一の文字列であることを検証
-      for (const [domain, glossaryId] of Object.entries(DOMAIN_MAPPING)) {
+      for (const [_domain, glossaryId] of Object.entries(DOMAIN_MAPPING)) {
         expect(typeof glossaryId).toBe('string');
         expect(Array.isArray(glossaryId)).toBe(false);
         // GlossaryId として有効な値であること

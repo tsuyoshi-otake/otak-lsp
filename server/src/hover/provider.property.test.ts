@@ -30,19 +30,19 @@ describe('Property-Based Tests: Hover Provider', () => {
       fc.assert(
         fc.property(
           fc.record({
-            surface: fc.stringOf(
-              fc.constantFrom('私', '食', 'べ', 'る', '日', '本', '語', '行', 'く'),
-              { minLength: 1, maxLength: 5 }
-            ),
+            surface: fc.string({
+              unit: fc.constantFrom('私', '食', 'べ', 'る', '日', '本', '語', '行', 'く'),
+              minLength: 1, maxLength: 5
+            }),
             pos: fc.constantFrom('名詞', '動詞', '形容詞', '助詞', '副詞'),
-            baseForm: fc.stringOf(
-              fc.constantFrom('私', '食べる', '日本', '語', '行く', 'きれい'),
-              { minLength: 1, maxLength: 5 }
-            ),
-            reading: fc.stringOf(
-              fc.constantFrom('ワタシ', 'タベル', 'ニホン', 'ゴ', 'イク', 'キレイ'),
-              { minLength: 1, maxLength: 5 }
-            )
+            baseForm: fc.string({
+              unit: fc.constantFrom('私', '食べる', '日本', '語', '行く', 'きれい'),
+              minLength: 1, maxLength: 5
+            }),
+            reading: fc.string({
+              unit: fc.constantFrom('ワタシ', 'タベル', 'ニホン', 'ゴ', 'イク', 'キレイ'),
+              minLength: 1, maxLength: 5
+            })
           }),
           (data) => {
             const token = new Token({

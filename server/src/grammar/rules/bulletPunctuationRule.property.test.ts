@@ -51,7 +51,7 @@ describe('Property-Based Tests: BulletPunctuationRule', () => {
       fc.assert(
         fc.property(
           fc.constantFrom('-', '*', '+', '・'),
-          fc.stringOf(fc.constantFrom('あ', 'い', 'う', 'え', 'お'), { minLength: 1, maxLength: 10 }),
+          fc.string({ unit: fc.constantFrom('あ', 'い', 'う', 'え', 'お'), minLength: 1, maxLength: 10 }),
           (marker, content) => {
             const line = `${marker} ${content}`;
             const item = rule.extractBulletItem(line, 0);
@@ -68,7 +68,7 @@ describe('Property-Based Tests: BulletPunctuationRule', () => {
       fc.assert(
         fc.property(
           fc.integer({ min: 1, max: 99 }),
-          fc.stringOf(fc.constantFrom('あ', 'い', 'う', 'え', 'お'), { minLength: 1, maxLength: 10 }),
+          fc.string({ unit: fc.constantFrom('あ', 'い', 'う', 'え', 'お'), minLength: 1, maxLength: 10 }),
           (num, content) => {
             const line = `${num}. ${content}`;
             const item = rule.extractBulletItem(line, 0);
@@ -86,7 +86,7 @@ describe('Property-Based Tests: BulletPunctuationRule', () => {
         fc.property(
           fc.integer({ min: 1, max: 4 }),
           fc.constantFrom('-', '*', '+'),
-          fc.stringOf(fc.constantFrom('あ', 'い', 'う', 'え', 'お'), { minLength: 1, maxLength: 10 }),
+          fc.string({ unit: fc.constantFrom('あ', 'い', 'う', 'え', 'お'), minLength: 1, maxLength: 10 }),
           (indentLevel, marker, content) => {
             const indent = '  '.repeat(indentLevel);
             const line = `${indent}${marker} ${content}`;
@@ -297,7 +297,7 @@ describe('Property-Based Tests: BulletPunctuationRule', () => {
       fc.assert(
         fc.property(
           fc.constantFrom('-', '*', '+', '・'),
-          fc.stringOf(fc.constantFrom('あ', 'い', 'う'), { minLength: 1, maxLength: 5 }),
+          fc.string({ unit: fc.constantFrom('あ', 'い', 'う'), minLength: 1, maxLength: 5 }),
           (marker, content) => {
             const text = `${marker} ${content}`;
             // トークンなし（曖昧な状態）

@@ -47,7 +47,7 @@ describe('Property-Based Tests: Semantic Token Provider', () => {
     it('should map all 名詞 tokens to Noun type', () => {
       fc.assert(
         fc.property(
-          fc.stringOf(fc.constantFrom(...'日本語テスト単語'), { minLength: 1, maxLength: 5 }),
+          fc.string({ unit: fc.constantFrom(...'日本語テスト単語'), minLength: 1, maxLength: 5 }),
           (surface) => {
             const tokens = [createToken(surface, '名詞', 0)];
             const result = provider.provideSemanticTokens(tokens, surface);
@@ -63,7 +63,7 @@ describe('Property-Based Tests: Semantic Token Provider', () => {
     it('should map all 動詞 tokens to Verb type', () => {
       fc.assert(
         fc.property(
-          fc.stringOf(fc.constantFrom(...'行読書食見'), { minLength: 1, maxLength: 3 }),
+          fc.string({ unit: fc.constantFrom(...'行読書食見'), minLength: 1, maxLength: 3 }),
           (surface) => {
             const tokens = [createToken(surface, '動詞', 0)];
             const result = provider.provideSemanticTokens(tokens, surface);
@@ -79,7 +79,7 @@ describe('Property-Based Tests: Semantic Token Provider', () => {
     it('should map all 形容詞 tokens to Adjective type', () => {
       fc.assert(
         fc.property(
-          fc.stringOf(fc.constantFrom(...'美大小高低'), { minLength: 1, maxLength: 3 }),
+          fc.string({ unit: fc.constantFrom(...'美大小高低'), minLength: 1, maxLength: 3 }),
           (surface) => {
             const tokens = [createToken(surface, '形容詞', 0)];
             const result = provider.provideSemanticTokens(tokens, surface);
@@ -129,7 +129,7 @@ describe('Property-Based Tests: Semantic Token Provider', () => {
         fc.property(
           fc.array(
             fc.record({
-              surface: fc.stringOf(fc.constantFrom(...'あいうえお'), { minLength: 1, maxLength: 3 }),
+              surface: fc.string({ unit: fc.constantFrom(...'あいうえお'), minLength: 1, maxLength: 3 }),
               pos: fc.constantFrom('名詞', '動詞', '形容詞', '助詞', '副詞')
             }),
             { minLength: 0, maxLength: 20 }
@@ -157,7 +157,7 @@ describe('Property-Based Tests: Semantic Token Provider', () => {
       fc.assert(
         fc.property(
           fc.array(
-            fc.stringOf(fc.constantFrom(...'あいうえお'), { minLength: 1, maxLength: 3 }),
+            fc.string({ unit: fc.constantFrom(...'あいうえお'), minLength: 1, maxLength: 3 }),
             { minLength: 2, maxLength: 10 }
           ),
           (surfaces) => {
@@ -269,7 +269,7 @@ describe('Property-Based Tests: Semantic Token Provider', () => {
       fc.assert(
         fc.property(
           fc.array(
-            fc.stringOf(fc.constantFrom(...'あいうえお日本語テスト'), { minLength: 1, maxLength: 3 }),
+            fc.string({ unit: fc.constantFrom(...'あいうえお日本語テスト'), minLength: 1, maxLength: 3 }),
             { minLength: 1, maxLength: 10 }
           ),
           (surfaces) => {
@@ -303,7 +303,7 @@ describe('Property-Based Tests: Semantic Token Provider', () => {
         fc.property(
           fc.array(
             fc.record({
-              surface: fc.stringOf(fc.constantFrom(...'あいうえお'), { minLength: 1, maxLength: 2 }),
+              surface: fc.string({ unit: fc.constantFrom(...'あいうえお'), minLength: 1, maxLength: 2 }),
               newlineAfter: fc.boolean()
             }),
             { minLength: 2, maxLength: 8 }
@@ -344,7 +344,7 @@ describe('Property-Based Tests: Semantic Token Provider', () => {
       fc.assert(
         fc.property(
           fc.array(
-            fc.stringOf(fc.constantFrom(...'あいうえおかきくけこ'), { minLength: 1, maxLength: 5 }),
+            fc.string({ unit: fc.constantFrom(...'あいうえおかきくけこ'), minLength: 1, maxLength: 5 }),
             { minLength: 1, maxLength: 15 }
           ),
           (surfaces) => {
@@ -382,7 +382,7 @@ describe('Property-Based Tests: Semantic Token Provider', () => {
         fc.property(
           fc.array(
             fc.record({
-              surface: fc.stringOf(fc.constantFrom(...'あいうえお日本'), { minLength: 1, maxLength: 3 }),
+              surface: fc.string({ unit: fc.constantFrom(...'あいうえお日本'), minLength: 1, maxLength: 3 }),
               pos: fc.constantFrom('名詞', '動詞', '形容詞', '助詞', '副詞')
             }),
             { minLength: 0, maxLength: 20 }
@@ -415,7 +415,7 @@ describe('Property-Based Tests: Semantic Token Provider', () => {
     it('1つのトークンに対して正確に5要素のデータが生成されること', () => {
       fc.assert(
         fc.property(
-          fc.stringOf(fc.constantFrom(...'あいうえお'), { minLength: 1, maxLength: 5 }),
+          fc.string({ unit: fc.constantFrom(...'あいうえお'), minLength: 1, maxLength: 5 }),
           fc.constantFrom('名詞', '動詞', '形容詞', '助詞', '副詞'),
           (surface, pos) => {
             const tokens = [createToken(surface, pos, 0)];

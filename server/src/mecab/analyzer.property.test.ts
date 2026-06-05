@@ -23,14 +23,14 @@ describe('Property-Based Tests: MeCab Analyzer', () => {
       fc.assert(
         fc.property(
           // 日本語文字を含む文字列を生成
-          fc.stringOf(
-            fc.oneof(
+          fc.string({
+            unit: fc.oneof(
               fc.constantFrom(...'あいうえおかきくけこさしすせそたちつてとなにぬねのはひふへほまみむめもやゆよらりるれろわをん'),
               fc.constantFrom(...'アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン'),
               fc.constantFrom(...'日本語文字漢字')
             ),
-            { minLength: 1, maxLength: 20 }
-          ),
+            minLength: 1, maxLength: 20
+          }),
           (text) => {
             // MeCab出力形式をシミュレート
             const mockOutput = text.split('').map((char, _index) => {
@@ -56,7 +56,7 @@ describe('Property-Based Tests: MeCab Analyzer', () => {
         fc.property(
           fc.array(
             fc.record({
-              surface: fc.stringOf(fc.constantFrom(...'あいうえお私行日本語'), { minLength: 1, maxLength: 3 }),
+              surface: fc.string({ unit: fc.constantFrom(...'あいうえお私行日本語'), minLength: 1, maxLength: 3 }),
               pos: fc.constantFrom('名詞', '動詞', '助詞', '形容詞')
             }),
             { minLength: 1, maxLength: 10 }
@@ -95,10 +95,10 @@ describe('Property-Based Tests: MeCab Analyzer', () => {
         fc.property(
           fc.array(
             fc.record({
-              surface: fc.stringOf(fc.constantFrom(...'あいうえお'), { minLength: 1, maxLength: 3 }),
+              surface: fc.string({ unit: fc.constantFrom(...'あいうえお'), minLength: 1, maxLength: 3 }),
               pos: fc.constantFrom('名詞', '動詞', '助詞', '形容詞', '副詞'),
-              baseForm: fc.stringOf(fc.constantFrom(...'あいうえお'), { minLength: 1, maxLength: 3 }),
-              reading: fc.stringOf(fc.constantFrom(...'アイウエオ'), { minLength: 1, maxLength: 3 })
+              baseForm: fc.string({ unit: fc.constantFrom(...'あいうえお'), minLength: 1, maxLength: 3 }),
+              reading: fc.string({ unit: fc.constantFrom(...'アイウエオ'), minLength: 1, maxLength: 3 })
             }),
             { minLength: 1, maxLength: 10 }
           ),
@@ -125,8 +125,8 @@ describe('Property-Based Tests: MeCab Analyzer', () => {
         fc.property(
           fc.array(
             fc.record({
-              surface: fc.stringOf(fc.constantFrom(...'あいうえお'), { minLength: 1, maxLength: 3 }),
-              baseForm: fc.stringOf(fc.constantFrom(...'あいうえお'), { minLength: 1, maxLength: 3 })
+              surface: fc.string({ unit: fc.constantFrom(...'あいうえお'), minLength: 1, maxLength: 3 }),
+              baseForm: fc.string({ unit: fc.constantFrom(...'あいうえお'), minLength: 1, maxLength: 3 })
             }),
             { minLength: 1, maxLength: 10 }
           ),
@@ -152,8 +152,8 @@ describe('Property-Based Tests: MeCab Analyzer', () => {
         fc.property(
           fc.array(
             fc.record({
-              surface: fc.stringOf(fc.constantFrom(...'あいうえお'), { minLength: 1, maxLength: 3 }),
-              reading: fc.stringOf(fc.constantFrom(...'アイウエオ'), { minLength: 1, maxLength: 3 })
+              surface: fc.string({ unit: fc.constantFrom(...'あいうえお'), minLength: 1, maxLength: 3 }),
+              reading: fc.string({ unit: fc.constantFrom(...'アイウエオ'), minLength: 1, maxLength: 3 })
             }),
             { minLength: 1, maxLength: 10 }
           ),
