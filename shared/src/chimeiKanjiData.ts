@@ -83,7 +83,7 @@ export const CHIMEI_SUFFIX_PATTERNS: string[] = [
 /**
  * 地名接尾辞の境界判定用パターン
  */
-const PLACE_NAME_BOUNDARY_PATTERN = /[\s　0-9０-９、。．，,・:：;；!！?？…‥()（）「」『』【】［］\[\]{}<>＜＞]/;
+const PLACE_NAME_BOUNDARY_PATTERN = /[\s　0-9０-９、。．，,・:：;；!！?？…‥()（）「」『』【】［］[\]{}<>＜＞]/;
 
 /**
  * 常用漢字外を含む有名な地名
