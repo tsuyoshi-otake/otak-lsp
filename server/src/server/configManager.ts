@@ -180,6 +180,82 @@ export function createConfigManager(
   }
 
   /**
+   * 設定キーから AdvancedRulesConfig 用の値を抽出して patch に書き込む
+   */
+  type AdvancedFieldHandler = (
+    incoming: unknown,
+    patch: Partial<AdvancedRulesConfig>,
+    currentValue: unknown
+  ) => void;
+
+  function parseCustomNotationRules(incoming: unknown): Map<string, string> | undefined {
+    if (!incoming || typeof incoming !== 'object') {
+      return undefined;
+    }
+
+    if (Array.isArray(incoming)) {
+      const entries: Array<[string, string]> = [];
+      for (const item of incoming) {
+        if (!item || typeof item !== 'object') {
+          continue;
+        }
+        const asRecord = item as Record<string, unknown>;
+        if (typeof asRecord.incorrect === 'string' && typeof asRecord.correct === 'string') {
+          entries.push([asRecord.incorrect, asRecord.correct]);
+        }
+      }
+      return new Map(entries);
+    }
+
+    const entries: Array<[string, string]> = [];
+    for (const [k, v] of Object.entries(incoming as Record<string, unknown>)) {
+      if (typeof v === 'string') {
+        entries.push([k, v]);
+      }
+    }
+    return new Map(entries);
+  }
+
+  const ADVANCED_FIELD_HANDLERS: Partial<Record<keyof AdvancedRulesConfig, AdvancedFieldHandler>> = {
+    customNotationRules: (incoming, patch) => {
+      const parsed = parseCustomNotationRules(incoming);
+      if (parsed !== undefined) {
+        patch.customNotationRules = parsed;
+      }
+    },
+    sentenceSplitMode: (incoming, patch) => {
+      if (isSentenceSplitMode(incoming)) {
+        patch.sentenceSplitMode = incoming;
+      }
+    },
+    weakExpressionLevel: (incoming, patch) => {
+      if (isWeakExpressionLevel(incoming)) {
+        patch.weakExpressionLevel = incoming;
+      }
+    },
+    excludedLanguageIds: (incoming, patch) => {
+      if (Array.isArray(incoming) && incoming.every((x) => typeof x === 'string')) {
+        patch.excludedLanguageIds = incoming as string[];
+      }
+    },
+  };
+
+  function applyPrimitivePatch(
+    key: keyof AdvancedRulesConfig,
+    incoming: unknown,
+    currentValue: unknown,
+    patch: Partial<AdvancedRulesConfig>
+  ): void {
+    if (typeof currentValue === 'boolean' && typeof incoming === 'boolean') {
+      patch[key] = incoming as never;
+      return;
+    }
+    if (typeof currentValue === 'number' && typeof incoming === 'number' && Number.isFinite(incoming)) {
+      patch[key] = incoming as never;
+    }
+  }
+
+  /**
    * 高度ルール設定を適用
    */
   function applyAdvancedConfigFromSettings(settings: unknown): void {
@@ -188,61 +264,11 @@ export function createConfigManager(
 
     for (const [key, currentValue] of Object.entries(current)) {
       const incoming = getSetting(settings, `advanced.${key}`);
-
-      if (key === 'customNotationRules') {
-        if (incoming && typeof incoming === 'object' && !Array.isArray(incoming)) {
-          const record = incoming as Record<string, unknown>;
-          const entries: Array<[string, string]> = [];
-          for (const [k, v] of Object.entries(record)) {
-            if (typeof v === 'string') {
-              entries.push([k, v]);
-            }
-          }
-          patch.customNotationRules = new Map(entries);
-        } else if (incoming && Array.isArray(incoming)) {
-          const entries: Array<[string, string]> = [];
-          for (const item of incoming) {
-            if (!item || typeof item !== 'object') {
-              continue;
-            }
-            const asRecord = item as Record<string, unknown>;
-            const incorrect = asRecord.incorrect;
-            const correct = asRecord.correct;
-            if (typeof incorrect === 'string' && typeof correct === 'string') {
-              entries.push([incorrect, correct]);
-            }
-          }
-          patch.customNotationRules = new Map(entries);
-        }
-        continue;
-      }
-
-      if (typeof currentValue === 'boolean' && typeof incoming === 'boolean') {
-        patch[key as keyof AdvancedRulesConfig] = incoming as never;
-        continue;
-      }
-      if (typeof currentValue === 'number' && typeof incoming === 'number' && Number.isFinite(incoming)) {
-        patch[key as keyof AdvancedRulesConfig] = incoming as never;
-        continue;
-      }
-
-      if (key === 'sentenceSplitMode') {
-        if (isSentenceSplitMode(incoming)) {
-          patch.sentenceSplitMode = incoming;
-        }
-        continue;
-      }
-      if (key === 'weakExpressionLevel') {
-        if (isWeakExpressionLevel(incoming)) {
-          patch.weakExpressionLevel = incoming;
-        }
-        continue;
-      }
-      if (key === 'excludedLanguageIds') {
-        if (Array.isArray(incoming) && incoming.every((x) => typeof x === 'string')) {
-          patch.excludedLanguageIds = incoming as string[];
-        }
-        continue;
+      const handler = ADVANCED_FIELD_HANDLERS[key as keyof AdvancedRulesConfig];
+      if (handler) {
+        handler(incoming, patch, currentValue);
+      } else {
+        applyPrimitivePatch(key as keyof AdvancedRulesConfig, incoming, currentValue, patch);
       }
     }
 
@@ -252,10 +278,7 @@ export function createConfigManager(
       patch.sentenceSplitMode = legacySentenceSplitMode;
     }
 
-    // 段階実行設定
     applyTieredExecutionConfigFromSettings(settings, patch);
-
-    // 公文書ルール設定
     applyOfficialConfigFromSettings(settings, patch);
 
     if (isNotEmptyObject(patch)) {

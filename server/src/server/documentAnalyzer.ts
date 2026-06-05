@@ -22,7 +22,21 @@ import { Profiler, ProfileStep } from './profiler';
 import { convertSeverity } from './diagnosticsPublisher';
 import { computeLineStarts } from '../utils/lineStarts';
 import { Logger } from '../utils/logger';
-import { isEmpty, isNotEmpty } from '../utils/arrayUtils';
+import { isNotEmpty } from '../utils/arrayUtils';
+
+/**
+ * プロファイルステップ記録用コールバック
+ */
+type RecordStep = (name: string, ms: number, meta?: string) => void;
+
+function createStepRecorder(isEnabled: boolean, steps: ProfileStep[]): RecordStep {
+  if (!isEnabled) {
+    return () => undefined;
+  }
+  return (name, ms, meta) => {
+    steps.push(meta === undefined ? { name, ms } : { name, ms, meta });
+  };
+}
 
 /**
  * 内部診断をLSP診断に変換
@@ -98,6 +112,183 @@ export interface DocumentAnalyzer {
   ): Promise<AnalysisResult>;
 }
 
+interface ExtractedText {
+  textToAnalyze: string;
+  excludedRanges: ExcludedRange[];
+  commentRanges: CommentRange[];
+}
+
+function extractAnalysisText(
+  text: string,
+  languageId: SupportedLanguage,
+  commentExtractor: CommentExtractor,
+  markdownFilter: MarkdownFilter,
+  analyzeCodeBlocks: boolean,
+  recordStep: RecordStep
+): ExtractedText {
+  if (languageId === 'markdown') {
+    const start = Date.now();
+    const filterResult = markdownFilter.filter(text, {
+      ...markdownFilter.getConfig(),
+      preserveCodeBlockContent: analyzeCodeBlocks,
+    });
+    recordStep('Markdownフィルタ', Date.now() - start, `除外=${filterResult.excludedRanges.length}`);
+    return {
+      textToAnalyze: filterResult.filteredText,
+      excludedRanges: filterResult.excludedRanges,
+      commentRanges: [],
+    };
+  }
+
+  if (languageId !== 'plaintext') {
+    const start = Date.now();
+    const commentRanges = commentExtractor.extract(text, languageId);
+    const textToAnalyze = keepOnlyCommentRanges(text, commentRanges);
+    recordStep('コメント抽出', Date.now() - start, `件数=${commentRanges.length}`);
+    return { textToAnalyze, excludedRanges: [], commentRanges };
+  }
+
+  return { textToAnalyze: text, excludedRanges: [], commentRanges: [] };
+}
+
+async function runMorphologicalAnalysis(
+  textToAnalyze: string,
+  languageId: SupportedLanguage,
+  commentRanges: CommentRange[],
+  mecabAnalyzer: MeCabAnalyzer,
+  recordStep: RecordStep
+): Promise<Token[]> {
+  const start = Date.now();
+  const cacheStatsBefore = MeCabAnalyzer.getCacheStats();
+  let tokens = await mecabAnalyzer.analyze(textToAnalyze);
+  if (languageId !== 'markdown' && languageId !== 'plaintext') {
+    tokens = tokens.filter((token) => {
+      if (token.surface.trim().length === 0) {
+        return false;
+      }
+      return commentRanges.some((range) => token.start >= range.start && token.end <= range.end);
+    });
+  }
+  const cacheHit = MeCabAnalyzer.getCacheStats().hits > cacheStatsBefore.hits;
+  recordStep('形態素解析', Date.now() - start, `tokens=${tokens.length} cache=${cacheHit ? 'HIT' : 'MISS'}`);
+  return tokens;
+}
+
+interface TokenPartition {
+  semanticTokens: Token[];
+  grammarTokens: Token[];
+}
+
+function partitionMarkdownTokens(
+  allTokens: Token[],
+  excludedRanges: ExcludedRange[],
+  config: Configuration,
+  tokenFilter: TokenFilter,
+  recordStep: RecordStep
+): TokenPartition {
+  const start = Date.now();
+
+  let semanticTokens = allTokens;
+  if (config.enableSemanticHighlight) {
+    let ranges = excludedRanges;
+    if (config.excludeTableDelimiters !== false) {
+      ranges = ranges.filter((r) => r.type !== 'table');
+    }
+    if (config.markdown.analyzeCodeBlocks) {
+      ranges = ranges.filter((r) => r.type !== 'code-block');
+    }
+    if (isNotEmpty(ranges)) {
+      semanticTokens = tokenFilter.filterTokens(allTokens, ranges);
+    }
+  }
+
+  let grammarTokens = allTokens;
+  if (config.enableGrammarCheck) {
+    let ranges = config.markdown.analyzeCodeBlocks
+      ? excludedRanges.filter((r) => r.type !== 'code-block')
+      : excludedRanges;
+    if (config.markdown.analyzeTables) {
+      ranges = ranges.filter((r) => r.type !== 'table');
+    }
+    if (isNotEmpty(ranges)) {
+      grammarTokens = tokenFilter.filterTokens(allTokens, ranges);
+    }
+  }
+
+  recordStep('トークンフィルタ', Date.now() - start);
+  return { semanticTokens, grammarTokens };
+}
+
+interface GrammarCheckDeps {
+  grammarChecker: GrammarChecker;
+  advancedRulesManager: AdvancedRulesManager;
+  proofreadingRulesManager: ProofreadingRulesManager;
+}
+
+function runAdvancedRules(
+  textToAnalyze: string,
+  grammarTokens: Token[],
+  languageId: SupportedLanguage,
+  excludedRanges: ExcludedRange[],
+  config: Configuration,
+  lightweightOnly: boolean,
+  advancedRulesManager: AdvancedRulesManager,
+  ruleProfilingCollector?: RuleProfilingCollector
+): Diagnostic[] {
+  const isMarkdown = languageId === 'markdown';
+  const mdRanges = isMarkdown ? excludedRanges : undefined;
+  const mdOptions = isMarkdown ? { analyzeTables: config.markdown.analyzeTables } : undefined;
+
+  return lightweightOnly
+    ? advancedRulesManager.checkLightweightRules(
+        textToAnalyze, grammarTokens, mdRanges, mdOptions, ruleProfilingCollector
+      )
+    : advancedRulesManager.checkText(
+        textToAnalyze, grammarTokens, mdRanges, mdOptions, ruleProfilingCollector
+      );
+}
+
+function runGrammarChecks(
+  textToAnalyze: string,
+  grammarTokens: Token[],
+  languageId: SupportedLanguage,
+  excludedRanges: ExcludedRange[],
+  config: Configuration,
+  lightweightOnly: boolean,
+  deps: GrammarCheckDeps,
+  recordStep: RecordStep,
+  ruleProfilingCollector?: RuleProfilingCollector
+): LSPDiagnostic[] {
+  const diagnostics: LSPDiagnostic[] = [];
+
+  // 基本文法ルール
+  const basicStart = Date.now();
+  const basicDiags = deps.grammarChecker.check(grammarTokens, textToAnalyze);
+  recordStep('基本ルール評価', Date.now() - basicStart, `件数=${basicDiags.length}`);
+  diagnostics.push(...toLspDiagnostics(basicDiags, 'otak-lsp'));
+
+  // 高度文法ルール（軽量／全実行）
+  const advancedStart = Date.now();
+  const advancedDiags = runAdvancedRules(
+    textToAnalyze, grammarTokens, languageId, excludedRanges, config,
+    lightweightOnly, deps.advancedRulesManager, ruleProfilingCollector
+  );
+  recordStep(
+    lightweightOnly ? '軽量ルール評価' : '高度ルール評価',
+    Date.now() - advancedStart,
+    `件数=${advancedDiags.length}`
+  );
+  diagnostics.push(...toLspDiagnostics(advancedDiags, 'otak-lsp'));
+
+  // 校正ルール
+  const proofreadingStart = Date.now();
+  const proofreadingDiags = deps.proofreadingRulesManager.checkText(textToAnalyze, grammarTokens);
+  recordStep('校正ルール評価', Date.now() - proofreadingStart, `件数=${proofreadingDiags.length}`);
+  diagnostics.push(...toLspDiagnostics(proofreadingDiags, 'otak-lsp-proofreading'));
+
+  return diagnostics;
+}
+
 /**
  * DocumentAnalyzerを作成
  */
@@ -115,11 +306,17 @@ export function createDocumentAnalyzer(
     logger?.debug(message);
   }
 
+  const checkDeps: GrammarCheckDeps = {
+    grammarChecker,
+    advancedRulesManager,
+    proofreadingRulesManager,
+  };
+
   return {
     async analyze(
       document: TextDocument,
       config: Configuration,
-      advancedConfig: AdvancedRulesConfig,
+      _advancedConfig: AdvancedRulesConfig,
       lightweightOnly: boolean,
       profiler?: Profiler,
       ruleProfilingCollector?: RuleProfilingCollector
@@ -127,187 +324,48 @@ export function createDocumentAnalyzer(
       const text = document.getText();
       const languageId = document.languageId as SupportedLanguage;
       const profileSteps: ProfileStep[] = [];
-      const isProfileEnabled = profiler?.isEnabled() ?? false;
+      const recordStep = createStepRecorder(profiler?.isEnabled() ?? false, profileSteps);
 
-      const lineStartsStart = isProfileEnabled ? Date.now() : 0;
+      const lineStartsStart = Date.now();
       const lineStarts = computeLineStarts(text);
-      if (isProfileEnabled) {
-        profileSteps.push({ name: '行開始位置計算', ms: Date.now() - lineStartsStart });
-      }
+      recordStep('行開始位置計算', Date.now() - lineStartsStart);
 
-      // 言語がサポートされているか確認
       if (!config.targetLanguages.includes(languageId)) {
         debugLog(`Language ${languageId} not in target languages, skipping`);
         return { tokens: [], diagnostics: [], excludedRanges: [], lineStarts, profileSteps };
       }
 
-      // 解析対象テキストを抽出
-      let textToAnalyze = text;
-      let excludedRanges: ExcludedRange[] = [];
-      let commentRanges: CommentRange[] = [];
-
+      const { textToAnalyze, excludedRanges, commentRanges } = extractAnalysisText(
+        text, languageId, commentExtractor, markdownFilter,
+        config.markdown.analyzeCodeBlocks, recordStep
+      );
       if (languageId !== 'markdown' && languageId !== 'plaintext') {
-        // コードファイルの場合はコメントのみ抽出
-        const commentStart = isProfileEnabled ? Date.now() : 0;
-        commentRanges = commentExtractor.extract(text, languageId);
-        textToAnalyze = keepOnlyCommentRanges(text, commentRanges);
-        if (isProfileEnabled) {
-          profileSteps.push({ name: 'コメント抽出', ms: Date.now() - commentStart, meta: `件数=${commentRanges.length}` });
-        }
         debugLog(`Extracted ${commentRanges.length} comments`);
       } else if (languageId === 'markdown') {
-        // Markdownの場合はフィルタを適用
-        const filterStart = isProfileEnabled ? Date.now() : 0;
-        const filterResult = markdownFilter.filter(textToAnalyze, {
-          ...markdownFilter.getConfig(),
-          preserveCodeBlockContent: config.markdown.analyzeCodeBlocks,
-        });
-        textToAnalyze = filterResult.filteredText;
-        excludedRanges = filterResult.excludedRanges;
-        if (isProfileEnabled) {
-          profileSteps.push({ name: 'Markdownフィルタ', ms: Date.now() - filterStart, meta: `除外=${excludedRanges.length}` });
-        }
         debugLog(`Markdown filtered: ${excludedRanges.length} ranges excluded`);
       }
 
-      // 空テキストはスキップ
       if (!textToAnalyze.trim()) {
         debugLog(`No text to analyze, skipping`);
         return { tokens: [], diagnostics: [], excludedRanges, lineStarts, profileSteps };
       }
 
-      // 形態素解析（キャッシュ付き）
-      const mecabStart = isProfileEnabled ? Date.now() : 0;
-      const cacheStatsBefore = MeCabAnalyzer.getCacheStats();
-      let allTokens = await mecabAnalyzer.analyze(textToAnalyze);
-      if (languageId !== 'markdown' && languageId !== 'plaintext') {
-        allTokens = allTokens.filter((token) => {
-          if (token.surface.trim().length === 0) {
-            return false;
-          }
-          return commentRanges.some((range) => token.start >= range.start && token.end <= range.end);
-        });
-      }
-      const cacheStatsAfter = MeCabAnalyzer.getCacheStats();
-      const cacheHit = cacheStatsAfter.hits > cacheStatsBefore.hits;
-      if (isProfileEnabled) {
-        profileSteps.push({
-          name: '形態素解析',
-          ms: Date.now() - mecabStart,
-          meta: `tokens=${allTokens.length} cache=${cacheHit ? 'HIT' : 'MISS'}`
-        });
-      }
-      debugLog(`Analysis complete, ${allTokens.length} tokens found (cache: ${cacheHit ? 'HIT' : 'MISS'})`);
+      const allTokens = await runMorphologicalAnalysis(
+        textToAnalyze, languageId, commentRanges, mecabAnalyzer, recordStep
+      );
+      debugLog(`Analysis complete, ${allTokens.length} tokens found`);
 
-      // トークンフィルタリング
-      let semanticTokensList: Token[] = allTokens;
-      let grammarTokensList: Token[] = allTokens;
+      const { semanticTokens: semanticTokensList, grammarTokens: grammarTokensList } =
+        languageId === 'markdown'
+          ? partitionMarkdownTokens(allTokens, excludedRanges, config, tokenFilter, recordStep)
+          : { semanticTokens: allTokens, grammarTokens: allTokens };
 
-      if (languageId === 'markdown') {
-        const tokenFilterStart = isProfileEnabled ? Date.now() : 0;
-
-        // セマンティックハイライト用のフィルタリング
-        if (config.enableSemanticHighlight) {
-          let semanticExcludedRanges = excludedRanges;
-          if (config.excludeTableDelimiters !== false) {
-            semanticExcludedRanges = semanticExcludedRanges.filter((r) => r.type !== 'table');
-          }
-          if (config.markdown.analyzeCodeBlocks) {
-            semanticExcludedRanges = semanticExcludedRanges.filter((r) => r.type !== 'code-block');
-          }
-          if (isNotEmpty(semanticExcludedRanges)) {
-            semanticTokensList = tokenFilter.filterTokens(allTokens, semanticExcludedRanges);
-          }
-        }
-
-        // 文法チェック用のフィルタリング
-        if (config.enableGrammarCheck) {
-          let grammarExcludedRanges = config.markdown.analyzeCodeBlocks
-            ? excludedRanges.filter((r) => r.type !== 'code-block')
-            : excludedRanges;
-          if (config.markdown.analyzeTables) {
-            grammarExcludedRanges = grammarExcludedRanges.filter((r) => r.type !== 'table');
-          }
-          if (isNotEmpty(grammarExcludedRanges)) {
-            grammarTokensList = tokenFilter.filterTokens(allTokens, grammarExcludedRanges);
-          }
-        }
-
-        if (isProfileEnabled) {
-          profileSteps.push({ name: 'トークンフィルタ', ms: Date.now() - tokenFilterStart });
-        }
-      }
-
-      // 文法チェック
       const diagnostics: LSPDiagnostic[] = [];
-
       if (config.enableGrammarCheck) {
-        // 基本文法ルール
-        const basicStart = isProfileEnabled ? Date.now() : 0;
-        const grammarDiagnostics = grammarChecker.check(grammarTokensList, textToAnalyze);
-        if (isProfileEnabled) {
-          profileSteps.push({ name: '基本ルール評価', ms: Date.now() - basicStart, meta: `件数=${grammarDiagnostics.length}` });
-        }
-        debugLog(`Basic grammar check found ${grammarDiagnostics.length} issues`);
-
-        diagnostics.push(...toLspDiagnostics(grammarDiagnostics, 'otak-lsp'));
-
-        // 高度文法ルール
-        const advancedStart = isProfileEnabled ? Date.now() : 0;
-        let advancedDiagnostics: Diagnostic[];
-
-        if (lightweightOnly) {
-          advancedDiagnostics = languageId === 'markdown'
-            ? advancedRulesManager.checkLightweightRules(
-                textToAnalyze,
-                grammarTokensList,
-                excludedRanges,
-                { analyzeTables: config.markdown.analyzeTables },
-                ruleProfilingCollector
-              )
-            : advancedRulesManager.checkLightweightRules(
-                textToAnalyze,
-                grammarTokensList,
-                undefined,
-                undefined,
-                ruleProfilingCollector
-              );
-          if (isProfileEnabled) {
-            profileSteps.push({ name: '軽量ルール評価', ms: Date.now() - advancedStart, meta: `件数=${advancedDiagnostics.length}` });
-          }
-        } else {
-          advancedDiagnostics = languageId === 'markdown'
-            ? advancedRulesManager.checkText(
-                textToAnalyze,
-                grammarTokensList,
-                excludedRanges,
-                { analyzeTables: config.markdown.analyzeTables },
-                ruleProfilingCollector
-              )
-            : advancedRulesManager.checkText(
-                textToAnalyze,
-                grammarTokensList,
-                undefined,
-                undefined,
-                ruleProfilingCollector
-              );
-          if (isProfileEnabled) {
-            profileSteps.push({ name: '高度ルール評価', ms: Date.now() - advancedStart, meta: `件数=${advancedDiagnostics.length}` });
-          }
-        }
-        debugLog(`Advanced grammar check found ${advancedDiagnostics.length} issues`);
-
-        diagnostics.push(...toLspDiagnostics(advancedDiagnostics, 'otak-lsp'));
-
-        // 校正ルール
-        const proofreadingStart = isProfileEnabled ? Date.now() : 0;
-        const proofreadingDiagnostics = proofreadingRulesManager.checkText(textToAnalyze, grammarTokensList);
-        if (isProfileEnabled) {
-          profileSteps.push({ name: '校正ルール評価', ms: Date.now() - proofreadingStart, meta: `件数=${proofreadingDiagnostics.length}` });
-        }
-        debugLog(`Proofreading rules check found ${proofreadingDiagnostics.length} issues`);
-
-        diagnostics.push(...toLspDiagnostics(proofreadingDiagnostics, 'otak-lsp-proofreading'));
+        diagnostics.push(...runGrammarChecks(
+          textToAnalyze, grammarTokensList, languageId, excludedRanges, config,
+          lightweightOnly, checkDeps, recordStep, ruleProfilingCollector
+        ));
       }
 
       return {
