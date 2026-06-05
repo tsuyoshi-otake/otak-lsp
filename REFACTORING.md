@@ -1,5 +1,13 @@
 # コードベース改善レポート
 
+> ⚠️ **本ドキュメントは 2026年3月8日 時点の作業記録（履歴文書）です。**
+> 以降の保守でファイル構成や API は変化しており、ここに記載されている
+> 識別子・ファイルパスの一部（例: `kanjiReadings.ts`, `configurationManager.ts`,
+> `tryCatch` / `tryCatchAsync`, `nullLogger`, `arrayUtils` の旧関数群、
+> `error/errorHandler.ts` など）は**既に削除済み**です。
+> 現状の構成は `.kiro/steering/structure.md` / `CLAUDE.md` / `AGENTS.md`
+> を参照してください。
+
 ## 概要
 
 このドキュメントは、otak-lspプロジェクトに対して実施したコードベース改善作業の詳細を記録しています。
