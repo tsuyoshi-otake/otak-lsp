@@ -3,6 +3,7 @@
 .github/**
 .claude/**
 .kiro/**
+.codex/**
 
 # Source files (bundled by esbuild)
 client/src/**

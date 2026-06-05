@@ -1238,7 +1238,7 @@
     "@types/vscode": "^1.60.0",
     "@typescript-eslint/eslint-plugin": "^8.60.1",
     "@typescript-eslint/parser": "^8.60.1",
-    "@vscode/vsce": "2.25.0",
+    "@vscode/vsce": "^3.9.2",
     "esbuild": "^0.28.0",
     "eslint": "^8.57.1",
     "eslint-plugin-unused-imports": "^4.4.1",
