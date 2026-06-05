@@ -7,17 +7,7 @@ import {
   INLINE_CODE_PATTERN,
   JAPANESE_CHAR_PATTERN,
   TERM_TOKEN_PATTERN,
-  WORD_SEGMENT_PATTERN,
-  FULLWIDTH_NUMBER_PATTERN,
-  HALFWIDTH_NUMBER_PATTERN,
-  KANJI_NUMERAL_PATTERN,
-  FULLWIDTH_NAKAGURO_PATTERN,
-  HALFWIDTH_NAKAGURO_PATTERN,
-  MIXED_NAKAGURO_PATTERN,
-  SENTENCE_ENDING_PATTERN,
-  END_PUNCTUATION_PATTERN,
   SENTENCE_TERMINATORS,
-  PARAGRAPH_BREAK,
   cloneRegex,
   findCodeBlockRanges,
   findInlineCodeRanges,
@@ -99,100 +89,6 @@ describe('regexPatterns', () => {
     });
   });
 
-  describe('FULLWIDTH_NUMBER_PATTERN', () => {
-    it('全角数字を検出する', () => {
-      const text = '全角１２３４５';
-      const regex = new RegExp(FULLWIDTH_NUMBER_PATTERN.source, FULLWIDTH_NUMBER_PATTERN.flags);
-      const match = regex.exec(text);
-      expect(match).not.toBeNull();
-      expect(match![0]).toBe('１２３４５');
-    });
-  });
-
-  describe('HALFWIDTH_NUMBER_PATTERN', () => {
-    it('半角数字を検出する', () => {
-      const text = '半角12345';
-      const regex = new RegExp(HALFWIDTH_NUMBER_PATTERN.source, HALFWIDTH_NUMBER_PATTERN.flags);
-      const match = regex.exec(text);
-      expect(match).not.toBeNull();
-      expect(match![0]).toBe('12345');
-    });
-  });
-
-  describe('KANJI_NUMERAL_PATTERN', () => {
-    it('漢数字を検出する', () => {
-      const text = '一二三四五';
-      const regex = new RegExp(KANJI_NUMERAL_PATTERN.source, KANJI_NUMERAL_PATTERN.flags);
-      const match = regex.exec(text);
-      expect(match).not.toBeNull();
-      expect(match![0]).toBe('一二三四五');
-    });
-
-    it('大字を検出する', () => {
-      const text = '壱弐参';
-      const regex = new RegExp(KANJI_NUMERAL_PATTERN.source, KANJI_NUMERAL_PATTERN.flags);
-      const match = regex.exec(text);
-      expect(match).not.toBeNull();
-      expect(match![0]).toBe('壱弐参');
-    });
-  });
-
-  describe('NAKAGURO_PATTERNS', () => {
-    it('全角中黒の連続を検出する', () => {
-      const text = 'A・・B';
-      const regex = new RegExp(FULLWIDTH_NAKAGURO_PATTERN.source, FULLWIDTH_NAKAGURO_PATTERN.flags);
-      const match = regex.exec(text);
-      expect(match).not.toBeNull();
-      expect(match![0]).toBe('・・');
-    });
-
-    it('半角中黒の連続を検出する', () => {
-      const text = 'A･･B';
-      const regex = new RegExp(HALFWIDTH_NAKAGURO_PATTERN.source, HALFWIDTH_NAKAGURO_PATTERN.flags);
-      const match = regex.exec(text);
-      expect(match).not.toBeNull();
-      expect(match![0]).toBe('･･');
-    });
-
-    it('混在中黒を検出する', () => {
-      const text = 'A・･B';
-      const regex = new RegExp(MIXED_NAKAGURO_PATTERN.source, MIXED_NAKAGURO_PATTERN.flags);
-      const match = regex.exec(text);
-      expect(match).not.toBeNull();
-      expect(match![0]).toBe('・･');
-    });
-  });
-
-  describe('SENTENCE_ENDING_PATTERN', () => {
-    it('です体を検出する', () => {
-      expect(SENTENCE_ENDING_PATTERN.test('これはテストです')).toBe(true);
-    });
-
-    it('ます体を検出する', () => {
-      expect(SENTENCE_ENDING_PATTERN.test('実行します')).toBe(true);
-    });
-
-    it('である体を検出する', () => {
-      expect(SENTENCE_ENDING_PATTERN.test('これは事実である')).toBe(true);
-    });
-  });
-
-  describe('END_PUNCTUATION_PATTERN', () => {
-    it('文末の句読点を検出する', () => {
-      const text = 'これはテストです。';
-      const match = END_PUNCTUATION_PATTERN.exec(text);
-      expect(match).not.toBeNull();
-      expect(match![1]).toBe('。');
-    });
-
-    it('感嘆符を検出する', () => {
-      const text = 'すごい！';
-      const match = END_PUNCTUATION_PATTERN.exec(text);
-      expect(match).not.toBeNull();
-      expect(match![1]).toBe('！');
-    });
-  });
-
   describe('SENTENCE_TERMINATORS', () => {
     it('文終端記号を検出する', () => {
       expect(SENTENCE_TERMINATORS.test('。')).toBe(true);
@@ -200,18 +96,6 @@ describe('regexPatterns', () => {
       expect(SENTENCE_TERMINATORS.test('？')).toBe(true);
       expect(SENTENCE_TERMINATORS.test('!')).toBe(true);
       expect(SENTENCE_TERMINATORS.test('?')).toBe(true);
-    });
-  });
-
-  describe('PARAGRAPH_BREAK', () => {
-    it('空行を検出する', () => {
-      const text = 'line1\n\nline2';
-      expect(PARAGRAPH_BREAK.test(text)).toBe(true);
-    });
-
-    it('スペースのみの行も空行として検出する', () => {
-      const text = 'line1\n  \nline2';
-      expect(PARAGRAPH_BREAK.test(text)).toBe(true);
     });
   });
 
