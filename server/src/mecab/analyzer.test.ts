@@ -65,6 +65,41 @@ describe('MeCab Analyzer', () => {
       }
     });
 
+    it('should preserve source offsets when kuromoji skips whitespace', async () => {
+      if (!mecabAvailable) {
+        console.warn('Skipping test: MeCab not available');
+        return;
+      }
+
+      const text = '   これは テストです';
+      const tokens = await analyzer.analyze(text);
+
+      expect(tokens.length).toBeGreaterThan(0);
+      for (const token of tokens) {
+        expect(text.slice(token.start, token.end)).toBe(token.surface);
+      }
+      const firstNonBlankToken = tokens.find(token => token.surface.trim().length > 0);
+      expect(firstNonBlankToken?.start).toBe(3);
+    });
+
+    it('should not reuse cached tokens for distinct texts with the same sampled shape', async () => {
+      if (!mecabAvailable) {
+        console.warn('Skipping test: MeCab not available');
+        return;
+      }
+
+      MeCabAnalyzer.clearCache();
+      const first = 'これは猫です';
+      const second = 'これも猫ます';
+
+      await analyzer.analyze(first);
+      const tokens = await analyzer.analyze(second);
+      const reconstructed = tokens.map(t => t.surface).join('');
+
+      expect(reconstructed).toBe(second);
+      expect(MeCabAnalyzer.getCacheStats().misses).toBe(2);
+    });
+
     it('should provide POS information for each token when MeCab is available', async () => {
       if (!mecabAvailable) {
         console.warn('Skipping test: MeCab not available');

@@ -67,9 +67,9 @@ export class HoverProvider {
   /**
    * 有効な用語図鑑を設定
    */
-  setEnabledGlossaries(glossaries: GlossaryId[]): void {
+  setEnabledGlossaries(glossaries: GlossaryId[], explicit: boolean = true): void {
     this.enabledGlossaries = Array.isArray(glossaries) ? [...glossaries] : [...DEFAULT_ENABLED_GLOSSARIES];
-    this.glossariesExplicitlySet = true;
+    this.glossariesExplicitlySet = explicit;
     this.refreshGlossaryRank();
   }
 

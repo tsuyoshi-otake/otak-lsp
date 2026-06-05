@@ -15,7 +15,7 @@ import { TokenFilter } from '../semantic/tokenFilter';
 import { GrammarChecker } from '../grammar/checker';
 import { AdvancedRulesManager } from '../grammar/advancedRulesManager';
 import { ProofreadingRulesManager } from '../proofreading/proofreadingRulesManager';
-import { Configuration, Token, SupportedLanguage, Diagnostic } from '../../../shared/src/types';
+import { CommentRange, Configuration, Token, SupportedLanguage, Diagnostic } from '../../../shared/src/types';
 import { ExcludedRange } from '../../../shared/src/markdownFilterTypes';
 import { AdvancedRulesConfig, RuleProfilingCollector } from '../../../shared/src/advancedTypes';
 import { Profiler, ProfileStep } from './profiler';
@@ -38,6 +38,29 @@ function toLspDiagnostics(diags: Diagnostic[], source: string): LSPDiagnostic[] 
     source,
     code: diag.code,
   }));
+}
+
+function keepOnlyCommentRanges(text: string, comments: CommentRange[]): string {
+  if (comments.length === 0) {
+    return '';
+  }
+
+  const chars = text.split('');
+  for (let i = 0; i < chars.length; i++) {
+    if (chars[i] !== '\n' && chars[i] !== '\r') {
+      chars[i] = ' ';
+    }
+  }
+
+  for (const comment of comments) {
+    const start = Math.max(0, comment.start);
+    const end = Math.min(text.length, comment.end);
+    for (let i = start; i < end; i++) {
+      chars[i] = text[i];
+    }
+  }
+
+  return chars.join('');
 }
 
 /**
@@ -121,16 +144,17 @@ export function createDocumentAnalyzer(
       // 解析対象テキストを抽出
       let textToAnalyze = text;
       let excludedRanges: ExcludedRange[] = [];
+      let commentRanges: CommentRange[] = [];
 
       if (languageId !== 'markdown' && languageId !== 'plaintext') {
         // コードファイルの場合はコメントのみ抽出
         const commentStart = isProfileEnabled ? Date.now() : 0;
-        const comments = commentExtractor.extract(text, languageId);
-        textToAnalyze = comments.map((c) => c.text).join('\n');
+        commentRanges = commentExtractor.extract(text, languageId);
+        textToAnalyze = keepOnlyCommentRanges(text, commentRanges);
         if (isProfileEnabled) {
-          profileSteps.push({ name: 'コメント抽出', ms: Date.now() - commentStart, meta: `件数=${comments.length}` });
+          profileSteps.push({ name: 'コメント抽出', ms: Date.now() - commentStart, meta: `件数=${commentRanges.length}` });
         }
-        debugLog(`Extracted ${comments.length} comments`);
+        debugLog(`Extracted ${commentRanges.length} comments`);
       } else if (languageId === 'markdown') {
         // Markdownの場合はフィルタを適用
         const filterStart = isProfileEnabled ? Date.now() : 0;
@@ -155,7 +179,15 @@ export function createDocumentAnalyzer(
       // 形態素解析（キャッシュ付き）
       const mecabStart = isProfileEnabled ? Date.now() : 0;
       const cacheStatsBefore = MeCabAnalyzer.getCacheStats();
-      const allTokens = await mecabAnalyzer.analyze(textToAnalyze);
+      let allTokens = await mecabAnalyzer.analyze(textToAnalyze);
+      if (languageId !== 'markdown' && languageId !== 'plaintext') {
+        allTokens = allTokens.filter((token) => {
+          if (token.surface.trim().length === 0) {
+            return false;
+          }
+          return commentRanges.some((range) => token.start >= range.start && token.end <= range.end);
+        });
+      }
       const cacheStatsAfter = MeCabAnalyzer.getCacheStats();
       const cacheHit = cacheStatsAfter.hits > cacheStatsBefore.hits;
       if (isProfileEnabled) {

@@ -181,7 +181,7 @@ describe('Hover Provider', () => {
       // 1回目: Wikipediaは未キャッシュなので、まず用語図鑑だけ表示される
       const result1 = await provider.provideHover(tokens, 0);
       expect(result1).not.toBeNull();
-      expect(result1?.contents).toContain('**IT用語図鑑**');
+      expect(result1?.contents).toContain('**バックエンド用語図鑑**');
       expect(result1?.contents).not.toContain('**Wikipedia**');
       expect(mockFetch).toHaveBeenCalledTimes(1);
 
@@ -198,8 +198,8 @@ describe('Hover Provider', () => {
       const contents = result2!.contents;
       expect(contents).toContain('Wikipediaサマリー');
       expect(contents).toContain('**Wikipedia**');
-      expect(contents).toContain('**IT用語図鑑**');
-      expect(contents.indexOf('**Wikipedia**')).toBeLessThan(contents.indexOf('**IT用語図鑑**'));
+      expect(contents).toContain('**バックエンド用語図鑑**');
+      expect(contents.indexOf('**Wikipedia**')).toBeLessThan(contents.indexOf('**バックエンド用語図鑑**'));
       expect(mockFetch).toHaveBeenCalledTimes(1);
     });
 
@@ -213,8 +213,8 @@ describe('Hover Provider', () => {
       const result = await provider.provideHover(tokens, 0);
 
       expect(result).not.toBeNull();
-      expect(result?.contents).toContain('**バックエンド用語図鑑**');
-      expect(result?.contents).toContain('JavaScriptをサーバ側で動かす実行環境');
+      expect(result?.contents).toContain('**IT用語図鑑**');
+      expect(result?.contents).toContain('V8エンジン上で動作');
     });
 
     it('should return morpheme info only when Wikipedia is unavailable', async () => {
@@ -346,8 +346,8 @@ describe('Hover Provider', () => {
       const result = await provider.provideHover(tokens, 1, text);
 
       expect(result).not.toBeNull();
-      expect(result?.contents).toContain('**DevOps・CI/CD・リリース用語図鑑**');
-      expect(result?.contents).toContain('GitHub上でCI/CDワークフローを定義・実行する仕組み');
+      expect(result?.contents).toContain('**Git用語図鑑**');
+      expect(result?.contents).toContain('GitHubに組み込まれたCI/CD基盤');
       expect(result?.range).toEqual({ start: 0, end: text.length });
     });
 
@@ -363,7 +363,7 @@ describe('Hover Provider', () => {
       const result = await provider.provideHover(tokens, spaceOffset, text);
 
       expect(result).not.toBeNull();
-      expect(result?.contents).toContain('**DevOps・CI/CD・リリース用語図鑑**');
+      expect(result?.contents).toContain('**Git用語図鑑**');
       expect(result?.range).toEqual({ start: 0, end: text.length });
     });
 
@@ -377,29 +377,27 @@ describe('Hover Provider', () => {
       const result = await provider.provideHover([], offset, text);
 
       expect(result).not.toBeNull();
-      expect(result?.contents).toContain('**AWSサービス用語図鑑**');
+      expect(result?.contents).toContain('**クラウド用語図鑑**');
       expect(result?.contents).toContain('プライベートに接続');
-      expect(result?.contents).toContain('主な関連サービス');
       expect(result?.range).toEqual({ start: text.indexOf(term), end: text.indexOf(term) + term.length });
     });
 
-    it('should match Cloudflare console term aliases (e.g., オレンジクラウド)', async () => {
+    it('should match mixed provider glossary term from document text (e.g., OCIコンパートメント)', async () => {
       provider.setWikipediaEnabled(false);
 
-      const term = 'オレンジクラウド';
-      const text = `プロキシ設定は${term}です`;
-      const offset = text.indexOf(term) + 2;
+      const term = 'OCIコンパートメント';
+      const text = `${term}を作成する`;
+      const offset = text.indexOf(term) + 5;
 
       const result = await provider.provideHover([], offset, text);
 
       expect(result).not.toBeNull();
-      expect(result?.contents).toContain('**Cloudflareサービス用語図鑑**');
-      expect(result?.contents).toContain('Cloudflareプロキシ');
-      expect(result?.contents).toContain('**類義語**');
+      expect(result?.contents).toContain('**OCIサービス用語図鑑**');
+      expect(result?.contents).toContain('OCIリソースを論理的にグループ化');
       expect(result?.range).toEqual({ start: text.indexOf(term), end: text.indexOf(term) + term.length });
     });
 
-    it('should not label moved Cloudflare terms as Cloudflare (e.g., ビュー)', async () => {
+    it('should keep generic glossary terms in their current category (e.g., ビュー)', async () => {
       provider.setWikipediaEnabled(false);
 
       const term = 'ビュー';
@@ -409,28 +407,28 @@ describe('Hover Provider', () => {
       const result = await provider.provideHover([], offset, text);
 
       expect(result).not.toBeNull();
-      expect(result?.contents).toContain('**ネットワーク・HTTP用語図鑑**');
-      expect(result?.contents).toContain('見え方を分けて扱う');
+      expect(result?.contents).toContain('**DB・SQL・トランザクション用語図鑑**');
+      expect(result?.contents).toContain('SQLで定義した仮想的な表');
       expect(result?.contents).not.toContain('Cloudflareの用語');
       expect(result?.range).toEqual({ start: text.indexOf(term), end: text.indexOf(term) + term.length });
     });
 
-    it('should match Azure console term from document text (e.g., コンテナグループ)', async () => {
+    it('should prefer longer cloud provider term over shorter generic suffix (e.g., OCIコンパートメント)', async () => {
       provider.setWikipediaEnabled(false);
 
-      const term = 'コンテナグループ';
+      const term = 'OCIコンパートメント';
       const text = `${term}を作成する`;
-      const offset = text.indexOf(term) + 3;
+      const offset = text.indexOf('コンパートメント') + 3;
 
       const result = await provider.provideHover([], offset, text);
 
       expect(result).not.toBeNull();
-      expect(result?.contents).toContain('**Azureサービス用語図鑑**');
-      expect(result?.contents).toContain('主な関連サービス');
+      expect(result?.contents).toContain('**OCIサービス用語図鑑**');
+      expect(result?.contents).toContain('アクセス制御・コスト管理');
       expect(result?.range).toEqual({ start: text.indexOf(term), end: text.indexOf(term) + term.length });
     });
 
-    it('should match OCI console term from document text (e.g., コンパートメント)', async () => {
+    it('should match generic cloud term from document text (e.g., コンパートメント)', async () => {
       provider.setWikipediaEnabled(false);
 
       const term = 'コンパートメント';
@@ -440,9 +438,8 @@ describe('Hover Provider', () => {
       const result = await provider.provideHover([], offset, text);
 
       expect(result).not.toBeNull();
-      expect(result?.contents).toContain('**OCIサービス用語図鑑**');
-      expect(result?.contents).toContain('OCIでリソースを分離/整理');
-      expect(result?.contents).toContain('主な関連サービス');
+      expect(result?.contents).toContain('**クラウド用語図鑑**');
+      expect(result?.contents).toContain('資源を論理的に分けて管理');
       expect(result?.range).toEqual({ start: text.indexOf(term), end: text.indexOf(term) + term.length });
     });
 

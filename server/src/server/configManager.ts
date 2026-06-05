@@ -149,6 +149,7 @@ export function createConfigManager(
     const enableGlossary = getSetting(settings, 'hover.enableGlossary');
     const enabledGlossaries = getSetting(settings, 'hover.enabledGlossaries');
     const enabledGlossaryGroups = getSetting(settings, 'hover.enabledGlossaryGroups');
+    const hasExplicitGlossaries = Array.isArray(enabledGlossaries);
 
     configuration = {
       ...configuration,
@@ -174,7 +175,7 @@ export function createConfigManager(
 
     hoverProvider.setWikipediaEnabled(configuration.hover.enableWikipedia);
     hoverProvider.setGlossaryEnabled(configuration.hover.enableGlossary);
-    hoverProvider.setEnabledGlossaries(configuration.hover.enabledGlossaries);
+    hoverProvider.setEnabledGlossaries(configuration.hover.enabledGlossaries, hasExplicitGlossaries);
     hoverProvider.setEnabledGlossaryGroups(configuration.hover.enabledGlossaryGroups);
   }
 

@@ -6,7 +6,7 @@
  * 型定義、ユーティリティ関数、データ定義は別ファイルに分割されています。
  */
 
-import { GlossaryId, Token } from '../../../shared/src/types';
+import { GlossaryId, GLOSSARY_GROUPS, Token } from '../../../shared/src/types';
 
 // 型定義を再エクスポート
 export type { GlossaryHit, GlossaryMatch, GlossaryEntry, GlossaryDefinition } from './glossaryTypes';
@@ -22,6 +22,8 @@ const ASCII_TERM_CHAR_RE = /[A-Za-z0-9.+#/_:-]/;
 const CJK_TERM_CHAR_RE = /[ぁ-ゔァ-ヶー一-\u9FAF々・]/;
 const MIXED_ASCII_TERM_CHAR_RE = /[A-Za-z0-9.+#/_:@-]/;
 const MIXED_CJK_TERM_CHAR_RE = /[\p{Script=Katakana}\p{Script=Han}々ー・]/u;
+const TERM_WINDOW_CHAR_RE = /[A-Za-z0-9.+#/_:@\- \tぁ-ゔァ-ヶー一-\u9FAF々・]/u;
+const MAX_MATCH_CANDIDATE_LENGTH = 80;
 
 // 型定義をインポート（内部使用）
 import type { GlossaryHit } from './glossaryTypes';
@@ -59,17 +61,89 @@ export function createGlossaryRank(enabledGlossaries: ReadonlyArray<GlossaryId>)
   const enabledSet = new Set(enabledGlossaries);
   const rank = new Map<GlossaryId, number>();
 
-  // GLOSSARY_GROUPSから優先度順にランク付け（shared/src/types.tsで定義）
-  // ここでは簡易的に、enabledGlossariesの順序をそのまま使用
   let priority = 0;
+  const groups = [...GLOSSARY_GROUPS].sort((a, b) => a.priority - b.priority);
+  for (const group of groups) {
+    for (const id of group.members) {
+      if (enabledSet.has(id) && !rank.has(id)) {
+        rank.set(id, priority);
+        priority++;
+      }
+    }
+  }
+
+  // グループ未所属のIDが将来追加された場合も無効化しない。
   for (const id of enabledGlossaries) {
-    if (enabledSet.has(id)) {
+    if (!rank.has(id)) {
       rank.set(id, priority);
       priority++;
     }
   }
 
   return rank;
+}
+
+function trimCandidateRange(text: string, start: number, end: number): { start: number; end: number; value: string } | null {
+  let trimmedStart = start;
+  let trimmedEnd = end;
+  while (trimmedStart < trimmedEnd && /\s/.test(text[trimmedStart])) {
+    trimmedStart++;
+  }
+  while (trimmedEnd > trimmedStart && /\s/.test(text[trimmedEnd - 1])) {
+    trimmedEnd--;
+  }
+
+  if (trimmedStart >= trimmedEnd) {
+    return null;
+  }
+
+  return {
+    start: trimmedStart,
+    end: trimmedEnd,
+    value: text.slice(trimmedStart, trimmedEnd)
+  };
+}
+
+function findBestMatchInWindow(
+  text: string,
+  offset: number,
+  rank: ReadonlyMap<GlossaryId, number>
+): { hit: GlossaryHit; range: { start: number; end: number } } | null {
+  const ch = text[offset];
+  if (!TERM_WINDOW_CHAR_RE.test(ch)) {
+    return null;
+  }
+
+  let start = offset;
+  while (start > 0 && TERM_WINDOW_CHAR_RE.test(text[start - 1])) {
+    start--;
+  }
+
+  let end = offset + 1;
+  while (end < text.length && TERM_WINDOW_CHAR_RE.test(text[end])) {
+    end++;
+  }
+
+  const windowLength = end - start;
+  const maxLen = Math.min(windowLength, MAX_MATCH_CANDIDATE_LENGTH);
+  for (let len = maxLen; len >= 2; len--) {
+    const minCandidateStart = Math.max(start, offset - len + 1);
+    const maxCandidateStart = Math.min(offset, end - len);
+    for (let candidateStart = minCandidateStart; candidateStart <= maxCandidateStart; candidateStart++) {
+      const candidateEnd = candidateStart + len;
+      const candidate = trimCandidateRange(text, candidateStart, candidateEnd);
+      if (!candidate || offset < candidate.start || offset >= candidate.end) {
+        continue;
+      }
+
+      const hit = bestHitForCandidate(candidate.value, rank);
+      if (hit) {
+        return { hit, range: { start: candidate.start, end: candidate.end } };
+      }
+    }
+  }
+
+  return null;
 }
 
 /**
@@ -155,6 +229,11 @@ export function findGlossaryMatchWithRank(
   }
 
   const ch = text[offset];
+
+  const windowHit = findBestMatchInWindow(text, offset, rank);
+  if (windowHit) {
+    return windowHit;
+  }
 
   // ASCII系（英数字・記号）
   if (ASCII_TERM_CHAR_RE.test(ch)) {

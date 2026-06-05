@@ -201,6 +201,32 @@ describe('configManager', () => {
       expect(config.hover.enableWikipedia).toBe(false);
       expect(config.hover.enableGlossary).toBe(false);
     });
+
+    it('should apply glossary groups when individual glossaries are omitted', async () => {
+      const setEnabledGlossaries = jest.spyOn(hoverProvider, 'setEnabledGlossaries');
+      const setEnabledGlossaryGroups = jest.spyOn(hoverProvider, 'setEnabledGlossaryGroups');
+
+      configManager.handleLspConfigChange({
+        hover: {
+          enableWikipedia: false,
+          enabledGlossaryGroups: ['cloudServices'],
+        },
+      });
+
+      expect(setEnabledGlossaries).toHaveBeenCalledWith(expect.any(Array), false);
+      expect(setEnabledGlossaryGroups).toHaveBeenCalledWith(['cloudServices']);
+
+      const genericTerm = 'コンパートメント';
+      const genericText = `${genericTerm}を作成する`;
+      const genericHover = await hoverProvider.provideHover([], genericText.indexOf(genericTerm) + 2, genericText);
+      expect(genericHover).toBeNull();
+
+      const ociTerm = 'OCIコンパートメント';
+      const ociText = `${ociTerm}を作成する`;
+      const ociHover = await hoverProvider.provideHover([], ociText.indexOf(ociTerm) + 5, ociText);
+      expect(ociHover).not.toBeNull();
+      expect(ociHover?.contents).toContain('**OCIサービス用語図鑑**');
+    });
   });
 
   describe('getSetting utility', () => {

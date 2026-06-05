@@ -57,14 +57,8 @@ export class MeCabAnalyzer {
    * 簡易ハッシュ関数（テキストからキャッシュキーを生成）
    */
   private static hashText(text: string): string {
-    // 長さとサンプリングによる簡易ハッシュ
-    const len = text.length;
-    if (len < 100) {
-      return `${len}:${text}`;
-    }
-    // 長いテキストは先頭・中央・末尾のサンプルでハッシュ
-    const sample = text.slice(0, 50) + text.slice(len / 2 - 25, len / 2 + 25) + text.slice(-50);
-    return `${len}:${sample}`;
+    // 解析結果は位置情報を含むため、サンプリングではなく全文をキーにする。
+    return `${text.length}:${text}`;
   }
 
   /**
@@ -175,7 +169,7 @@ export class MeCabAnalyzer {
 
     MeCabAnalyzer.cacheMisses++;
     const kuromojiTokens = MeCabAnalyzer.tokenizer.tokenize(text);
-    const tokens = this.convertToTokens(kuromojiTokens);
+    const tokens = this.convertToTokens(kuromojiTokens, text);
 
     // キャッシュに保存
     this.addToCache(cacheKey, tokens);
@@ -213,13 +207,14 @@ export class MeCabAnalyzer {
    * kuromojiのトークンをToken型に変換
    * kuromoji の word_position はバイトオフセットなので、文字オフセットに変換する
    */
-  private convertToTokens(kuromojiTokens: KuromojiToken[]): Token[] {
+  private convertToTokens(kuromojiTokens: KuromojiToken[], sourceText: string): Token[] {
     let charPosition = 0;
 
     return kuromojiTokens.map((kt) => {
-      const start = charPosition;
-      const end = charPosition + kt.surface_form.length;
-      charPosition = end;
+      const foundAt = sourceText.indexOf(kt.surface_form, charPosition);
+      const start = foundAt >= 0 ? foundAt : charPosition;
+      const actualEnd = start + kt.surface_form.length;
+      charPosition = actualEnd;
 
       return new Token({
         surface: kt.surface_form,
@@ -233,7 +228,7 @@ export class MeCabAnalyzer {
         reading: kt.reading || '*',
         pronunciation: kt.pronunciation || '*',
         start,
-        end
+        end: actualEnd
       });
     });
   }

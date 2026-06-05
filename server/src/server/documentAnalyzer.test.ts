@@ -197,6 +197,35 @@ describe('documentAnalyzer', () => {
       expect(result.tokens.length).toBeGreaterThan(0);
     }, 10000);
 
+    it('should preserve original offsets for tokens extracted from code comments', async () => {
+      const text = 'const x = 1;\n// これはコメントです\nconst y = 2;';
+      const document = TextDocument.create(
+        'test://uri',
+        'javascript',
+        1,
+        text
+      );
+
+      const result = await documentAnalyzer.analyze(
+        document,
+        defaultConfig,
+        DEFAULT_ADVANCED_RULES_CONFIG,
+        false
+      );
+
+      const commentStart = text.indexOf('//');
+      const commentEnd = text.indexOf('\n', commentStart);
+      const commentTokens = result.tokens.filter(token => token.start >= commentStart && token.end <= commentEnd);
+
+      expect(commentTokens.length).toBeGreaterThan(0);
+      expect(commentTokens.some(token => token.surface === 'コメント')).toBe(true);
+      for (const token of commentTokens) {
+        expect(text.slice(token.start, token.end)).toBe(token.surface);
+      }
+      expect(result.tokens.every(token => text.slice(token.start, token.end) === token.surface)).toBe(true);
+      expect(result.tokens.some(token => token.surface === 'const')).toBe(false);
+    }, 10000);
+
     it('should run lightweight rules only when lightweightOnly is true', async () => {
       const document = TextDocument.create(
         'test://uri',
