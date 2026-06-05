@@ -104,32 +104,31 @@ export function createAnalysisScheduler(
         debugLog(`Pending full analysis found for ${uri}, starting now`);
         pendingFullAnalysis.delete(uri);
         runAnalysis(uri, false);
-        return;
-      }
+      } else {
+        // 待機中の解析要求があれば次の解析を開始
+        const stateAfterComplete = analysisStates.getState(uri);
+        if (stateAfterComplete.pending) {
+          const config = configManager.getConfig();
+          const elapsed = Date.now() - stateAfterComplete.lastChangeAt;
+          const remainingDelay = Math.max(0, config.debounceDelay - elapsed);
 
-      // 待機中の解析要求があれば次の解析を開始
-      const stateAfterComplete = analysisStates.getState(uri);
-      if (stateAfterComplete.pending) {
-        const config = configManager.getConfig();
-        const elapsed = Date.now() - stateAfterComplete.lastChangeAt;
-        const remainingDelay = Math.max(0, config.debounceDelay - elapsed);
+          debugLog(`Pending analysis found for ${uri}, rescheduling (remaining delay: ${remainingDelay}ms)`);
 
-        debugLog(`Pending analysis found for ${uri}, rescheduling (remaining delay: ${remainingDelay}ms)`);
+          // 既存タイマーをクリア
+          const existingTimer = debounceTimers.get(uri);
+          if (existingTimer) {
+            clearTimeout(existingTimer);
+          }
 
-        // 既存タイマーをクリア
-        const existingTimer = debounceTimers.get(uri);
-        if (existingTimer) {
-          clearTimeout(existingTimer);
+          // 段階実行の場合は軽量ルールのみでスケジュール
+          const advancedConfig = configManager.getAdvancedConfig();
+          const timer = setTimeout(() => {
+            runAnalysis(uri, advancedConfig.tieredExecution.enabled);
+            debounceTimers.delete(uri);
+          }, remainingDelay);
+
+          debounceTimers.set(uri, timer);
         }
-
-        // 段階実行の場合は軽量ルールのみでスケジュール
-        const advancedConfig = configManager.getAdvancedConfig();
-        const timer = setTimeout(() => {
-          runAnalysis(uri, advancedConfig.tieredExecution.enabled);
-          debounceTimers.delete(uri);
-        }, remainingDelay);
-
-        debounceTimers.set(uri, timer);
       }
     }
   }

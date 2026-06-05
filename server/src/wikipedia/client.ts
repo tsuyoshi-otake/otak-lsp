@@ -167,8 +167,7 @@ export class WikipediaClient {
   private startFetch(term: string): Promise<string | null> {
     const generation = this.cacheGeneration;
 
-    let promise: Promise<string | null>;
-    promise = this.fetchSummary(term)
+    const promise: Promise<string | null> = this.fetchSummary(term)
       .then((summary) => {
         if (summary !== null && generation === this.cacheGeneration) {
           this.setToCache(term, summary);
