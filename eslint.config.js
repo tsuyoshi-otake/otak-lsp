@@ -60,6 +60,11 @@ module.exports = [
       }],
       'no-control-regex': 'off',
       'no-useless-escape': 'off',
+      // 「let x: T | null = null」のような型確定用初期化や、明示的な
+      // 状態リセット（後続イテレーションで上書きされる）まで dead と
+      // 判定するため、本リポジトリでは off にする（ESLint 10 既定で
+      // eslint:recommended 経由 'error'）。
+      'no-useless-assignment': 'off',
     },
   },
   {
