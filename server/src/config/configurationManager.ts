@@ -5,7 +5,7 @@
  * 要件: 6.1, 6.2, 6.3, 6.4, 6.5
  */
 
-import { Configuration, SupportedLanguage } from '../../../shared/src/types';
+import { Configuration, SupportedLanguage, GLOSSARY_GROUPS } from '../../../shared/src/types';
 import { DEFAULT_ENABLED_GLOSSARIES } from '../hover/glossary';
 import { Logger } from '../utils/logger';
 import { logError } from '../utils/errorHandler';
@@ -63,6 +63,7 @@ export class ConfigurationManager {
         enableWikipedia: true,
         enableGlossary: true,
         enabledGlossaries: [...DEFAULT_ENABLED_GLOSSARIES],
+        enabledGlossaryGroups: GLOSSARY_GROUPS.map(g => g.id),
       },
     };
   }

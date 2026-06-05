@@ -6,12 +6,12 @@
  * 明らかに「適当」になりやすいテンプレ文言の混入を防ぐ。
  */
 
-import { getGlossaryDefinitions } from './glossary';
+import { GLOSSARIES } from './glossaryData';
 
 describe('Glossary descriptions', () => {
   it('should not include legacy generic console placeholder text', () => {
     const forbidden = 'コンソール上のリソース名/設定項目として使われる';
-    for (const glossary of getGlossaryDefinitions()) {
+    for (const glossary of GLOSSARIES) {
       for (const entry of glossary.entries) {
         expect(entry.description).not.toContain(forbidden);
       }

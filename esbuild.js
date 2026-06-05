@@ -58,35 +58,9 @@ async function buildClient() {
   }
 }
 
-/**
- * MCP build configuration
- */
-async function buildMcp() {
-  const ctx = await esbuild.context({
-    entryPoints: ['mcp/src/main.ts'],
-    bundle: true,
-    format: 'cjs',
-    minify: production,
-    sourcemap: !production,
-    sourcesContent: false,
-    platform: 'node',
-    outfile: 'mcp/out/main.js',
-    logLevel: 'warning'
-  });
-
-  if (watch) {
-    await ctx.watch();
-    console.log('[mcp] watching for changes...');
-  } else {
-    await ctx.rebuild();
-    await ctx.dispose();
-    console.log('[mcp] build complete');
-  }
-}
-
 async function main() {
   try {
-    await Promise.all([buildServer(), buildClient(), buildMcp()]);
+    await Promise.all([buildServer(), buildClient()]);
     if (!watch) {
       console.log('Build completed successfully');
     }

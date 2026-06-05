@@ -13,7 +13,7 @@ import { GrammarChecker } from '../grammar/checker';
 import { AdvancedRulesManager } from '../grammar/advancedRulesManager';
 import { ProofreadingRulesManager } from '../proofreading/proofreadingRulesManager';
 import { TextDocument } from 'vscode-languageserver-textdocument';
-import { Configuration, SupportedLanguage } from '../../../shared/src/types';
+import { Configuration, SupportedLanguage, GLOSSARY_GROUPS } from '../../../shared/src/types';
 import { DEFAULT_ADVANCED_RULES_CONFIG } from '../../../shared/src/advancedTypes';
 import { DEFAULT_ENABLED_GLOSSARIES } from '../hover/glossary';
 import { createLogger } from '../utils/logger';
@@ -45,6 +45,7 @@ describe('documentAnalyzer', () => {
       enableWikipedia: true,
       enableGlossary: true,
       enabledGlossaries: [...DEFAULT_ENABLED_GLOSSARIES],
+      enabledGlossaryGroups: GLOSSARY_GROUPS.map(g => g.id),
     },
   };
 

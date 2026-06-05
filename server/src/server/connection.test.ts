@@ -16,7 +16,7 @@ import { DocumentAnalyzer } from './documentAnalyzer';
 import { DiagnosticsPublisher } from './diagnosticsPublisher';
 import { HoverProvider } from '../hover/provider';
 import { SemanticTokenProvider, tokenTypes, tokenModifiers } from '../semantic/tokenProvider';
-import { Token, SupportedLanguage, Configuration } from '../../../shared/src/types';
+import { Token, SupportedLanguage, Configuration, GLOSSARY_GROUPS } from '../../../shared/src/types';
 import { AnalysisStateManager } from './languageServer';
 import { AdvancedRulesConfig } from '../../../shared/src/advancedTypes';
 
@@ -67,7 +67,7 @@ const createMockConfigManager = (): ConfigManager => {
     enableSemanticHighlight: true,
     debounceDelay: 250,
     targetLanguages: ['plaintext', 'markdown'] as SupportedLanguage[],
-    hover: { enableWikipedia: true, enableGlossary: true, enabledGlossaries: [] },
+    hover: { enableWikipedia: true, enableGlossary: true, enabledGlossaries: [], enabledGlossaryGroups: GLOSSARY_GROUPS.map(g => g.id) },
     markdown: { analyzeCodeBlocks: true, analyzeTables: true },
     excludeTableDelimiters: true,
     enableProfileLogs: false,

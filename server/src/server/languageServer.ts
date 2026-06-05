@@ -5,7 +5,7 @@
  * 要件: 1.4, 7.1, 7.3, 3.1, 3.2, 3.3
  */
 
-import { Token, Configuration } from '../../../shared/src/types';
+import { Token, Configuration, GLOSSARY_GROUPS } from '../../../shared/src/types';
 import { DEFAULT_ENABLED_GLOSSARIES } from '../hover/glossary';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 
@@ -291,6 +291,7 @@ export class LanguageServer {
         enableWikipedia: true,
         enableGlossary: true,
         enabledGlossaries: [...DEFAULT_ENABLED_GLOSSARIES],
+        enabledGlossaryGroups: GLOSSARY_GROUPS.map(g => g.id),
       },
     };
   }
