@@ -54,7 +54,7 @@ describe('JouyouKanjiData', () => {
 
     test('代替提案にはひらがな表記が含まれる', () => {
       // 代替提案の構造をチェック
-      for (const [kanji, suggestion] of NON_JOUYOU_ALTERNATIVES) {
+      for (const [_kanji, suggestion] of NON_JOUYOU_ALTERNATIVES) {
         expect(typeof suggestion.hiragana).toBe('string');
         expect(suggestion.hiragana.length).toBeGreaterThan(0);
       }

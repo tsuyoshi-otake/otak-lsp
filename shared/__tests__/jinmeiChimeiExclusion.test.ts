@@ -19,7 +19,6 @@ import {
 
 import {
   CHIMEI_KANJI_SET,
-  CHIMEI_KYUJITAI_MAP,
   FAMOUS_PLACE_NAMES,
   isChimeiKanji,
   isChimeiKyujitai,
