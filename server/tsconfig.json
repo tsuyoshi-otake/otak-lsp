@@ -5,7 +5,7 @@
     "rootDir": "./src",
     "composite": true
   },
-  "include": ["./src/**/*.ts"],
+  "include": ["./src/**/*.ts", "../types/**/*.d.ts"],
   "references": [
     { "path": "../shared" }
   ]
