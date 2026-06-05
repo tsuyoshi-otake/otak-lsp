@@ -205,7 +205,6 @@ export class EvalsRunner {
    */
   async initialize(): Promise<void> {
     // kuromoji-optimizedのロード
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
     const kuromoji = require('kuromoji-optimized') as Kuromoji;
     const path = require('path');
     const dicPath = path.join(__dirname, '../../../../node_modules/kuromoji-optimized/dict');
