@@ -62,13 +62,3 @@ export function createLogger(
 export function isDebugEnabled(): boolean {
   return process.env.OTAK_LCP_DEBUG === '1';
 }
-
-/**
- * Null Object パターンのロガー（何も出力しない）
- */
-export const nullLogger: Logger = {
-  debug: () => {},
-  info: () => {},
-  warn: () => {},
-  error: () => {},
-};

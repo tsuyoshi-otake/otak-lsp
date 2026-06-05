@@ -2,7 +2,7 @@
  * Logger Utility Tests
  */
 
-import { createLogger, isDebugEnabled, nullLogger } from './logger';
+import { createLogger, isDebugEnabled } from './logger';
 
 describe('Logger Utility', () => {
   describe('createLogger', () => {
@@ -72,26 +72,4 @@ describe('Logger Utility', () => {
     });
   });
 
-  describe('nullLogger', () => {
-    it('should not throw errors when called', () => {
-      expect(() => {
-        nullLogger.debug('test');
-        nullLogger.info('test');
-        nullLogger.warn('test');
-        nullLogger.error('test');
-      }).not.toThrow();
-    });
-
-    it('should not output anything', () => {
-      const consoleSpy = jest.spyOn(console, 'log');
-      
-      nullLogger.debug('test');
-      nullLogger.info('test');
-      nullLogger.warn('test');
-      nullLogger.error('test');
-
-      expect(consoleSpy).not.toHaveBeenCalled();
-      consoleSpy.mockRestore();
-    });
-  });
 });
