@@ -53,7 +53,7 @@ export class AdvancedRulesManager {
    */
   private calculateLineStarts(text: string): void {
     this.lineStarts = computeLineStarts(text);
-    let firstNewlineIndex = text.indexOf('\n');
+    const firstNewlineIndex = text.indexOf('\n');
     this.firstLineLength = firstNewlineIndex === -1 ? text.length : firstNewlineIndex;
   }
 

@@ -138,7 +138,7 @@ export class CommentExtractor {
     let i = 0;
     let inString = false;
     let stringChar = '';
-    let inTripleString = false;
+    const inTripleString = false;
     let tripleStringChar = '';
 
     while (i < text.length) {
@@ -242,7 +242,7 @@ export class CommentExtractor {
           }
           // 閉じるパターンを探す
           const closePattern = '"' + '#'.repeat(hashes);
-          let end = text.indexOf(closePattern, j + 1);
+          const end = text.indexOf(closePattern, j + 1);
           if (end !== -1) {
             i = end + closePattern.length;
           } else {
