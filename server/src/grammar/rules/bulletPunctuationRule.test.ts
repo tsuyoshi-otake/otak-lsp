@@ -4,9 +4,9 @@
  * 要件: 6.1, 6.2, 6.3, 6.4, 6.5
  */
 
-import { BulletPunctuationRule, BulletItem } from './bulletPunctuationRule';
+import { BulletPunctuationRule } from './bulletPunctuationRule';
 import { Token, DiagnosticSeverity } from '../../../../shared/src/types';
-import { DEFAULT_ADVANCED_RULES_CONFIG, RuleContext, Sentence } from '../../../../shared/src/advancedTypes';
+import { DEFAULT_ADVANCED_RULES_CONFIG, RuleContext } from '../../../../shared/src/advancedTypes';
 
 describe('BulletPunctuationRule', () => {
   const rule = new BulletPunctuationRule();

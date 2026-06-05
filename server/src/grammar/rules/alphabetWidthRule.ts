@@ -5,13 +5,12 @@
  * 要件: 7.1, 7.2, 7.3, 7.4, 7.5
  */
 
-import { Token, Range } from '../../../../shared/src/types';
+import { Token } from '../../../../shared/src/types';
 import {
   AdvancedGrammarRule,
   AdvancedRulesConfig,
   RuleContext,
-  AdvancedDiagnostic,
-  WidthInconsistency
+  AdvancedDiagnostic
 } from '../../../../shared/src/advancedTypes';
 
 /**

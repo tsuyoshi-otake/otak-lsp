@@ -7,7 +7,6 @@
  */
 
 import { DiagnosticSeverity as LSPDiagnosticSeverity, Diagnostic as LSPDiagnostic } from 'vscode-languageserver/node';
-import { Diagnostic } from '../../../shared/src/types';
 
 /**
  * DiagnosticsPublisherインターフェース

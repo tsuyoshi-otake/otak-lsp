@@ -5,7 +5,7 @@
  * 要件: 8.1, 8.2, 8.3
  */
 
-import { Token, Range } from '../../../../shared/src/types';
+import { Token } from '../../../../shared/src/types';
 import {
   AdvancedGrammarRule,
   AdvancedRulesConfig,

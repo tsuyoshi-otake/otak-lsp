@@ -10,8 +10,7 @@ import {
   AdvancedGrammarRule,
   AdvancedRulesConfig,
   RuleContext,
-  AdvancedDiagnostic,
-  Sentence
+  AdvancedDiagnostic
 } from '../../../../shared/src/advancedTypes';
 import { isEmpty } from '../../utils/arrayUtils';
 

@@ -5,9 +5,7 @@
  */
 
 import * as fc from 'fast-check';
-import { AnalysisStateManager, createInitialAnalysisState, AnalysisState } from './languageServer';
-import { TextDocument } from 'vscode-languageserver-textdocument';
-import { createMockTextDocument } from '../__tests__/testUtils';
+import { AnalysisStateManager } from './languageServer';
 
 /**
  * 設定状態をシミュレートするインターフェース

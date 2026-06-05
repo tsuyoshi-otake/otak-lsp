@@ -9,8 +9,7 @@ import { Token } from '../../../../shared/src/types';
 import {
   DEFAULT_ADVANCED_RULES_CONFIG,
   RuleContext,
-  Sentence,
-  AdvancedRulesConfig
+  Sentence
 } from '../../../../shared/src/advancedTypes';
 
 describe('SentenceEndingColonRule', () => {

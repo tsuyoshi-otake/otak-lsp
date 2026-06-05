@@ -5,7 +5,6 @@
  */
 
 import { CommentExtractor } from './commentExtractor';
-import { CommentRange } from '../../../shared/src/types';
 
 describe('Comment Extractor', () => {
   let extractor: CommentExtractor;

@@ -5,13 +5,12 @@
  * 要件: 9.1, 9.2, 9.3, 9.4, 9.5
  */
 
-import { Token, Range } from '../../../../shared/src/types';
+import { Token } from '../../../../shared/src/types';
 import {
   AdvancedGrammarRule,
   AdvancedRulesConfig,
   RuleContext,
-  AdvancedDiagnostic,
-  Sentence
+  AdvancedDiagnostic
 } from '../../../../shared/src/advancedTypes';
 
 /**

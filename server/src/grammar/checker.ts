@@ -5,7 +5,7 @@
  * 要件: 3.1, 3.2, 3.3, 3.4, 3.5
  */
 
-import { Token, Diagnostic, DiagnosticSeverity, Range, GrammarError, GrammarErrorType } from '../../../shared/src/types';
+import { Token, Diagnostic, Range, GrammarError, GrammarErrorType } from '../../../shared/src/types';
 import { computeLineStarts, offsetToLineAndCharacter } from '../utils/lineStarts';
 import { isNotEmpty } from '../utils/arrayUtils';
 

@@ -16,7 +16,7 @@ import { DocumentAnalyzer } from './documentAnalyzer';
 import { DiagnosticsPublisher } from './diagnosticsPublisher';
 import { HoverProvider } from '../hover/provider';
 import { SemanticTokenProvider, tokenTypes, tokenModifiers } from '../semantic/tokenProvider';
-import { Token, SupportedLanguage, Configuration, GLOSSARY_GROUPS } from '../../../shared/src/types';
+import { SupportedLanguage, Configuration, GLOSSARY_GROUPS } from '../../../shared/src/types';
 import { AnalysisStateManager } from './languageServer';
 import { AdvancedRulesConfig } from '../../../shared/src/advancedTypes';
 

@@ -6,7 +6,7 @@
  * Detects fenced code blocks that don't specify a language
  */
 
-import { Token, Range } from '../../../../shared/src/types';
+import { Token } from '../../../../shared/src/types';
 import {
   AdvancedGrammarRule,
   AdvancedRulesConfig,

@@ -9,9 +9,7 @@ import { Token } from '../../../shared/src/types';
 import {
   AdvancedRuleSharedContext,
   RuleContext,
-  DEFAULT_ADVANCED_RULES_CONFIG,
-  Sentence,
-  AdvancedRulesConfig
+  DEFAULT_ADVANCED_RULES_CONFIG
 } from '../../../shared/src/advancedTypes';
 import { buildSharedContext } from './sharedContextBuilder';
 import { TermNotationRule } from './rules/termNotationRule';

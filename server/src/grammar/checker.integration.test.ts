@@ -13,9 +13,7 @@ import { GrammarChecker } from './checker';
 import { AdvancedRulesManager } from './advancedRulesManager';
 import { Token, Diagnostic } from '../../../shared/src/types';
 import {
-  AdvancedRulesConfig,
-  DEFAULT_ADVANCED_RULES_CONFIG,
-  Sentence
+  AdvancedRulesConfig
 } from '../../../shared/src/advancedTypes';
 
 /**

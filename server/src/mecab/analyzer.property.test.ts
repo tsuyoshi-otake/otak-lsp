@@ -5,7 +5,6 @@
 
 import * as fc from 'fast-check';
 import { MeCabAnalyzer } from './analyzer';
-import { Token } from '../../../shared/src/types';
 
 describe('Property-Based Tests: MeCab Analyzer', () => {
   const analyzer = new MeCabAnalyzer();

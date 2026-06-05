@@ -6,7 +6,7 @@
  * 括弧内範囲の検出と除外を検証
  */
 
-import { BracketRangeDetector, BracketRange } from './bracketRangeDetector';
+import { BracketRangeDetector } from './bracketRangeDetector';
 
 describe('BracketRangeDetector', () => {
   describe('detect', () => {

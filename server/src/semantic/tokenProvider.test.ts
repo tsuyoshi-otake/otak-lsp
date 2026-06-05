@@ -5,7 +5,7 @@
  */
 
 import { SemanticTokenProvider, TokenType } from './tokenProvider';
-import { Token, SemanticTokens } from '../../../shared/src/types';
+import { Token } from '../../../shared/src/types';
 
 describe('Semantic Token Provider', () => {
   let provider: SemanticTokenProvider;

@@ -6,7 +6,6 @@
 
 import * as fc from 'fast-check';
 import { AnalysisStateManager, createInitialAnalysisState } from './languageServer';
-import { TextDocument } from 'vscode-languageserver-textdocument';
 import { createMockTextDocument } from '../__tests__/testUtils';
 
 describe('Property-Based Tests: 解析状態管理', () => {

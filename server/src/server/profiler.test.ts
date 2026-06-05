@@ -4,7 +4,7 @@
  * TDD: RED -> GREEN -> REFACTOR
  */
 
-import { createProfiler, ProfileStep, Profiler } from './profiler';
+import { createProfiler, ProfileStep } from './profiler';
 import { RuleProfilingCollector } from '../../../shared/src/advancedTypes';
 
 describe('profiler', () => {

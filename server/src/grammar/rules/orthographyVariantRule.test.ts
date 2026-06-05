@@ -6,7 +6,6 @@
  */
 
 import { OrthographyVariantRule } from './orthographyVariantRule';
-import { Token } from '../../../../shared/src/types';
 import { RuleContext, Sentence, DEFAULT_ADVANCED_RULES_CONFIG } from '../../../../shared/src/advancedTypes';
 
 describe('OrthographyVariantRule', () => {

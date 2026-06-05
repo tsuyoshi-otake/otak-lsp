@@ -12,8 +12,7 @@ import {
   AdvancedRulesConfig,
   RuleContext,
   AdvancedDiagnostic,
-  AdvancedGrammarErrorType,
-  DEFAULT_ADVANCED_RULES_CONFIG
+  AdvancedGrammarErrorType
 } from '../../../../shared/src/advancedTypes';
 import { isNotEmpty } from '../../utils/arrayUtils';
 

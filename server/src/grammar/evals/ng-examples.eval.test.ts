@@ -8,7 +8,7 @@
  */
 
 import { EvalsRunner, EvalResult } from './evals-runner';
-import { NG_EXAMPLE_CATEGORIES, getImplementedCategories, getImplementedExampleCount } from './ng-examples-data';
+import { NG_EXAMPLE_CATEGORIES, getImplementedCategories } from './ng-examples-data';
 
 // 検出率の閾値
 const DETECTION_RATE_THRESHOLD = 50; // 最低50%は検出されるべき

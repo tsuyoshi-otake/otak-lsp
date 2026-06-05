@@ -8,7 +8,6 @@
 import * as fc from 'fast-check';
 import { Token } from '../../../../shared/src/types';
 import { AdvancedRulesManager } from '../advancedRulesManager';
-import { DEFAULT_ADVANCED_RULES_CONFIG, RuleContext, Sentence } from '../../../../shared/src/advancedTypes';
 
 describe('Property-Based Tests: AdditionalRulesConfig', () => {
 

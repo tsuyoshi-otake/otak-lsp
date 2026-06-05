@@ -5,7 +5,7 @@
  * 要件: 6.1, 6.2, 6.3, 6.4, 6.5
  */
 
-import { Token, Range } from '../../../../shared/src/types';
+import { Token } from '../../../../shared/src/types';
 import {
   AdvancedGrammarRule,
   AdvancedRulesConfig,

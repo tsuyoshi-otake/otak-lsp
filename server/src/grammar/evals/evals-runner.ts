@@ -8,7 +8,6 @@
 
 import { Token, Diagnostic } from '../../../../shared/src/types';
 import {
-  Sentence,
   DEFAULT_ADVANCED_RULES_CONFIG,
   RuleContext,
   AdvancedDiagnostic

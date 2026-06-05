@@ -7,9 +7,7 @@
 import { Token } from '../../../../shared/src/types';
 import {
   RuleContext,
-  Sentence,
   DEFAULT_ADVANCED_RULES_CONFIG,
-  AdvancedDiagnostic,
   AdvancedGrammarErrorType
 } from '../../../../shared/src/advancedTypes';
 import { MixDetectionRule, PatternInfo } from './mixDetectionRule';

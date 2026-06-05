@@ -9,7 +9,6 @@
 import {
   ProofreadingSettingsConfig,
   DEFAULT_PROOFREADING_CONFIG,
-  ProofreadingConfigMapper,
   applyProofreadingSettings,
   parseProofreadingSettingsFromRaw
 } from './proofreadingConfig';

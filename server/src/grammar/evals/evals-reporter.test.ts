@@ -5,7 +5,7 @@
  */
 
 import { EvalsReporter } from './evals-reporter';
-import { EvalResult, CategoryEvalResult } from './evals-runner';
+import { EvalResult } from './evals-runner';
 
 describe('EvalsReporter', () => {
   const mockEvalResult: EvalResult = {

@@ -12,7 +12,7 @@
 
 import * as fc from 'fast-check';
 import { AdvancedRulesManager } from './advancedRulesManager';
-import { Token, Range, Diagnostic } from '../../../shared/src/types';
+import { Token, Range } from '../../../shared/src/types';
 import {
   AdvancedGrammarRule,
   AdvancedDiagnostic,

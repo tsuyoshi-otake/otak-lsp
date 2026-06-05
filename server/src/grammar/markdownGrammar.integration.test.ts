@@ -17,7 +17,7 @@ import { MeCabAnalyzer } from '../mecab/analyzer';
 import { GrammarChecker } from './checker';
 import { AdvancedRulesManager } from './advancedRulesManager';
 import { TokenFilter } from '../semantic/tokenFilter';
-import { Token, Diagnostic } from '../../../shared/src/types';
+import { Diagnostic } from '../../../shared/src/types';
 
 /**
  * main.ts の analyzeDocument と同じ処理を行うテストヘルパー

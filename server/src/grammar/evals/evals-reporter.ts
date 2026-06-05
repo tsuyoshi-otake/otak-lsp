@@ -6,7 +6,7 @@
  * Markdown形式の評価レポートを生成する
  */
 
-import { EvalResult, CategoryEvalResult, ExampleEvalResult, EvalStatus } from './evals-runner';
+import { EvalResult, EvalStatus } from './evals-runner';
 
 /**
  * 検出失敗例の詳細

@@ -8,10 +8,8 @@
  * - Underscore bold: __text__
  */
 
-import { Token } from '../../../../shared/src/types';
 import {
   AdvancedRulesConfig,
-  RuleContext,
   AdvancedGrammarErrorType
 } from '../../../../shared/src/advancedTypes';
 import { MixDetectionRule, PatternInfo } from './mixDetectionRule';

@@ -11,9 +11,7 @@
 
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import {
-  AnalysisState,
   AnalysisStateManager,
-  createInitialAnalysisState,
   AnalysisCache,
   LanguageServer,
 } from './languageServer';

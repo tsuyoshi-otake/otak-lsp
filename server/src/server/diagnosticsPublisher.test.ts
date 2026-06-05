@@ -4,7 +4,7 @@
  * TDD: RED -> GREEN -> REFACTOR
  */
 
-import { createDiagnosticsPublisher, DiagnosticsPublisher, convertSeverity } from './diagnosticsPublisher';
+import { createDiagnosticsPublisher, convertSeverity } from './diagnosticsPublisher';
 import { Diagnostic as LSPDiagnostic, DiagnosticSeverity as LSPDiagnosticSeverity } from 'vscode-languageserver/node';
 
 describe('diagnosticsPublisher', () => {

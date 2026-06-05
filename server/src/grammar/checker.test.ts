@@ -5,7 +5,7 @@
  */
 
 import { GrammarChecker } from './checker';
-import { Token, GrammarError, Diagnostic } from '../../../shared/src/types';
+import { Token } from '../../../shared/src/types';
 
 describe('Grammar Checker', () => {
   let checker: GrammarChecker;

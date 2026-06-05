@@ -7,7 +7,7 @@
 
 import * as fc from 'fast-check';
 import { GrammarChecker } from './checker';
-import { Token, Diagnostic } from '../../../shared/src/types';
+import { Token } from '../../../shared/src/types';
 
 describe('Property-Based Tests: Grammar Checker', () => {
   const checker = new GrammarChecker();

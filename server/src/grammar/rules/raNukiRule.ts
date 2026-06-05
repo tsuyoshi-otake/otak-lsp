@@ -10,8 +10,7 @@ import {
   AdvancedGrammarRule,
   AdvancedRulesConfig,
   RuleContext,
-  AdvancedDiagnostic,
-  RaNukiInfo
+  AdvancedDiagnostic
 } from '../../../../shared/src/advancedTypes';
 
 /**

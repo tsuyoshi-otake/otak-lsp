@@ -8,9 +8,7 @@
 
 import {
   ProofreadingDictionaryLoader,
-  DictionaryEntry,
-  RuleDictionaryEntry,
-  SpellDictionaryEntry
+  DictionaryEntry
 } from './proofreadingDictionaryLoader';
 
 describe('ProofreadingDictionaryLoader', () => {

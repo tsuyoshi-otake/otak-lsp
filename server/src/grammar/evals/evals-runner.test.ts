@@ -4,7 +4,7 @@
  * Task: 24. Evals実行エンジンのテスト
  */
 
-import { EvalsRunner, EvalResult, CategoryEvalResult } from './evals-runner';
+import { EvalsRunner } from './evals-runner';
 import { NG_EXAMPLE_CATEGORIES, getImplementedCategories } from './ng-examples-data';
 
 describe('EvalsRunner', () => {

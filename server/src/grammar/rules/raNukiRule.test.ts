@@ -6,7 +6,7 @@
 
 import { RaNukiRule } from './raNukiRule';
 import { Token } from '../../../../shared/src/types';
-import { Sentence, DEFAULT_ADVANCED_RULES_CONFIG, RuleContext } from '../../../../shared/src/advancedTypes';
+import { DEFAULT_ADVANCED_RULES_CONFIG, RuleContext } from '../../../../shared/src/advancedTypes';
 
 describe('RaNukiRule', () => {
   let rule: RaNukiRule;

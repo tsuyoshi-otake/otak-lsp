@@ -4,7 +4,7 @@
  * Feature: sentence-complexity-rule
  */
 
-import { Token, Range } from '../../../../shared/src/types';
+import { Token } from '../../../../shared/src/types';
 import {
   AdvancedGrammarRule,
   AdvancedRulesConfig,
@@ -14,7 +14,7 @@ import {
   ComplexityMetrics,
   SentenceComplexity
 } from '../../../../shared/src/advancedTypes';
-import { isNotBlank, hasMinLength } from '../../utils/stringUtils';
+import { hasMinLength } from '../../utils/stringUtils';
 import { isNotEmpty } from '../../utils/arrayUtils';
 
 /**

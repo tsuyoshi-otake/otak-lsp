@@ -5,7 +5,7 @@
  * 要件: 10.1, 10.2, 10.3
  */
 
-import { Token, Range } from '../../../../shared/src/types';
+import { Token } from '../../../../shared/src/types';
 import {
   AdvancedGrammarRule,
   AdvancedRulesConfig,
@@ -14,7 +14,7 @@ import {
   NounChain
 } from '../../../../shared/src/advancedTypes';
 import { isBlank } from '../../utils/stringUtils';
-import { isEmpty, isNotEmpty } from '../../utils/arrayUtils';
+import { isNotEmpty } from '../../utils/arrayUtils';
 
 /**
  * 名詞連続パターン（読みにくい例）
