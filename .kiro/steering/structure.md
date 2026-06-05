@@ -21,7 +21,7 @@ inclusion: always
 **構成パターン**:
 - `main.ts`: サーバーエントリーポイント
 - 機能別ディレクトリ: `grammar/`, `mecab/`, `parser/`, `semantic/`, `hover/`, `proofreading/`, `wikipedia/`, `dictionaries/`
-- インフラストラクチャ: `server/`, `config/`, `error/`
+- インフラストラクチャ: `server/`, `utils/`
 
 ### 共有 (`shared/src/`)
 **目的**: クライアント・サーバー間の共有型定義
@@ -35,7 +35,7 @@ inclusion: always
 ## 命名規則
 
 - **ファイル**: camelCase（`advancedRulesManager.ts`）
-- **クラス**: PascalCase（`GrammarChecker`）
+- **クラス**: PascalCase（`AdvancedRulesManager`）
 - **関数**: camelCase（`analyzeDocument`）
 - **定数**: UPPER_SNAKE_CASE（`DEFAULT_CONFIG`）
 - **型/インターフェース**: PascalCase（`Token`, `Configuration`）
@@ -49,7 +49,7 @@ import { TextDocument } from 'vscode-languageserver-textdocument';
 
 // 同一パッケージ内
 import { MeCabAnalyzer } from './mecab/analyzer';
-import { GrammarChecker } from './grammar/checker';
+import { AdvancedRulesManager } from './grammar/advancedRulesManager';
 
 // 共有パッケージ
 import { Token, Configuration } from '../../shared/src/types';
@@ -65,11 +65,10 @@ import { Token, Configuration } from '../../shared/src/types';
 テストファイルは対象ファイルと同じディレクトリに配置
 
 ```
-server/src/grammar/
-  checker.ts              # 実装
-  checker.test.ts         # 単体テスト
-  checker.property.test.ts # プロパティベーステスト
-  checker.integration.test.ts # 統合テスト
+server/src/grammar/rules/
+  styleConsistencyRule.ts              # 実装
+  styleConsistencyRule.test.ts         # 単体テスト
+  styleConsistencyRule.property.test.ts # プロパティベーステスト
 ```
 
 ## 文法ルール追加パターン
@@ -99,21 +98,20 @@ server/src/grammar/
 - `documentAnalyzer.ts`: ドキュメント解析オーケストレーション
 - `profiler.ts`: パフォーマンス計測
 
-### 設定管理 (`server/src/config/`)
-**目的**: 統合的な設定管理
-**例**: `configurationManager.ts`
-
-### エラーハンドリング (`server/src/error/`)
-**目的**: 統一的なエラー処理
-**例**: `errorHandler.ts`
+### ユーティリティ (`server/src/utils/`)
+**目的**: ログ・エラー整形・文字列/正規表現/配列の汎用ヘルパー
+**例**: `logger.ts`, `errorHandler.ts`, `stringUtils.ts`, `regexPatterns.ts`, `arrayUtils.ts`, `lineStarts.ts`
 
 ### 校正 (`server/src/proofreading/`)
 **目的**: 校正ルールの管理と設定
 **構成パターン**:
 - `proofreadingRulesManager.ts`: 校正ルール管理
-- `proofreadingConfig.ts`: 校正設定の解釈
+- `proofreadingConfig.ts`: 校正設定の解釈（バレル）
+- `proofreadingConfigMapper.ts`: AdvancedRulesConfig へのマッピング
+- `proofreadingConfigParser.ts`: VS Code 設定形式からのパース
+- `proofreadingDefaults.ts`: デフォルト値・プリセット
+- `proofreadingTypes.ts`: 型定義
 - `bracketRangeDetector.ts`: 括弧範囲の検出
-- `quoteLineFilter.ts`: 引用行のフィルタリング
 
 ### 辞書 (`server/src/dictionaries/`)
 **目的**: 校正・表記統一用辞書のロード
