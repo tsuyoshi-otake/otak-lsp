@@ -64,7 +64,7 @@ export class HeadingLevelSkipRule implements AdvancedGrammarRule {
   /**
    * Check for heading level skips
    */
-  check(tokens: Token[], context: RuleContext): AdvancedDiagnostic[] {
+  check(_tokens: Token[], context: RuleContext): AdvancedDiagnostic[] {
     const diagnostics: AdvancedDiagnostic[] = [];
     const lines = splitLines(context.documentText);
 

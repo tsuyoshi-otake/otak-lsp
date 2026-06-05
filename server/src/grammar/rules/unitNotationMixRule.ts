@@ -70,7 +70,7 @@ export class UnitNotationMixRule extends MixDetectionRule {
   /**
    * Override check to provide category-specific diagnostics
    */
-  check(tokens: Token[], context: RuleContext): AdvancedDiagnostic[] {
+  check(_tokens: Token[], context: RuleContext): AdvancedDiagnostic[] {
     const diagnostics: AdvancedDiagnostic[] = [];
 
     for (const category of this.unitCategories) {

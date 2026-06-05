@@ -148,7 +148,7 @@ export class MonotonousEndingRule implements AdvancedGrammarRule {
    * @param context ルールコンテキスト
    * @returns 診断情報のリスト
    */
-  check(tokens: Token[], context: RuleContext): AdvancedDiagnostic[] {
+  check(_tokens: Token[], context: RuleContext): AdvancedDiagnostic[] {
     const diagnostics: AdvancedDiagnostic[] = [];
     const threshold = context.config.monotonousEndingThreshold || 3;
     const monotonousEndings = this.detectMonotonousEndings(context.sentences, threshold);

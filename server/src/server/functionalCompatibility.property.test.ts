@@ -155,11 +155,9 @@ class EventualConsistencySimulator {
   private documentVersions: Map<string, number> = new Map();
   private documentTexts: Map<string, string> = new Map();
   private analysisResults: Map<string, { version: number; text: string }> = new Map();
-  private debounceDelay: number;
 
-  constructor(debounceDelay: number = 250) {
+  constructor(_debounceDelay: number = 250) {
     this.analysisStates = new AnalysisStateManager();
-    this.debounceDelay = debounceDelay;
   }
 
   /**

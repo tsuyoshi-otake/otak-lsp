@@ -41,7 +41,7 @@ export class TableColumnMismatchRule implements AdvancedGrammarRule {
   /**
    * Check for table column mismatches
    */
-  check(tokens: Token[], context: RuleContext): AdvancedDiagnostic[] {
+  check(_tokens: Token[], context: RuleContext): AdvancedDiagnostic[] {
     const diagnostics: AdvancedDiagnostic[] = [];
     const tables = this.findTables(context.documentText);
 

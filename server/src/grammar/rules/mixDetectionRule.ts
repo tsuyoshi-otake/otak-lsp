@@ -106,7 +106,7 @@ export abstract class MixDetectionRule implements AdvancedGrammarRule {
    * @param context Rule context with document text
    * @returns Array of diagnostics
    */
-  check(tokens: Token[], context: RuleContext): AdvancedDiagnostic[] {
+  check(_tokens: Token[], context: RuleContext): AdvancedDiagnostic[] {
     const patterns = this.collectPatterns(context.documentText);
 
     if (!this.detectMix(patterns)) {

@@ -66,7 +66,7 @@ export class NakaguroUsageRule implements AdvancedGrammarRule {
   /**
    * 文法チェックを実行
    */
-  check(tokens: Token[], context: RuleContext): AdvancedDiagnostic[] {
+  check(_tokens: Token[], context: RuleContext): AdvancedDiagnostic[] {
     const diagnostics: AdvancedDiagnostic[] = [];
     const consecutiveNakaguro = this.findConsecutiveNakaguro(context.documentText);
 

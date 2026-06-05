@@ -44,7 +44,7 @@ describe('Japanese Grammar Evals', () => {
 
     describe.each(implementedCategories.map(c => [c.name, c.id, c]))(
       '%s (%s)',
-      (name, id, _category) => {
+      (_name, id, _category) => {
         it('should detect at least one example', async () => {
           const catResult = result.categories.find(c => c.categoryId === id);
           expect(catResult).toBeDefined();

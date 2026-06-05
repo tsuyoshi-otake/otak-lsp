@@ -100,7 +100,7 @@ export class EnglishCaseMixRule extends MixDetectionRule {
    * Feature: advanced-rules-shared-preprocessing-cache
    * - context.shared がある場合は共有コンテキストのコード範囲を使用
    */
-  check(tokens: Token[], context: RuleContext): AdvancedDiagnostic[] {
+  check(_tokens: Token[], context: RuleContext): AdvancedDiagnostic[] {
     const wordVariants = this.findWordVariantsWithContext(context.documentText, context);
     const diagnostics: AdvancedDiagnostic[] = [];
 
@@ -145,15 +145,6 @@ export class EnglishCaseMixRule extends MixDetectionRule {
   private findWordVariantsWithContext(text: string, context: RuleContext): Map<string, Map<string, number>> {
     // 共有コンテキストがあれば再利用、なければ個別計算
     const codeRanges = context.shared?.codeRanges ?? this.getCodeRanges(text);
-    return this.findWordVariantsWithCodeRanges(text, codeRanges);
-  }
-
-  /**
-   * Find all variants of English words in text
-   * コードブロック、拡張子、ハイフン識別子内は除外
-   */
-  private findWordVariants(text: string): Map<string, Map<string, number>> {
-    const codeRanges = this.getCodeRanges(text);
     return this.findWordVariantsWithCodeRanges(text, codeRanges);
   }
 

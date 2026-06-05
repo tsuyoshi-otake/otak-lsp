@@ -28,8 +28,7 @@ import {
   getShinjitai,
   matchesSurnamePattern,
   isLikelyName,
-  KYUJITAI_SURNAME_PATTERNS,
-  SURNAME_SUFFIX_PATTERNS
+  KYUJITAI_SURNAME_PATTERNS
 } from '../../../../shared/src/jinmeiKanjiData';
 import {
   isChimeiKanji,
@@ -38,8 +37,7 @@ import {
   matchesFamousPlaceName,
   isLikelyPlaceName,
   isAddressContext,
-  FAMOUS_PLACE_NAMES,
-  CHIMEI_SUFFIX_PATTERNS
+  FAMOUS_PLACE_NAMES
 } from '../../../../shared/src/chimeiKanjiData';
 
 /**
@@ -99,28 +97,6 @@ const ADDRESS_KEYWORDS = [
   '〒', '住所', '所在地', '居所', '本籍', '現住所',
   '送付先', '届出先', '連絡先', '勤務先', '配送先', '届け先',
 ];
-
-/**
- * 事前コンパイルされた敬称パターン
- * 2-6文字の名前 + 敬称
- */
-const _COMPILED_SURNAME_SUFFIX_PATTERNS: RegExp[] = SURNAME_SUFFIX_PATTERNS.map(
-  suffix => new RegExp(`^.{1,6}${suffix}`)
-);
-
-/**
- * 事前コンパイルされた地名接尾辞パターン
- * 0-8文字の地名 + 接尾辞
- */
-const _COMPILED_CHIMEI_SUFFIX_PATTERNS: RegExp[] = CHIMEI_SUFFIX_PATTERNS.map(
-  suffix => new RegExp(`^.{0,8}${suffix}`)
-);
-
-/**
- * 住所表記パターン（都道府県市区町村郡）
- */
-const _ADDRESS_ADMIN_PATTERN = /^.{1,4}(都|道|府|県|市|区|町|村|郡)/;
-
 
 /**
  * 常用漢字表にない漢字を検出するルール

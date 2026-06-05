@@ -182,16 +182,4 @@ export class QuotationStyleMixRule extends MixDetectionRule {
     return 'enableQuotationStyleMix';
   }
 
-  /**
-   * Find all positions of a pattern in text
-   */
-  private findAllPositions(text: string, regex: RegExp): number[] {
-    const positions: number[] = [];
-    let match;
-    const globalRegex = new RegExp(regex.source, 'g');
-    while ((match = globalRegex.exec(text)) !== null) {
-      positions.push(match.index);
-    }
-    return positions;
-  }
 }

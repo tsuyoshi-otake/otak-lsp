@@ -95,7 +95,7 @@ export class NoParticleChainRule implements AdvancedGrammarRule {
   /**
    * チェーン情報を作成
    */
-  private createChain(text: string, count: number, start: number, end: number): NoParticleChain {
+  private createChain(_text: string, count: number, start: number, end: number): NoParticleChain {
     return {
       tokens: [],
       chainLength: count,
