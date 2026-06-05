@@ -102,9 +102,11 @@ describe('glossaryData 統合テスト', () => {
   // ============================================================
   // ja.json の全エントリが GLOSSARY_INDEX から検索可能（要件 4.4, 4.5, 7.1）
   // ============================================================
-  describe('ja.json 全エントリのインデックス登録', () => {
-    // ja.json を読み込む
-    const jaJsonPath = path.resolve(__dirname, '../../../ja.json');
+  const jaJsonPath = path.resolve(__dirname, '../../../ja.json');
+  const jaJsonAvailable = fs.existsSync(jaJsonPath);
+  const describeIfJa = jaJsonAvailable ? describe : describe.skip;
+
+  describeIfJa('ja.json 全エントリのインデックス登録', () => {
     let jaEntries: JaJsonEntry[] = [];
 
     beforeAll(() => {

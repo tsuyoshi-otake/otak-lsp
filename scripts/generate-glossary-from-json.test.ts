@@ -12,10 +12,7 @@ import * as path from 'path';
 import {
   JaJsonEntry,
   DOMAIN_MAPPING,
-  DOMAIN_LABEL_MAP,
   convertJaJsonEntry,
-  resolveGlossaryId,
-  getDomainLabel,
   escapeForTs,
   generateTypeScriptSource,
   generateSplitTypeScriptSources,
@@ -26,11 +23,15 @@ import { GlossaryId } from '../shared/src/types';
 import { GlossaryEntry } from '../server/src/hover/glossaryTypes';
 
 // ============================================================
-// ja.jsonの実データを読み込む
+// ja.jsonの実データを読み込む（CI/ローカルで未配置の場合はスキップ）
 // ============================================================
 
 const jaJsonPath = path.resolve(__dirname, '..', 'ja.json');
-const jaJsonEntries = loadJaJson(jaJsonPath);
+const jaJsonAvailable = fs.existsSync(jaJsonPath);
+const jaJsonEntries = jaJsonAvailable ? loadJaJson(jaJsonPath) : [];
+
+// ja.json に依存するスイートは未配置時に skip する
+const describeIfJa = jaJsonAvailable ? describe : describe.skip;
 
 // ja.jsonに含まれる全ドメインを収集
 const allDomainsInJaJson = new Set<string>();
@@ -42,7 +43,7 @@ for (const entry of jaJsonEntries) {
   }
 }
 
-describe('DOMAIN_MAPPING', () => {
+describeIfJa('DOMAIN_MAPPING', () => {
   test('全226ドメインがマッピングに存在する', () => {
     // ja.jsonに含まれる全ドメインがDOMAIN_MAPPINGに存在することを確認
     const missingDomains: string[] = [];
@@ -265,7 +266,7 @@ describe('glossaryIdToFileName', () => {
   });
 });
 
-describe('ja.json実データの検証', () => {
+describeIfJa('ja.json実データの検証', () => {
   test('ja.jsonの全エントリが変換可能である', () => {
     let convertedCount = 0;
     let skippedCount = 0;
