@@ -58,7 +58,7 @@ describe('Property-Based Tests: RedundantExpressionRule', () => {
             { pattern: '炎天下の下', suggestion: '炎天下' },
             { pattern: '射程距離', suggestion: '射程' }
           ),
-          ({ pattern, suggestion }) => {
+          ({ pattern, suggestion: _suggestion }) => {
             const text = `これは${pattern}です`;
             const tokens = [createToken(text, '名詞', 0)];
             const context = createContext(text);

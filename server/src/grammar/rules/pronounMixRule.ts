@@ -67,7 +67,7 @@ export class PronounMixRule extends MixDetectionRule {
   /**
    * Get suggestions for fixing
    */
-  protected getSuggestions(patterns: Map<string, PatternInfo>): string[] {
+  protected getSuggestions(_patterns: Map<string, PatternInfo>): string[] {
     return [
       '公式文書では「私」を使用してください',
       'ビジネス文書では「当方」も使用できます'

@@ -28,7 +28,7 @@ describe('BulletPunctuationRule', () => {
     });
   };
 
-  const createContext = (text: string, tokens: Token[]): RuleContext => ({
+  const createContext = (text: string, _tokens: Token[]): RuleContext => ({
     documentText: text,
     sentences: [],
     config: { ...DEFAULT_ADVANCED_RULES_CONFIG, enableBulletPunctuation: true }

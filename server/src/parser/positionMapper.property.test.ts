@@ -105,7 +105,7 @@ describe('Property-Based Tests: PositionMapper', () => {
 
             // 除外範囲より後の位置
             if (rangeEnd < text.length) {
-              const afterResult = mapper.mapToFiltered(rangeEnd);
+              mapper.mapToFiltered(rangeEnd);
               // 現在の実装では、範囲削除を前提としているため
               // スペース置換の場合は期待と異なる可能性がある
               // テストは現在の動作を記録するため

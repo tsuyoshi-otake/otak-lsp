@@ -173,7 +173,7 @@ export class RaNukiRule implements AdvancedGrammarRule {
    * @param context ルールコンテキスト
    * @returns 診断情報のリスト
    */
-  check(tokens: Token[], context: RuleContext): AdvancedDiagnostic[] {
+  check(tokens: Token[], _context: RuleContext): AdvancedDiagnostic[] {
     const diagnostics: AdvancedDiagnostic[] = [];
 
     for (let i = 0; i < tokens.length; i++) {

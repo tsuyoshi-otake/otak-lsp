@@ -54,8 +54,6 @@ export class MonotonousEndingRule implements AdvancedGrammarRule {
    * 文の文末表現を抽出
    */
   private extractEnding(sentence: Sentence): string | null {
-    const text = sentence.text.trim().replace(/[。！？!?]$/, '');
-
     for (const pattern of ENDING_PATTERNS) {
       if (pattern.test(sentence.text)) {
         // 文末表現を抽出

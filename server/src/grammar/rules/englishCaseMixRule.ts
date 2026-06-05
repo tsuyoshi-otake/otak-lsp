@@ -293,14 +293,14 @@ export class EnglishCaseMixRule extends MixDetectionRule {
   /**
    * Not used - we override check() directly
    */
-  protected collectPatterns(text: string): Map<string, PatternInfo> {
+  protected collectPatterns(_text: string): Map<string, PatternInfo> {
     return new Map();
   }
 
   /**
    * Not used - we override check() directly
    */
-  protected createDiagnosticMessage(patterns: Map<string, PatternInfo>): string {
+  protected createDiagnosticMessage(_patterns: Map<string, PatternInfo>): string {
     return '';
   }
 

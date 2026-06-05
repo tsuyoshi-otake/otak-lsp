@@ -221,7 +221,7 @@ export class TableColumnMismatchRule implements AdvancedGrammarRule {
   /**
    * Check a single table for column mismatches
    */
-  private checkTable(table: TableInfo, fullText: string): AdvancedDiagnostic[] {
+  private checkTable(table: TableInfo, _fullText: string): AdvancedDiagnostic[] {
     const diagnostics: AdvancedDiagnostic[] = [];
     const expectedColumns = table.headerColumns;
 

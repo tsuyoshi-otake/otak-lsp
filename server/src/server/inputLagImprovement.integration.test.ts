@@ -426,9 +426,8 @@ describe('Input Lag Improvement Integration Tests', () => {
     });
 
     it('デバウンスコールバックが作成できること', () => {
-      let callCount = 0;
       const callback = server.createDebouncedCallback(() => {
-        callCount++;
+        // no-op
       }, 100);
 
       expect(typeof callback).toBe('function');

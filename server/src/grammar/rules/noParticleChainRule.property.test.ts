@@ -86,7 +86,7 @@ describe('Property-Based Tests: NoParticleChainRule', () => {
             { text: '私の友人の兄の車の色', count: 4 },
             { text: '日本の東京の渋谷の店の商品', count: 4 }
           ),
-          ({ text, count }) => {
+          ({ text, count: _count }) => {
             const tokens = createTokens(text);
             const context = createContext(text, tokens, 3);
             const diagnostics = rule.check(tokens, context);

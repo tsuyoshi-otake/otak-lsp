@@ -74,7 +74,6 @@ export class HeadingLevelSkipRule implements AdvancedGrammarRule {
     let codeBlockFenceLength = 0;
     let codeBlockBlockquoteDepth = 0;
     let previousLevel = 0;
-    let previousLineIndex = -1;
 
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i];
@@ -152,7 +151,6 @@ export class HeadingLevelSkipRule implements AdvancedGrammarRule {
         }
 
         previousLevel = currentLevel;
-        previousLineIndex = i;
       }
     }
 

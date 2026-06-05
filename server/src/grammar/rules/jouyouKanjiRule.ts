@@ -104,7 +104,7 @@ const ADDRESS_KEYWORDS = [
  * 事前コンパイルされた敬称パターン
  * 2-6文字の名前 + 敬称
  */
-const COMPILED_SURNAME_SUFFIX_PATTERNS: RegExp[] = SURNAME_SUFFIX_PATTERNS.map(
+const _COMPILED_SURNAME_SUFFIX_PATTERNS: RegExp[] = SURNAME_SUFFIX_PATTERNS.map(
   suffix => new RegExp(`^.{1,6}${suffix}`)
 );
 
@@ -112,14 +112,14 @@ const COMPILED_SURNAME_SUFFIX_PATTERNS: RegExp[] = SURNAME_SUFFIX_PATTERNS.map(
  * 事前コンパイルされた地名接尾辞パターン
  * 0-8文字の地名 + 接尾辞
  */
-const COMPILED_CHIMEI_SUFFIX_PATTERNS: RegExp[] = CHIMEI_SUFFIX_PATTERNS.map(
+const _COMPILED_CHIMEI_SUFFIX_PATTERNS: RegExp[] = CHIMEI_SUFFIX_PATTERNS.map(
   suffix => new RegExp(`^.{0,8}${suffix}`)
 );
 
 /**
  * 住所表記パターン（都道府県市区町村郡）
  */
-const ADDRESS_ADMIN_PATTERN = /^.{1,4}(都|道|府|県|市|区|町|村|郡)/;
+const _ADDRESS_ADMIN_PATTERN = /^.{1,4}(都|道|府|県|市|区|町|村|郡)/;
 
 
 /**

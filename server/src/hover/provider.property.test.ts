@@ -131,7 +131,7 @@ describe('Property-Based Tests: Hover Provider', () => {
               return; // スキップ
             }
 
-            const tokens = tokenData.map((t, i) => {
+            const tokens = tokenData.map((t, _i) => {
               return new Token({
                 surface: 'テ'.repeat(t.length),
                 pos: '名詞',

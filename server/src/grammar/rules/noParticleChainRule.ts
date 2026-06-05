@@ -110,7 +110,7 @@ export class NoParticleChainRule implements AdvancedGrammarRule {
   /**
    * 修正提案を生成
    */
-  private generateSuggestions(count: number): string[] {
+  private generateSuggestions(_count: number): string[] {
     return [
       '文を分割して「の」の使用回数を減らす',
       '一部を別の表現に置き換える（例：「における」「に関する」）',

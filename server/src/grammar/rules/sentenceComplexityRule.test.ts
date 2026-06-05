@@ -43,22 +43,6 @@ describe('SentenceComplexityRule', () => {
   };
 
   /**
-   * ヘルパー関数: 文を作成（トークン付き）
-   */
-  const createSentenceWithTokens = (
-    text: string,
-    tokens: Token[],
-    start: number
-  ): Sentence => {
-    return new Sentence({
-      text,
-      tokens,
-      start,
-      end: start + text.length
-    });
-  };
-
-  /**
    * ヘルパー関数: シンプルな文を作成
    */
   const createSimpleSentence = (text: string, start: number): Sentence => {

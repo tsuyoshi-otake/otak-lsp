@@ -33,7 +33,7 @@ describe('Property-Based Tests: MeCab Analyzer', () => {
           ),
           (text) => {
             // MeCab出力形式をシミュレート
-            const mockOutput = text.split('').map((char, index) => {
+            const mockOutput = text.split('').map((char, _index) => {
               return `${char}\t名詞,一般,*,*,*,*,${char},${char},${char}`;
             }).join('\n') + '\nEOS\n';
 

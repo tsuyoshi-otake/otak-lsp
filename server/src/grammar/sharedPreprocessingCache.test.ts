@@ -142,17 +142,6 @@ describe('AdvancedRuleSharedContext Type', () => {
 });
 
 describe('buildSharedContext', () => {
-  // テスト用ヘルパー: 共有コンテキスト付きルールコンテキスト作成
-  function createContextWithShared(text: string): RuleContext {
-    const shared = buildSharedContext(text);
-    return {
-      documentText: text,
-      sentences: [],
-      config: DEFAULT_ADVANCED_RULES_CONFIG,
-      shared
-    };
-  }
-
   describe('要件1: 共有前処理の生成', () => {
     it('テキストからコードブロック範囲を抽出する', () => {
       const text = '本文\n```javascript\nconst x = 1;\n```\n本文続き';

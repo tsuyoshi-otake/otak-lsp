@@ -4,34 +4,8 @@
  * Task: 2.1 SahenVerbChecker
  */
 
-import { Token } from '../../../../shared/src/types';
 import { Sentence, DEFAULT_ADVANCED_RULES_CONFIG, RuleContext } from '../../../../shared/src/advancedTypes';
 import { SahenVerbRule } from './sahenVerbRule';
-
-/**
- * Helper function to create Token
- */
-const createToken = (
-  surface: string,
-  pos: string,
-  start: number,
-  baseForm?: string
-): Token => {
-  return new Token({
-    surface,
-    pos,
-    posDetail1: pos === '名詞' ? 'サ変接続' : '*',
-    posDetail2: '*',
-    posDetail3: '*',
-    conjugation: '*',
-    conjugationForm: '*',
-    baseForm: baseForm || surface,
-    reading: surface,
-    pronunciation: surface,
-    start,
-    end: start + surface.length
-  });
-};
 
 const createContext = (text: string, sentences: Sentence[] = []): RuleContext => ({
   documentText: text,

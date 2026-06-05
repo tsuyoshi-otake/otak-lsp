@@ -70,7 +70,7 @@ export class EmphasisStyleMixRule extends MixDetectionRule {
   /**
    * Get suggestions for fixing
    */
-  protected getSuggestions(patterns: Map<string, PatternInfo>): string[] {
+  protected getSuggestions(_patterns: Map<string, PatternInfo>): string[] {
     return [
       '一般的には **太字** を使用してください',
       '__太字__ でも同じ意味ですが、統一することが重要です'

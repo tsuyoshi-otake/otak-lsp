@@ -161,7 +161,7 @@ export class QuotationStyleMixRule extends MixDetectionRule {
   /**
    * Get suggestions for fixing
    */
-  protected getSuggestions(patterns: Map<string, PatternInfo>): string[] {
+  protected getSuggestions(_patterns: Map<string, PatternInfo>): string[] {
     return [
       '日本語文書では「」を使用してください',
       'ネスト時は『』を使用できます'

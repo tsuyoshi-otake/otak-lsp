@@ -59,8 +59,6 @@ class FunctionalCompatibilitySimulator {
    * 解析をシミュレート
    */
   simulateAnalysis(uri: string, version: number, text: string): AnalysisResult | null {
-    const state = this.analysisStates.getState(uri);
-    
     // 解析開始
     this.analysisStates.updateState(uri, {
       running: true,
@@ -515,10 +513,8 @@ describe('Property-Based Tests: 機能互換性と最終一貫性', () => {
 
             // 連続編集をシミュレート
             let latestVersion = 0;
-            let latestText = '';
             for (const edit of edits) {
               latestVersion = edit.version;
-              latestText = edit.text;
               simulator.simulateDocumentChange(uri, edit.version, edit.text);
             }
 

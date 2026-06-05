@@ -207,8 +207,7 @@ describe('Property-Based Tests: SentenceEndingColonRule', () => {
   describe('Property 6: 設定による制御', () => {
     it('設定が無効の場合は検出しない', () => {
       fc.assert(
-        fc.property(japaneseString, (text) => {
-          const textWithColon = text + '：';
+        fc.property(japaneseString, (_text) => {
           const disabledConfig: AdvancedRulesConfig = {
             ...DEFAULT_ADVANCED_RULES_CONFIG,
             enableSentenceEndingColon: false
@@ -223,8 +222,7 @@ describe('Property-Based Tests: SentenceEndingColonRule', () => {
 
     it('設定が有効の場合は検出する', () => {
       fc.assert(
-        fc.property(japaneseString, (text) => {
-          const textWithColon = text + '：';
+        fc.property(japaneseString, (_text) => {
           const enabledConfig: AdvancedRulesConfig = {
             ...DEFAULT_ADVANCED_RULES_CONFIG,
             enableSentenceEndingColon: true

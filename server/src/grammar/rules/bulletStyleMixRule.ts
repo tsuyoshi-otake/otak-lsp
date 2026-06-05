@@ -161,7 +161,7 @@ export class BulletStyleMixRule extends MixDetectionRule {
   /**
    * Get suggestions for fixing
    */
-  protected getSuggestions(patterns: Map<string, PatternInfo>): string[] {
+  protected getSuggestions(_patterns: Map<string, PatternInfo>): string[] {
     return [
       '日本語文書では「・」を使用してください',
       'Markdown文書では「-」または「*」で統一してください'

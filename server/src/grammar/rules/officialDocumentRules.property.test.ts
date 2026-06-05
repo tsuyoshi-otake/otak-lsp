@@ -237,7 +237,6 @@ describe('Property-Based Tests: Official Document Rules - 設定による有効/
           fc.constantFrom('繋がる', '嘘をつく', '噂話'),
           (textWithNonJouyou) => {
             const text = textWithNonJouyou;
-            const tokens = [createToken(text, '名詞', 0)];
             const context = createContext(text, [], {
               enableJouyouKanji: false
             });
@@ -301,7 +300,6 @@ describe('Property-Based Tests: Official Document Rules - 設定による有効/
           fc.constantFrom('- 項目。', '* 設定。', '+ データ。'),
           (textWithBullet) => {
             const text = textWithBullet;
-            const tokens = [createToken('項目', '名詞', 2)];
             const context = createContext(text, [], {
               enableBulletPunctuation: false
             });
@@ -729,7 +727,7 @@ describe('Property-Based Tests: Official Document Rules - 診断メッセージ�
             { text: '嘘', kanji: '嘘' },
             { text: '噂', kanji: '噂' }
           ),
-          ({ text, kanji }) => {
+          ({ text, kanji: _kanji }) => {
             const tokens = [createToken(text, '名詞', 0)];
             const context = createContext(text, [], {
               enableJouyouKanji: true,

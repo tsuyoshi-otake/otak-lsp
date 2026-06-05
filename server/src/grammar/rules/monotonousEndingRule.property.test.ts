@@ -69,7 +69,7 @@ describe('Property-Based Tests: MonotonousEndingRule', () => {
           ({ ending, sentences }) => {
             const text = Array.isArray(sentences) ? sentences.join('') : sentences;
             const sentenceList = text.split(/(?<=[。！？])/g).filter(s => s.trim());
-            const sentenceObjs = sentenceList.map((s, i) => createSentence(s, text.indexOf(s)));
+            const sentenceObjs = sentenceList.map((s, _i) => createSentence(s, text.indexOf(s)));
             const context = createContext(text, sentenceObjs, 3);
             const diagnostics = rule.check([], context);
 
@@ -92,7 +92,7 @@ describe('Property-Based Tests: MonotonousEndingRule', () => {
           ),
           (text) => {
             const sentenceList = text.split(/(?<=[。！？])/g).filter(s => s.trim());
-            const sentenceObjs = sentenceList.map((s, i) => createSentence(s, text.indexOf(s)));
+            const sentenceObjs = sentenceList.map((s, _i) => createSentence(s, text.indexOf(s)));
             const context = createContext(text, sentenceObjs, 3);
             const diagnostics = rule.check([], context);
 
@@ -112,7 +112,7 @@ describe('Property-Based Tests: MonotonousEndingRule', () => {
           ),
           (text) => {
             const sentenceList = text.split(/(?<=[。！？])/g).filter(s => s.trim());
-            const sentenceObjs = sentenceList.map((s, i) => createSentence(s, text.indexOf(s)));
+            const sentenceObjs = sentenceList.map((s, _i) => createSentence(s, text.indexOf(s)));
             const context = createContext(text, sentenceObjs, 3);
             const diagnostics = rule.check([], context);
 
@@ -131,7 +131,7 @@ describe('Property-Based Tests: MonotonousEndingRule', () => {
           (threshold) => {
             const text = 'Aです。Bです。Cです。Dです。'; // 4回連続
             const sentenceList = text.split(/(?<=[。！？])/g).filter(s => s.trim());
-            const sentenceObjs = sentenceList.map((s, i) => createSentence(s, text.indexOf(s)));
+            const sentenceObjs = sentenceList.map((s, _i) => createSentence(s, text.indexOf(s)));
             const context = createContext(text, sentenceObjs, threshold);
             const diagnostics = rule.check([], context);
 

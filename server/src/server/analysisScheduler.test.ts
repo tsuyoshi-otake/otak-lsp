@@ -170,7 +170,6 @@ describe('analysisScheduler', () => {
         latestVersion: 1,
       });
 
-      const executionsBefore = analysisExecutions.length;
       scheduler.scheduleFullAnalysis('test://full-uri');
 
       // Wait for execution

@@ -134,7 +134,6 @@ export abstract class MixDetectionRule implements AdvancedGrammarRule {
     }
 
     const diagnostics: AdvancedDiagnostic[] = [];
-    const allPatternsName = entries.map(([name]) => name).join('と');
 
     // 少数派が存在する場合：少数派の出現箇所すべてに警告を出す
     if (isNotEmpty(minorityPatterns)) {
@@ -170,7 +169,7 @@ export abstract class MixDetectionRule implements AdvancedGrammarRule {
       // カウントが同点（Tie）の場合：すべてのパターンのすべての出現箇所に警告を出す（どれに統一すべきか不明なため）
       const suggestion = `いずれか一つのスタイルに統一してください`;
       
-      for (const [patternName, info] of entries) {
+      for (const [_patternName, info] of entries) {
         for (const pos of info.positions) {
           const endOffset = Math.min(pos + 1, context.documentText.length);
           const range = {

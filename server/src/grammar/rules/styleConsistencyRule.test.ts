@@ -5,7 +5,6 @@
  */
 
 import { StyleConsistencyRule } from './styleConsistencyRule';
-import { Token } from '../../../../shared/src/types';
 import { Sentence, DEFAULT_ADVANCED_RULES_CONFIG, RuleContext } from '../../../../shared/src/advancedTypes';
 
 describe('StyleConsistencyRule', () => {
@@ -14,30 +13,6 @@ describe('StyleConsistencyRule', () => {
   beforeEach(() => {
     rule = new StyleConsistencyRule();
   });
-
-  /**
-   * ヘルパー関数: トークンを作成
-   */
-  const createToken = (
-    surface: string,
-    pos: string,
-    start: number
-  ): Token => {
-    return new Token({
-      surface,
-      pos,
-      posDetail1: '*',
-      posDetail2: '*',
-      posDetail3: '*',
-      conjugation: '*',
-      conjugationForm: '*',
-      baseForm: surface,
-      reading: surface,
-      pronunciation: surface,
-      start,
-      end: start + surface.length
-    });
-  };
 
   const createContext = (text: string, sentences: Sentence[]): RuleContext => ({
     documentText: text,

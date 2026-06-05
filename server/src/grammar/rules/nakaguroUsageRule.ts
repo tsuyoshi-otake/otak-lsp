@@ -18,7 +18,6 @@ import {
  * 中黒文字
  */
 const NAKAGURO = '・';
-const HALFWIDTH_NAKAGURO = '･'; // U+FF65
 
 /**
  * 中黒使用チェッカー

@@ -48,7 +48,7 @@ describe('Property-Based Tests: Advanced Grammar Rules', () => {
       fc.assert(
         fc.property(
           fc.constantFrom('は', 'が', 'を', 'に', 'で'),
-          (particle) => {
+          (_particle) => {
             const config = DEFAULT_ADVANCED_RULES_CONFIG;
             expect(rule.isEnabled(config)).toBe(true);
           }

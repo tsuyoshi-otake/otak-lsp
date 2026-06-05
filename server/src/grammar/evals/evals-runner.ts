@@ -227,12 +227,6 @@ export class EvalsRunner {
    * 高度な文法ルールを初期化
    */
   private initializeAdvancedRules(): void {
-    // 設定を有効化（Evals用に全て有効）
-    const config = {
-      ...DEFAULT_ADVANCED_RULES_CONFIG,
-      enableParticleRepetition: true // デフォルトでは無効だが、Evalsでは有効化
-    };
-
     this.advancedRules.set('style-inconsistency', new StyleConsistencyRule());
     this.advancedRules.set('ra-nuki', new RaNukiRule());
     this.advancedRules.set('double-negation', new DoubleNegationRule());
@@ -514,7 +508,7 @@ export class EvalsRunner {
   /**
    * 検出されたかどうかを判定
    */
-  private isDetected(diagnostics: Diagnostic[], expectedRule: string, text: string): boolean {
+  private isDetected(diagnostics: Diagnostic[], expectedRule: string, _text: string): boolean {
     // 診断情報がある場合、期待されるルールまたは関連するルールでの検出をチェック
     if (diagnostics.length === 0) {
       return false;

@@ -21,7 +21,7 @@ describe('Semantic Token Provider', () => {
     surface: string,
     pos: string,
     start: number,
-    line: number = 0,
+    _line: number = 0,
     posDetail1: string = '*',
     posDetail2: string = '*',
     posDetail3: string = '*'
