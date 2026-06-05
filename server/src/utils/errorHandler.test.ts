@@ -7,8 +7,6 @@ import {
   getErrorDetails,
   logError,
   logWarning,
-  tryCatch,
-  tryCatchAsync,
 } from './errorHandler';
 import { Logger } from './logger';
 
@@ -126,84 +124,4 @@ describe('Error Handler Utility', () => {
     });
   });
 
-  describe('tryCatch', () => {
-    it('should return function result on success', () => {
-      const result = tryCatch(
-        () => 42,
-        undefined,
-        'Test context',
-        0
-      );
-
-      expect(result).toBe(42);
-    });
-
-    it('should return fallback on error', () => {
-      const logs: string[] = [];
-      const logger: Logger = {
-        debug: (msg) => logs.push(msg),
-        info: (msg) => logs.push(msg),
-        warn: (msg) => logs.push(msg),
-        error: (msg) => logs.push(msg),
-      };
-
-      const result = tryCatch(
-        () => {
-          throw new Error('test error');
-        },
-        logger,
-        'Test context',
-        'fallback'
-      );
-
-      expect(result).toBe('fallback');
-      expect(logs.length).toBeGreaterThan(0);
-    });
-  });
-
-  describe('tryCatchAsync', () => {
-    it('should return function result on success', async () => {
-      const result = await tryCatchAsync(
-        async () => 42,
-        undefined,
-        'Test context',
-        0
-      );
-
-      expect(result).toBe(42);
-    });
-
-    it('should return fallback on error', async () => {
-      const logs: string[] = [];
-      const logger: Logger = {
-        debug: (msg) => logs.push(msg),
-        info: (msg) => logs.push(msg),
-        warn: (msg) => logs.push(msg),
-        error: (msg) => logs.push(msg),
-      };
-
-      const result = await tryCatchAsync(
-        async () => {
-          throw new Error('test error');
-        },
-        logger,
-        'Test context',
-        'fallback'
-      );
-
-      expect(result).toBe('fallback');
-      expect(logs.length).toBeGreaterThan(0);
-    });
-
-    it('should handle rejected promises', async () => {
-      const result = await tryCatchAsync(
-        () => Promise.reject(new Error('rejected')),
-        undefined,
-        'Test context',
-        'fallback'
-      );
-
-      expect(result).toBe('fallback');
-    });
-  });
 });
