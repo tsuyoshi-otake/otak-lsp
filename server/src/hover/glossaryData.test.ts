@@ -11,7 +11,6 @@ import * as fs from 'fs';
 import * as path from 'path';
 import { GLOSSARIES, GLOSSARY_INDEX, DEFAULT_ENABLED_GLOSSARIES } from './glossaryData';
 import { normalizeKey } from './glossaryUtils';
-import { getGlossaryDefinitions } from './glossary';
 
 // ja.jsonの型定義（テスト用）
 interface JaJsonSense {
@@ -146,7 +145,7 @@ describe('glossaryData 統合テスト', () => {
   });
 
   // ============================================================
-  // DEFAULT_ENABLED_GLOSSARIES と getGlossaryDefinitions の整合性
+  // DEFAULT_ENABLED_GLOSSARIES の整合性
   // ============================================================
   describe('エクスポートの整合性', () => {
     it('DEFAULT_ENABLED_GLOSSARIES は全カテゴリを含む', () => {
@@ -154,12 +153,9 @@ describe('glossaryData 統合テスト', () => {
       expect(DEFAULT_ENABLED_GLOSSARIES).toEqual(glossaryIds);
     });
 
-    it('getGlossaryDefinitions() は全カテゴリの情報を返す', () => {
-      const definitions = getGlossaryDefinitions();
-      expect(definitions.length).toBe(GLOSSARIES.length);
-
-      for (const def of definitions) {
-        expect(def.entryCount).toBeGreaterThan(0);
+    it('全カテゴリは少なくとも1件のエントリを持つ', () => {
+      for (const glossary of GLOSSARIES) {
+        expect(glossary.entries.length).toBeGreaterThan(0);
       }
     });
   });

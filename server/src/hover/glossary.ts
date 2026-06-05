@@ -1,7 +1,7 @@
 /**
  * 用語図鑑（オフライン）
  * HoverのWikipediaサマリーの下に表示するための簡易辞書
- * 
+ *
  * このファイルは検索・マッチング関数と公開クエリ関数を提供します。
  * 型定義、ユーティリティ関数、データ定義は別ファイルに分割されています。
  */
@@ -12,17 +12,17 @@ import { GlossaryId, GLOSSARY_GROUPS, Token } from '../../../shared/src/types';
 export type { GlossaryHit, GlossaryMatch, GlossaryEntry, GlossaryDefinition } from './glossaryTypes';
 
 // データ定義をインポート
-import { DEFAULT_ENABLED_GLOSSARIES, GLOSSARY_INDEX, GLOSSARIES } from './glossaryData';
+import { DEFAULT_ENABLED_GLOSSARIES, GLOSSARY_INDEX } from './glossaryData';
 import { normalizeKey } from './glossaryUtils';
 
 // 正規表現定数
 const PHRASE_REGEX = /[A-Za-z][A-Za-z0-9.+#/_:-]*(?:\s+[A-Za-z][A-Za-z0-9.+#/_:-]*){0,5}/g;
 const WORD_REGEX = /[A-Za-z0-9.+#/_:-]+/g;
 const ASCII_TERM_CHAR_RE = /[A-Za-z0-9.+#/_:-]/;
-const CJK_TERM_CHAR_RE = /[ぁ-ゔァ-ヶー一-\u9FAF々・]/;
+const CJK_TERM_CHAR_RE = /[ぁ-ゔァ-ヶー一-龯々・]/;
 const MIXED_ASCII_TERM_CHAR_RE = /[A-Za-z0-9.+#/_:@-]/;
 const MIXED_CJK_TERM_CHAR_RE = /[\p{Script=Katakana}\p{Script=Han}々ー・]/u;
-const TERM_WINDOW_CHAR_RE = /[A-Za-z0-9.+#/_:@\- \tぁ-ゔァ-ヶー一-\u9FAF々・]/u;
+const TERM_WINDOW_CHAR_RE = /[A-Za-z0-9.+#/_:@\- \tぁ-ゔァ-ヶー一-龯々・]/u;
 const MAX_MATCH_CANDIDATE_LENGTH = 80;
 
 // 型定義をインポート（内部使用）
@@ -188,35 +188,6 @@ function expandRun(
 }
 
 /**
- * 候補文字列が用語図鑑に存在するかチェック
- */
-export function hasGlossaryEntry(candidate: string): boolean {
-  return GLOSSARY_INDEX.has(normalizeKey(candidate));
-}
-
-/**
- * 用語図鑑の総エントリ数を取得
- */
-export function getGlossaryEntryCount(): number {
-  return GLOSSARIES.reduce((sum, glossary) => sum + glossary.entries.length, 0);
-}
-
-/**
- * 用語図鑑の定義一覧を取得
- */
-export function getGlossaryDefinitions(): ReadonlyArray<{
-  id: GlossaryId;
-  title: string;
-  entryCount: number;
-}> {
-  return GLOSSARIES.map((glossary) => ({
-    id: glossary.id,
-    title: glossary.title,
-    entryCount: glossary.entries.length,
-  }));
-}
-
-/**
  * テキスト上の位置から用語図鑑のマッチを検索（ランク付き）
  */
 export function findGlossaryMatchWithRank(
@@ -242,7 +213,7 @@ export function findGlossaryMatchWithRank(
       return null;
     }
 
-    const { start, end, run } = expanded;
+    const { start, run } = expanded;
 
     // フレーズマッチ（複数単語）
     const phraseMatches = run.matchAll(PHRASE_REGEX);
@@ -286,7 +257,7 @@ export function findGlossaryMatchWithRank(
       return null;
     }
 
-    const { start, end, run } = expanded;
+    const { start, run } = expanded;
 
     // 最長一致を試す
     for (let len = run.length; len >= 2; len--) {
@@ -316,7 +287,7 @@ export function findGlossaryMatchWithRank(
       return null;
     }
 
-    const { start, end, run } = expanded;
+    const { start, run } = expanded;
 
     // 最長一致を試す
     for (let len = run.length; len >= 2; len--) {
@@ -337,24 +308,6 @@ export function findGlossaryMatchWithRank(
   }
 
   return null;
-}
-
-/**
- * トークンから用語図鑑のヒットを検索（簡易版）
- */
-export function findGlossaryHit(token: Token, enabledGlossaries: ReadonlyArray<GlossaryId>): GlossaryHit | null {
-  return findGlossaryHitWithRank(token, createGlossaryRank(enabledGlossaries));
-}
-
-/**
- * テキスト上の位置から用語図鑑のマッチを検索（簡易版）
- */
-export function findGlossaryMatch(
-  text: string,
-  offset: number,
-  enabledGlossaries: ReadonlyArray<GlossaryId>
-): { hit: GlossaryHit; range: { start: number; end: number } } | null {
-  return findGlossaryMatchWithRank(text, offset, createGlossaryRank(enabledGlossaries));
 }
 
 // デフォルト有効用語図鑑をエクスポート

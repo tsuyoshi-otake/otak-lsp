@@ -9,7 +9,6 @@
 import * as fc from 'fast-check';
 import { GLOSSARIES, GLOSSARY_INDEX } from './glossaryData';
 import { normalizeKey } from './glossaryUtils';
-import { getGlossaryDefinitions } from './glossary';
 import { GlossaryId } from '../../../shared/src/types';
 import { GlossaryEntry } from './glossaryTypes';
 
@@ -96,30 +95,25 @@ describe('Property-Based Tests: glossaryData', () => {
   /**
    * Feature: glossary-ja-json-rebuild, Property 7: 全カテゴリのエントリ存在
    *
-   * 全 GlossaryId について、getGlossaryDefinitions() の結果に当該カテゴリが含まれ、
-   * entryCount が0より大きいことを検証する。
+   * 全 GlossaryId について GLOSSARIES に当該カテゴリが含まれ、
+   * entries 数が0より大きいことを検証する。
    *
    * **Validates: Requirements 7.2, 7.6**
    */
   describe('Property 7: 全カテゴリのエントリ存在', () => {
-    // 全カテゴリIDを事前に収集
     const allGlossaryIds = collectAllGlossaryIds();
-    // getGlossaryDefinitions() の結果を事前に取得
-    const definitions = getGlossaryDefinitions();
 
-    it('全 GlossaryId について getGlossaryDefinitions() に含まれ entryCount > 0 である', () => {
+    it('全 GlossaryId について GLOSSARIES に含まれ entries.length > 0 である', () => {
       fc.assert(
         fc.property(
           fc.integer({ min: 0, max: allGlossaryIds.length - 1 }),
           (index) => {
             const glossaryId = allGlossaryIds[index];
 
-            // getGlossaryDefinitions() の結果に当該カテゴリが含まれること
-            const definition = definitions.find((d) => d.id === glossaryId);
-            expect(definition).toBeDefined();
+            const glossary = GLOSSARIES.find((g) => g.id === glossaryId);
+            expect(glossary).toBeDefined();
 
-            // entryCount が0より大きいこと
-            expect(definition!.entryCount).toBeGreaterThan(0);
+            expect(glossary!.entries.length).toBeGreaterThan(0);
 
             return true;
           },
