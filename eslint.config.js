@@ -13,12 +13,12 @@ module.exports = [
       '**/*.js',
     ],
   },
-  js.configs.recommended,
   {
     files: ['**/*.ts'],
     languageOptions: {
       parser: tsparser,
-      parserOptions: { ecmaVersion: 2020, sourceType: 'module' },
+      ecmaVersion: 2020,
+      sourceType: 'module',
       globals: {
         ...globals.node,
         ...globals.jest,
@@ -30,8 +30,13 @@ module.exports = [
       'unused-imports': unusedImports,
     },
     rules: {
+      // Layered presets: eslint-recommended → tseslint disables conflicting
+      // core rules (e.g. no-undef) → tseslint recommended → project overrides.
+      // Spreading rules only (not the whole configs) keeps parser/plugin
+      // wiring explicit in this block.
+      ...js.configs.recommended.rules,
+      ...tseslint.configs['flat/eslint-recommended'].rules,
       ...tseslint.configs.recommended.rules,
-      'no-undef': 'off',
       'no-unused-vars': 'off',
       '@typescript-eslint/no-unused-vars': 'off',
       'unused-imports/no-unused-imports': 'error',
