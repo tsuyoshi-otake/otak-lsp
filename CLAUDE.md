@@ -79,7 +79,9 @@ Kiro-style Spec Driven Development implementation on AI-DLC (AI Development Life
 client/src/extension.ts    - VSCode extension client, status bar, commands
 server/src/main.ts         - Language server entry point
 server/src/mecab/analyzer.ts - kuromoji wrapper (MeCab-compatible API)
-server/src/grammar/checker.ts - Grammar rule engine
+server/src/grammar/advancedRulesManager.ts - Advanced grammar/style rule engine (primary)
+server/src/grammar/rules/  - Individual rule implementations (one file per rule)
+server/src/grammar/checker.ts - Legacy basic 4-rule checker (still wired, secondary)
 server/src/semantic/tokenProvider.ts - Semantic token provider
 server/src/hover/provider.ts - Hover information provider
 shared/src/types.ts        - Shared type definitions

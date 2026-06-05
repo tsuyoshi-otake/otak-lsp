@@ -83,15 +83,16 @@ Project memory keeps persistent guidance (steering, specs notes, component docs)
 - `WikipediaClient` は REST API `https://ja.wikipedia.org/api/rest_v1/page/summary/{term}` を呼び、24h TTL + LRU(最大1000件)でキャッシュ。タイムアウトは 5s。
 - ネットワークに失敗しても Hover 全体は null にならず、サマリー部分だけ省略される設計。
 
-### 文法チェック（基本/高度）とルール追加の導線
-- 基本ルール:
-  - 実装は `server/src/grammar/checker.ts` 内の `GrammarChecker`。現在は4ルール（`double-particle`,`particle-sequence`,`verb-particle-mismatch`,`redundant-copula`）。
-  - 新しい基本ルールを追加する場合、同ファイルの `GrammarRule` に従って class を追加し、`GrammarChecker` の `this.rules` に登録。
-- 高度ルール:
+### 文法チェック（高度/基本）とルール追加の導線
+- 高度ルール（**主軸**: 新規ルールは原則こちらに追加）:
   - 実装は `server/src/grammar/advancedRulesManager.ts` が `shared/src/advancedTypes.ts` の `AdvancedGrammarRule` を実行。
   - ルール本体は `server/src/grammar/rules/` に追加し、`server/src/grammar/rules/index.ts` と `AdvancedRulesManager` の `this.rules` に登録。
   - ルールのON/OFFや閾値は `shared/src/advancedTypes.ts` の `AdvancedRulesConfig` / `DEFAULT_ADVANCED_RULES_CONFIG` と、`package.json` の `contributes.configuration`（`otakLsp.advanced.*`）で管理。
   - ルール側は `RuleContext`（全文テキスト/文分割結果/設定）を受け取り、`AdvancedDiagnostic` を返す。
+- 基本ルール（**レガシー併走**: 既存4ルールのみ。新規追加は非推奨）:
+  - 実装は `server/src/grammar/checker.ts` 内の `GrammarChecker`。4ルール固定（`double-particle`,`particle-sequence`,`verb-particle-mismatch`,`redundant-copula`）。
+  - `main.ts` / `documentAnalyzer.ts` / `evals-runner.ts` から `AdvancedRulesManager` と並走で呼ばれる。
+  - 修正が必要な場合のみ `GrammarRule` インターフェースに従って同ファイル内で class を追加し、`this.rules` に登録。
 
 ### Evals / 品質評価
 - 文法ルールの評価データとランナーは `server/src/grammar/evals/`。
