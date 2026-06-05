@@ -115,6 +115,118 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     },
   },
   {
+    "code": "bullet-punctuation",
+    "message": "文の箇条書きには句点「。」を付けるのが一般的です。（根拠: 公用文作成の考え方）",
+    "range": {
+      "end": {
+        "character": 57,
+        "line": 5,
+      },
+      "start": {
+        "character": 56,
+        "line": 5,
+      },
+    },
+  },
+  {
+    "code": "bullet-punctuation",
+    "message": "文の箇条書きには句点「。」を付けるのが一般的です。（根拠: 公用文作成の考え方）",
+    "range": {
+      "end": {
+        "character": 4,
+        "line": 413,
+      },
+      "start": {
+        "character": 3,
+        "line": 413,
+      },
+    },
+  },
+  {
+    "code": "bullet-punctuation",
+    "message": "文の箇条書きには句点「。」を付けるのが一般的です。（根拠: 公用文作成の考え方）",
+    "range": {
+      "end": {
+        "character": 12,
+        "line": 469,
+      },
+      "start": {
+        "character": 11,
+        "line": 469,
+      },
+    },
+  },
+  {
+    "code": "bullet-punctuation",
+    "message": "文の箇条書きには句点「。」を付けるのが一般的です。（根拠: 公用文作成の考え方）",
+    "range": {
+      "end": {
+        "character": 29,
+        "line": 470,
+      },
+      "start": {
+        "character": 28,
+        "line": 470,
+      },
+    },
+  },
+  {
+    "code": "bullet-punctuation",
+    "message": "文の箇条書きには句点「。」を付けるのが一般的です。（根拠: 公用文作成の考え方）",
+    "range": {
+      "end": {
+        "character": 12,
+        "line": 477,
+      },
+      "start": {
+        "character": 11,
+        "line": 477,
+      },
+    },
+  },
+  {
+    "code": "bullet-punctuation",
+    "message": "文の箇条書きには句点「。」を付けるのが一般的です。（根拠: 公用文作成の考え方）",
+    "range": {
+      "end": {
+        "character": 30,
+        "line": 478,
+      },
+      "start": {
+        "character": 29,
+        "line": 478,
+      },
+    },
+  },
+  {
+    "code": "bullet-punctuation",
+    "message": "文の箇条書きには句点「。」を付けるのが一般的です。（根拠: 公用文作成の考え方）",
+    "range": {
+      "end": {
+        "character": 44,
+        "line": 697,
+      },
+      "start": {
+        "character": 43,
+        "line": 697,
+      },
+    },
+  },
+  {
+    "code": "bullet-punctuation",
+    "message": "文の箇条書きには句点「。」を付けるのが一般的です。（根拠: 公用文作成の考え方）",
+    "range": {
+      "end": {
+        "character": 29,
+        "line": 698,
+      },
+      "start": {
+        "character": 28,
+        "line": 698,
+      },
+    },
+  },
+  {
     "code": "bullet-style-mix",
     "message": "箇条書き記号が混在しています。・（1箇所）と-（34箇所）と*（1箇所）が使用されています。どれかに統一してください。 文書全体では「hyphen」が支配的です。",
     "range": {

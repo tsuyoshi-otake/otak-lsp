@@ -38,7 +38,9 @@ function sortDiagnostics(diagnostics: Diagnostic[]): Diagnostic[] {
 
 async function analyzeReadme(): Promise<Diagnostic[]> {
   const readmePath = path.resolve(process.cwd(), 'README.md');
-  const markdown = readFileSync(readmePath, 'utf8');
+  // チェックアウト環境（Windows の autocrlf）と CI（LF）で改行が変わると
+  // 文構造判定が変わり snapshot が乖離するため LF に正規化する。
+  const markdown = readFileSync(readmePath, 'utf8').replace(/\r\n/g, '\n');
 
   const markdownFilter = new MarkdownFilter();
   const mecabAnalyzer = new MeCabAnalyzer();
