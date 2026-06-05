@@ -211,14 +211,6 @@ export const SURNAME_SUFFIX_PATTERNS: string[] = [
 ];
 
 /**
- * 名前の前に付くパターン
- */
-export const NAME_PREFIX_PATTERNS: string[] = [
-  '担当者', '責任者', '代表者', '申請者', '届出人',
-  '報告者', '発表者', '著者', '執筆者', '監修者',
-];
-
-/**
  * 文字が人名用漢字かどうかを判定
  */
 export function isJinmeiKanji(char: string): boolean {
@@ -247,7 +239,7 @@ export function getShinjitai(kyujitai: string): string | undefined {
  */
 export function matchesSurnamePattern(text: string, position: number): boolean {
   // 旧字体を含む姓パターンをチェック
-  for (const [kyujitai, surnames] of KYUJITAI_SURNAME_PATTERNS) {
+  for (const [, surnames] of KYUJITAI_SURNAME_PATTERNS) {
     for (const surname of surnames) {
       const idx = text.indexOf(surname, position);
       if (idx === position || (idx >= 0 && idx <= position && position < idx + surname.length)) {

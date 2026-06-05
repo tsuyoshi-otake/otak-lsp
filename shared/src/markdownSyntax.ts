@@ -75,20 +75,6 @@ export function isMarkdownPipeTableSeparatorLine(line: string): boolean {
   return /^\|[-:|]+\|?$/.test(compact);
 }
 
-/**
- * 先頭 `|` 形式のテーブル見出し行（ヘッダー）かどうか。
- * - 区切り行（`|---|` 等）は除外する
- */
-export function isMarkdownPipeTableHeaderLine(line: string): boolean {
-  const { strippedLine } = stripMarkdownBlockquotePrefix(line);
-  const trimmed = strippedLine.trim();
-  if (!trimmed.startsWith('|')) {
-    return false;
-  }
-  const compact = trimmed.replace(/\s+/g, '');
-  return !/^\|[-:|]+\|?$/.test(compact);
-}
-
 export interface MarkdownPipeTableBlock {
   startLine: number;
   endLineExclusive: number;

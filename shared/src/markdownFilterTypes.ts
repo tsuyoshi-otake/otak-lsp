@@ -118,20 +118,6 @@ export interface IMarkdownFilter {
 }
 
 /**
- * フィルタリングエラー
- */
-export class FilterError extends Error {
-  constructor(
-    message: string,
-    public readonly code: string,
-    public readonly position?: number
-  ) {
-    super(message);
-    this.name = 'FilterError';
-  }
-}
-
-/**
  * デフォルトのフィルタリング設定
  */
 export const DEFAULT_FILTER_CONFIG: FilterConfig = {

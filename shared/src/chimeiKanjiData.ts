@@ -86,15 +86,6 @@ export const CHIMEI_SUFFIX_PATTERNS: string[] = [
 const PLACE_NAME_BOUNDARY_PATTERN = /[\s　0-9０-９、。．，,・:：;；!！?？…‥()（）「」『』【】［］\[\]{}<>＜＞]/;
 
 /**
- * 地名の接頭辞パターン
- */
-export const CHIMEI_PREFIX_PATTERNS: string[] = [
-  '東', '西', '南', '北', '中', '上', '下', '前', '後',
-  '新', '旧', '本', '元', '大', '小', '長', '高', '深',
-  '奥', '内', '外',
-];
-
-/**
  * 常用漢字外を含む有名な地名
  * 検出時にこれらの地名と一致する場合は警告を抑制
  */
