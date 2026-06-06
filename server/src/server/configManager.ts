@@ -279,6 +279,7 @@ export function createConfigManager(
     }
 
     applyTieredExecutionConfigFromSettings(settings, patch);
+    applyParallelExecutionConfigFromSettings(settings, patch);
     applyOfficialConfigFromSettings(settings, patch);
 
     if (isNotEmptyObject(patch)) {
@@ -306,6 +307,39 @@ export function createConfigManager(
     if (newTieredExecution.enabled !== currentConfig.tieredExecution.enabled ||
         newTieredExecution.idleDelayMs !== currentConfig.tieredExecution.idleDelayMs) {
       patch.tieredExecution = newTieredExecution;
+    }
+  }
+
+  /**
+   * 並列実行設定を適用
+   * Feature: parallel-advanced-rules
+   *
+   * - `enabled`: フラグ on/off
+   * - `maxWorkers`: 0 は「自動」(cpus-1) として扱うため undefined に正規化する
+   */
+  function applyParallelExecutionConfigFromSettings(settings: unknown, patch: Partial<AdvancedRulesConfig>): void {
+    const enabled = getSetting(settings, 'advanced.parallelExecution.enabled');
+    const maxWorkers = getSetting(settings, 'advanced.parallelExecution.maxWorkers');
+
+    const currentConfig = advancedRulesManager.getConfig();
+    const newParallel = { ...(currentConfig.parallelExecution ?? { enabled: false }) };
+    let changed = false;
+
+    if (typeof enabled === 'boolean' && enabled !== newParallel.enabled) {
+      newParallel.enabled = enabled;
+      changed = true;
+    }
+    if (typeof maxWorkers === 'number' && Number.isFinite(maxWorkers)) {
+      // 0 は「自動」と読み替えるため undefined を入れる
+      const normalized = maxWorkers > 0 ? Math.floor(maxWorkers) : undefined;
+      if (normalized !== newParallel.maxWorkers) {
+        newParallel.maxWorkers = normalized;
+        changed = true;
+      }
+    }
+
+    if (changed) {
+      patch.parallelExecution = newParallel;
     }
   }
 

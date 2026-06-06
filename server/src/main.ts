@@ -117,6 +117,21 @@ connectionHandler.initialize();
 // Listen for document events
 documents.listen(connection);
 
+// Feature: parallel-advanced-rules
+// LSP shutdown / exit で worker pool を停止し、worker_threads がリークしないようにする。
+// onShutdown は client からの明示的な shutdown 要求、onExit はプロセス終了直前にコールされる。
+connection.onShutdown(async () => {
+  try {
+    await advancedRulesManager.shutdown();
+  } catch (error) {
+    logger.error(`Failed to shutdown advancedRulesManager: ${String(error)}`);
+  }
+});
+connection.onExit(() => {
+  // onExit は同期コールバック想定なので、fire-and-forget で終了
+  advancedRulesManager.shutdown().catch(() => undefined);
+});
+
 // Start server
 connection.listen();
 

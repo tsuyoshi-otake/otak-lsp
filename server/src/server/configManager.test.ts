@@ -126,6 +126,43 @@ describe('configManager', () => {
       expect(advancedConfig.tieredExecution.idleDelayMs).toBe(initialIdleDelay);
     });
 
+    it('should apply parallel execution settings (Feature: parallel-advanced-rules)', () => {
+      configManager.applySettings({
+        advanced: {
+          parallelExecution: {
+            enabled: true,
+            maxWorkers: 4,
+          },
+        },
+      });
+
+      const advancedConfig = configManager.getAdvancedConfig();
+      expect(advancedConfig.parallelExecution?.enabled).toBe(true);
+      expect(advancedConfig.parallelExecution?.maxWorkers).toBe(4);
+    });
+
+    it('should normalize maxWorkers=0 to undefined (auto)', () => {
+      configManager.applySettings({
+        advanced: {
+          parallelExecution: {
+            enabled: true,
+            maxWorkers: 0,
+          },
+        },
+      });
+
+      const advancedConfig = configManager.getAdvancedConfig();
+      expect(advancedConfig.parallelExecution?.enabled).toBe(true);
+      // 0 は "自動" の意味として undefined に正規化される
+      expect(advancedConfig.parallelExecution?.maxWorkers).toBeUndefined();
+    });
+
+    it('should default parallelExecution to disabled', () => {
+      // 何も設定しない初期状態で disabled
+      const advancedConfig = configManager.getAdvancedConfig();
+      expect(advancedConfig.parallelExecution?.enabled).toBe(false);
+    });
+
     it('should apply official document settings', () => {
       configManager.applySettings({
         official: {

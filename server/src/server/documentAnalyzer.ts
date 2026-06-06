@@ -231,6 +231,21 @@ async function runAdvancedRules(
   const mdRanges = isMarkdown ? excludedRanges : undefined;
   const mdOptions = isMarkdown ? { analyzeTables: config.markdown.analyzeTables } : undefined;
 
+  // Feature: parallel-advanced-rules
+  // フラグ on かつ worker bundle が利用可能なら worker_threads で並列実行する。
+  // フラグ off / 環境不適合の場合は async 協調版にフォールバックする。
+  //
+  // 軽量ルールは件数が少なく (20 件程度)、worker への serialize コストが
+  // 並列化の利益を上回りやすいので、parallel パスは「フル実行」だけに適用する。
+  const parallelEnabled = advancedRulesManager.getConfig().parallelExecution?.enabled === true;
+  const useParallel = parallelEnabled && !lightweightOnly;
+
+  if (useParallel) {
+    return await advancedRulesManager.checkTextParallel(
+      textToAnalyze, grammarTokens, mdRanges, mdOptions, ruleProfilingCollector, precomputedLineStarts
+    );
+  }
+
   // 非同期協調版: K=8 件ごとに `setImmediate` で yield することで
   // 解析中も LSP サーバが他リクエストへ応答できる。
   return lightweightOnly
@@ -283,10 +298,13 @@ async function runGrammarChecks(
       textToAnalyze, grammarTokens, languageId, excludedRanges, config,
       lightweightOnly, deps.advancedRulesManager, ruleProfilingCollector, precomputedLineStarts
     ).then((diags) => {
+      // parallel パスが有効かを meta に出す (Feature: parallel-advanced-rules / REQ-10)
+      const parallelOn = deps.advancedRulesManager.getConfig().parallelExecution?.enabled === true;
+      const mode = !lightweightOnly && parallelOn ? 'parallel' : 'async';
       recordStep(
         lightweightOnly ? '軽量ルール評価' : '高度ルール評価',
         Date.now() - advancedStart,
-        `件数=${diags.length}`
+        `件数=${diags.length} mode=${mode}`
       );
       return diags;
     }),

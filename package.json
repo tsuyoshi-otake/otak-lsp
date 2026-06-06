@@ -768,6 +768,20 @@
           "description": "アイドル判定までの遅延時間（ミリ秒）。編集停止からこの時間経過後に全ルールを実行します。",
           "scope": "resource"
         },
+        "otakLsp.advanced.parallelExecution.enabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "並列実行の有効/無効。worker_threads を使って高度ルールを物理コア数までスケールします。大規模な文書での解析を高速化しますが、メモリ使用量が増加します。",
+          "scope": "resource"
+        },
+        "otakLsp.advanced.parallelExecution.maxWorkers": {
+          "type": "number",
+          "default": 0,
+          "minimum": 0,
+          "maximum": 16,
+          "description": "並列実行で起動する worker 数の上限。0 を指定すると CPU コア数 - 1 が自動採用されます。",
+          "scope": "resource"
+        },
         "otakLsp.proofreading.preset": {
           "type": "string",
           "enum": [
