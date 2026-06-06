@@ -54,5 +54,13 @@ README を変更した場合は `readme.regression.test.ts` のスナップシ�
 ## 大きな機能追加
 
 このリポジトリは Kiro 流の仕様駆動開発（`.kiro/specs/`）を採用しています。
-新しい文法ルール群や、診断の抑制構文（例: `<!-- otak-lsp-disable-next-line -->`）のような
-挙動を変える機能は、`/kiro:spec-init` から仕様→設計→タスクの順で進めることを推奨します。
+新しい文法ルール群のような、診断の挙動を大きく変える機能は、
+`/kiro:spec-init` から仕様→設計→タスクの順で進めることを推奨します。
+
+### インライン抑制ディレクティブ
+
+特定行・特定ルールの診断を抑制する `otak-lsp-disable-next-line` などのディレクティブを
+サポートしています（実装: `server/src/grammar/suppressionDirectives.ts`）。走査は原文に対して
+行い、Markdown の `<!-- -->` でも各言語のコメントでも機能します。拡張機能本体（`documentAnalyzer`）
+と README ドッグフード経路（`check-readme` / `readme.regression`）の両方で同じ抑制が適用されます。
+使い方は README「特定の箇所だけ警告を抑制したい（インライン抑制）」を参照してください。

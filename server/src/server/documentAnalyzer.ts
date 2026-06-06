@@ -14,6 +14,7 @@ import { MarkdownFilter } from '../parser/markdownFilter';
 import { TokenFilter } from '../semantic/tokenFilter';
 import { GrammarChecker } from '../grammar/checker';
 import { AdvancedRulesManager } from '../grammar/advancedRulesManager';
+import { parseSuppressionDirectives, applySuppressions } from '../grammar/suppressionDirectives';
 import { ProofreadingRulesManager } from '../proofreading/proofreadingRulesManager';
 import { CommentRange, Configuration, Token, SupportedLanguage, Diagnostic } from '../../../shared/src/types';
 import { ExcludedRange } from '../../../shared/src/markdownFilterTypes';
@@ -395,7 +396,7 @@ export function createDocumentAnalyzer(
           ? partitionMarkdownTokens(allTokens, excludedRanges, config, tokenFilter, recordStep)
           : { semanticTokens: allTokens, grammarTokens: allTokens };
 
-      const diagnostics: LSPDiagnostic[] = [];
+      let diagnostics: LSPDiagnostic[] = [];
       if (config.enableGrammarCheck) {
         // textToAnalyze は MarkdownFilter / keepOnlyCommentRanges どちらの経路でも
         // 改行と長さを保持するため、原文の lineStarts をそのまま使い回せる。
@@ -403,6 +404,17 @@ export function createDocumentAnalyzer(
           textToAnalyze, grammarTokensList, languageId, excludedRanges, config,
           lightweightOnly, checkDeps, recordStep, ruleProfilingCollector, lineStarts
         )));
+
+        // インライン抑制ディレクティブ（otak-lsp-disable-next-line 等）を適用する。
+        // 走査は原文 text に対して行い、コメント構文に依存しない。
+        // ディレクティブが無ければ applySuppressions は即リターンする。
+        const suppressStart = Date.now();
+        const suppressionScan = parseSuppressionDirectives(text);
+        if (suppressionScan.hasDirectives) {
+          const before = diagnostics.length;
+          diagnostics = applySuppressions(diagnostics, suppressionScan);
+          recordStep('抑制ディレクティブ適用', Date.now() - suppressStart, `抑制=${before - diagnostics.length}`);
+        }
       }
 
       return {

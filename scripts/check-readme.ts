@@ -11,6 +11,7 @@ import { MeCabAnalyzer } from '../server/src/mecab/analyzer';
 import { GrammarChecker } from '../server/src/grammar/checker';
 import { AdvancedRulesManager } from '../server/src/grammar/advancedRulesManager';
 import { TokenFilter } from '../server/src/semantic/tokenFilter';
+import { parseSuppressionDirectives, applySuppressions } from '../server/src/grammar/suppressionDirectives';
 import { Diagnostic } from '../shared/src/types';
 
 function sortDiagnostics(diagnostics: Diagnostic[]): Diagnostic[] {
@@ -53,7 +54,11 @@ async function analyzeMarkdown(text: string): Promise<Diagnostic[]> {
   const basicDiagnostics = grammarChecker.check(tokens, filteredText);
   const advancedDiagnostics = advancedRulesManager.checkText(filteredText, tokens, excludedRanges);
 
-  return sortDiagnostics([...basicDiagnostics, ...advancedDiagnostics]);
+  // インライン抑制ディレクティブを適用（拡張機能本体と同じ挙動にそろえる）
+  const scan = parseSuppressionDirectives(text);
+  const merged = applySuppressions([...basicDiagnostics, ...advancedDiagnostics], scan);
+
+  return sortDiagnostics(merged);
 }
 
 async function main(): Promise<void> {

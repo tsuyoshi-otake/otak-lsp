@@ -766,6 +766,32 @@ chatgptで文章を生成します。     <- 「ChatGPT」に修正
 設定画面で対応するルールの設定を `false` に変更してください。
 例: 技術用語チェックを無効にする場合は `otakLsp.advanced.enableTermNotation` を `false` に設定
 
+### 特定の箇所だけ警告を抑制したい（インライン抑制）
+
+ドキュメント全体ではなく一部の行だけ警告を消したい場合は、コメントに抑制ディレクティブを書きます。
+Markdownの`<!-- -->`コメントでも、各プログラミング言語のコメント（`//`、`#` など）でも使えます。
+
+| ディレクティブ | 効果 |
+|---|---|
+| `otak-lsp-disable-next-line [コード ...]` | 次の行の診断を抑制 |
+| `otak-lsp-disable-line [コード ...]` | 同じ行の診断を抑制 |
+| `otak-lsp-disable [コード ...]` | この行以降を抑制（`otak-lsp-enable` まで） |
+| `otak-lsp-enable [コード ...]` | 抑制を解除 |
+
+コード（診断コード = ルールID。例: `term-notation`、`noun-chain`）は省略できます。省略した場合はその範囲の全ルールが抑制対象になります。複数のコードはスペースやカンマで区切ります。コードの後ろに ` -- 理由` の形で理由を書いても構いません（理由部分は無視されます）。
+
+```markdown
+<!-- otak-lsp-disable-next-line orthography-variant -- 法令用語をそのまま引用 -->
+「及び」「並びに」「又は」「若しくは」は公用文の接続表現です。
+
+行末で抑制することもできます。 <!-- otak-lsp-disable-line term-notation -->
+```
+
+```python
+# otak-lsp-disable-next-line ra-nuki
+# この機能は簡単に使えれる、というコメント例。
+```
+
 ### 初回起動時に時間がかかる
 
 初回起動時にkuromoji-optimizedの辞書を読み込むため、数秒かかる場合があります。2回目以降は高速に動作します。

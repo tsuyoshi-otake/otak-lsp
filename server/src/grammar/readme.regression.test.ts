@@ -10,6 +10,7 @@ import { MarkdownFilter } from '../parser/markdownFilter';
 import { MeCabAnalyzer } from '../mecab/analyzer';
 import { GrammarChecker } from './checker';
 import { AdvancedRulesManager } from './advancedRulesManager';
+import { parseSuppressionDirectives, applySuppressions } from './suppressionDirectives';
 import { TokenFilter } from '../semantic/tokenFilter';
 import { Diagnostic } from '../../../shared/src/types';
 
@@ -58,7 +59,11 @@ async function analyzeReadme(): Promise<Diagnostic[]> {
   const basicDiagnostics = grammarChecker.check(tokens, filteredText);
   const advancedDiagnostics = advancedRulesManager.checkText(filteredText, tokens, excludedRanges);
 
-  return sortDiagnostics([...basicDiagnostics, ...advancedDiagnostics]);
+  // インライン抑制ディレクティブを適用（拡張機能本体と同じ挙動にそろえる）
+  const scan = parseSuppressionDirectives(markdown);
+  const merged = applySuppressions([...basicDiagnostics, ...advancedDiagnostics], scan);
+
+  return sortDiagnostics(merged);
 }
 
 describe('README Regression Snapshot', () => {

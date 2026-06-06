@@ -123,6 +123,40 @@ describe('documentAnalyzer', () => {
       expect(result.diagnostics).toHaveLength(0);
     }, 10000);
 
+    describe('インライン抑制ディレクティブ', () => {
+      it('disable-next-line で次行の指定コード診断を抑制する', async () => {
+        // 前提: ディレクティブ無しでは term-notation が出る
+        const baselineDoc = TextDocument.create('test://uri', 'markdown', 1, 'Javascriptを使います。\n');
+        const baseline = await documentAnalyzer.analyze(
+          baselineDoc, defaultConfig, DEFAULT_ADVANCED_RULES_CONFIG, false
+        );
+        expect(baseline.diagnostics.some((d) => d.code === 'term-notation')).toBe(true);
+
+        // ディレクティブ有りでは次行の term-notation が消える
+        const directiveDoc = TextDocument.create(
+          'test://uri', 'markdown', 1,
+          '<!-- otak-lsp-disable-next-line term-notation -->\nJavascriptを使います。\n'
+        );
+        const suppressed = await documentAnalyzer.analyze(
+          directiveDoc, defaultConfig, DEFAULT_ADVANCED_RULES_CONFIG, false
+        );
+        expect(
+          suppressed.diagnostics.some((d) => d.code === 'term-notation' && d.range.start.line === 1)
+        ).toBe(false);
+      }, 10000);
+
+      it('指定外のコードは抑制しない', async () => {
+        const doc = TextDocument.create(
+          'test://uri', 'markdown', 1,
+          '<!-- otak-lsp-disable-next-line noun-chain -->\nJavascriptを使います。\n'
+        );
+        const result = await documentAnalyzer.analyze(
+          doc, defaultConfig, DEFAULT_ADVANCED_RULES_CONFIG, false
+        );
+        expect(result.diagnostics.some((d) => d.code === 'term-notation')).toBe(true);
+      }, 10000);
+    });
+
     it('should return empty result for empty text', async () => {
       const document = TextDocument.create(
         'test://uri',
