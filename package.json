@@ -1242,7 +1242,10 @@
     "audit:glossary": "ts-node scripts/audit-glossary.ts",
     "docs:config": "ts-node scripts/generate-config-doc.ts",
     "check:config": "ts-node scripts/generate-config-doc.ts --check",
-    "check:consistency": "ts-node scripts/generate-config-doc.ts --check && ts-node scripts/audit-glossary.ts --strict",
+    "docs:rules": "ts-node scripts/generate-rules-doc.ts",
+    "check:rules": "ts-node scripts/generate-rules-doc.ts --check",
+    "docs:all": "npm run docs:config && npm run docs:rules",
+    "check:consistency": "ts-node scripts/generate-config-doc.ts --check && ts-node scripts/generate-rules-doc.ts --check && ts-node scripts/audit-glossary.ts --strict",
     "clean": "rimraf ./client/out ./server/out ./shared/out",
     "package": "vsce package",
     "publish": "vsce publish"

@@ -38,6 +38,27 @@ function parseArgs(argv: string[]): Options {
   };
 }
 
+/**
+ * データ未提供だが型/グループには登録済みの「整備中」カテゴリの allowlist。
+ * 将来データを追加する予定のものを意図的に許容する。
+ * - ここに無い空カテゴリが現れたら（=意図しない混入）--strict で失敗させる
+ * - ここにあるカテゴリにデータが入ったら（=allowlist が陳腐化）--strict で失敗させ、削除を促す
+ */
+const KNOWN_EMPTY_TYPED: ReadonlySet<string> = new Set([
+  'authIam',
+  'messagingEda',
+  'docker',
+  'mysql',
+  'yarn',
+  'pnpm',
+  'powershell',
+  'javaCli',
+  'maven',
+  'gradle',
+  'devProcess',
+  'ipaMetrics',
+]);
+
 /** 型 GlossaryId に属する全IDの集合（グループのメンバーから収集） */
 function collectTypedIds(): Set<string> {
   const ids = new Set<string>();
@@ -115,6 +136,10 @@ function main(): void {
   // default過剰: package.json default にあるが実データが無い（no-op設定）
   const emptyInDefault = defaultIds.filter((id) => (entryCounts.get(id) ?? 0) === 0).sort();
 
+  // allowlist 違反: 想定外の空カテゴリ（混入） / allowlist にあるのにデータが入った（陳腐化）
+  const unexpectedEmpty = emptyTyped.filter((id) => !KNOWN_EMPTY_TYPED.has(id));
+  const staleAllowlist = [...KNOWN_EMPTY_TYPED].filter((id) => (entryCounts.get(id) ?? 0) > 0).sort();
+
   const report = {
     summary: {
       typedCategories: typedIds.size,
@@ -131,6 +156,8 @@ function main(): void {
       missingFromReadme,    // ドキュメント遅延
       staleInReadme,        // 誤案内
       emptyInDefault,       // 既定で有効だがデータ無し（no-op）
+      unexpectedEmpty,      // allowlist 外の空カテゴリ（混入）
+      staleAllowlist,       // allowlist にあるのにデータが入った（陳腐化）
     },
     dataBacked: dataBackedIds
       .map((id) => ({ id, entries: entryCounts.get(id) ?? 0 }))
@@ -160,9 +187,19 @@ function main(): void {
     print('missing from README (ドキュメント遅延)', missingFromReadme);
     print('stale in README (誤案内)', staleInReadme);
     print('empty in default (no-op既定)', emptyInDefault);
+    print('unexpected empty (allowlist外の混入)', unexpectedEmpty);
+    print('stale allowlist (データ入済み→要削除)', staleAllowlist);
   }
 
-  if (options.strict && (phantomInEnum.length || phantomInReadme.length || staleInReadme.length || missingFromReadme.length)) {
+  if (
+    options.strict &&
+    (phantomInEnum.length ||
+      phantomInReadme.length ||
+      staleInReadme.length ||
+      missingFromReadme.length ||
+      unexpectedEmpty.length ||
+      staleAllowlist.length)
+  ) {
     process.exitCode = 1;
   }
 }

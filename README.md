@@ -799,14 +799,20 @@ npm run package
 
 ### ドキュメント整合性チェック
 
-設定一覧や用語図鑑カテゴリは実装（`package.json` / 辞書データ）を真実源として検証します。CIでも実行されます。
+設定一覧・ルール一覧・用語図鑑カテゴリは実装（`package.json` / ルールレジストリ / 辞書データ）を真実源として検証します。CIでも実行されます。
 
 ```bash
+npm run docs:all           # docs/configuration.md と docs/rules.md を再生成
 npm run docs:config        # docs/configuration.md を package.json から再生成
+npm run docs:rules         # docs/rules.md をルールレジストリから再生成
 npm run check:config       # docs/configuration.md が package.json と同期しているか検査
+npm run check:rules        # docs/rules.md がルールレジストリと同期しているか検査
 npm run audit:glossary     # 用語図鑑カテゴリ（型/データ/enum/README）の整合性を監査
-npm run check:consistency  # 上記の設定・用語図鑑チェックをまとめて実行
+npm run check:consistency  # 上記の設定・ルール・用語図鑑チェックをまとめて実行
 ```
+
+- 設定の完全な一覧: [docs/configuration.md](docs/configuration.md)
+- ルールの完全な一覧: [docs/rules.md](docs/rules.md)
 
 <!-- EVALS-START -->
 ## Detection Coverage
@@ -894,7 +900,7 @@ Last updated: 2025-12-26
 - **形態素解析**: kuromoji-optimized 1.0.0 (IPA辞書内蔵、従来比約4.5倍高速)
 - **Language Server Protocol**: vscode-languageserver 9.0
 - **対応VSCodeバージョン**: 1.60.0以上
-- **文法ルール数**: 基本ルール4 + 高度ルール57（公文書4・文複雑度を含む。`server/src/grammar/advancedRuleRegistry.ts` を参照） + 校正ルール群。検出カテゴリの実測一覧は上記「Detection Coverage」（evalsから自動生成）を参照
+- **文法ルール数**: 基本ルール4 + 高度ルール57（公文書4・文複雑度を含む） + 校正ルール群。ルールの完全な一覧は [ルールリファレンス](docs/rules.md)（レジストリから自動生成）、検出カテゴリの実測一覧は上記「Detection Coverage」（evalsから自動生成）を参照
 
 ### サーバーアーキテクチャ
 

@@ -28,6 +28,9 @@ jobs:
       - name: Check docs/config consistency
         run: npm run check:config
 
+      - name: Check docs/rules consistency
+        run: npm run check:rules
+
       - name: Check glossary consistency
         run: npm run audit:glossary -- --strict
 
