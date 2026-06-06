@@ -25,6 +25,12 @@ jobs:
       - name: Lint
         run: npm run lint
 
+      - name: Check docs/config consistency
+        run: npm run check:config
+
+      - name: Check glossary consistency
+        run: npm run audit:glossary -- --strict
+
       - name: Build
         run: node esbuild.js
 

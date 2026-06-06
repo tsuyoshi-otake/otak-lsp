@@ -7,7 +7,7 @@
 - **高速な形態素解析**: kuromoji-optimized搭載により、従来比約4.5倍の高速化を実現
 - **辞書内蔵**: IPA辞書を内蔵
 - **軽量**: 純粋なJavaScript実装
-- **高度な文法チェック**: 文体統一、ら抜き言葉、技術用語表記など71種類のルールをサポート
+- **高度な文法チェック**: 文体統一、ら抜き言葉、技術用語表記など多数のルール（基本ルール + 高度ルール57種 + 公文書ルール + 校正ルール群）をサポート。検出カテゴリの実測一覧は下記「Detection Coverage」を参照
 - **公文書対応**: 常用漢字チェック、「及び/並びに」「又は/若しくは」使い分け、箇条書き句点運用、人名・地名自動除外
 - **スムーズな編集体験**: 段階実行・事前検索キャッシュにより、入力中もスムーズに動作
 
@@ -432,16 +432,21 @@ A、B又はC若しくはD、E又はFを選択する（正しい使用例）
 | `java` | Java用語図鑑 | Java言語/エコシステム（JVM、Spring等）の用語。 |
 | `nextjs` | Next.js用語図鑑 | Next.js固有の概念（ルーティング、RSC等）の用語。 |
 | `dotnet` | .NET用語図鑑 | .NET/ASP.NET/CLRなど .NET エコシステムの用語。 |
+| `pip` | pip・Python用語図鑑 | Python/pip（パッケージ管理、仮想環境等）の用語。 |
+| `npm` | npm用語図鑑 | npm（パッケージ管理、scripts、依存解決等）の用語。 |
+| `git` | Git用語図鑑 | Git（ブランチ、マージ、リベース等）の用語。 |
 | `security` | セキュリティ用語図鑑 | 脅威/対策の基本（暗号、脆弱性、攻撃手法など）。 |
 | `networkHttp` | ネットワーク・HTTP用語図鑑 | ネットワーク/HTTPの基礎（DNS、TLS、ヘッダ等）。 |
-| `authIam` | 認証認可・IAM用語図鑑 | 認証/認可/IAM（SSO、OIDC、ロール等）の用語。 |
 | `dbSqlTx` | DB・SQL・トランザクション用語図鑑 | DB/SQL/トランザクション/インデックス等の用語。 |
+| `oracle` | Oracle用語図鑑 | Oracle Database（PL/SQL、表領域等）の用語。 |
 | `apiDesign` | API設計用語図鑑 | API設計の用語（REST、エラーハンドリング、バージョニング等）。 |
 | `devopsCicd` | DevOps・CI/CD・リリース用語図鑑 | CI/CD、リリース、運用改善（DevOps）の用語。 |
 | `containersK8s` | コンテナ・Kubernetes用語図鑑 | コンテナとKubernetes（Pod、Service、Ingress等）の用語。 |
+| `linux` | Linux用語図鑑 | Linux（シェル、プロセス、パーミッション等）の用語。 |
+| `windows` | Windows用語図鑑 | Windows（PowerShell、レジストリ、サービス等）の用語。 |
 | `observabilitySre` | 監視・Observability・SRE用語図鑑 | 監視/ログ/トレースとSRE（SLI/SLO等）の用語。 |
 | `distributedSystems` | 分散システム用語図鑑 | 分散システムの基礎（整合性、レプリケーション等）の用語。 |
-| `messagingEda` | メッセージング・イベント駆動用語図鑑 | キュー/ストリーム等のメッセージングとEDAの用語。 |
+| `enterpriseArch` | エンタープライズアーキテクチャ用語図鑑 | 全体最適/ガバナンス/標準化などEAの用語。 |
 | `performanceCache` | パフォーマンス・キャッシュ用語図鑑 | 性能/キャッシュ（レイテンシ、スループット等）の用語。 |
 | `architecturePatterns` | 設計パターン・アーキテクチャ用語図鑑 | 設計パターン/アーキテクチャ（レイヤード、CQRS等）の用語。 |
 | `agileProduct` | アジャイル・Scrum・プロダクト用語図鑑 | アジャイル/Scrum/プロダクト開発（Backlog等）の用語。 |
@@ -452,7 +457,8 @@ A、B又はC若しくはD、E又はFを選択する（正しい使用例）
 | `azureServices` | Azureサービス用語図鑑 | Azureのサービス名と代表的なコンソール用語（リソース/設定項目等）。 |
 | `gcpServices` | GCPサービス用語図鑑 | GCPのサービス名と代表的なコンソール用語（リソース/設定項目等）。 |
 | `ociServices` | OCIサービス用語図鑑 | OCIのサービス名と代表的なコンソール用語（リソース/設定項目等）。 |
-| `cloudflareServices` | Cloudflareサービス用語図鑑 | Cloudflareの機能名とコンソール用語（画面項目/設定等）。 |
+
+※ この一覧は同梱辞書データ（`server/src/dictionaries` / `server/src/hover/generatedGlossaryData`）と一致しており、`npm run audit:glossary` で整合性を検証できます。設定 `enabledGlossaries` の型には整備中のカテゴリ（`authIam`、`messagingEda`、`docker`、`mysql` など）も含まれますが、データ提供までは表示対象になりません。
 
 ### 対応ファイル形式
 
@@ -484,6 +490,8 @@ A、B又はC若しくはD、E又はFを選択する（正しい使用例）
 
 設定画面（ファイル > 基本設定 > 設定）から以下の項目を設定できます：
 
+> **設定の完全な一覧は [設定リファレンス](docs/configuration.md)（全項目を自動生成）を参照してください。** READMEでは代表的な設定のみを抜粋して掲載しています。リファレンスは `package.json` を真実源として生成され、`npm run check:config` で同期を検証します。
+
 ### 基本設定
 
 | 設定項目 | 説明 | デフォルト値 |
@@ -495,10 +503,12 @@ A、B又はC若しくはD、E又はFを選択する（正しい使用例）
 | `otakLsp.markdown.analyzeTables` | Markdownのテーブル（\|...\|）内も文法チェック対象にする | `true` |
 | `otakLsp.targetLanguages` | 解析対象のファイルタイプ | `["markdown", "javascript", ...]` |
 | `otakLsp.debounceDelay` | 解析のデバウンス遅延（ミリ秒） | `250` |
+| `otakLsp.sentenceSplitMode` | 文分割モード（strict: 改行で常に区切る / normal: 文脈を考慮 / loose: 空行のみで区切る） | `normal` |
 | `otakLsp.enableProfileLogs` | 解析パイプラインの計測ログを出力（開発者向け） | `false` |
 | `otakLsp.hover.enableWikipedia` | ホバーにWikipediaサマリーを表示 | `true` |
 | `otakLsp.hover.enableGlossary` | ホバーに用語図鑑（オフライン）を表示（Wikipediaの下に表示） | `true` |
 | `otakLsp.hover.enabledGlossaries` | ホバーで表示する用語図鑑カテゴリ（デフォルトは全カテゴリ） | `["it", "cloud", ...]` |
+| `otakLsp.hover.enabledGlossaryGroups` | ホバーで有効にする用語図鑑カテゴリグループ（グループ単位で一括ON/OFF） | `["general", ...]` |
 
 ### 高度な文法ルール設定
 
@@ -576,6 +586,8 @@ A、B又はC若しくはD、E又はFを選択する（正しい使用例）
 |---------|------|-------------|
 | `otakLsp.advanced.tieredExecution.enabled` | 段階実行の有効/無効。入力中は軽量ルールのみ実行し、アイドル/保存時に全ルールを実行 | `true` |
 | `otakLsp.advanced.tieredExecution.idleDelayMs` | アイドル判定までの遅延（ミリ秒） | `1200` |
+| `otakLsp.advanced.parallelExecution.enabled` | 並列実行（実験的）。worker_threadsで高度ルールを物理コア数までスケールし、大規模文書を高速化（メモリ使用量は増加） | `false` |
+| `otakLsp.advanced.parallelExecution.maxWorkers` | 並列実行のworker数上限。0でCPUコア数-1を自動採用 | `0` |
 
 ### 公文書対応設定
 
@@ -785,6 +797,17 @@ npm run watch
 npm run package
 ```
 
+### ドキュメント整合性チェック
+
+設定一覧や用語図鑑カテゴリは実装（`package.json` / 辞書データ）を真実源として検証します。CIでも実行されます。
+
+```bash
+npm run docs:config        # docs/configuration.md を package.json から再生成
+npm run check:config       # docs/configuration.md が package.json と同期しているか検査
+npm run audit:glossary     # 用語図鑑カテゴリ（型/データ/enum/README）の整合性を監査
+npm run check:consistency  # 上記の設定・用語図鑑チェックをまとめて実行
+```
+
 <!-- EVALS-START -->
 ## Detection Coverage
 
@@ -871,7 +894,7 @@ Last updated: 2025-12-26
 - **形態素解析**: kuromoji-optimized 1.0.0 (IPA辞書内蔵、従来比約4.5倍高速)
 - **Language Server Protocol**: vscode-languageserver 9.0
 - **対応VSCodeバージョン**: 1.60.0以上
-- **文法ルール数**: 71カテゴリ（基本ルール + 高度ルール + 公文書ルール + 校正ルール）
+- **文法ルール数**: 基本ルール4 + 高度ルール57（公文書4・文複雑度を含む。`server/src/grammar/advancedRuleRegistry.ts` を参照） + 校正ルール群。検出カテゴリの実測一覧は上記「Detection Coverage」（evalsから自動生成）を参照
 
 ### サーバーアーキテクチャ
 

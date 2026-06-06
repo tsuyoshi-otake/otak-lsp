@@ -163,7 +163,6 @@
               "azureServices",
               "gcpServices",
               "ociServices",
-              "cloudflareServices",
               "iotEmbedded",
               "backend",
               "frontend",
@@ -255,8 +254,7 @@
             "awsServices",
             "azureServices",
             "gcpServices",
-            "ociServices",
-            "cloudflareServices"
+            "ociServices"
           ],
           "description": "ホバーで表示する用語図鑑のカテゴリ。",
           "scope": "resource"
@@ -1241,6 +1239,10 @@
     "check:readme": "ts-node scripts/check-readme.ts",
     "check:glossary": "ts-node scripts/check-glossary-coverage.ts",
     "check:glossary:all": "ts-node scripts/check-glossary-all.ts",
+    "audit:glossary": "ts-node scripts/audit-glossary.ts",
+    "docs:config": "ts-node scripts/generate-config-doc.ts",
+    "check:config": "ts-node scripts/generate-config-doc.ts --check",
+    "check:consistency": "ts-node scripts/generate-config-doc.ts --check && ts-node scripts/audit-glossary.ts --strict",
     "clean": "rimraf ./client/out ./server/out ./shared/out",
     "package": "vsce package",
     "publish": "vsce publish"
