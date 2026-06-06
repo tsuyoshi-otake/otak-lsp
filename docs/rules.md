@@ -3,7 +3,7 @@
 
 # ルールリファレンス
 
-otak-lsp v1.0.20 に同梱される文法・文体・表記ルールの一覧です。
+otak-lsp v1.0.21 に同梱される文法・文体・表記ルールの一覧です。
 真実源は `server/src/grammar/advancedRuleRegistry.ts`（高度ルール）と `server/src/grammar/checker.ts`（基本ルール）です。
 
 | 種別 | 件数 |
