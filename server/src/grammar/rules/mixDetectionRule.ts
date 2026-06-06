@@ -37,9 +37,10 @@ export abstract class MixDetectionRule implements AdvancedGrammarRule {
   /**
    * Collect patterns from the document text
    * @param text Document text to analyze
+   * @param lines Pre-split lines for the same text (shared across rules to avoid repeated splitLines)
    * @returns Map of pattern names to their information
    */
-  protected abstract collectPatterns(text: string): Map<string, PatternInfo>;
+  protected abstract collectPatterns(text: string, lines?: string[]): Map<string, PatternInfo>;
 
   /**
    * Create diagnostic message for detected mix
@@ -107,7 +108,7 @@ export abstract class MixDetectionRule implements AdvancedGrammarRule {
    * @returns Array of diagnostics
    */
   check(_tokens: Token[], context: RuleContext): AdvancedDiagnostic[] {
-    const patterns = this.collectPatterns(context.documentText);
+    const patterns = this.collectPatterns(context.documentText, context.shared?.lines);
 
     if (!this.detectMix(patterns)) {
       return [];

@@ -23,6 +23,11 @@ import { convertSeverity } from './diagnosticsPublisher';
 import { computeLineStarts } from '../utils/lineStarts';
 import { Logger } from '../utils/logger';
 import { isNotEmpty } from '../utils/arrayUtils';
+import {
+  buildMaskedTextByKeepRanges,
+  normalizeRanges,
+  sweepFilterByContainment,
+} from '../utils/rangeSweep';
 
 /**
  * プロファイルステップ記録用コールバック
@@ -58,23 +63,9 @@ function keepOnlyCommentRanges(text: string, comments: CommentRange[]): string {
   if (comments.length === 0) {
     return '';
   }
-
-  const chars = text.split('');
-  for (let i = 0; i < chars.length; i++) {
-    if (chars[i] !== '\n' && chars[i] !== '\r') {
-      chars[i] = ' ';
-    }
-  }
-
-  for (const comment of comments) {
-    const start = Math.max(0, comment.start);
-    const end = Math.min(text.length, comment.end);
-    for (let i = start; i < end; i++) {
-      chars[i] = text[i];
-    }
-  }
-
-  return chars.join('');
+  // O(N) で keep 範囲のみ原文を残し、外はスペース、改行は保持。
+  // 旧実装の `text.split('')` を回避して N 個の文字列割当を抑える。
+  return buildMaskedTextByKeepRanges(text, comments);
 }
 
 /**
@@ -162,12 +153,12 @@ async function runMorphologicalAnalysis(
   const cacheStatsBefore = MeCabAnalyzer.getCacheStats();
   let tokens = await mecabAnalyzer.analyze(textToAnalyze);
   if (languageId !== 'markdown' && languageId !== 'plaintext') {
-    tokens = tokens.filter((token) => {
-      if (token.surface.trim().length === 0) {
-        return false;
-      }
-      return commentRanges.some((range) => token.start >= range.start && token.end <= range.end);
-    });
+    // 空白トークンを除外したうえで、コメント範囲に「完全包含」される token のみ残す。
+    // 旧実装は tokens.filter(commentRanges.some(...)) で O(T×R) だったが、
+    // 正規化済み範囲に対する containment スイープで O(T+R) に圧縮する。
+    const sortedRanges = normalizeRanges(commentRanges);
+    const nonBlankTokens = tokens.filter((token) => token.surface.trim().length > 0);
+    tokens = sweepFilterByContainment(nonBlankTokens, sortedRanges, /* keepContained */ true);
   }
   const cacheHit = MeCabAnalyzer.getCacheStats().hits > cacheStatsBefore.hits;
   recordStep('形態素解析', Date.now() - start, `tokens=${tokens.length} cache=${cacheHit ? 'HIT' : 'MISS'}`);
@@ -233,7 +224,8 @@ function runAdvancedRules(
   config: Configuration,
   lightweightOnly: boolean,
   advancedRulesManager: AdvancedRulesManager,
-  ruleProfilingCollector?: RuleProfilingCollector
+  ruleProfilingCollector?: RuleProfilingCollector,
+  precomputedLineStarts?: number[]
 ): Diagnostic[] {
   const isMarkdown = languageId === 'markdown';
   const mdRanges = isMarkdown ? excludedRanges : undefined;
@@ -241,10 +233,10 @@ function runAdvancedRules(
 
   return lightweightOnly
     ? advancedRulesManager.checkLightweightRules(
-        textToAnalyze, grammarTokens, mdRanges, mdOptions, ruleProfilingCollector
+        textToAnalyze, grammarTokens, mdRanges, mdOptions, ruleProfilingCollector, precomputedLineStarts
       )
     : advancedRulesManager.checkText(
-        textToAnalyze, grammarTokens, mdRanges, mdOptions, ruleProfilingCollector
+        textToAnalyze, grammarTokens, mdRanges, mdOptions, ruleProfilingCollector, precomputedLineStarts
       );
 }
 
@@ -257,13 +249,14 @@ function runGrammarChecks(
   lightweightOnly: boolean,
   deps: GrammarCheckDeps,
   recordStep: RecordStep,
-  ruleProfilingCollector?: RuleProfilingCollector
+  ruleProfilingCollector?: RuleProfilingCollector,
+  precomputedLineStarts?: number[]
 ): LSPDiagnostic[] {
   const diagnostics: LSPDiagnostic[] = [];
 
   // 基本文法ルール
   const basicStart = Date.now();
-  const basicDiags = deps.grammarChecker.check(grammarTokens, textToAnalyze);
+  const basicDiags = deps.grammarChecker.check(grammarTokens, textToAnalyze, precomputedLineStarts);
   recordStep('基本ルール評価', Date.now() - basicStart, `件数=${basicDiags.length}`);
   diagnostics.push(...toLspDiagnostics(basicDiags, 'otak-lsp'));
 
@@ -271,7 +264,7 @@ function runGrammarChecks(
   const advancedStart = Date.now();
   const advancedDiags = runAdvancedRules(
     textToAnalyze, grammarTokens, languageId, excludedRanges, config,
-    lightweightOnly, deps.advancedRulesManager, ruleProfilingCollector
+    lightweightOnly, deps.advancedRulesManager, ruleProfilingCollector, precomputedLineStarts
   );
   recordStep(
     lightweightOnly ? '軽量ルール評価' : '高度ルール評価',
@@ -282,7 +275,9 @@ function runGrammarChecks(
 
   // 校正ルール
   const proofreadingStart = Date.now();
-  const proofreadingDiags = deps.proofreadingRulesManager.checkText(textToAnalyze, grammarTokens);
+  const proofreadingDiags = deps.proofreadingRulesManager.checkText(
+    textToAnalyze, grammarTokens, precomputedLineStarts
+  );
   recordStep('校正ルール評価', Date.now() - proofreadingStart, `件数=${proofreadingDiags.length}`);
   diagnostics.push(...toLspDiagnostics(proofreadingDiags, 'otak-lsp-proofreading'));
 
@@ -362,9 +357,11 @@ export function createDocumentAnalyzer(
 
       const diagnostics: LSPDiagnostic[] = [];
       if (config.enableGrammarCheck) {
+        // textToAnalyze は MarkdownFilter / keepOnlyCommentRanges どちらの経路でも
+        // 改行と長さを保持するため、原文の lineStarts をそのまま使い回せる。
         diagnostics.push(...runGrammarChecks(
           textToAnalyze, grammarTokensList, languageId, excludedRanges, config,
-          lightweightOnly, checkDeps, recordStep, ruleProfilingCollector
+          lightweightOnly, checkDeps, recordStep, ruleProfilingCollector, lineStarts
         ));
       }
 

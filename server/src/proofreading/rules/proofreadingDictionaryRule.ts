@@ -6,14 +6,34 @@ import { DiagnosticSeverity } from '../../../../shared/src/types';
 import { DictionaryEntry } from '../../dictionaries/proofreadingDictionaryLoader';
 import { ProofreadingDiagnostic, ProofreadingRuleContext, escapeRegex } from './proofreadingRuleTypes';
 
+/**
+ * コンパイル済み RegExp のキャッシュ。
+ * 辞書エントリは長期的に再利用されるため、毎回の解析サイクルで
+ * `new RegExp(...)` を呼ぶコストを WeakMap で 1 回に削減する。
+ *
+ * - キー: DictionaryEntry オブジェクト参照
+ * - 値: コンパイル成功時は RegExp、失敗時は null
+ * - エントリが GC されればキャッシュも自動で解放される
+ */
+const compiledPatternCache: WeakMap<DictionaryEntry, RegExp | null> = new WeakMap();
+
 function compilePattern(entry: DictionaryEntry): RegExp | null {
+  const cached = compiledPatternCache.get(entry);
+  if (cached !== undefined) {
+    return cached;
+  }
+
+  let pattern: RegExp | null;
   try {
-    return entry.mode === 'regex'
+    pattern = entry.mode === 'regex'
       ? new RegExp(entry.match, 'g')
       : new RegExp(escapeRegex(entry.match), 'g');
   } catch {
-    return null;
+    pattern = null;
   }
+
+  compiledPatternCache.set(entry, pattern);
+  return pattern;
 }
 
 function buildMessage(entry: DictionaryEntry, matched: string): string {
@@ -35,6 +55,8 @@ export function checkDictionaryEntries(
     if (!pattern) {
       continue;
     }
+    // キャッシュした RegExp を再利用するため lastIndex を必ず 0 に戻す
+    pattern.lastIndex = 0;
 
     let match;
     while ((match = pattern.exec(ctx.text)) !== null) {

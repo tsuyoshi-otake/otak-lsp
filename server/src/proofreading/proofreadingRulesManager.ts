@@ -56,9 +56,13 @@ export class ProofreadingRulesManager {
 
   /**
    * テキストをチェック
+   *
+   * @param text 対象テキスト
+   * @param _tokens トークン（現状未使用）
+   * @param precomputedLineStarts 既に算出済みの lineStarts。指定時は再計算しない
    */
-  checkText(text: string, _tokens: Token[]): Diagnostic[] {
-    this.lineStarts = computeLineStarts(text);
+  checkText(text: string, _tokens: Token[], precomputedLineStarts?: number[]): Diagnostic[] {
+    this.lineStarts = precomputedLineStarts ?? computeLineStarts(text);
     const categories = this.config.categories;
     const checkInBrackets = categories.typo.checkInBrackets;
     const bracketRanges = this.bracketDetector.detect(text);

@@ -55,10 +55,26 @@ export class MeCabAnalyzer {
 
   /**
    * 簡易ハッシュ関数（テキストからキャッシュキーを生成）
+   *
+   * 旧実装は `${length}:${text}` で全文を Map キーに格納していたため、
+   * 大きい文書では MAX_CACHE_SIZE 倍のメモリを占有していた。
+   * ここでは FNV-1a (32bit を 2 系統) のフィンガープリント + 長さに圧縮する。
+   *
+   * - 計算量: O(N) （旧実装と同じだが、文字列連結のヒープ割当が無くなる分軽い）
+   * - 衝突確率: length と 2 つの独立した 32bit hash の組合せで実用上ゼロ
+   *   （長さが違えば即不一致、同じ長さでも 2^64 通り）
    */
   private static hashText(text: string): string {
-    // 解析結果は位置情報を含むため、サンプリングではなく全文をキーにする。
-    return `${text.length}:${text}`;
+    let h1 = 0x811c9dc5 | 0; // FNV-1a 32-bit offset basis
+    let h2 = 0xcbf29ce4 | 0; // 別シード（衝突回避）
+    for (let i = 0; i < text.length; i++) {
+      const c = text.charCodeAt(i);
+      h1 = (h1 ^ c) >>> 0;
+      h1 = Math.imul(h1, 0x01000193) >>> 0; // FNV-1a 32-bit prime
+      h2 = (h2 ^ c) >>> 0;
+      h2 = Math.imul(h2, 0x85ebca6b) >>> 0; // 別の素数（MurmurHash3 mixer）
+    }
+    return `${text.length}:${h1.toString(36)}:${h2.toString(36)}`;
   }
 
   /**
@@ -206,18 +222,34 @@ export class MeCabAnalyzer {
   /**
    * kuromojiのトークンをToken型に変換
    * kuromoji の word_position はバイトオフセットなので、文字オフセットに変換する
+   *
+   * 通常 kuromoji のトークン列は連続しており、現在位置から「直接一致」するため
+   * 文字列レベルの早期判定を入れて `indexOf` の Boyer-Moore 起動を避ける。
+   * 不連続（前段でマスクされた区間を kuromoji が空白等で出力するケースなど）の
+   * フォールバックとして `indexOf` を残す。
    */
   private convertToTokens(kuromojiTokens: KuromojiToken[], sourceText: string): Token[] {
     let charPosition = 0;
+    const result: Token[] = new Array(kuromojiTokens.length);
 
-    return kuromojiTokens.map((kt) => {
-      const foundAt = sourceText.indexOf(kt.surface_form, charPosition);
-      const start = foundAt >= 0 ? foundAt : charPosition;
-      const actualEnd = start + kt.surface_form.length;
+    for (let i = 0; i < kuromojiTokens.length; i++) {
+      const kt = kuromojiTokens[i];
+      const surface = kt.surface_form;
+      const len = surface.length;
+
+      // 早期一致: 現在位置から surface がそのまま続いていればスキャン不要
+      let start: number;
+      if (len > 0 && sourceText.startsWith(surface, charPosition)) {
+        start = charPosition;
+      } else {
+        const foundAt = sourceText.indexOf(surface, charPosition);
+        start = foundAt >= 0 ? foundAt : charPosition;
+      }
+      const actualEnd = start + len;
       charPosition = actualEnd;
 
-      return new Token({
-        surface: kt.surface_form,
+      result[i] = new Token({
+        surface,
         pos: kt.pos || '*',
         posDetail1: kt.pos_detail_1 || '*',
         posDetail2: kt.pos_detail_2 || '*',
@@ -230,7 +262,9 @@ export class MeCabAnalyzer {
         start,
         end: actualEnd
       });
-    });
+    }
+
+    return result;
   }
 
   /**

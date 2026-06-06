@@ -11,15 +11,21 @@ import { splitLines } from '../utils/stringUtils';
  * - 表/コードブロックの前後で分割
  * - 太字のみの単独行は独立させる
  * - ":" / "：" で終わる行の後で分割
+ *
+ * @param precomputedLines 既に算出済みの lines。指定時は splitLines を再呼出しない
  */
-export function computeMarkdownBreaks(text: string, excludedRanges: ExcludedRange[]): Set<number> {
+export function computeMarkdownBreaks(
+  text: string,
+  excludedRanges: ExcludedRange[],
+  precomputedLines?: string[]
+): Set<number> {
   const breaks = new Set<number>();
 
   for (const range of excludedRanges) {
     addRangeBasedMarkdownBreaks(breaks, text, range);
   }
 
-  addLineBasedMarkdownBreaks(breaks, text);
+  addLineBasedMarkdownBreaks(breaks, text, precomputedLines);
   return breaks;
 }
 
@@ -87,8 +93,8 @@ function addListMarkerBreak(
   }
 }
 
-function addLineBasedMarkdownBreaks(breaks: Set<number>, text: string): void {
-  const lines = splitLines(text);
+function addLineBasedMarkdownBreaks(breaks: Set<number>, text: string, precomputedLines?: string[]): void {
+  const lines = precomputedLines ?? splitLines(text);
   let position = 0;
   for (const originalLine of lines) {
     let line = originalLine;

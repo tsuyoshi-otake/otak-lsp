@@ -6,9 +6,9 @@ import { findClosingParenForMarkdownLink, isEscapedAt, isOverlapping } from './r
  * 見出しマーカーを検出する。
  * # で始まる行の「# 」部分のみを除外（タイトルテキストは検出対象に残す）。
  */
-export function findHeadings(text: string, existingRanges: ExcludedRange[]): ExcludedRange[] {
+export function findHeadings(text: string, existingRanges: ExcludedRange[], precomputedLines?: string[]): ExcludedRange[] {
   const ranges: ExcludedRange[] = [];
-  const lines = splitLines(text);
+  const lines = precomputedLines ?? splitLines(text);
   let position = 0;
 
   // コードブロック範囲のみをチェック対象とする
@@ -43,9 +43,9 @@ export function findHeadings(text: string, existingRanges: ExcludedRange[]): Exc
  * リストマーカーを検出する。
  * - * + や 1. などのマーカー部分のみを除外（内容テキストは検出対象に残す）。
  */
-export function findListMarkers(text: string, existingRanges: ExcludedRange[]): ExcludedRange[] {
+export function findListMarkers(text: string, existingRanges: ExcludedRange[], precomputedLines?: string[]): ExcludedRange[] {
   const ranges: ExcludedRange[] = [];
-  const lines = splitLines(text);
+  const lines = precomputedLines ?? splitLines(text);
   let position = 0;
 
   // コードブロック範囲のみをチェック対象とする
@@ -83,7 +83,7 @@ export function findListMarkers(text: string, existingRanges: ExcludedRange[]): 
  * - **bold**, *italic* などの `*` を除外（内容は残す）
  * - ただし箇条書きの先頭 `* ` は list-marker で扱うため除外しない
  */
-export function findEmphasisMarkers(text: string, existingRanges: ExcludedRange[]): ExcludedRange[] {
+export function findEmphasisMarkers(text: string, existingRanges: ExcludedRange[], precomputedLines?: string[]): ExcludedRange[] {
   const ranges: ExcludedRange[] = [];
 
   if (isBlank(text)) {
@@ -109,7 +109,7 @@ export function findEmphasisMarkers(text: string, existingRanges: ExcludedRange[
     return /[A-Za-z0-9_]/.test(ch);
   };
 
-  const lines = splitLines(text);
+  const lines = precomputedLines ?? splitLines(text);
   let position = 0;
 
   for (const line of lines) {

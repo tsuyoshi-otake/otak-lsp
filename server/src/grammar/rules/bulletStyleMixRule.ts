@@ -41,9 +41,9 @@ export class BulletStyleMixRule extends MixDetectionRule {
    * Collect bullet patterns from text
    * Only counts bullets at the beginning of lines
    */
-  protected collectPatterns(text: string): Map<string, PatternInfo> {
+  protected collectPatterns(text: string, sharedLines?: string[]): Map<string, PatternInfo> {
     const patterns = new Map<string, PatternInfo>();
-    const lines = splitLines(text);
+    const lines = sharedLines ?? splitLines(text);
 
     const nakaguroPositions: number[] = [];
     const hyphenPositions: number[] = [];

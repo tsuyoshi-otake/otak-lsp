@@ -17,7 +17,8 @@ export function parseTextIntoSentences(
   text: string,
   tokens: Token[],
   excludedRanges?: ExcludedRange[],
-  splitMode: SentenceSplitMode = 'normal'
+  splitMode: SentenceSplitMode = 'normal',
+  precomputedLines?: string[]
 ): Sentence[] {
   if (isBlank(text)) {
     return [];
@@ -25,7 +26,7 @@ export function parseTextIntoSentences(
 
   const sentences: Sentence[] = [];
   let currentStart = 0;
-  const markdownBreaks = excludedRanges ? computeMarkdownBreaks(text, excludedRanges) : null;
+  const markdownBreaks = excludedRanges ? computeMarkdownBreaks(text, excludedRanges, precomputedLines) : null;
   const tableRanges = excludedRanges ? excludedRanges.filter((range) => range.type === 'table') : undefined;
 
   for (let i = 0; i < text.length; i++) {

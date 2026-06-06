@@ -66,7 +66,8 @@ export class HeadingLevelSkipRule implements AdvancedGrammarRule {
    */
   check(_tokens: Token[], context: RuleContext): AdvancedDiagnostic[] {
     const diagnostics: AdvancedDiagnostic[] = [];
-    const lines = splitLines(context.documentText);
+    // 共有コンテキストの lines を再利用して splitLines の重複を避ける
+    const lines = context.shared?.lines ?? splitLines(context.documentText);
 
     // Track if we're inside a code block
     let inCodeBlock = false;

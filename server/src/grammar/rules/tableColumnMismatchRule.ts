@@ -43,7 +43,7 @@ export class TableColumnMismatchRule implements AdvancedGrammarRule {
    */
   check(_tokens: Token[], context: RuleContext): AdvancedDiagnostic[] {
     const diagnostics: AdvancedDiagnostic[] = [];
-    const tables = this.findTables(context.documentText);
+    const tables = this.findTables(context.documentText, context.shared?.lines);
 
     for (const table of tables) {
       const tableDiagnostics = this.checkTable(table, context.documentText);
@@ -51,14 +51,15 @@ export class TableColumnMismatchRule implements AdvancedGrammarRule {
     }
 
     // EVALS 表などで「テーブル例」をセル内に `\\|` でエスケープして載せるケースを補足する
-    diagnostics.push(...this.checkInlineEscapedTableExamples(context.documentText));
+    diagnostics.push(...this.checkInlineEscapedTableExamples(context.documentText, context.shared?.lines));
 
     return diagnostics;
   }
 
-  private checkInlineEscapedTableExamples(text: string): AdvancedDiagnostic[] {
+  private checkInlineEscapedTableExamples(text: string, sharedLines?: string[]): AdvancedDiagnostic[] {
     const diagnostics: AdvancedDiagnostic[] = [];
-    const lines = splitLines(text);
+    // 共有コンテキストの lines を再利用して splitLines の重複を避ける
+    const lines = sharedLines ?? splitLines(text);
 
     for (let lineIndex = 0; lineIndex < lines.length; lineIndex++) {
       const line = lines[lineIndex];
@@ -161,9 +162,9 @@ export class TableColumnMismatchRule implements AdvancedGrammarRule {
   /**
    * Find all tables in the document
    */
-  private findTables(text: string): TableInfo[] {
+  private findTables(text: string, sharedLines?: string[]): TableInfo[] {
     const tables: TableInfo[] = [];
-    const blocks = findMarkdownPipeTables(text);
+    const blocks = findMarkdownPipeTables(text, sharedLines);
 
     for (const block of blocks) {
       const headerLine = block.lines[0] ?? '';

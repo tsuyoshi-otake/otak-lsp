@@ -149,8 +149,9 @@ export function splitMarkdownPipeTableRowCells(line: string): MarkdownPipeTableC
  * - 文法チェック/ハイライトのノイズ低減を優先し、テーブル判定は保守的に「行頭 `|`」を条件にする
  * - 厳密なテーブル（ヘッダー+区切り行）の判定が必要な場合は `isMarkdownPipeTableSeparatorLine` 等を併用する
  */
-export function findMarkdownPipeTables(text: string): MarkdownPipeTableBlock[] {
-  const lines = text.split('\n');
+export function findMarkdownPipeTables(text: string, precomputedLines?: string[]): MarkdownPipeTableBlock[] {
+  // 呼び出し側で既に text.split('\n') 済みなら使い回して O(N) 重複を回避する
+  const lines = precomputedLines ?? text.split('\n');
   const tables: MarkdownPipeTableBlock[] = [];
 
   let currentStart: number | null = null;

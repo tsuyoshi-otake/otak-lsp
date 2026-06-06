@@ -5,11 +5,19 @@
 
 import {
   AdvancedGrammarRule,
+  AdvancedRuleSharedContext,
   RuleContext,
   Sentence
 } from '../../../shared/src/advancedTypes';
 import { ExcludedRange } from '../../../shared/src/markdownFilterTypes';
 import { isNotEmpty } from '../utils/arrayUtils';
+import {
+  buildMaskedTextByMaskRanges,
+  normalizeRanges,
+  sweepFilterByOverlap,
+} from '../utils/rangeSweep';
+
+const TABLE_PRESERVED_CHARS: ReadonlySet<string> = new Set(['|', '\\', '-', ':']);
 
 const ORIGINAL_TEXT_FOR_MARKDOWN_STRUCTURE_RULES = new Set<string>([
   'bullet-style-mix',
@@ -74,45 +82,33 @@ export function isProseCodeBlock(range: ExcludedRange): boolean {
 /**
  * テーブル範囲に重なる文を除外
  * （Markdownの文法チェックではテーブル全体を対象外にする）
+ *
+ * 旧実装は `sentences.filter(.some(...))` で O(S×R) だったが、
+ * 範囲を正規化したうえで overlap スイープを使うことで O(S+R) に圧縮する。
  */
 export function filterOutTableSentences(sentences: Sentence[], excludedRanges: ExcludedRange[]): Sentence[] {
   const tableRanges = excludedRanges.filter((r) => r.type === 'table');
   if (tableRanges.length === 0) {
     return sentences;
   }
-
-  return sentences.filter((sentence) =>
-    !tableRanges.some((table) =>
-      sentence.start < table.end && sentence.end > table.start
-    )
-  );
+  const sortedRanges = normalizeRanges(tableRanges);
+  return sweepFilterByOverlap(sentences, sortedRanges, /* keepOverlapping */ false);
 }
 
 /**
  * テーブル内のテキストをスペースでマスクする
  * - 文法チェックからテーブル内容を除外するため
- * - 改行は保持して行位置を崩さない
+ * - 改行と区切り文字（|, \, -, :）は保持して行位置・テーブル構造を崩さない
+ *
+ * 旧実装は `text.split('')` で N 個の小文字列を割り当てていたが、
+ * O(N) のバッファ書き出しに置換して GC 圧を抑える。
  */
 export function maskTableContent(text: string, excludedRanges: ExcludedRange[]): string {
   const tableRanges = excludedRanges.filter((r) => r.type === 'table');
   if (tableRanges.length === 0) {
     return text;
   }
-
-  const chars = text.split('');
-  for (const range of tableRanges) {
-    const start = Math.max(0, Math.min(range.start, chars.length));
-    const end = Math.max(start, Math.min(range.end, chars.length));
-    for (let i = start; i < end; i++) {
-      const ch = chars[i];
-      // テーブル構造ルール（列数不一致など）のために区切り文字（|）とエスケープ（\）は保持する
-      if (ch !== '\n' && ch !== '\r' && ch !== '|' && ch !== '\\' && ch !== '-' && ch !== ':') {
-        chars[i] = ' ';
-      }
-    }
-  }
-
-  return chars.join('');
+  return buildMaskedTextByMaskRanges(text, tableRanges, TABLE_PRESERVED_CHARS);
 }
 
 /**
@@ -205,20 +201,41 @@ function replaceSentencesOverlappingExcludedTypesWithBoundary(
     return sentences;
   }
 
-  const targets = excludedRanges.filter((r) => types.includes(r.type));
+  const typeSet = new Set(types);
+  const targets = excludedRanges.filter((r) => typeSet.has(r.type));
   if (targets.length === 0) {
     return sentences;
   }
 
-  const overlaps = (sentence: Sentence): boolean => {
-    return targets.some((range) => sentence.start < range.end && sentence.end > range.start);
-  };
+  // 旧実装は targets.some(...) で O(S×R) だった。
+  // 範囲を正規化してスイープで O(S+R) に圧縮する。
+  const sortedTargets = normalizeRanges(targets);
+  const isMonotonic = sentences.length < 2 || sentences.every(
+    (s, i) => i === 0 || sentences[i - 1].start <= s.start
+  );
 
   const replaced: Sentence[] = [];
   let pendingBoundary = false;
+  let rangeIndex = 0;
 
   for (const sentence of sentences) {
-    if (!overlaps(sentence)) {
+    let overlaps: boolean;
+    if (isMonotonic) {
+      while (
+        rangeIndex < sortedTargets.length &&
+        sortedTargets[rangeIndex].end <= sentence.start
+      ) {
+        rangeIndex++;
+      }
+      const current = sortedTargets[rangeIndex];
+      overlaps = !!current && sentence.start < current.end && sentence.end > current.start;
+    } else {
+      overlaps = sortedTargets.some(
+        (range) => sentence.start < range.end && sentence.end > range.start
+      );
+    }
+
+    if (!overlaps) {
       pendingBoundary = false;
       replaced.push(sentence);
       continue;
@@ -244,12 +261,15 @@ function replaceSentencesOverlappingExcludedTypesWithBoundary(
 /**
  * ルールごとの文脈（RuleContext）調整
  * - Markdownの非本文（コードブロック等）を「本文」として扱うと誤検出しやすいルールがあるため、ここで除外する
+ * - originalShared が渡された場合は documentText 差し替え時に shared も差し替え、
+ *   ルールが context.shared.lines を再利用できるようにする（splitLines の重複削減）
  */
 export function buildRuleContextForRule(
   rule: AdvancedGrammarRule,
   baseContext: RuleContext,
   excludedRanges?: ExcludedRange[],
-  originalText?: string
+  originalText?: string,
+  originalShared?: AdvancedRuleSharedContext
 ): RuleContext {
   // Markdown テーブルのマスク（analyzeTables=false）でも、構造/表記の一部ルールは原文を参照したい。
   // - EVALS 表などの「例文」をテーブルに載せるケースで、記号がマスクされると検出できなくなるため
@@ -259,7 +279,8 @@ export function buildRuleContextForRule(
   ) {
     return {
       ...baseContext,
-      documentText: originalText
+      documentText: originalText,
+      shared: originalShared ?? baseContext.shared
     };
   }
 
@@ -270,7 +291,8 @@ export function buildRuleContextForRule(
   ) {
     return {
       ...baseContext,
-      documentText: originalText
+      documentText: originalText,
+      shared: originalShared ?? baseContext.shared
     };
   }
 

@@ -21,6 +21,7 @@ import {
 } from '../../dictionaries/termNotationDictionary';
 import { findCodeBlockRanges, findInlineCodeRanges, TERM_TOKEN_PATTERN, WORD_SEGMENT_PATTERN } from '../../utils/regexPatterns';
 import { isNotBlank, splitLines } from '../../utils/stringUtils';
+import { anyRangeOverlaps, normalizeRanges, Range } from '../../utils/rangeSweep';
 
 type PhraseTrieNode = {
   correct?: string;
@@ -64,9 +65,10 @@ export class TermNotationRule implements AdvancedGrammarRule {
    * テーブルの「誤表記例」列の範囲を取得
    * 形式: | 誤った表記 | 正しい表記 |
    */
-  private getTableExampleColumnRanges(text: string): Array<{ start: number; end: number }> {
+  private getTableExampleColumnRanges(text: string, sharedLines?: string[]): Array<{ start: number; end: number }> {
     const ranges: Array<{ start: number; end: number }> = [];
-    const lines = splitLines(text);
+    // 共有コンテキストの lines を再利用して splitLines の重複を避ける
+    const lines = sharedLines ?? splitLines(text);
     let offset = 0;
 
     for (const line of lines) {
@@ -97,18 +99,16 @@ export class TermNotationRule implements AdvancedGrammarRule {
 
   /**
    * 指定位置が除外範囲内かどうかを判定
+   *
+   * 旧実装はエラー毎に `.some(...)` で O(E×R)。除外範囲はソート＆マージ済みで
+   * 渡される前提とし、ここでは `anyRangeOverlaps` の二分探索で O(log R) に圧縮する。
    */
   private isInExcludedRegion(
     index: number,
     length: number,
-    excludedRanges: Array<{ start: number; end: number }>
+    sortedMergedRanges: readonly Range[]
   ): boolean {
-    const end = index + length;
-    return excludedRanges.some(range =>
-      (index >= range.start && index < range.end) ||
-      (end > range.start && end <= range.end) ||
-      (index <= range.start && end >= range.end)
-    );
+    return anyRangeOverlaps(sortedMergedRanges, index, index + length);
   }
 
   /**
@@ -356,11 +356,13 @@ export class TermNotationRule implements AdvancedGrammarRule {
     // 共有コンテキストがあれば再利用、なければ個別計算
     const codeBlockRanges = context.shared?.codeBlockRanges ?? this.getCodeBlockRanges(text);
     const inlineCodeRanges = context.shared?.inlineCodeRanges ?? this.getInlineCodeRanges(text);
-    const excludedRanges = [
+    // 二分探索のためソート＆マージ済みの正規化範囲を作る（O(R log R)。
+    // 以降のエラー判定は O(log R)、合計 O(E log R)）。
+    const excludedRanges = normalizeRanges([
       ...codeBlockRanges,
       ...inlineCodeRanges,
-      ...this.getTableExampleColumnRanges(text)
-    ];
+      ...this.getTableExampleColumnRanges(text, context.shared?.lines)
+    ]);
 
     const errors = this.detectIncorrectNotation(text, context.config);
 

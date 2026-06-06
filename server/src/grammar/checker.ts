@@ -65,14 +65,20 @@ export class GrammarChecker {
 
   /**
    * トークンリストをチェックして文法エラーを検出
+   *
+   * @param tokens トークンリスト
+   * @param text 対象テキスト（位置変換のために使用）
+   * @param precomputedLineStarts 既に算出済みの lineStarts。指定時は再計算しない
    */
-  check(tokens: Token[], text?: string): Diagnostic[] {
+  check(tokens: Token[], text?: string, precomputedLineStarts?: number[]): Diagnostic[] {
     if (!isNotEmpty(tokens)) {
       return [];
     }
 
-    // テキストがあれば行開始位置を計算
-    if (text) {
+    // 行開始位置を取得（上位で算出済みなら使い回し、なければ計算）
+    if (precomputedLineStarts) {
+      this.lineStarts = precomputedLineStarts;
+    } else if (text) {
       this.lineStarts = computeLineStarts(text);
     }
 

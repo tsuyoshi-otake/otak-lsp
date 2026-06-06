@@ -52,7 +52,8 @@ export class CodeBlockLanguageRule implements AdvancedGrammarRule {
    */
   check(tokens: Token[], context: RuleContext): AdvancedDiagnostic[] {
     const diagnostics: AdvancedDiagnostic[] = [];
-    const lines = splitLines(context.documentText);
+    // 共有コンテキストの lines を再利用して splitLines の重複を避ける
+    const lines = context.shared?.lines ?? splitLines(context.documentText);
 
     let inCodeBlock = false;
     let codeBlockFenceChar = '';

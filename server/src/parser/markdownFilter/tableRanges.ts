@@ -12,9 +12,9 @@ import { isOverlapping } from './rangeUtils';
  * テーブルは他の除外要素（設定キー、URL等）を含むことがあるため、
  * コードブロックとのみ重複チェックを行う。
  */
-export function findTables(text: string, existingRanges: ExcludedRange[]): ExcludedRange[] {
+export function findTables(text: string, existingRanges: ExcludedRange[], precomputedLines?: string[]): ExcludedRange[] {
   const ranges: ExcludedRange[] = [];
-  const lines = splitLines(text);
+  const lines = precomputedLines ?? splitLines(text);
 
   // 行開始オフセットを構築（テーブル範囲算出に使用）
   const lineStartOffsets: number[] = [];
@@ -31,7 +31,8 @@ export function findTables(text: string, existingRanges: ExcludedRange[]): Exclu
     (r) => r.type === 'code-block' && (r.content.includes('\n') || r.content.includes('\r'))
   );
 
-  const tables = findMarkdownPipeTables(text);
+  // 共有の lines を内部の pipe-table 解析にも渡し、重複分割を避ける
+  const tables = findMarkdownPipeTables(text, lines);
   for (const table of tables) {
     const tableStart = lineStartOffsets[table.startLine] ?? 0;
     const tableEnd =

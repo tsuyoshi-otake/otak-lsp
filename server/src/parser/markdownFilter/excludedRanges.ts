@@ -1,6 +1,6 @@
 import { ExcludedRange, FilterConfig } from '../../../../shared/src/markdownFilterTypes';
 import { isNotEmpty } from '../../utils/arrayUtils';
-import { isBlank } from '../../utils/stringUtils';
+import { isBlank, splitLines } from '../../utils/stringUtils';
 import { findCodeBlocks, findInlineCode, restoreInlineCodeInTables } from './codeRanges';
 import { findEmphasisMarkers, findHeadings, findLinkMarkers, findListMarkers } from './structureRanges';
 import { findTables } from './tableRanges';
@@ -29,14 +29,25 @@ export function getMarkdownExcludedRanges(text: string, config: FilterConfig): E
   const hasTilde = text.indexOf('~') !== -1;
   const hasBracketLike = text.indexOf('[') !== -1 || text.indexOf(']') !== -1 || text.indexOf('(') !== -1;
 
+  // 行配列は finders 全体で同一なので 1 度だけ算出して共有する。
+  // 旧実装は finder ごとに `splitLines(text)` を呼んでおり、最大 7 回の重複だった。
+  // 行検出を必要とする finder がそもそも 1 つも走らないなら計算自体を遅延させる。
+  let sharedLines: string[] | undefined;
+  const getLines = (): string[] => {
+    if (!sharedLines) {
+      sharedLines = splitLines(text);
+    }
+    return sharedLines;
+  };
+
   // 各フィルタリング処理を優先順位順に実行
   // 優先順位: コードブロック > インラインコード > URL > 設定キー > カスタムパターン > テーブル
   if (config.excludeCodeBlocks && hasCodeFence) {
-    ranges.push(...findCodeBlocks(text));
+    ranges.push(...findCodeBlocks(text, getLines()));
   }
 
   if (config.excludeInlineCode && hasBacktick) {
-    ranges.push(...findInlineCode(text, ranges));
+    ranges.push(...findInlineCode(text, ranges, getLines()));
   }
 
   if (config.excludeUrls && hasUrlLike) {
@@ -52,19 +63,19 @@ export function getMarkdownExcludedRanges(text: string, config: FilterConfig): E
   }
 
   if (config.excludeTables && hasPipe) {
-    ranges.push(...findTables(text, ranges));
+    ranges.push(...findTables(text, ranges, getLines()));
   }
 
   if (config.excludeHeadings && hasHeadingMarker) {
-    ranges.push(...findHeadings(text, ranges));
+    ranges.push(...findHeadings(text, ranges, getLines()));
   }
 
   if (config.excludeListMarkers) {
-    ranges.push(...findListMarkers(text, ranges));
+    ranges.push(...findListMarkers(text, ranges, getLines()));
   }
 
   if (config.excludeEmphasisMarkers && (hasAsterisk || hasUnderscore || hasTilde)) {
-    ranges.push(...findEmphasisMarkers(text, ranges));
+    ranges.push(...findEmphasisMarkers(text, ranges, getLines()));
   }
 
   if (config.excludeLinkMarkers && hasBracketLike) {

@@ -9,7 +9,7 @@ const INLINE_CODE_PRESERVE_IN_TABLE_REGEX =
 /**
  * コードブロックを検出する。
  */
-export function findCodeBlocks(text: string): ExcludedRange[] {
+export function findCodeBlocks(text: string, precomputedLines?: string[]): ExcludedRange[] {
   const ranges: ExcludedRange[] = [];
 
   // NOTE:
@@ -18,7 +18,7 @@ export function findCodeBlocks(text: string): ExcludedRange[] {
   // テーブル検出を阻害する（README の evals など）ため、
   // CommonMark 互換の「行頭フェンス」を優先しつつ、
   // 後方互換のため単一行の ```code``` 形式も検出する。
-  const lines = splitLines(text);
+  const lines = precomputedLines ?? splitLines(text);
   let position = 0;
 
   let inCodeBlock = false;
@@ -96,9 +96,9 @@ export function findCodeBlocks(text: string): ExcludedRange[] {
 /**
  * インラインコードを検出する。
  */
-export function findInlineCode(text: string, existingRanges: ExcludedRange[]): ExcludedRange[] {
+export function findInlineCode(text: string, existingRanges: ExcludedRange[], precomputedLines?: string[]): ExcludedRange[] {
   const ranges: ExcludedRange[] = [];
-  const lines = splitLines(text);
+  const lines = precomputedLines ?? splitLines(text);
   let position = 0;
 
   for (const line of lines) {

@@ -248,7 +248,8 @@ export class BulletPunctuationRule implements AdvancedGrammarRule {
   check(tokens: Token[], context: RuleContext): AdvancedDiagnostic[] {
     const diagnostics: AdvancedDiagnostic[] = [];
     const text = context.documentText;
-    const lines = splitLines(text);
+    // 共有コンテキストの lines を再利用して splitLines の重複を避ける
+    const lines = context.shared?.lines ?? splitLines(text);
 
     let lineStart = 0;
     for (const line of lines) {
