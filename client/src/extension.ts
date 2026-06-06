@@ -186,16 +186,24 @@ async function applySemanticTheme(themeId: SemanticThemeId): Promise<void> {
 
 function createServerOptions(extensionPath: string): ServerOptions {
   const serverModule = getServerModulePath(extensionPath);
+  // サーバープロセスのヒープ上限を明示的に引き上げる。
+  // VSCode が同梱する Node のバージョンによって既定の old-space 上限は 2GB〜4GB と
+  // ばらつき、一時的なメモリスパイク（再起動直後の全文書再同期など）で OOM し得る。
+  // 明示指定により全環境で一定の余裕を確保し、5 連続クラッシュによる恒久停止を避ける。
+  const serverExecArgv = ['--max-old-space-size=6144'];
   return {
     run: {
       module: serverModule,
       transport: TransportKind.ipc,
+      options: {
+        execArgv: serverExecArgv,
+      },
     },
     debug: {
       module: serverModule,
       transport: TransportKind.ipc,
       options: {
-        execArgv: ['--nolazy', '--inspect=6009'],
+        execArgv: [...serverExecArgv, '--nolazy', '--inspect=6009'],
       },
     },
   };
