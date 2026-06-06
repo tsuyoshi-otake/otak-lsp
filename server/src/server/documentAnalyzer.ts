@@ -371,6 +371,16 @@ export function createDocumentAnalyzer(
         return { tokens: [], diagnostics: [], excludedRanges: [], lineStarts, profileSteps };
       }
 
+      // 巨大ファイルガード: 文字数が上限を超える文書は解析しない。
+      // 形態素解析・ルール評価は文書長にほぼ比例してヒープを消費するため、
+      // 生成物やミニファイ済みバンドル等を解析するとプロセスごと OOM し得る。
+      // ここでスキップすることで、再起動直後に大量文書を再同期されても暴走しない。
+      const maxChars = config.maxDocumentChars;
+      if (typeof maxChars === 'number' && maxChars > 0 && text.length > maxChars) {
+        debugLog(`Document too large (${text.length} > ${maxChars} chars), skipping analysis: ${document.uri}`);
+        return { tokens: [], diagnostics: [], excludedRanges: [], lineStarts, profileSteps };
+      }
+
       const { textToAnalyze, excludedRanges, commentRanges } = extractAnalysisText(
         text, languageId, commentExtractor, markdownFilter,
         config.markdown.analyzeCodeBlocks, recordStep
@@ -414,6 +424,14 @@ export function createDocumentAnalyzer(
           const before = diagnostics.length;
           diagnostics = applySuppressions(diagnostics, suppressionScan);
           recordStep('抑制ディレクティブ適用', Date.now() - suppressStart, `抑制=${before - diagnostics.length}`);
+        }
+
+        // 診断件数の上限ガード: 病的に多数の診断が出るケースで、診断オブジェクトの
+        // 配列がメモリを圧迫するのを防ぐ。上限を超えた分は切り捨てる。
+        const maxProblems = config.maxNumberOfProblems;
+        if (typeof maxProblems === 'number' && maxProblems > 0 && diagnostics.length > maxProblems) {
+          debugLog(`Diagnostics capped: ${diagnostics.length} -> ${maxProblems} for ${document.uri}`);
+          diagnostics = diagnostics.slice(0, maxProblems);
         }
       }
 

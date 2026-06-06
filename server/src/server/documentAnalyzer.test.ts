@@ -41,6 +41,8 @@ describe('documentAnalyzer', () => {
     },
     targetLanguages: ['markdown', 'plaintext', 'javascript', 'typescript'] as SupportedLanguage[],
     debounceDelay: 250,
+    maxDocumentChars: 1_000_000,
+    maxNumberOfProblems: 2_000,
     hover: {
       enableWikipedia: true,
       enableGlossary: true,
@@ -330,6 +332,75 @@ describe('documentAnalyzer', () => {
       expect('diagnostics' in result).toBe(true);
       expect('excludedRanges' in result).toBe(true);
       expect('lineStarts' in result).toBe(true);
+    }, 10000);
+  });
+
+  describe('memory guards', () => {
+    it('should skip analysis for documents exceeding maxDocumentChars', async () => {
+      const text = 'これはテストです。'.repeat(50);
+      const document = TextDocument.create('test://huge', 'plaintext', 1, text);
+
+      const result = await documentAnalyzer.analyze(
+        document,
+        { ...defaultConfig, maxDocumentChars: 100 },
+        DEFAULT_ADVANCED_RULES_CONFIG,
+        false
+      );
+
+      expect(result.tokens).toHaveLength(0);
+      expect(result.diagnostics).toHaveLength(0);
+      // lineStarts は早期リターンでも常に返す（セマンティック等の整合のため）
+      expect(result.lineStarts.length).toBeGreaterThan(0);
+    }, 10000);
+
+    it('should still analyze documents within maxDocumentChars', async () => {
+      const document = TextDocument.create('test://small', 'plaintext', 1, 'これはテストです。');
+
+      const result = await documentAnalyzer.analyze(
+        document,
+        { ...defaultConfig, maxDocumentChars: 100 },
+        DEFAULT_ADVANCED_RULES_CONFIG,
+        false
+      );
+
+      expect(result.tokens.length).toBeGreaterThan(0);
+    }, 10000);
+
+    it('should not skip when maxDocumentChars is 0 (unlimited)', async () => {
+      const text = 'これはテストです。'.repeat(50);
+      const document = TextDocument.create('test://unlimited', 'plaintext', 1, text);
+
+      const result = await documentAnalyzer.analyze(
+        document,
+        { ...defaultConfig, maxDocumentChars: 0 },
+        DEFAULT_ADVANCED_RULES_CONFIG,
+        false
+      );
+
+      expect(result.tokens.length).toBeGreaterThan(0);
+    }, 10000);
+
+    it('should cap diagnostics at maxNumberOfProblems', async () => {
+      // 二重助詞「がが」を複数含めて複数の診断を発生させる
+      const text = '本がが好き。水をを飲む。山にに登る。花とと咲く。';
+      const document = TextDocument.create('test://dense', 'plaintext', 1, text);
+
+      const uncapped = await documentAnalyzer.analyze(
+        document,
+        { ...defaultConfig, maxNumberOfProblems: 0 },
+        DEFAULT_ADVANCED_RULES_CONFIG,
+        false
+      );
+      // 前提: ガード無しでは複数の診断が出る
+      expect(uncapped.diagnostics.length).toBeGreaterThan(1);
+
+      const capped = await documentAnalyzer.analyze(
+        document,
+        { ...defaultConfig, maxNumberOfProblems: 1 },
+        DEFAULT_ADVANCED_RULES_CONFIG,
+        false
+      );
+      expect(capped.diagnostics).toHaveLength(1);
     }, 10000);
   });
 });
