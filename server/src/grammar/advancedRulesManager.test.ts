@@ -15,6 +15,7 @@
  */
 
 import { AdvancedRulesManager } from './advancedRulesManager';
+import { DiagnosticRangeFixer } from './diagnosticRangeFixer';
 import { Token, Range } from '../../../shared/src/types';
 import {
   AdvancedGrammarRule,
@@ -296,25 +297,12 @@ describe('AdvancedRulesManager - Diagnostic Range Fix', () => {
       }).not.toThrow();
     });
 
-    it('改善されたfixDiagnosticRangeメソッドが存在する', () => {
-      const manager = new AdvancedRulesManager();
-
-      // 改善されたfixDiagnosticRangeメソッドが存在することを確認
-      expect((manager as unknown as Record<string, unknown>)['fixDiagnosticRange']).toBeDefined();
-    });
-
-    it('改善されたoffsetToPositionメソッドが存在する', () => {
-      const manager = new AdvancedRulesManager();
-
-      // 改善されたoffsetToPositionメソッドが存在することを確認
-      expect((manager as unknown as Record<string, unknown>)['offsetToPosition']).toBeDefined();
-    });
-
-    it('firstLineLengthプロパティが存在する', () => {
-      const manager = new AdvancedRulesManager();
-
-      // 改善されたロジック用のfirstLineLengthプロパティが存在することを確認
-      expect((manager as unknown as Record<string, unknown>)['firstLineLength']).toBeDefined();
+    // レンジ補正ロジックは DiagnosticRangeFixer へ分離済み。
+    // 補正そのものの振る舞いは上記の checkText 経由テスト群と
+    // diagnosticRangeFixer.test.ts で担保される。
+    it('レンジ補正は DiagnosticRangeFixer が担う（fix メソッドを公開する）', () => {
+      const fixer = DiagnosticRangeFixer.fromText('ABCD\nEFGH');
+      expect(typeof fixer.fix).toBe('function');
     });
   });
 
