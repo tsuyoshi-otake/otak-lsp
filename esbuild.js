@@ -32,6 +32,38 @@ async function buildServer() {
 }
 
 /**
+ * Advanced Rules Worker build configuration
+ * Feature: parallel-advanced-rules
+ *
+ * worker_threads ベースの並列ルール実行 worker。
+ * main bundle と別の独立 bundle として `server/out/advancedRulesWorker.js` に出力する。
+ * vscode-languageserver / kuromoji 等の重量級依存は include しないため、軽量。
+ */
+async function buildAdvancedRulesWorker() {
+  const ctx = await esbuild.context({
+    entryPoints: ['server/src/workers/advancedRulesWorker.ts'],
+    bundle: true,
+    format: 'cjs',
+    minify: production,
+    sourcemap: !production,
+    sourcesContent: false,
+    platform: 'node',
+    outfile: 'server/out/advancedRulesWorker.js',
+    external: ['vscode', 'kuromoji'],
+    logLevel: 'warning'
+  });
+
+  if (watch) {
+    await ctx.watch();
+    console.log('[advancedRulesWorker] watching for changes...');
+  } else {
+    await ctx.rebuild();
+    await ctx.dispose();
+    console.log('[advancedRulesWorker] build complete');
+  }
+}
+
+/**
  * Client build configuration
  */
 async function buildClient() {
@@ -60,7 +92,7 @@ async function buildClient() {
 
 async function main() {
   try {
-    await Promise.all([buildServer(), buildClient()]);
+    await Promise.all([buildServer(), buildAdvancedRulesWorker(), buildClient()]);
     if (!watch) {
       console.log('Build completed successfully');
     }

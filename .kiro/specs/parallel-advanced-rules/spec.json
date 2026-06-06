@@ -1,0 +1,16 @@
+{
+  "name": "parallel-advanced-rules",
+  "description": "Token 直列化基盤と worker_threads ベースの真の並列ルール実行を導入し、解析サイクルの順次部分 (高度ルール 55 件) を物理コア数までスケールさせる",
+  "language": "ja",
+  "phases": {
+    "requirements": {
+      "status": "approved"
+    },
+    "design": {
+      "status": "approved"
+    },
+    "tasks": {
+      "status": "approved"
+    }
+  }
+}

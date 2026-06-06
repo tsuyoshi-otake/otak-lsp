@@ -415,6 +415,32 @@ export const DEFAULT_TIERED_EXECUTION_CONFIG: TieredExecutionConfig = {
 };
 
 /**
+ * 並列ルール実行設定
+ * Feature: parallel-advanced-rules
+ *
+ * worker_threads ベースで高度ルールを物理コア数までスケールさせる。
+ * 既定では無効。有効化すると AdvancedRulesManager が worker pool を lazy 起動し、
+ * `checkTextParallel` / `checkLightweightRulesParallel` が並列実行される。
+ *
+ * - `enabled`: 並列実行の有効/無効
+ * - `maxWorkers`: 起動する worker 数の上限。未指定なら `max(1, cpus().length - 1)`
+ * - `workerScript`: worker bundle の絶対パス。未指定なら `path.join(__dirname, 'advancedRulesWorker.js')` で解決される
+ */
+export interface ParallelExecutionConfig {
+  enabled: boolean;
+  maxWorkers?: number;
+  workerScript?: string;
+}
+
+/**
+ * デフォルトの並列実行設定
+ * Feature: parallel-advanced-rules
+ */
+export const DEFAULT_PARALLEL_EXECUTION_CONFIG: ParallelExecutionConfig = {
+  enabled: false
+};
+
+/**
  * 高度な文法ルール設定
  */
 export interface AdvancedRulesConfig {
@@ -535,6 +561,10 @@ export interface AdvancedRulesConfig {
   // 段階実行設定
   // Feature: advanced-rules-tiered-execution
   tieredExecution: TieredExecutionConfig;
+
+  // 並列実行設定
+  // Feature: parallel-advanced-rules
+  parallelExecution?: ParallelExecutionConfig;
 }
 
 /**
@@ -649,7 +679,10 @@ export const DEFAULT_ADVANCED_RULES_CONFIG: AdvancedRulesConfig = {
   sentenceComplexityThreshold: 60,
 
   // 段階実行設定（Feature: advanced-rules-tiered-execution）
-  tieredExecution: { ...DEFAULT_TIERED_EXECUTION_CONFIG }
+  tieredExecution: { ...DEFAULT_TIERED_EXECUTION_CONFIG },
+
+  // 並列実行設定（Feature: parallel-advanced-rules）
+  parallelExecution: { ...DEFAULT_PARALLEL_EXECUTION_CONFIG }
 };
 
 /**

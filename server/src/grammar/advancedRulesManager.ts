@@ -5,6 +5,9 @@
  * Feature: advanced-rules-tiered-execution
  */
 
+import * as os from 'os';
+import * as path from 'path';
+
 import { Token, Diagnostic, Position } from '../../../shared/src/types';
 import {
   AdvancedGrammarRule,
@@ -29,8 +32,31 @@ import {
 import { createDefaultAdvancedRules, LIGHTWEIGHT_RULE_NAMES } from './advancedRuleRegistry';
 import { buildSharedContext as createSharedContext } from './sharedContextBuilder';
 import { splitLines as splitLinesUtil } from '../utils/stringUtils';
+import { WorkerPool } from '../workers/workerPool';
+import {
+  serializeSentences,
+  serializeTokens,
+  SerializedSentence,
+  SerializedToken,
+} from '../workers/tokenSerializer';
+import type {
+  RunRulesMessage,
+  RunRulesResultPayload,
+} from '../workers/advancedRulesWorker';
 
 type RuleExecutionOptions = { analyzeTables?: boolean };
+
+/**
+ * イベントループへ制御を返すヘルパー。
+ *
+ * `setImmediate` は Node.js のマクロタスクとしてキューに積まれるため、
+ * I/O コールバック、保留中の LSP リクエスト、他の `setImmediate` 等を
+ * 1 回のターンで処理する余地を与える。
+ * Promise の microtask だけだと連続して走るため LSP の応答が止まる。
+ */
+function yieldToEventLoop(): Promise<void> {
+  return new Promise<void>((resolve) => setImmediate(resolve));
+}
 
 interface PreparedRuleContext {
   readonly baseContext: RuleContext;
@@ -44,6 +70,14 @@ interface PreparedRuleContext {
 }
 
 /**
+ * Worker pool 起動失敗フラグ用センチネル。
+ * 一度失敗したら以降は in-process フォールバックする。
+ */
+const POOL_INIT_FAILED = Symbol('POOL_INIT_FAILED');
+
+type PoolInitResult = WorkerPool<Omit<RunRulesMessage, 'id'>, RunRulesResultPayload> | typeof POOL_INIT_FAILED;
+
+/**
  * Advanced Rules Manager
  * すべての高度な文法ルールを管理・実行する
  */
@@ -53,6 +87,9 @@ export class AdvancedRulesManager {
   private lineStarts: number[] = [];
   private firstLineLength: number = 0;
   private logger: Logger | undefined;
+
+  /** 並列実行用 worker pool (lazy init)。POOL_INIT_FAILED の場合は初期化済みかつ失敗 */
+  private workerPool: PoolInitResult | null = null;
 
   /**
    * テキストから行開始位置を計算
@@ -200,33 +237,88 @@ export class AdvancedRulesManager {
     const diagnostics: AdvancedDiagnostic[] = [];
 
     for (const rule of rules) {
-      // Feature: advanced-rules-profiling - ルール別計測
-      const startTime = profilingCollector ? Date.now() : 0;
-      let ruleDiagnostics: AdvancedDiagnostic[] = [];
-      let ruleSuccess = true;
-      let ruleErrorMessage: string | undefined;
+      this.runSingleRule(
+        rule, tokens, baseContext, excludedRanges, originalText, originalShared,
+        diagnostics, profilingCollector
+      );
+    }
 
-      try {
-        const ruleContext = buildRuleContextForRule(rule, baseContext, excludedRanges, originalText, originalShared);
-        ruleDiagnostics = rule.check(tokens, ruleContext);
-        diagnostics.push(...ruleDiagnostics);
-      } catch (error) {
-        logError(this.logger, `Error in rule ${rule.name}`, error);
-        ruleSuccess = false;
-        ruleErrorMessage = formatError(error);
-      }
+    return diagnostics;
+  }
 
-      if (profilingCollector) {
-        const executionTimeMs = Date.now() - startTime;
-        const entry: RuleProfilingEntry = {
-          ruleName: rule.name,
-          executionTimeMs,
-          diagnosticsCount: ruleDiagnostics.length,
-          success: ruleSuccess,
-          errorMessage: ruleErrorMessage
-        };
-        profilingCollector.entries.push(entry);
-        profilingCollector.totalTimeMs += executionTimeMs;
+  /**
+   * 1 つのルールを実行し、結果を `diagnostics` へ追記する。
+   * 例外時はログのみ残し処理を継続する。プロファイラ計測も内包する。
+   */
+  private runSingleRule(
+    rule: AdvancedGrammarRule,
+    tokens: Token[],
+    baseContext: RuleContext,
+    excludedRanges: ExcludedRange[] | undefined,
+    originalText: string,
+    originalShared: AdvancedRuleSharedContext | undefined,
+    sinkDiagnostics: AdvancedDiagnostic[],
+    profilingCollector?: RuleProfilingCollector
+  ): void {
+    const startTime = profilingCollector ? Date.now() : 0;
+    let ruleDiagnostics: AdvancedDiagnostic[] = [];
+    let ruleSuccess = true;
+    let ruleErrorMessage: string | undefined;
+
+    try {
+      const ruleContext = buildRuleContextForRule(rule, baseContext, excludedRanges, originalText, originalShared);
+      ruleDiagnostics = rule.check(tokens, ruleContext);
+      sinkDiagnostics.push(...ruleDiagnostics);
+    } catch (error) {
+      logError(this.logger, `Error in rule ${rule.name}`, error);
+      ruleSuccess = false;
+      ruleErrorMessage = formatError(error);
+    }
+
+    if (profilingCollector) {
+      const executionTimeMs = Date.now() - startTime;
+      const entry: RuleProfilingEntry = {
+        ruleName: rule.name,
+        executionTimeMs,
+        diagnosticsCount: ruleDiagnostics.length,
+        success: ruleSuccess,
+        errorMessage: ruleErrorMessage
+      };
+      profilingCollector.entries.push(entry);
+      profilingCollector.totalTimeMs += executionTimeMs;
+    }
+  }
+
+  /**
+   * ルール群を K 件ごとに区切って実行し、各区切りで `setImmediate` により
+   * イベントループへ制御を返す協調的スケジューラ。
+   *
+   * - CPU 総量は同期版と同じ
+   * - LSP サーバが解析中も他リクエスト (hover / didChange / cancel) に応答できる
+   * - Gustafson 観点: 同じ wall-clock に「より多くの仕事」を載せられる
+   */
+  private async runRulesAsync(
+    rules: AdvancedGrammarRule[],
+    tokens: Token[],
+    baseContext: RuleContext,
+    excludedRanges: ExcludedRange[] | undefined,
+    originalText: string,
+    originalShared: AdvancedRuleSharedContext | undefined,
+    profilingCollector?: RuleProfilingCollector
+  ): Promise<AdvancedDiagnostic[]> {
+    const diagnostics: AdvancedDiagnostic[] = [];
+    const BATCH_SIZE = 8;
+
+    for (let i = 0; i < rules.length; i++) {
+      this.runSingleRule(
+        rules[i], tokens, baseContext, excludedRanges, originalText, originalShared,
+        diagnostics, profilingCollector
+      );
+
+      // BATCH_SIZE ルールごとにイベントループへ制御を返す。
+      // 最後のバッチでは yield しない (戻り値で即座に解決させる)。
+      if ((i + 1) % BATCH_SIZE === 0 && i + 1 < rules.length) {
+        await yieldToEventLoop();
       }
     }
 
@@ -256,6 +348,36 @@ export class AdvancedRulesManager {
     );
 
     // オフセットベースの範囲のみ行/文字ベースに変換（要件 1.2, 1.3）
+    return diagnostics.map(d => this.fixDiagnosticRange(d.toDiagnostic()));
+  }
+
+  /**
+   * 非同期協調版: ルールを K 件ごとに区切って `setImmediate` で
+   * イベントループに制御を返しながら実行する。
+   * 同期版と挙動互換だが、LSP サーバが解析中も他リクエストへ応答できる。
+   */
+  private async checkSelectedRulesAsync(
+    text: string,
+    tokens: Token[],
+    selectedRules: AdvancedGrammarRule[],
+    excludedRanges?: ExcludedRange[],
+    options?: RuleExecutionOptions,
+    profilingCollector?: RuleProfilingCollector,
+    precomputedLineStarts?: number[]
+  ): Promise<Diagnostic[]> {
+    const { baseContext, originalText, originalShared } = this.prepareRuleContext(
+      text, tokens, excludedRanges, options, precomputedLineStarts
+    );
+    const diagnostics = await this.runRulesAsync(
+      selectedRules,
+      tokens,
+      baseContext,
+      excludedRanges,
+      originalText,
+      originalShared,
+      profilingCollector
+    );
+
     return diagnostics.map(d => this.fixDiagnosticRange(d.toDiagnostic()));
   }
 
@@ -381,4 +503,280 @@ export class AdvancedRulesManager {
       text, tokens, selectedRules, excludedRanges, options, profilingCollector, precomputedLineStarts
     );
   }
+
+  // ============================================================================
+  // 非同期協調スケジューラ版の公開 API
+  //
+  // - 同期版と挙動互換だが、ルールを K=8 件ごとに `setImmediate` で区切って実行する
+  // - これにより解析中も LSP サーバは他リクエスト (hover / didChange / cancel) に
+  //   応答できる: Amdahl 法則の「順次部分」を分割して I/O ステージと並走させる
+  // - テスト互換性のため同期版 API は据え置き
+  // ============================================================================
+
+  /**
+   * 非同期協調版: すべての有効ルールでチェックする。
+   */
+  async checkTextAsync(
+    text: string,
+    tokens: Token[],
+    excludedRanges?: ExcludedRange[],
+    options?: RuleExecutionOptions,
+    profilingCollector?: RuleProfilingCollector,
+    precomputedLineStarts?: number[]
+  ): Promise<Diagnostic[]> {
+    const enabledRules = this.getEnabledRules();
+    return this.checkSelectedRulesAsync(
+      text, tokens, enabledRules, excludedRanges, options, profilingCollector, precomputedLineStarts
+    );
+  }
+
+  /**
+   * 非同期協調版: 軽量ルールのみでチェックする。
+   */
+  async checkLightweightRulesAsync(
+    text: string,
+    tokens: Token[],
+    excludedRanges?: ExcludedRange[],
+    options?: { analyzeTables?: boolean },
+    profilingCollector?: RuleProfilingCollector,
+    precomputedLineStarts?: number[]
+  ): Promise<Diagnostic[]> {
+    const selectedRules = this.rules.filter(
+      (r) => LIGHTWEIGHT_RULE_NAMES.includes(r.name) && r.isEnabled(this.config)
+    );
+    return this.checkSelectedRulesAsync(
+      text, tokens, selectedRules, excludedRanges, options, profilingCollector, precomputedLineStarts
+    );
+  }
+
+  // ============================================================================
+  // 並列実行 API
+  // Feature: parallel-advanced-rules
+  //
+  // worker_threads ベースで N 個のワーカーにルール集合を K-partition 配り、
+  // CPU 物理コア数までスケールする。
+  //
+  // - フィーチャーフラグ: config.parallelExecution.enabled。既定 false なので、
+  //   既存テストは無影響
+  // - main 側で `prepareRuleContext` を 1 度だけ実行し、その結果を全 worker に共通配布
+  //   (sentence parse の重複計算を回避)
+  // - フォールバック: worker pool 初期化失敗 / 全 worker 死亡時は `checkSelectedRulesAsync` を呼ぶ
+  // ============================================================================
+
+  /**
+   * 並列実行: すべての有効ルールでチェックする。
+   * フラグ off / 環境不適合の場合は async 協調版へフォールバック。
+   */
+  async checkTextParallel(
+    text: string,
+    tokens: Token[],
+    excludedRanges?: ExcludedRange[],
+    options?: RuleExecutionOptions,
+    profilingCollector?: RuleProfilingCollector,
+    precomputedLineStarts?: number[]
+  ): Promise<Diagnostic[]> {
+    const enabledRules = this.getEnabledRules();
+    return this.checkSelectedRulesParallel(
+      text, tokens, enabledRules, excludedRanges, options, profilingCollector, precomputedLineStarts
+    );
+  }
+
+  /**
+   * 並列実行: 軽量ルールのみでチェックする。
+   */
+  async checkLightweightRulesParallel(
+    text: string,
+    tokens: Token[],
+    excludedRanges?: ExcludedRange[],
+    options?: { analyzeTables?: boolean },
+    profilingCollector?: RuleProfilingCollector,
+    precomputedLineStarts?: number[]
+  ): Promise<Diagnostic[]> {
+    const selectedRules = this.rules.filter(
+      (r) => LIGHTWEIGHT_RULE_NAMES.includes(r.name) && r.isEnabled(this.config)
+    );
+    return this.checkSelectedRulesParallel(
+      text, tokens, selectedRules, excludedRanges, options, profilingCollector, precomputedLineStarts
+    );
+  }
+
+  /**
+   * worker pool を停止する。テストや LSP サーバの shutdown 時に呼ぶ。
+   */
+  async shutdown(): Promise<void> {
+    const pool = this.workerPool;
+    if (pool && pool !== POOL_INIT_FAILED) {
+      await pool.shutdown();
+    }
+    this.workerPool = null;
+  }
+
+  /**
+   * worker pool を lazy init する。失敗したら POOL_INIT_FAILED を入れて以降 fall back。
+   *
+   * テストで worker bundle が無い環境でも config フラグ off なら呼ばれないので問題ない。
+   * フラグ on でも bundle が無ければ Worker constructor が同期 throw するため、catch して
+   * フォールバックする。
+   */
+  private ensureWorkerPool():
+    | WorkerPool<Omit<RunRulesMessage, 'id'>, RunRulesResultPayload>
+    | null {
+    if (this.workerPool && this.workerPool !== POOL_INIT_FAILED) {
+      return this.workerPool;
+    }
+    if (this.workerPool === POOL_INIT_FAILED) {
+      return null;
+    }
+
+    const cfg = this.config.parallelExecution;
+    if (!cfg?.enabled) {
+      return null;
+    }
+
+    try {
+      const defaultMax = Math.max(1, os.cpus().length - 1);
+      const requestedMax = cfg.maxWorkers ?? defaultMax;
+      const size = Math.max(1, Math.min(requestedMax, defaultMax));
+      const workerScript =
+        cfg.workerScript ?? path.join(__dirname, 'advancedRulesWorker.js');
+      const pool = new WorkerPool<Omit<RunRulesMessage, 'id'>, RunRulesResultPayload>({
+        workerScript,
+        size,
+      });
+      this.workerPool = pool;
+      return pool;
+    } catch (e) {
+      logError(this.logger, 'Failed to init worker pool, falling back to in-process', e);
+      this.workerPool = POOL_INIT_FAILED;
+      return null;
+    }
+  }
+
+  /**
+   * ルールを K パーティションに round-robin で分割する。
+   * 同一 worker が同じ ruleNames セットを継続的に受け取るため、ルール内部キャッシュが再利用される。
+   */
+  private partitionRules(rules: AdvancedGrammarRule[], parts: number): AdvancedGrammarRule[][] {
+    const buckets: AdvancedGrammarRule[][] = [];
+    for (let i = 0; i < parts; i++) {
+      buckets.push([]);
+    }
+    for (let i = 0; i < rules.length; i++) {
+      buckets[i % parts].push(rules[i]);
+    }
+    return buckets.filter((b) => b.length > 0);
+  }
+
+  /**
+   * Diagnostic[] を安定ソートする。
+   * 並列実行で worker ごとに順序が非決定的に返るため、最終結果は
+   * (range.start.line, range.start.character, code) で安定的に並べる。
+   */
+  private sortDiagnostics(diags: Diagnostic[]): Diagnostic[] {
+    const indexed = diags.map((d, idx) => ({ d, idx }));
+    indexed.sort((a, b) => {
+      const al = a.d.range.start.line;
+      const bl = b.d.range.start.line;
+      if (al !== bl) return al - bl;
+      const ac = a.d.range.start.character;
+      const bc = b.d.range.start.character;
+      if (ac !== bc) return ac - bc;
+      const acode = String(a.d.code);
+      const bcode = String(b.d.code);
+      if (acode !== bcode) return acode < bcode ? -1 : 1;
+      return a.idx - b.idx;
+    });
+    return indexed.map((x) => x.d);
+  }
+
+  /**
+   * 指定ルール集合を worker pool で並列実行する。
+   * pool 不在・失敗時は `checkSelectedRulesAsync` にフォールバック。
+   */
+  private async checkSelectedRulesParallel(
+    text: string,
+    tokens: Token[],
+    selectedRules: AdvancedGrammarRule[],
+    excludedRanges?: ExcludedRange[],
+    options?: RuleExecutionOptions,
+    profilingCollector?: RuleProfilingCollector,
+    precomputedLineStarts?: number[]
+  ): Promise<Diagnostic[]> {
+    const pool = this.ensureWorkerPool();
+    if (!pool || selectedRules.length === 0) {
+      return this.checkSelectedRulesAsync(
+        text, tokens, selectedRules, excludedRanges, options, profilingCollector, precomputedLineStarts
+      );
+    }
+
+    const { baseContext, originalText, originalShared } = this.prepareRuleContext(
+      text, tokens, excludedRanges, options, precomputedLineStarts
+    );
+
+    const partitions = this.partitionRules(selectedRules, Math.max(1, pool.size));
+    const enableProfiling = !!profilingCollector;
+
+    // tokens / sentences は全 partition で共通なので 1 度だけ serialize する
+    const serializedTokens: SerializedToken[] = serializeTokens(tokens);
+    const serializedSentences: SerializedSentence[] = serializeSentences(baseContext.sentences);
+    const baseShared = baseContext.shared;
+    if (!baseShared) {
+      // shared が無いケースは設計上ないが、念のため async fallback
+      return this.checkSelectedRulesAsync(
+        text, tokens, selectedRules, excludedRanges, options, profilingCollector, precomputedLineStarts
+      );
+    }
+
+    try {
+      const responses = await Promise.all(
+        partitions.map((bucket) => {
+          const ruleNames = bucket.map((r) => r.name);
+          const message: Omit<RunRulesMessage, 'id'> = {
+            ruleNames,
+            config: this.config,
+            serializedTokens,
+            baseContext: {
+              documentText: baseContext.documentText,
+              serializedSentences,
+              shared: baseShared,
+            },
+            originalText,
+            originalShared,
+            excludedRanges,
+            enableProfiling,
+          };
+          return pool.submit(message);
+        })
+      );
+
+      const merged: Diagnostic[] = [];
+      for (const r of responses) {
+        merged.push(...r.diagnostics);
+      }
+      if (profilingCollector) {
+        for (const r of responses) {
+          if (r.profilingEntries) {
+            profilingCollector.entries.push(...r.profilingEntries);
+          }
+          if (typeof r.totalTimeMs === 'number') {
+            profilingCollector.totalTimeMs += r.totalTimeMs;
+          }
+        }
+      }
+
+      // 並列で順序が壊れるので、最終結果は安定ソートしてから返す
+      return this.sortDiagnostics(merged).map((d) => this.fixDiagnosticRange(d));
+    } catch (e) {
+      // worker が全滅したらフラグごと無効化して in-process フォールバック
+      logError(this.logger, 'Worker pool execution failed, falling back to in-process', e);
+      this.workerPool = POOL_INIT_FAILED;
+      return this.checkSelectedRulesAsync(
+        text, tokens, selectedRules, excludedRanges, options, profilingCollector, precomputedLineStarts
+      );
+    }
+  }
 }
+
+// WorkerPool は size プロパティを type で expose していないため、
+// ensureWorkerPool 内の `pool.size` 参照を満たすためのインターフェース補助。
+// 実体は workerPool.ts の WorkerPool クラスの `desiredSize` を public な `size` getter に。

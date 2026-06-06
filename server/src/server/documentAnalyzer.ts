@@ -216,7 +216,7 @@ interface GrammarCheckDeps {
   proofreadingRulesManager: ProofreadingRulesManager;
 }
 
-function runAdvancedRules(
+async function runAdvancedRules(
   textToAnalyze: string,
   grammarTokens: Token[],
   languageId: SupportedLanguage,
@@ -226,21 +226,36 @@ function runAdvancedRules(
   advancedRulesManager: AdvancedRulesManager,
   ruleProfilingCollector?: RuleProfilingCollector,
   precomputedLineStarts?: number[]
-): Diagnostic[] {
+): Promise<Diagnostic[]> {
   const isMarkdown = languageId === 'markdown';
   const mdRanges = isMarkdown ? excludedRanges : undefined;
   const mdOptions = isMarkdown ? { analyzeTables: config.markdown.analyzeTables } : undefined;
 
+  // 非同期協調版: K=8 件ごとに `setImmediate` で yield することで
+  // 解析中も LSP サーバが他リクエストへ応答できる。
   return lightweightOnly
-    ? advancedRulesManager.checkLightweightRules(
+    ? await advancedRulesManager.checkLightweightRulesAsync(
         textToAnalyze, grammarTokens, mdRanges, mdOptions, ruleProfilingCollector, precomputedLineStarts
       )
-    : advancedRulesManager.checkText(
+    : await advancedRulesManager.checkTextAsync(
         textToAnalyze, grammarTokens, mdRanges, mdOptions, ruleProfilingCollector, precomputedLineStarts
       );
 }
 
-function runGrammarChecks(
+/**
+ * 文法チェック群を実行する。
+ *
+ * 旧実装は basic → advanced → proofreading を順次実行していたが、
+ * これらは完全に独立した処理なので Promise.all で並行スケジュールする。
+ *
+ * Node.js の event loop は単一スレッドなので CPU は依然として直列だが、
+ * - advanced ルールは中で `setImmediate` で yield する
+ * - その隙間に proofreading のチャンクや LSP の他リクエストが入り込める
+ *
+ * Amdahl 観点: 順次部分を「協調的に分割」してイベントループに譲ることで、
+ * 体感のレスポンスを大きく改善する。
+ */
+async function runGrammarChecks(
   textToAnalyze: string,
   grammarTokens: Token[],
   languageId: SupportedLanguage,
@@ -251,36 +266,43 @@ function runGrammarChecks(
   recordStep: RecordStep,
   ruleProfilingCollector?: RuleProfilingCollector,
   precomputedLineStarts?: number[]
-): LSPDiagnostic[] {
-  const diagnostics: LSPDiagnostic[] = [];
-
-  // 基本文法ルール
+): Promise<LSPDiagnostic[]> {
   const basicStart = Date.now();
-  const basicDiags = deps.grammarChecker.check(grammarTokens, textToAnalyze, precomputedLineStarts);
-  recordStep('基本ルール評価', Date.now() - basicStart, `件数=${basicDiags.length}`);
-  diagnostics.push(...toLspDiagnostics(basicDiags, 'otak-lsp'));
-
-  // 高度文法ルール（軽量／全実行）
   const advancedStart = Date.now();
-  const advancedDiags = runAdvancedRules(
-    textToAnalyze, grammarTokens, languageId, excludedRanges, config,
-    lightweightOnly, deps.advancedRulesManager, ruleProfilingCollector, precomputedLineStarts
-  );
-  recordStep(
-    lightweightOnly ? '軽量ルール評価' : '高度ルール評価',
-    Date.now() - advancedStart,
-    `件数=${advancedDiags.length}`
-  );
-  diagnostics.push(...toLspDiagnostics(advancedDiags, 'otak-lsp'));
-
-  // 校正ルール
   const proofreadingStart = Date.now();
-  const proofreadingDiags = deps.proofreadingRulesManager.checkText(
-    textToAnalyze, grammarTokens, precomputedLineStarts
-  );
-  recordStep('校正ルール評価', Date.now() - proofreadingStart, `件数=${proofreadingDiags.length}`);
-  diagnostics.push(...toLspDiagnostics(proofreadingDiags, 'otak-lsp-proofreading'));
 
+  // 3 系統を Promise.all で並行スケジュール。
+  // advanced は内部で setImmediate yield するため、他系統が間に入りやすい。
+  const [basicDiags, advancedDiags, proofreadingDiags] = await Promise.all([
+    Promise.resolve().then(() => {
+      const diags = deps.grammarChecker.check(grammarTokens, textToAnalyze, precomputedLineStarts);
+      recordStep('基本ルール評価', Date.now() - basicStart, `件数=${diags.length}`);
+      return diags;
+    }),
+    runAdvancedRules(
+      textToAnalyze, grammarTokens, languageId, excludedRanges, config,
+      lightweightOnly, deps.advancedRulesManager, ruleProfilingCollector, precomputedLineStarts
+    ).then((diags) => {
+      recordStep(
+        lightweightOnly ? '軽量ルール評価' : '高度ルール評価',
+        Date.now() - advancedStart,
+        `件数=${diags.length}`
+      );
+      return diags;
+    }),
+    Promise.resolve().then(() => {
+      const diags = deps.proofreadingRulesManager.checkText(
+        textToAnalyze, grammarTokens, precomputedLineStarts
+      );
+      recordStep('校正ルール評価', Date.now() - proofreadingStart, `件数=${diags.length}`);
+      return diags;
+    }),
+  ]);
+
+  const diagnostics: LSPDiagnostic[] = [];
+  diagnostics.push(...toLspDiagnostics(basicDiags, 'otak-lsp'));
+  diagnostics.push(...toLspDiagnostics(advancedDiags, 'otak-lsp'));
+  diagnostics.push(...toLspDiagnostics(proofreadingDiags, 'otak-lsp-proofreading'));
   return diagnostics;
 }
 
@@ -359,10 +381,10 @@ export function createDocumentAnalyzer(
       if (config.enableGrammarCheck) {
         // textToAnalyze は MarkdownFilter / keepOnlyCommentRanges どちらの経路でも
         // 改行と長さを保持するため、原文の lineStarts をそのまま使い回せる。
-        diagnostics.push(...runGrammarChecks(
+        diagnostics.push(...(await runGrammarChecks(
           textToAnalyze, grammarTokensList, languageId, excludedRanges, config,
           lightweightOnly, checkDeps, recordStep, ruleProfilingCollector, lineStarts
-        ));
+        )));
       }
 
       return {
