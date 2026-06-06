@@ -133,6 +133,20 @@
           "description": "テキスト編集後に解析を開始するまでの遅延時間（ミリ秒）",
           "scope": "resource"
         },
+        "otakLsp.maxDocumentChars": {
+          "type": "number",
+          "default": 1000000,
+          "minimum": 0,
+          "description": "解析対象とする文書の最大文字数。これを超える文書は解析をスキップしてメモリ枯渇（OOM）を防ぎます。0で無制限。",
+          "scope": "resource"
+        },
+        "otakLsp.maxNumberOfProblems": {
+          "type": "number",
+          "default": 2000,
+          "minimum": 0,
+          "description": "1文書あたりに報告する診断の最大件数。これを超えた分は切り捨てます。0で無制限。",
+          "scope": "resource"
+        },
         "otakLsp.enableProfileLogs": {
           "type": "boolean",
           "default": false,

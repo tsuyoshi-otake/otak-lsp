@@ -398,6 +398,18 @@ export interface Configuration {
   targetLanguages: SupportedLanguage[];
   /** デバウンス遅延（ミリ秒） */
   debounceDelay: number;
+  /**
+   * 解析対象とする文書の最大文字数。これを超える文書は解析をスキップする。
+   * 巨大ファイル（生成物・ミニファイ済みバンドル等）によるヒープ枯渇（OOM）を防ぐためのガード。
+   * 0 以下で無制限。省略時は configManager が既定値を設定する。
+   */
+  maxDocumentChars?: number;
+  /**
+   * 1 文書あたりに生成する診断の最大件数。これを超えた分は切り捨てる。
+   * 診断が大量発生する病的なケースでのメモリ膨張を防ぐ。0 以下で無制限。
+   * 省略時は configManager が既定値を設定する。
+   */
+  maxNumberOfProblems?: number;
   /** ホバー関連設定 */
   hover: {
     /** Wikipediaサマリーの表示 */

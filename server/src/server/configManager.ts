@@ -122,6 +122,8 @@ export function createConfigManager(
     },
     targetLanguages: ['markdown', 'javascript', 'typescript', 'python', 'c', 'cpp', 'java', 'rust', 'plaintext'] as SupportedLanguage[],
     debounceDelay: 250,
+    maxDocumentChars: 1_000_000,
+    maxNumberOfProblems: 2_000,
     hover: {
       enableWikipedia: true,
       enableGlossary: true,
@@ -145,6 +147,8 @@ export function createConfigManager(
     const analyzeTables = getSetting(settings, 'markdown.analyzeTables');
     const targetLanguages = getSetting(settings, 'targetLanguages');
     const debounceDelay = getSetting(settings, 'debounceDelay');
+    const maxDocumentChars = getSetting(settings, 'maxDocumentChars');
+    const maxNumberOfProblems = getSetting(settings, 'maxNumberOfProblems');
     const enableWikipedia = getSetting(settings, 'hover.enableWikipedia');
     const enableGlossary = getSetting(settings, 'hover.enableGlossary');
     const enabledGlossaries = getSetting(settings, 'hover.enabledGlossaries');
@@ -164,6 +168,8 @@ export function createConfigManager(
       },
       targetLanguages: Array.isArray(targetLanguages) ? (targetLanguages as SupportedLanguage[]) : configuration.targetLanguages,
       debounceDelay: typeof debounceDelay === 'number' && Number.isFinite(debounceDelay) ? debounceDelay : configuration.debounceDelay,
+      maxDocumentChars: typeof maxDocumentChars === 'number' && Number.isFinite(maxDocumentChars) ? maxDocumentChars : configuration.maxDocumentChars,
+      maxNumberOfProblems: typeof maxNumberOfProblems === 'number' && Number.isFinite(maxNumberOfProblems) ? maxNumberOfProblems : configuration.maxNumberOfProblems,
       hover: {
         ...configuration.hover,
         enableWikipedia: typeof enableWikipedia === 'boolean' ? enableWikipedia : configuration.hover.enableWikipedia,
