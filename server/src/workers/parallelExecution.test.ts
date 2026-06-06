@@ -124,6 +124,67 @@ describeIfHasBundle('AdvancedRulesManager parallel identity', () => {
       await disabled.shutdown();
     }
   }, 30_000);
+
+  it('updateConfig で parallelExecution を無効化すると worker pool が破棄される', async () => {
+    const m = new AdvancedRulesManager({
+      parallelExecution: { enabled: true, maxWorkers: 2, workerScript: WORKER_BUNDLE },
+    });
+    try {
+      await m.checkTextParallel(SAMPLES[0].text, []);
+      expect(m.hasActiveWorkerPool()).toBe(true);
+
+      // 実行中に無効化 → プールは即座に切り離される
+      m.updateConfig({ parallelExecution: { enabled: false } });
+      expect(m.hasActiveWorkerPool()).toBe(false);
+
+      // 無効化後の結果は in-process async と同一
+      const expected = sortByKey(await m.checkTextAsync(SAMPLES[0].text, []));
+      const actual = sortByKey(await m.checkTextParallel(SAMPLES[0].text, []));
+      expect(actual.map(diagKey)).toEqual(expected.map(diagKey));
+      // 無効化されたままなので再起動もしない
+      expect(m.hasActiveWorkerPool()).toBe(false);
+    } finally {
+      await m.shutdown();
+    }
+  }, 30_000);
+
+  it('updateConfig で maxWorkers を変えると worker pool が作り直される', async () => {
+    const m = new AdvancedRulesManager({
+      parallelExecution: { enabled: true, maxWorkers: 2, workerScript: WORKER_BUNDLE },
+    });
+    try {
+      await m.checkTextParallel(SAMPLES[0].text, []);
+      expect(m.hasActiveWorkerPool()).toBe(true);
+
+      // maxWorkers 変更で旧プールを切り離す
+      m.updateConfig({
+        parallelExecution: { enabled: true, maxWorkers: 1, workerScript: WORKER_BUNDLE },
+      });
+      expect(m.hasActiveWorkerPool()).toBe(false);
+
+      // 次回呼び出しで新設定のプールが再生成される
+      await m.checkTextParallel(SAMPLES[0].text, []);
+      expect(m.hasActiveWorkerPool()).toBe(true);
+    } finally {
+      await m.shutdown();
+    }
+  }, 30_000);
+
+  it('updateConfig で parallelExecution 以外を変えても worker pool は維持される', async () => {
+    const m = new AdvancedRulesManager({
+      parallelExecution: { enabled: true, maxWorkers: 2, workerScript: WORKER_BUNDLE },
+    });
+    try {
+      await m.checkTextParallel(SAMPLES[0].text, []);
+      expect(m.hasActiveWorkerPool()).toBe(true);
+
+      // 無関係な設定変更ではプールを壊さない
+      m.updateConfig({ enableLongSentence: false });
+      expect(m.hasActiveWorkerPool()).toBe(true);
+    } finally {
+      await m.shutdown();
+    }
+  }, 30_000);
 });
 
 describe('AdvancedRulesManager parallel skip reason', () => {

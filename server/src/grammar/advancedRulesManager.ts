@@ -17,7 +17,8 @@ import {
   AdvancedDiagnostic,
   RuleProfilingEntry,
   RuleProfilingCollector,
-  AdvancedRuleSharedContext
+  AdvancedRuleSharedContext,
+  ParallelExecutionConfig
 } from '../../../shared/src/advancedTypes';
 import { ExcludedRange } from '../../../shared/src/markdownFilterTypes';
 import { SentenceParser } from './sentenceParser';
@@ -453,7 +454,40 @@ export class AdvancedRulesManager {
    * 設定を更新
    */
   updateConfig(config: Partial<AdvancedRulesConfig>): void {
+    const prevParallel = this.config.parallelExecution;
     this.config = { ...this.config, ...config };
+    // parallelExecution の設定が変わったら worker pool を作り直す。
+    // ensureWorkerPool() は enabled 判定より前にキャッシュ済みプールを返すため、
+    // ここで明示的に破棄しないと「実行中の enabled 切り替え / maxWorkers 変更」が反映されない。
+    if (this.parallelConfigChanged(prevParallel, this.config.parallelExecution)) {
+      this.resetWorkerPool();
+    }
+  }
+
+  /**
+   * parallelExecution 設定（enabled / maxWorkers / workerScript）に差があるか。
+   */
+  private parallelConfigChanged(
+    prev: ParallelExecutionConfig | undefined,
+    next: ParallelExecutionConfig | undefined
+  ): boolean {
+    return (
+      (prev?.enabled ?? false) !== (next?.enabled ?? false) ||
+      (prev?.maxWorkers ?? 0) !== (next?.maxWorkers ?? 0) ||
+      (prev?.workerScript ?? '') !== (next?.workerScript ?? '')
+    );
+  }
+
+  /**
+   * worker pool を即座に切り離し、バックグラウンドで終了させる。
+   * 次回の ensureWorkerPool() で最新の設定に基づき再生成（または無効化）される。
+   */
+  private resetWorkerPool(): void {
+    const pool = this.workerPool;
+    this.workerPool = null;
+    if (pool && pool !== POOL_INIT_FAILED) {
+      pool.shutdown().catch(() => undefined);
+    }
   }
 
   /**
@@ -609,6 +643,13 @@ export class AdvancedRulesManager {
       await pool.shutdown();
     }
     this.workerPool = null;
+  }
+
+  /**
+   * worker pool が現在アクティブ（起動済みかつ未破棄）かどうか。テスト・診断用。
+   */
+  hasActiveWorkerPool(): boolean {
+    return this.workerPool !== null && this.workerPool !== POOL_INIT_FAILED;
   }
 
   /**
