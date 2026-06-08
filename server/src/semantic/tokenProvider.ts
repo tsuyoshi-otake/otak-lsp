@@ -69,11 +69,13 @@ export class SemanticTokenProvider {
    * 品詞からTokenTypeへのマッピング
    */
   mapPosToTokenType(pos: string): TokenType {
-    // 記号はハイライト対象外としてotherに固定し、それ以外の未知品詞は名詞系として扱う
+    // 記号はハイライト対象外としてotherに固定する。
+    // マッピングに無い未知品詞（「その他」など）は名詞として誤って色付けせず、
+    // ハイライト対象外のOtherへ落とす（色分けの正確性を優先）。
     if (pos === '記号') {
       return TokenType.Other;
     }
-    return POS_TO_TOKEN_TYPE[pos] ?? TokenType.Noun;
+    return POS_TO_TOKEN_TYPE[pos] ?? TokenType.Other;
   }
 
   /**
@@ -126,6 +128,9 @@ export class SemanticTokenProvider {
 
     const effectiveLineStarts = lineStarts ?? computeLineStarts(text);
 
+    // セマンティックトークンの相対位置エンコード（deltaLine/deltaStartChar）は
+    // 開始位置の昇順を前提とする。未ソートの入力をそのまま出力すると deltaStartChar が
+    // 負になり LSP クライアント側のデコードが破綻するため、必ず昇順へ整列してから出力する。
     const isSortedByStart = (() => {
       for (let i = 1; i < tokens.length; i++) {
         if (tokens[i - 1].start > tokens[i].start) {
@@ -134,27 +139,9 @@ export class SemanticTokenProvider {
       }
       return true;
     })();
+    const orderedTokens = isSortedByStart ? tokens : [...tokens].sort((a, b) => a.start - b.start);
 
-    const findLineForOffset = (offset: number): number => {
-      let low = 0;
-      let high = effectiveLineStarts.length - 1;
-      while (low <= high) {
-        const mid = (low + high) >> 1;
-        const start = effectiveLineStarts[mid];
-        const nextStart = mid + 1 < effectiveLineStarts.length ? effectiveLineStarts[mid + 1] : Number.POSITIVE_INFINITY;
-        if (start <= offset && offset < nextStart) {
-          return mid;
-        }
-        if (offset < start) {
-          high = mid - 1;
-        } else {
-          low = mid + 1;
-        }
-      }
-      return 0;
-    };
-
-    const data = new Array<number>(tokens.length * 5);
+    const data = new Array<number>(orderedTokens.length * 5);
     let dataIndex = 0;
     let prevLine = 0;
     let prevChar = 0;
@@ -162,17 +149,13 @@ export class SemanticTokenProvider {
     let currentLine = 0;
     let nextLineStartIndex = 1;
 
-    for (const token of tokens) {
-      // 現在のトークンの行と文字位置を計算
-      const line = isSortedByStart
-        ? (() => {
-          while (nextLineStartIndex < effectiveLineStarts.length && token.start >= effectiveLineStarts[nextLineStartIndex]) {
-            currentLine = nextLineStartIndex;
-            nextLineStartIndex++;
-          }
-          return currentLine;
-        })()
-        : findLineForOffset(token.start);
+    for (const token of orderedTokens) {
+      // 整列済みなので、行は単調増加で順次求められる
+      while (nextLineStartIndex < effectiveLineStarts.length && token.start >= effectiveLineStarts[nextLineStartIndex]) {
+        currentLine = nextLineStartIndex;
+        nextLineStartIndex++;
+      }
+      const line = currentLine;
       const char = token.start - effectiveLineStarts[line];
 
       // 相対位置を計算

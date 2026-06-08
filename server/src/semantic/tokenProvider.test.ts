@@ -103,9 +103,9 @@ describe('Semantic Token Provider', () => {
       expect(tokenType).toBe(TokenType.Other);
     });
 
-    it('should map unknown non-symbol POS to Noun', () => {
+    it('should map unknown non-symbol POS to Other', () => {
       const tokenType = provider.mapPosToTokenType('その他');
-      expect(tokenType).toBe(TokenType.Noun);
+      expect(tokenType).toBe(TokenType.Other);
     });
   });
 
@@ -208,6 +208,29 @@ describe('Semantic Token Provider', () => {
       const tokens = [createToken('Code', '名詞', 0)];
       const result = provider.provideSemanticTokens(tokens, text);
       expect(result.data[3]).toBe(TokenType.Other);
+    });
+
+    it('should produce non-negative deltas for unsorted input by sorting first', () => {
+      const text = '私は行く';
+      // 開始位置の昇順になっていない（意図的に逆順で渡す）
+      const tokens = [
+        createToken('行く', '動詞', 2),
+        createToken('は', '助詞', 1),
+        createToken('私', '名詞', 0)
+      ];
+      const result = provider.provideSemanticTokens(tokens, text);
+
+      // 出力は開始位置の昇順（私 → は → 行く）に整列される
+      expect(result.data.length).toBe(15);
+      expect(result.data[3]).toBe(TokenType.Noun);     // 私
+      expect(result.data[8]).toBe(TokenType.Particle); // は
+      expect(result.data[13]).toBe(TokenType.Verb);    // 行く
+
+      // すべての deltaLine / deltaStartChar が非負（デコード破綻しない）
+      for (let i = 0; i < result.data.length; i += 5) {
+        expect(result.data[i]).toBeGreaterThanOrEqual(0);     // deltaLine
+        expect(result.data[i + 1]).toBeGreaterThanOrEqual(0); // deltaStartChar
+      }
     });
   });
 

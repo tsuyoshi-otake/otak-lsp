@@ -126,8 +126,11 @@ export class ExtensionClient {
 
 function buildStatusBarTooltip(enabled: boolean, themeId: SemanticThemeId): vscode.MarkdownString {
   const tooltip = new vscode.MarkdownString();
-  tooltip.isTrusted = true;
-  tooltip.supportHtml = true;
+  // command link を有効にするための trust は、許可コマンドを明示列挙して最小権限に限定する。
+  // 任意コマンド実行を許す `isTrusted = true` は使わない。
+  tooltip.isTrusted = {
+    enabledCommands: ['otakLsp.toggle', 'otakLsp.selectTheme', 'workbench.action.openSettings'],
+  };
 
   tooltip.appendMarkdown('### otak-lsp\n\n');
   tooltip.appendMarkdown('Japanese Grammar Analyzer\n\n');
@@ -155,6 +158,13 @@ function updateStatusBar(enabled: boolean): void {
     ? undefined
     : new vscode.ThemeColor('statusBarItem.warningBackground');
   statusBarItem.tooltip = buildStatusBarTooltip(enabled, currentThemeId);
+  // スクリーンリーダー向けに、現在の状態とクリック時の挙動を明示する。
+  statusBarItem.accessibilityInformation = {
+    label: enabled
+      ? 'otak-lsp は有効です。アクティブにすると無効に切り替えます。'
+      : 'otak-lsp は無効です。アクティブにすると有効に切り替えます。',
+    role: 'button',
+  };
 }
 
 async function applySemanticTheme(themeId: SemanticThemeId): Promise<void> {
@@ -167,9 +177,15 @@ async function applySemanticTheme(themeId: SemanticThemeId): Promise<void> {
   const config = vscode.workspace.getConfiguration('editor');
   const currentCustomizations = config.get<Record<string, unknown>>('semanticTokenColorCustomizations') || {};
 
+  // ユーザーが設定済みの他トークンの rules を消さないよう、既存 rules を維持したまま
+  // otak-lsp が管理する5品詞のキーだけを上書きする（設定の非破壊マージ）。
+  const existingRules =
+    (currentCustomizations.rules as Record<string, unknown> | undefined) ?? {};
+
   const newCustomizations = {
     ...currentCustomizations,
     rules: {
+      ...existingRules,
       noun: { foreground: theme.colors.noun },
       verb: { foreground: theme.colors.verb },
       adjective: { foreground: theme.colors.adjective },
@@ -211,6 +227,7 @@ function createServerOptions(extensionPath: string): ServerOptions {
 
 function setupStatusBar(context: vscode.ExtensionContext): void {
   statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Right, 100);
+  statusBarItem.name = 'otak-lsp - Japanese Grammar Analyzer';
   statusBarItem.text = '$(loading~spin) otak-lsp';
   statusBarItem.tooltip = 'otak-lsp - Japanese Grammar Analyzer\n起動中...';
   statusBarItem.command = 'otakLsp.toggle';
@@ -279,19 +296,32 @@ function showCurrentStatus(extensionClient: ExtensionClient, configuration: Conf
   vscode.window.showInformationMessage('otak-lsp: ステータスを出力パネルに表示しました');
 }
 
-function analyzeCurrentFile(): void {
+async function analyzeCurrentFile(): Promise<void> {
   const editor = vscode.window.activeTextEditor;
   if (!editor) {
     vscode.window.showWarningMessage('ファイルが開かれていません');
     return;
   }
 
+  if (!client) {
+    vscode.window.showWarningMessage('otak-lsp: Language Server が起動していません');
+    return;
+  }
+
+  const uri = editor.document.uri.toString();
   outputChannel?.appendLine(`Manual analysis requested for: ${editor.document.uri.fsPath}`);
-  if (client) {
-    const text = editor.document.getText();
-    outputChannel?.appendLine(`Document length: ${text.length} characters`);
-    outputChannel?.appendLine(`First 100 chars: ${text.substring(0, 100)}`);
-    vscode.window.showInformationMessage('otak-lsp: 解析をリクエストしました。出力パネルを確認してください。');
+
+  try {
+    // サーバに全ルール解析を要求し、診断を実際に再生成する。
+    const result = await client.sendRequest<{ ok: boolean }>('otakLsp/analyzeDocument', { uri });
+    if (result?.ok) {
+      vscode.window.setStatusBarMessage('otak-lsp: 現在のファイルを再解析しました', 2000);
+    } else {
+      vscode.window.showWarningMessage('otak-lsp: このファイルは解析対象として認識されていません');
+    }
+  } catch (error) {
+    outputChannel?.appendLine(`Manual analysis failed: ${error}`);
+    vscode.window.showErrorMessage('otak-lsp: 解析リクエストに失敗しました');
   }
 }
 

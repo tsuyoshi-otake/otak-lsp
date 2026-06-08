@@ -206,6 +206,23 @@ export function createConnectionHandler(
 
     connection.onRequest('textDocument/semanticTokens/full', provideSemanticTokens);
 
+    // クライアントの「現在のファイルを解析」コマンド用。
+    // 対象URIの全ルール解析を即時スケジュールし、診断を再生成する。
+    connection.onRequest('otakLsp/analyzeDocument', (params: { uri?: string }): { ok: boolean } => {
+      const uri = params?.uri;
+      if (!uri) {
+        return { ok: false };
+      }
+      const state = analysisStates.getState(uri);
+      if (!state.latestDocument) {
+        logger?.info(`analyzeDocument requested for unknown document: ${uri}`);
+        return { ok: false };
+      }
+      logger?.info(`Manual analysis requested for: ${uri}`);
+      analysisScheduler.scheduleFullAnalysis(uri);
+      return { ok: true };
+    });
+
     documents.onDidOpen((event) => {
       logger?.info(`Document opened: ${event.document.uri}`);
       analysisScheduler.scheduleAnalysis(event.document);
