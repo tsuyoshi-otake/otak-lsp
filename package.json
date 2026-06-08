@@ -147,6 +147,14 @@
           "description": "1文書あたりに報告する診断の最大件数。これを超えた分は切り捨てます。0で無制限。",
           "scope": "resource"
         },
+        "otakLsp.maxConcurrentAnalyses": {
+          "type": "number",
+          "default": 4,
+          "minimum": 1,
+          "maximum": 32,
+          "description": "同時に実行する文書解析の最大数。複数ファイルの一斉解析（設定変更時など）でのメモリ使用量のピークを抑えるための上限です。値を小さくするとメモリ使用量が下がり、大きくするとスループットが上がります。",
+          "scope": "resource"
+        },
         "otakLsp.enableProfileLogs": {
           "type": "boolean",
           "default": false,

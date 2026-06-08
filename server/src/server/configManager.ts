@@ -22,6 +22,7 @@ import { HoverProvider } from '../hover/provider';
 import { DEFAULT_ENABLED_GLOSSARIES } from '../hover/glossary';
 import { Logger } from '../utils/logger';
 import { isNotEmptyObject } from '../utils/arrayUtils';
+import { DEFAULT_MAX_CONCURRENT_ANALYSES } from '../utils/concurrencyLimiter';
 
 /**
  * 設定変更コールバック型
@@ -124,6 +125,7 @@ export function createConfigManager(
     debounceDelay: 250,
     maxDocumentChars: 1_000_000,
     maxNumberOfProblems: 2_000,
+    maxConcurrentAnalyses: DEFAULT_MAX_CONCURRENT_ANALYSES,
     hover: {
       enableWikipedia: true,
       enableGlossary: true,
@@ -149,6 +151,7 @@ export function createConfigManager(
     const debounceDelay = getSetting(settings, 'debounceDelay');
     const maxDocumentChars = getSetting(settings, 'maxDocumentChars');
     const maxNumberOfProblems = getSetting(settings, 'maxNumberOfProblems');
+    const maxConcurrentAnalyses = getSetting(settings, 'maxConcurrentAnalyses');
     const enableWikipedia = getSetting(settings, 'hover.enableWikipedia');
     const enableGlossary = getSetting(settings, 'hover.enableGlossary');
     const enabledGlossaries = getSetting(settings, 'hover.enabledGlossaries');
@@ -170,6 +173,7 @@ export function createConfigManager(
       debounceDelay: typeof debounceDelay === 'number' && Number.isFinite(debounceDelay) ? debounceDelay : configuration.debounceDelay,
       maxDocumentChars: typeof maxDocumentChars === 'number' && Number.isFinite(maxDocumentChars) ? maxDocumentChars : configuration.maxDocumentChars,
       maxNumberOfProblems: typeof maxNumberOfProblems === 'number' && Number.isFinite(maxNumberOfProblems) ? maxNumberOfProblems : configuration.maxNumberOfProblems,
+      maxConcurrentAnalyses: typeof maxConcurrentAnalyses === 'number' && Number.isFinite(maxConcurrentAnalyses) ? maxConcurrentAnalyses : configuration.maxConcurrentAnalyses,
       hover: {
         ...configuration.hover,
         enableWikipedia: typeof enableWikipedia === 'boolean' ? enableWikipedia : configuration.hover.enableWikipedia,

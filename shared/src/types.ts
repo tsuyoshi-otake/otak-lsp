@@ -410,6 +410,14 @@ export interface Configuration {
    * 省略時は configManager が既定値を設定する。
    */
   maxNumberOfProblems?: number;
+  /**
+   * 同時に実行する文書解析の最大数。
+   * 設定変更時や大量 didOpen 時に「開いている全文書を一斉解析」するファンアウトを
+   * 上限化し、ピーク時のヒープ使用量を `この値 × 1 文書あたりのコスト` に有界化する
+   * （メモリ安全のための主要ガード）。1 未満は 1 に丸める。
+   * 省略時は configManager が既定値を設定する。
+   */
+  maxConcurrentAnalyses?: number;
   /** ホバー関連設定 */
   hover: {
     /** Wikipediaサマリーの表示 */

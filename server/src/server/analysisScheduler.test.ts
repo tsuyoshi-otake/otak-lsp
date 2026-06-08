@@ -155,6 +155,60 @@ describe('analysisScheduler', () => {
     });
   });
 
+  describe('AnalysisScheduler concurrency (memory safety)', () => {
+    it('should not run more analyses concurrently than maxConcurrentAnalyses', (done) => {
+      const MAX = 2;
+      configManager.applySettings({ debounceDelay: 20, maxConcurrentAnalyses: MAX });
+
+      let current = 0;
+      let peak = 0;
+      const completed: string[] = [];
+
+      // 並走数を観測する gated executeAnalysis（各解析は 40ms 滞留させる）
+      const gatedExecute = async (uri: string, lightweightOnly: boolean): Promise<void> => {
+        analysisExecutions.push({ uri, lightweightOnly });
+        current++;
+        peak = Math.max(peak, current);
+        await new Promise((r) => setTimeout(r, 40));
+        current--;
+        completed.push(uri);
+      };
+      scheduler.setExecuteAnalysis(gatedExecute);
+
+      // 8 文書を一斉にスケジュール（config 変更時のファンアウトを模倣）
+      const docs = Array.from({ length: 8 }, (_, i) =>
+        TextDocument.create(`test://conc-${i}`, 'plaintext', 1, 'テスト')
+      );
+      docs.forEach((d) => scheduler.scheduleAnalysis(d));
+
+      setTimeout(() => {
+        // 全件が最終的に解析される（取りこぼさない）
+        expect(completed.length).toBe(8);
+        // ピーク同時数は上限以下（メモリ安全の核心）
+        expect(peak).toBeLessThanOrEqual(MAX);
+        expect(peak).toBeGreaterThan(0);
+        done();
+      }, 600);
+    });
+
+    it('should still analyze every document when fanned out under the cap', (done) => {
+      configManager.applySettings({ debounceDelay: 10, maxConcurrentAnalyses: 1 });
+
+      const uris = Array.from({ length: 5 }, (_, i) => `test://serial-${i}`);
+      uris.forEach((uri) => {
+        scheduler.scheduleAnalysis(TextDocument.create(uri, 'plaintext', 1, 'テスト'));
+      });
+
+      setTimeout(() => {
+        const seen = new Set(
+          analysisExecutions.filter((e) => e.uri.startsWith('test://serial-')).map((e) => e.uri)
+        );
+        expect(seen.size).toBe(5);
+        done();
+      }, 300);
+    });
+  });
+
   describe('AnalysisScheduler.scheduleFullAnalysis', () => {
     it('should schedule full analysis for a document', (done) => {
       const document = TextDocument.create(

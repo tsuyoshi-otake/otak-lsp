@@ -10,6 +10,7 @@ import { TextDocument } from 'vscode-languageserver-textdocument';
 import { AnalysisStateManager } from './languageServer';
 import { ConfigManager } from './configManager';
 import { Logger } from '../utils/logger';
+import { ConcurrencyLimiter, DEFAULT_MAX_CONCURRENT_ANALYSES } from '../utils/concurrencyLimiter';
 
 /**
  * 解析実行関数の型
@@ -70,6 +71,14 @@ export function createAnalysisScheduler(
   // 全ルール解析待機中のURI
   const pendingFullAnalysis: Set<string> = new Set();
 
+  // 同時解析数の上限ガード（メモリ安全）。
+  // 設定変更や大量 didOpen で全文書が一斉にスケジュールされても、実際に
+  // executeAnalysis が並走する数を maxConcurrentAnalyses 件までに抑え、
+  // ピーク時のヒープ使用量を構造的に有界化する。上限は都度 config を参照する。
+  const analysisLimiter = new ConcurrencyLimiter(
+    () => configManager.getConfig().maxConcurrentAnalyses ?? DEFAULT_MAX_CONCURRENT_ANALYSES
+  );
+
   /**
    * 解析を実行（直列化）
    */
@@ -92,7 +101,10 @@ export function createAnalysisScheduler(
     debugLog(`Starting analysis for ${uri} (version: ${analysisVersion}, lightweightOnly: ${lightweightOnly})`);
 
     try {
-      await executeAnalysis(uri, lightweightOnly);
+      // 同時実行スロットを取得してから解析本体を実行する（メモリ安全のための上限ガード）。
+      // running フラグは取得前に立てているため、待機中に同一 URI へ来た要求は
+      // 重複起動せず pending に集約され、スロット獲得時に最新文書で解析される。
+      await analysisLimiter.run(() => executeAnalysis(uri, lightweightOnly));
     } finally {
       // 解析完了: running = false
       analysisStates.updateState(uri, { running: false });
