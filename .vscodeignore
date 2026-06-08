@@ -30,6 +30,11 @@ jest.config.js
 # Build tools
 esbuild.js
 webpack.config.js
+eslint.config.js
+
+# Logs（crashpad / debug ログ等の一時成果物は同梱しない）
+*.log
+**/*.log
 
 # Documentation (keep only README)
 .gitignore
