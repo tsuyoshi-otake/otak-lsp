@@ -26,8 +26,6 @@ import { Logger } from '../utils/logger';
 import { isNotEmpty } from '../utils/arrayUtils';
 import {
   buildMaskedTextByKeepRanges,
-  normalizeRanges,
-  sweepFilterByContainment,
 } from '../utils/rangeSweep';
 
 /**
@@ -152,17 +150,50 @@ async function runMorphologicalAnalysis(
 ): Promise<Token[]> {
   const start = Date.now();
   const cacheStatsBefore = MeCabAnalyzer.getCacheStats();
-  let tokens = await mecabAnalyzer.analyze(textToAnalyze);
   if (languageId !== 'markdown' && languageId !== 'plaintext') {
-    // 空白トークンを除外したうえで、コメント範囲に「完全包含」される token のみ残す。
-    // 旧実装は tokens.filter(commentRanges.some(...)) で O(T×R) だったが、
-    // 正規化済み範囲に対する containment スイープで O(T+R) に圧縮する。
-    const sortedRanges = normalizeRanges(commentRanges);
-    const nonBlankTokens = tokens.filter((token) => token.surface.trim().length > 0);
-    tokens = sweepFilterByContainment(nonBlankTokens, sortedRanges, /* keepContained */ true);
+    const tokens = await analyzeCommentRanges(commentRanges, mecabAnalyzer);
+    const cacheHit = MeCabAnalyzer.getCacheStats().hits > cacheStatsBefore.hits;
+    recordStep('形態素解析', Date.now() - start, `tokens=${tokens.length} cache=${cacheHit ? 'HIT' : 'MISS'}`);
+    return tokens;
   }
+
+  const tokens = await mecabAnalyzer.analyze(textToAnalyze);
   const cacheHit = MeCabAnalyzer.getCacheStats().hits > cacheStatsBefore.hits;
   recordStep('形態素解析', Date.now() - start, `tokens=${tokens.length} cache=${cacheHit ? 'HIT' : 'MISS'}`);
+  return tokens;
+}
+
+async function analyzeCommentRanges(
+  commentRanges: CommentRange[],
+  mecabAnalyzer: MeCabAnalyzer
+): Promise<Token[]> {
+  const tokens: Token[] = [];
+  for (const range of commentRanges) {
+    if (!range.text.trim()) {
+      continue;
+    }
+
+    const localTokens = await mecabAnalyzer.analyze(range.text);
+    for (const token of localTokens) {
+      if (token.surface.trim().length === 0) {
+        continue;
+      }
+      tokens.push(new Token({
+        surface: token.surface,
+        pos: token.pos,
+        posDetail1: token.posDetail1,
+        posDetail2: token.posDetail2,
+        posDetail3: token.posDetail3,
+        conjugation: token.conjugation,
+        conjugationForm: token.conjugationForm,
+        baseForm: token.baseForm,
+        reading: token.reading,
+        pronunciation: token.pronunciation,
+        start: range.start + token.start,
+        end: range.start + token.end
+      }));
+    }
+  }
   return tokens;
 }
 

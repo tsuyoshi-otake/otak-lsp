@@ -13,7 +13,7 @@ import { GrammarChecker } from '../grammar/checker';
 import { AdvancedRulesManager } from '../grammar/advancedRulesManager';
 import { ProofreadingRulesManager } from '../proofreading/proofreadingRulesManager';
 import { TextDocument } from 'vscode-languageserver-textdocument';
-import { Configuration, SupportedLanguage, GLOSSARY_GROUPS } from '../../../shared/src/types';
+import { Configuration, SupportedLanguage, GLOSSARY_GROUPS, Token } from '../../../shared/src/types';
 import { DEFAULT_ADVANCED_RULES_CONFIG } from '../../../shared/src/advancedTypes';
 import { DEFAULT_ENABLED_GLOSSARIES } from '../hover/glossary';
 import { createLogger } from '../utils/logger';
@@ -260,6 +260,58 @@ describe('documentAnalyzer', () => {
       }
       expect(result.tokens.every(token => text.slice(token.start, token.end) === token.surface)).toBe(true);
       expect(result.tokens.some(token => token.surface === 'const')).toBe(false);
+    }, 10000);
+
+    it('should analyze code comments by range without sending the masked whole file to kuromoji', async () => {
+      const calls: string[] = [];
+      const mockMecabAnalyzer = {
+        analyze: jest.fn(async (input: string) => {
+          calls.push(input);
+          const start = input.indexOf('コメント');
+          if (start < 0) {
+            return [];
+          }
+          return [new Token({
+            surface: 'コメント',
+            pos: '名詞',
+            posDetail1: '一般',
+            posDetail2: '*',
+            posDetail3: '*',
+            conjugation: '*',
+            conjugationForm: '*',
+            baseForm: 'コメント',
+            reading: 'コメント',
+            pronunciation: 'コメント',
+            start,
+            end: start + 'コメント'.length,
+          })];
+        }),
+      } as unknown as MeCabAnalyzer;
+
+      const analyzer = createDocumentAnalyzer(
+        mockMecabAnalyzer,
+        commentExtractor,
+        markdownFilter,
+        tokenFilter,
+        grammarChecker,
+        advancedRulesManager,
+        proofreadingRulesManager
+      );
+      const text = 'const before = "解析対象外";\n// コメントです\nconst after = "解析対象外";';
+      const document = TextDocument.create('test://uri', 'typescript', 1, text);
+
+      const result = await analyzer.analyze(
+        document,
+        { ...defaultConfig, enableGrammarCheck: false },
+        DEFAULT_ADVANCED_RULES_CONFIG,
+        true
+      );
+
+      expect(calls).toEqual(['// コメントです']);
+      expect(calls.every(call => call.length < text.length)).toBe(true);
+      expect(result.tokens).toHaveLength(1);
+      expect(result.tokens[0].start).toBe(text.indexOf('コメント'));
+      expect(text.slice(result.tokens[0].start, result.tokens[0].end)).toBe('コメント');
     }, 10000);
 
     it('should run lightweight rules only when lightweightOnly is true', async () => {
