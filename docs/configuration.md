@@ -3,7 +3,7 @@
 
 # 設定リファレンス
 
-otak-lsp v1.0.23 の全設定項目（142件）の完全な一覧です。
+otak-lsp v1.0.26 の全設定項目（142件）の完全な一覧です。
 真実源は `package.json` の `contributes.configuration` です。READMEには代表的な設定のみを掲載しています。
 
 ## Markdown

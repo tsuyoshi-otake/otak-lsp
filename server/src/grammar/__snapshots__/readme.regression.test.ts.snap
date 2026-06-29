@@ -7,68 +7,12 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "message": "曖昧な表現「早めに」が使用されています。期限を具体的な日時で示してください。",
     "range": {
       "end": {
-        "character": 20,
-        "line": 301,
-      },
-      "start": {
-        "character": 17,
-        "line": 301,
-      },
-    },
-  },
-  {
-    "code": "ambiguous-term",
-    "message": "曖昧な表現「だいたい」が使用されています。範囲を具体的な数値で示してください。",
-    "range": {
-      "end": {
-        "character": 26,
-        "line": 301,
-      },
-      "start": {
-        "character": 22,
-        "line": 301,
-      },
-    },
-  },
-  {
-    "code": "ambiguous-term",
-    "message": "曖昧な表現「少人数」が使用されています。人数を具体的な数値で示してください。",
-    "range": {
-      "end": {
-        "character": 31,
-        "line": 301,
-      },
-      "start": {
-        "character": 28,
-        "line": 301,
-      },
-    },
-  },
-  {
-    "code": "ambiguous-term",
-    "message": "曖昧な表現「早めに」が使用されています。期限を具体的な日時で示してください。",
-    "range": {
-      "end": {
         "character": 18,
-        "line": 895,
+        "line": 259,
       },
       "start": {
         "character": 15,
-        "line": 895,
-      },
-    },
-  },
-  {
-    "code": "beki-usage",
-    "message": "「するべき」は「すべき」に統一することを推奨します。",
-    "range": {
-      "end": {
-        "character": 25,
-        "line": 302,
-      },
-      "start": {
-        "character": 21,
-        "line": 302,
+        "line": 259,
       },
     },
   },
@@ -78,179 +22,39 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 35,
-        "line": 896,
+        "line": 260,
       },
       "start": {
         "character": 31,
-        "line": 896,
-      },
-    },
-  },
-  {
-    "code": "bracket-quote-mismatch",
-    "message": "閉じ括弧「）」に対応する開き括弧「（」がありません。",
-    "range": {
-      "end": {
-        "character": 121,
-        "line": 779,
-      },
-      "start": {
-        "character": 120,
-        "line": 779,
-      },
-    },
-  },
-  {
-    "code": "bracket-quote-mismatch",
-    "message": "閉じ括弧「）」に対応する開き括弧「（」がありません。",
-    "range": {
-      "end": {
-        "character": 142,
-        "line": 779,
-      },
-      "start": {
-        "character": 141,
-        "line": 779,
-      },
-    },
-  },
-  {
-    "code": "bullet-punctuation",
-    "message": "文の箇条書きには句点「。」を付けるのが一般的です。（根拠: 公用文作成の考え方）",
-    "range": {
-      "end": {
-        "character": 57,
-        "line": 5,
-      },
-      "start": {
-        "character": 56,
-        "line": 5,
-      },
-    },
-  },
-  {
-    "code": "bullet-punctuation",
-    "message": "文の箇条書きには句点「。」を付けるのが一般的です。（根拠: 公用文作成の考え方）",
-    "range": {
-      "end": {
-        "character": 4,
-        "line": 421,
-      },
-      "start": {
-        "character": 3,
-        "line": 421,
-      },
-    },
-  },
-  {
-    "code": "bullet-punctuation",
-    "message": "文の箇条書きには句点「。」を付けるのが一般的です。（根拠: 公用文作成の考え方）",
-    "range": {
-      "end": {
-        "character": 12,
-        "line": 483,
-      },
-      "start": {
-        "character": 11,
-        "line": 483,
-      },
-    },
-  },
-  {
-    "code": "bullet-punctuation",
-    "message": "文の箇条書きには句点「。」を付けるのが一般的です。（根拠: 公用文作成の考え方）",
-    "range": {
-      "end": {
-        "character": 29,
-        "line": 484,
-      },
-      "start": {
-        "character": 28,
-        "line": 484,
-      },
-    },
-  },
-  {
-    "code": "bullet-punctuation",
-    "message": "文の箇条書きには句点「。」を付けるのが一般的です。（根拠: 公用文作成の考え方）",
-    "range": {
-      "end": {
-        "character": 12,
-        "line": 491,
-      },
-      "start": {
-        "character": 11,
-        "line": 491,
-      },
-    },
-  },
-  {
-    "code": "bullet-punctuation",
-    "message": "文の箇条書きには句点「。」を付けるのが一般的です。（根拠: 公用文作成の考え方）",
-    "range": {
-      "end": {
-        "character": 30,
-        "line": 492,
-      },
-      "start": {
-        "character": 29,
-        "line": 492,
-      },
-    },
-  },
-  {
-    "code": "bullet-punctuation",
-    "message": "文の箇条書きには句点「。」を付けるのが一般的です。（根拠: 公用文作成の考え方）",
-    "range": {
-      "end": {
-        "character": 44,
-        "line": 717,
-      },
-      "start": {
-        "character": 43,
-        "line": 717,
-      },
-    },
-  },
-  {
-    "code": "bullet-punctuation",
-    "message": "文の箇条書きには句点「。」を付けるのが一般的です。（根拠: 公用文作成の考え方）",
-    "range": {
-      "end": {
-        "character": 29,
-        "line": 718,
-      },
-      "start": {
-        "character": 28,
-        "line": 718,
+        "line": 260,
       },
     },
   },
   {
     "code": "bullet-style-mix",
-    "message": "箇条書き記号が混在しています。・（1箇所）と-（36箇所）と*（1箇所）が使用されています。どれかに統一してください。 文書全体では「hyphen」が支配的です。",
+    "message": "箇条書き記号が混在しています。・（1箇所）と-（27箇所）と*（1箇所）が使用されています。どれかに統一してください。 文書全体では「hyphen」が支配的です。",
     "range": {
       "end": {
         "character": 22,
-        "line": 916,
+        "line": 280,
       },
       "start": {
         "character": 21,
-        "line": 916,
+        "line": 280,
       },
     },
   },
   {
     "code": "bullet-style-mix",
-    "message": "箇条書き記号が混在しています。・（1箇所）と-（36箇所）と*（1箇所）が使用されています。どれかに統一してください。 文書全体では「hyphen」が支配的です。",
+    "message": "箇条書き記号が混在しています。・（1箇所）と-（27箇所）と*（1箇所）が使用されています。どれかに統一してください。 文書全体では「hyphen」が支配的です。",
     "range": {
       "end": {
         "character": 33,
-        "line": 916,
+        "line": 280,
       },
       "start": {
         "character": 32,
-        "line": 916,
+        "line": 280,
       },
     },
   },
@@ -260,11 +64,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 29,
-        "line": 923,
+        "line": 287,
       },
       "start": {
         "character": 26,
-        "line": 923,
+        "line": 287,
       },
     },
   },
@@ -273,54 +77,68 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "message": "1文中に読点が8個使用されています（閾値: 4個）。文を分割することを検討してください。",
     "range": {
       "end": {
-        "character": 46,
-        "line": 80,
+        "character": 88,
+        "line": 25,
       },
       "start": {
         "character": 0,
-        "line": 80,
+        "line": 25,
       },
     },
   },
   {
     "code": "comma-count",
-    "message": "1文中に読点が9個使用されています（閾値: 4個）。文を分割することを検討してください。",
-    "range": {
-      "end": {
-        "character": 36,
-        "line": 352,
-      },
-      "start": {
-        "character": 0,
-        "line": 352,
-      },
-    },
-  },
-  {
-    "code": "dash-tilde-normalization",
-    "message": "範囲表現「100-0001」のハイフンマイナスは、波ダッシュ「〜」に統一することを推奨します。",
-    "range": {
-      "end": {
-        "character": 23,
-        "line": 349,
-      },
-      "start": {
-        "character": 15,
-        "line": 349,
-      },
-    },
-  },
-  {
-    "code": "dash-tilde-normalization",
-    "message": "範囲表現「0-100」のハイフンマイナスは、波ダッシュ「〜」に統一することを推奨します。",
+    "message": "1文中に読点が6個使用されています（閾値: 4個）。文を分割することを検討してください。",
     "range": {
       "end": {
         "character": 66,
-        "line": 629,
+        "line": 46,
       },
       "start": {
-        "character": 61,
-        "line": 629,
+        "character": 2,
+        "line": 46,
+      },
+    },
+  },
+  {
+    "code": "comma-count",
+    "message": "1文中に読点が5個使用されています（閾値: 4個）。文を分割することを検討してください。",
+    "range": {
+      "end": {
+        "character": 68,
+        "line": 47,
+      },
+      "start": {
+        "character": 2,
+        "line": 47,
+      },
+    },
+  },
+  {
+    "code": "comma-count",
+    "message": "1文中に読点が8個使用されています（閾値: 4個）。文を分割することを検討してください。",
+    "range": {
+      "end": {
+        "character": 65,
+        "line": 48,
+      },
+      "start": {
+        "character": 2,
+        "line": 48,
+      },
+    },
+  },
+  {
+    "code": "comma-count",
+    "message": "1文中に読点が6個使用されています（閾値: 4個）。文を分割することを検討してください。",
+    "range": {
+      "end": {
+        "character": 76,
+        "line": 50,
+      },
+      "start": {
+        "character": 2,
+        "line": 50,
       },
     },
   },
@@ -330,81 +148,39 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 43,
-        "line": 910,
+        "line": 274,
       },
       "start": {
         "character": 33,
-        "line": 910,
+        "line": 274,
       },
     },
   },
   {
     "code": "dash-tilde-normalization",
-    "message": "範囲表現「2025-12」のハイフンマイナスは、波ダッシュ「〜」に統一することを推奨します。",
+    "message": "範囲表現「2026-06」のハイフンマイナスは、波ダッシュ「〜」に統一することを推奨します。",
     "range": {
       "end": {
         "character": 21,
-        "line": 939,
+        "line": 304,
       },
       "start": {
         "character": 14,
-        "line": 939,
-      },
-    },
-  },
-  {
-    "code": "double-negation",
-    "message": "二重否定「ないわけではない」が検出されました。わかりにくい表現になる可能性があります。",
-    "range": {
-      "end": {
-        "character": 9,
-        "line": 54,
-      },
-      "start": {
-        "character": 1,
-        "line": 54,
-      },
-    },
-  },
-  {
-    "code": "double-negation",
-    "message": "二重否定「ないことはない」が検出されました。わかりにくい表現になる可能性があります。",
-    "range": {
-      "end": {
-        "character": 18,
-        "line": 54,
-      },
-      "start": {
-        "character": 11,
-        "line": 54,
-      },
-    },
-  },
-  {
-    "code": "double-particle",
-    "message": "二重助詞「がが」が検出されました。「が」を1つにしてください。",
-    "range": {
-      "end": {
-        "character": 16,
-        "line": 21,
-      },
-      "start": {
-        "character": 14,
-        "line": 21,
+        "line": 304,
       },
     },
   },
   {
     "code": "emphasis-style-mix",
-    "message": "強調記号のスタイルが混在しています。**（33箇所）と__（1箇所）が使用されています。どちらかに統一してください。 文書全体では「asterisk」が支配的です。",
+    "message": "強調記号のスタイルが混在しています。**（38箇所）と__（1箇所）が使用されています。どちらかに統一してください。 文書全体では「asterisk」が支配的です。",
     "range": {
       "end": {
         "character": 27,
-        "line": 917,
+        "line": 281,
       },
       "start": {
         "character": 26,
-        "line": 917,
+        "line": 281,
       },
     },
   },
@@ -414,11 +190,25 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 24,
-        "line": 905,
+        "line": 269,
       },
       "start": {
         "character": 16,
-        "line": 905,
+        "line": 269,
+      },
+    },
+  },
+  {
+    "code": "heading-level-skip",
+    "message": "見出しレベルが飛んでいます。h2の次にh4が使用されています。h3を使用してください。",
+    "range": {
+      "end": {
+        "character": 4,
+        "line": 137,
+      },
+      "start": {
+        "character": 0,
+        "line": 137,
       },
     },
   },
@@ -428,95 +218,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 31,
-        "line": 921,
+        "line": 285,
       },
       "start": {
         "character": 28,
-        "line": 921,
-      },
-    },
-  },
-  {
-    "code": "jouyou-kanji",
-    "message": "「閾」は常用漢字表にありません。ひらがな表記への書き換えを検討してください。（根拠: 常用漢字表 平成22年内閣告示第2号）",
-    "range": {
-      "end": {
-        "character": 1,
-        "line": 246,
-      },
-      "start": {
-        "character": 0,
-        "line": 246,
-      },
-    },
-  },
-  {
-    "code": "jouyou-kanji",
-    "message": "「閾」は常用漢字表にありません。ひらがな表記への書き換えを検討してください。（根拠: 常用漢字表 平成22年内閣告示第2号）",
-    "range": {
-      "end": {
-        "character": 1,
-        "line": 259,
-      },
-      "start": {
-        "character": 0,
-        "line": 259,
-      },
-    },
-  },
-  {
-    "code": "jouyou-kanji",
-    "message": "「閾」は常用漢字表にありません。ひらがな表記への書き換えを検討してください。（根拠: 常用漢字表 平成22年内閣告示第2号）",
-    "range": {
-      "end": {
-        "character": 1,
-        "line": 270,
-      },
-      "start": {
-        "character": 0,
-        "line": 270,
-      },
-    },
-  },
-  {
-    "code": "jouyou-kanji",
-    "message": "「國」は常用漢字表にありません。新字体「国」への書き換えを検討してください。（根拠: 常用漢字表 平成22年内閣告示第2号）",
-    "range": {
-      "end": {
-        "character": 27,
-        "line": 352,
-      },
-      "start": {
-        "character": 26,
-        "line": 352,
-      },
-    },
-  },
-  {
-    "code": "jouyou-kanji",
-    "message": "「龍」は常用漢字表にありません。新字体「竜」への書き換えを検討してください。（根拠: 常用漢字表 平成22年内閣告示第2号）",
-    "range": {
-      "end": {
-        "character": 29,
-        "line": 352,
-      },
-      "start": {
-        "character": 28,
-        "line": 352,
-      },
-    },
-  },
-  {
-    "code": "jouyou-kanji",
-    "message": "「髙」は常用漢字表にありません。新字体「高」への書き換えを検討してください。（根拠: 常用漢字表 平成22年内閣告示第2号）",
-    "range": {
-      "end": {
-        "character": 33,
-        "line": 352,
-      },
-      "start": {
-        "character": 32,
-        "line": 352,
+        "line": 285,
       },
     },
   },
@@ -525,12 +231,12 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "message": "「梱」は常用漢字表にありません。ひらがな表記への書き換えを検討してください。（根拠: 常用漢字表 平成22年内閣告示第2号）",
     "range": {
       "end": {
-        "character": 9,
-        "line": 468,
+        "character": 41,
+        "line": 55,
       },
       "start": {
-        "character": 8,
-        "line": 468,
+        "character": 40,
+        "line": 55,
       },
     },
   },
@@ -539,194 +245,40 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "message": "「省」は常用漢字表にありません。ひらがな表記への書き換えを検討してください。（根拠: 常用漢字表 平成22年内閣告示第2号）",
     "range": {
       "end": {
-        "character": 52,
-        "line": 799,
+        "character": 91,
+        "line": 135,
       },
       "start": {
-        "character": 51,
-        "line": 799,
+        "character": 90,
+        "line": 135,
       },
     },
   },
   {
     "code": "jouyou-kanji",
-    "message": "「省」は常用漢字表にありません。ひらがな表記への書き換えを検討してください。（根拠: 常用漢字表 平成22年内閣告示第2号）",
+    "message": "「梱」は常用漢字表にありません。ひらがな表記への書き換えを検討してください。（根拠: 常用漢字表 平成22年内閣告示第2号）",
     "range": {
       "end": {
-        "character": 59,
-        "line": 799,
+        "character": 7,
+        "line": 180,
       },
       "start": {
-        "character": 58,
-        "line": 799,
+        "character": 6,
+        "line": 180,
       },
     },
   },
   {
-    "code": "kanji-opening",
-    "message": "漢字「及び」はひらがな「および」で表記することが推奨されます。",
-    "range": {
-      "end": {
-        "character": 25,
-        "line": 10,
-      },
-      "start": {
-        "character": 23,
-        "line": 10,
-      },
-    },
-  },
-  {
-    "code": "kanji-opening",
-    "message": "漢字「並びに」はひらがな「ならびに」で表記することが推奨されます。",
-    "range": {
-      "end": {
-        "character": 29,
-        "line": 10,
-      },
-      "start": {
-        "character": 26,
-        "line": 10,
-      },
-    },
-  },
-  {
-    "code": "kanji-opening",
-    "message": "漢字「又は」はひらがな「または」で表記することが推奨されます。",
+    "code": "jouyou-kanji",
+    "message": "「梱」は常用漢字表にありません。ひらがな表記への書き換えを検討してください。（根拠: 常用漢字表 平成22年内閣告示第2号）",
     "range": {
       "end": {
         "character": 33,
-        "line": 10,
+        "line": 184,
       },
       "start": {
-        "character": 31,
-        "line": 10,
-      },
-    },
-  },
-  {
-    "code": "kanji-opening",
-    "message": "漢字「若しくは」はひらがな「もしくは」で表記することが推奨されます。",
-    "range": {
-      "end": {
-        "character": 38,
-        "line": 10,
-      },
-      "start": {
-        "character": 34,
-        "line": 10,
-      },
-    },
-  },
-  {
-    "code": "kanji-opening",
-    "message": "漢字「及び」はひらがな「および」で表記することが推奨されます。",
-    "range": {
-      "end": {
-        "character": 11,
-        "line": 359,
-      },
-      "start": {
-        "character": 9,
-        "line": 359,
-      },
-    },
-  },
-  {
-    "code": "kanji-opening",
-    "message": "漢字「並びに」はひらがな「ならびに」で表記することが推奨されます。",
-    "range": {
-      "end": {
-        "character": 15,
-        "line": 359,
-      },
-      "start": {
-        "character": 12,
-        "line": 359,
-      },
-    },
-  },
-  {
-    "code": "kanji-opening",
-    "message": "漢字「及び」はひらがな「および」で表記することが推奨されます。",
-    "range": {
-      "end": {
-        "character": 13,
-        "line": 361,
-      },
-      "start": {
-        "character": 11,
-        "line": 361,
-      },
-    },
-  },
-  {
-    "code": "kanji-opening",
-    "message": "漢字「並びに」はひらがな「ならびに」で表記することが推奨されます。",
-    "range": {
-      "end": {
-        "character": 18,
-        "line": 361,
-      },
-      "start": {
-        "character": 15,
-        "line": 361,
-      },
-    },
-  },
-  {
-    "code": "kanji-opening",
-    "message": "漢字「又は」はひらがな「または」で表記することが推奨されます。",
-    "range": {
-      "end": {
-        "character": 11,
-        "line": 371,
-      },
-      "start": {
-        "character": 9,
-        "line": 371,
-      },
-    },
-  },
-  {
-    "code": "kanji-opening",
-    "message": "漢字「若しくは」はひらがな「もしくは」で表記することが推奨されます。",
-    "range": {
-      "end": {
-        "character": 16,
-        "line": 371,
-      },
-      "start": {
-        "character": 12,
-        "line": 371,
-      },
-    },
-  },
-  {
-    "code": "kanji-opening",
-    "message": "漢字「又は」はひらがな「または」で表記することが推奨されます。",
-    "range": {
-      "end": {
-        "character": 13,
-        "line": 373,
-      },
-      "start": {
-        "character": 11,
-        "line": 373,
-      },
-    },
-  },
-  {
-    "code": "kanji-opening",
-    "message": "漢字「若しくは」はひらがな「もしくは」で表記することが推奨されます。",
-    "range": {
-      "end": {
-        "character": 19,
-        "line": 373,
-      },
-      "start": {
-        "character": 15,
-        "line": 373,
+        "character": 32,
+        "line": 184,
       },
     },
   },
@@ -735,54 +287,110 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "message": "漢字「物」はひらがな「もの」で表記することが推奨されます。",
     "range": {
       "end": {
-        "character": 7,
-        "line": 661,
+        "character": 24,
+        "line": 47,
       },
       "start": {
-        "character": 6,
-        "line": 661,
-      },
-    },
-  },
-  {
-    "code": "katakana-chouon",
-    "message": "カタカナ表記「カテゴリ」は「カテゴリー」が標準的です。",
-    "range": {
-      "end": {
-        "character": 90,
-        "line": 9,
-      },
-      "start": {
-        "character": 86,
-        "line": 9,
-      },
-    },
-  },
-  {
-    "code": "katakana-chouon",
-    "message": "カタカナ表記「カテゴリ」は「カテゴリー」が標準的です。",
-    "range": {
-      "end": {
-        "character": 6,
-        "line": 291,
-      },
-      "start": {
-        "character": 2,
-        "line": 291,
-      },
-    },
-  },
-  {
-    "code": "katakana-chouon",
-    "message": "カタカナ表記「サーバ」は「サーバー」が標準的です。",
-    "range": {
-      "end": {
         "character": 23,
-        "line": 309,
+        "line": 47,
+      },
+    },
+  },
+  {
+    "code": "kanji-opening",
+    "message": "漢字「物」はひらがな「もの」で表記することが推奨されます。",
+    "range": {
+      "end": {
+        "character": 43,
+        "line": 48,
+      },
+      "start": {
+        "character": 42,
+        "line": 48,
+      },
+    },
+  },
+  {
+    "code": "kanji-opening",
+    "message": "漢字「及び」はひらがな「および」で表記することが推奨されます。",
+    "range": {
+      "end": {
+        "character": 22,
+        "line": 49,
       },
       "start": {
         "character": 20,
-        "line": 309,
+        "line": 49,
+      },
+    },
+  },
+  {
+    "code": "kanji-opening",
+    "message": "漢字「並びに」はひらがな「ならびに」で表記することが推奨されます。",
+    "range": {
+      "end": {
+        "character": 26,
+        "line": 49,
+      },
+      "start": {
+        "character": 23,
+        "line": 49,
+      },
+    },
+  },
+  {
+    "code": "kanji-opening",
+    "message": "漢字「又は」はひらがな「または」で表記することが推奨されます。",
+    "range": {
+      "end": {
+        "character": 30,
+        "line": 49,
+      },
+      "start": {
+        "character": 28,
+        "line": 49,
+      },
+    },
+  },
+  {
+    "code": "kanji-opening",
+    "message": "漢字「若しくは」はひらがな「もしくは」で表記することが推奨されます。",
+    "range": {
+      "end": {
+        "character": 35,
+        "line": 49,
+      },
+      "start": {
+        "character": 31,
+        "line": 49,
+      },
+    },
+  },
+  {
+    "code": "katakana-chouon",
+    "message": "カタカナ表記「カテゴリ」は「カテゴリー」が標準的です。",
+    "range": {
+      "end": {
+        "character": 56,
+        "line": 48,
+      },
+      "start": {
+        "character": 52,
+        "line": 48,
+      },
+    },
+  },
+  {
+    "code": "katakana-chouon",
+    "message": "カタカナ表記「リーダ」は「リーダー」が標準的です。",
+    "range": {
+      "end": {
+        "character": 26,
+        "line": 111,
+      },
+      "start": {
+        "character": 23,
+        "line": 111,
       },
     },
   },
@@ -792,11 +400,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 13,
-        "line": 425,
+        "line": 137,
       },
       "start": {
         "character": 9,
-        "line": 425,
+        "line": 137,
       },
     },
   },
@@ -806,11 +414,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 43,
-        "line": 427,
+        "line": 139,
       },
       "start": {
         "character": 39,
-        "line": 427,
+        "line": 139,
       },
     },
   },
@@ -820,11 +428,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 30,
-        "line": 434,
+        "line": 146,
       },
       "start": {
         "character": 27,
-        "line": 434,
+        "line": 146,
       },
     },
   },
@@ -834,11 +442,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 33,
-        "line": 435,
+        "line": 147,
       },
       "start": {
         "character": 29,
-        "line": 435,
+        "line": 147,
       },
     },
   },
@@ -848,11 +456,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 21,
-        "line": 445,
+        "line": 157,
       },
       "start": {
         "character": 15,
-        "line": 445,
+        "line": 157,
       },
     },
   },
@@ -862,11 +470,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 24,
-        "line": 451,
+        "line": 163,
       },
       "start": {
         "character": 20,
-        "line": 451,
+        "line": 163,
       },
     },
   },
@@ -876,11 +484,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 46,
-        "line": 451,
+        "line": 163,
       },
       "start": {
         "character": 42,
-        "line": 451,
+        "line": 163,
       },
     },
   },
@@ -890,11 +498,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 52,
-        "line": 453,
+        "line": 165,
       },
       "start": {
         "character": 47,
-        "line": 453,
+        "line": 165,
       },
     },
   },
@@ -904,11 +512,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 45,
-        "line": 462,
+        "line": 174,
       },
       "start": {
         "character": 42,
-        "line": 462,
+        "line": 174,
       },
     },
   },
@@ -917,124 +525,26 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "message": "カタカナ表記「カテゴリ」は「カテゴリー」が標準的です。",
     "range": {
       "end": {
-        "character": 164,
-        "line": 468,
+        "character": 70,
+        "line": 180,
       },
       "start": {
-        "character": 160,
-        "line": 468,
-      },
-    },
-  },
-  {
-    "code": "katakana-chouon",
-    "message": "カタカナ表記「カテゴリ」は「カテゴリー」が標準的です。",
-    "range": {
-      "end": {
-        "character": 54,
-        "line": 517,
-      },
-      "start": {
-        "character": 50,
-        "line": 517,
-      },
-    },
-  },
-  {
-    "code": "katakana-chouon",
-    "message": "カタカナ表記「カテゴリ」は「カテゴリー」が標準的です。",
-    "range": {
-      "end": {
         "character": 66,
-        "line": 517,
-      },
-      "start": {
-        "character": 62,
-        "line": 517,
+        "line": 180,
       },
     },
   },
   {
     "code": "katakana-chouon",
-    "message": "カタカナ表記「カテゴリ」は「カテゴリー」が標準的です。",
+    "message": "カタカナ表記「セキュリティ」は「セキュリティー」が標準的です。",
     "range": {
       "end": {
-        "character": 59,
-        "line": 518,
+        "character": 9,
+        "line": 182,
       },
       "start": {
-        "character": 55,
-        "line": 518,
-      },
-    },
-  },
-  {
-    "code": "katakana-chouon",
-    "message": "カタカナ表記「メモリ」は「メモリー」が標準的です。",
-    "range": {
-      "end": {
-        "character": 106,
-        "line": 596,
-      },
-      "start": {
-        "character": 103,
-        "line": 596,
-      },
-    },
-  },
-  {
-    "code": "katakana-chouon",
-    "message": "カタカナ表記「リーダ」は「リーダー」が標準的です。",
-    "range": {
-      "end": {
-        "character": 55,
-        "line": 666,
-      },
-      "start": {
-        "character": 52,
-        "line": 666,
-      },
-    },
-  },
-  {
-    "code": "katakana-chouon",
-    "message": "カタカナ表記「サーバ」は「サーバー」が標準的です。",
-    "range": {
-      "end": {
-        "character": 61,
-        "line": 780,
-      },
-      "start": {
-        "character": 58,
-        "line": 780,
-      },
-    },
-  },
-  {
-    "code": "katakana-chouon",
-    "message": "カタカナ表記「カテゴリ」は「カテゴリー」が標準的です。",
-    "range": {
-      "end": {
-        "character": 19,
-        "line": 846,
-      },
-      "start": {
-        "character": 15,
-        "line": 846,
-      },
-    },
-  },
-  {
-    "code": "katakana-chouon",
-    "message": "カタカナ表記「レジストリ」は「レジストリー」が標準的です。",
-    "range": {
-      "end": {
-        "character": 48,
-        "line": 846,
-      },
-      "start": {
-        "character": 43,
-        "line": 846,
+        "character": 3,
+        "line": 182,
       },
     },
   },
@@ -1044,11 +554,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 21,
-        "line": 904,
+        "line": 268,
       },
       "start": {
         "character": 18,
-        "line": 904,
+        "line": 268,
       },
     },
   },
@@ -1058,109 +568,67 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 7,
-        "line": 932,
+        "line": 296,
       },
       "start": {
         "character": 4,
-        "line": 932,
+        "line": 296,
       },
     },
   },
   {
     "code": "katakana-chouon",
-    "message": "カタカナ表記「レジストリ」は「レジストリー」が標準的です。",
+    "message": "カタカナ表記「メモリ」は「メモリー」が標準的です。",
     "range": {
       "end": {
-        "character": 97,
-        "line": 947,
+        "character": 104,
+        "line": 314,
       },
       "start": {
-        "character": 92,
-        "line": 947,
+        "character": 101,
+        "line": 314,
       },
     },
   },
   {
     "code": "katakana-chouon",
-    "message": "カタカナ表記「カテゴリ」は「カテゴリー」が標準的です。",
+    "message": "カタカナ表記「フォルダ」は「フォルダー」が標準的です。",
     "range": {
       "end": {
-        "character": 111,
-        "line": 947,
+        "character": 105,
+        "line": 316,
       },
       "start": {
-        "character": 107,
-        "line": 947,
-      },
-    },
-  },
-  {
-    "code": "katakana-chouon",
-    "message": "カタカナ表記「ハンドラ」は「ハンドラー」が標準的です。",
-    "range": {
-      "end": {
-        "character": 30,
-        "line": 956,
-      },
-      "start": {
-        "character": 26,
-        "line": 956,
+        "character": 101,
+        "line": 316,
       },
     },
   },
   {
     "code": "long-sentence",
-    "message": "文が長すぎます（169文字、閾値: 120文字）。文の分割を検討してください。",
+    "message": "文が長すぎます（187文字、閾値: 120文字）。文の分割を検討してください。",
     "range": {
       "end": {
-        "character": 229,
-        "line": 49,
+        "character": 189,
+        "line": 7,
       },
       "start": {
-        "character": 60,
-        "line": 49,
+        "character": 2,
+        "line": 7,
       },
     },
   },
   {
     "code": "long-sentence",
-    "message": "文が長すぎます（246文字、閾値: 120文字）。文の分割を検討してください。",
+    "message": "文が長すぎます（318文字、閾値: 120文字）。文の分割を検討してください。",
     "range": {
       "end": {
-        "character": 286,
-        "line": 50,
-      },
-      "start": {
-        "character": 40,
-        "line": 50,
-      },
-    },
-  },
-  {
-    "code": "long-sentence",
-    "message": "文が長すぎます（129文字、閾値: 120文字）。文の分割を検討してください。",
-    "range": {
-      "end": {
-        "character": 129,
-        "line": 468,
+        "character": 318,
+        "line": 330,
       },
       "start": {
         "character": 0,
-        "line": 468,
-      },
-    },
-  },
-  {
-    "code": "long-sentence",
-    "message": "文が長すぎます（139文字、閾値: 120文字）。文の分割を検討してください。",
-    "range": {
-      "end": {
-        "character": 142,
-        "line": 779,
-      },
-      "start": {
-        "character": 3,
-        "line": 779,
+        "line": 330,
       },
     },
   },
@@ -1169,26 +637,12 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "message": "主語が明示されていない可能性があります。主語を明示することを検討してください",
     "range": {
       "end": {
-        "character": 21,
-        "line": 2,
+        "character": 17,
+        "line": 75,
       },
       "start": {
         "character": 0,
-        "line": 2,
-      },
-    },
-  },
-  {
-    "code": "missing-subject",
-    "message": "主語が明示されていない可能性があります。主語を明示することを検討してください",
-    "range": {
-      "end": {
-        "character": 10,
-        "line": 392,
-      },
-      "start": {
-        "character": 0,
-        "line": 392,
+        "line": 75,
       },
     },
   },
@@ -1198,11 +652,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 49,
-        "line": 427,
+        "line": 139,
       },
       "start": {
         "character": 34,
-        "line": 427,
+        "line": 139,
       },
     },
   },
@@ -1211,26 +665,54 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "message": "主語が明示されていない可能性があります。主語を明示することを検討してください",
     "range": {
       "end": {
-        "character": 52,
-        "line": 633,
+        "character": 92,
+        "line": 223,
       },
       "start": {
-        "character": 31,
-        "line": 633,
+        "character": 76,
+        "line": 223,
       },
     },
   },
   {
-    "code": "missing-subject",
-    "message": "主語が明示されていない可能性があります。主語を明示することを検討してください",
+    "code": "monotonous-ending",
+    "message": "文末「ます」が5回連続しています（閾値: 3回）。表現を多様化してください。",
     "range": {
       "end": {
-        "character": 81,
-        "line": 846,
+        "character": 44,
+        "line": 36,
       },
       "start": {
-        "character": 70,
-        "line": 846,
+        "character": 3,
+        "line": 31,
+      },
+    },
+  },
+  {
+    "code": "monotonous-ending",
+    "message": "文末「ます」が10回連続しています（閾値: 3回）。表現を多様化してください。",
+    "range": {
+      "end": {
+        "character": 64,
+        "line": 55,
+      },
+      "start": {
+        "character": 2,
+        "line": 46,
+      },
+    },
+  },
+  {
+    "code": "monotonous-ending",
+    "message": "文末「ます」が4回連続しています（閾値: 3回）。表現を多様化してください。",
+    "range": {
+      "end": {
+        "character": 108,
+        "line": 61,
+      },
+      "start": {
+        "character": 0,
+        "line": 59,
       },
     },
   },
@@ -1239,12 +721,26 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "message": "文末「ます」が3回連続しています（閾値: 3回）。表現を多様化してください。",
     "range": {
       "end": {
-        "character": 107,
-        "line": 799,
+        "character": 54,
+        "line": 102,
       },
       "start": {
-        "character": 18,
-        "line": 799,
+        "character": 0,
+        "line": 86,
+      },
+    },
+  },
+  {
+    "code": "monotonous-ending",
+    "message": "文末「ます」が3回連続しています（閾値: 3回）。表現を多様化してください。",
+    "range": {
+      "end": {
+        "character": 99,
+        "line": 186,
+      },
+      "start": {
+        "character": 2,
+        "line": 184,
       },
     },
   },
@@ -1254,25 +750,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 22,
-        "line": 911,
+        "line": 275,
       },
       "start": {
         "character": 20,
-        "line": 911,
-      },
-    },
-  },
-  {
-    "code": "no-particle-chain",
-    "message": "助詞「の」が6回連続しています（閾値: 3回）。文の書き換えを検討してください。",
-    "range": {
-      "end": {
-        "character": 280,
-        "line": 50,
-      },
-      "start": {
-        "character": 229,
-        "line": 50,
+        "line": 275,
       },
     },
   },
@@ -1281,68 +763,12 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "message": "名詞が連続して読みにくくなっています。名詞の間に助詞を挿入して読みやすくしてください",
     "range": {
       "end": {
-        "character": 18,
-        "line": 2,
+        "character": 55,
+        "line": 51,
       },
       "start": {
-        "character": 0,
-        "line": 2,
-      },
-    },
-  },
-  {
-    "code": "noun-chain",
-    "message": "名詞が連続して読みにくくなっています。名詞の間に助詞を挿入して読みやすくしてください",
-    "range": {
-      "end": {
-        "character": 139,
-        "line": 779,
-      },
-      "start": {
-        "character": 128,
-        "line": 779,
-      },
-    },
-  },
-  {
-    "code": "noun-chain",
-    "message": "名詞が連続して読みにくくなっています。名詞の間に助詞を挿入して読みやすくしてください",
-    "range": {
-      "end": {
-        "character": 40,
-        "line": 947,
-      },
-      "start": {
-        "character": 31,
-        "line": 947,
-      },
-    },
-  },
-  {
-    "code": "noun-chain",
-    "message": "名詞が連続して読みにくくなっています。名詞の間に助詞を挿入して読みやすくしてください",
-    "range": {
-      "end": {
-        "character": 101,
-        "line": 969,
-      },
-      "start": {
-        "character": 79,
-        "line": 969,
-      },
-    },
-  },
-  {
-    "code": "okurigana-variant",
-    "message": "送り仮名「下さい」は「ください」が標準的な表記です。",
-    "range": {
-      "end": {
-        "character": 5,
-        "line": 201,
-      },
-      "start": {
-        "character": 2,
-        "line": 201,
+        "character": 42,
+        "line": 51,
       },
     },
   },
@@ -1351,68 +777,12 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "message": "送り仮名「致し」は「いたし」が標準的な表記です。",
     "range": {
       "end": {
-        "character": 4,
-        "line": 206,
+        "character": 16,
+        "line": 180,
       },
       "start": {
-        "character": 2,
-        "line": 206,
-      },
-    },
-  },
-  {
-    "code": "okurigana-variant",
-    "message": "送り仮名「頂く」は「いただく」が標準的な表記です。",
-    "range": {
-      "end": {
-        "character": 4,
-        "line": 207,
-      },
-      "start": {
-        "character": 2,
-        "line": 207,
-      },
-    },
-  },
-  {
-    "code": "okurigana-variant",
-    "message": "送り仮名「頂き」は「いただき」が標準的な表記です。",
-    "range": {
-      "end": {
-        "character": 4,
-        "line": 208,
-      },
-      "start": {
-        "character": 2,
-        "line": 208,
-      },
-    },
-  },
-  {
-    "code": "okurigana-variant",
-    "message": "送り仮名「表わす」は「表す」が標準的な表記です。",
-    "range": {
-      "end": {
-        "character": 24,
-        "line": 306,
-      },
-      "start": {
-        "character": 21,
-        "line": 306,
-      },
-    },
-  },
-  {
-    "code": "okurigana-variant",
-    "message": "送り仮名「致し」は「いたし」が標準的な表記です。",
-    "range": {
-      "end": {
-        "character": 88,
-        "line": 468,
-      },
-      "start": {
-        "character": 86,
-        "line": 468,
+        "character": 14,
+        "line": 180,
       },
     },
   },
@@ -1422,11 +792,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 23,
-        "line": 882,
+        "line": 246,
       },
       "start": {
         "character": 20,
-        "line": 882,
+        "line": 246,
       },
     },
   },
@@ -1436,11 +806,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 27,
-        "line": 901,
+        "line": 265,
       },
       "start": {
         "character": 24,
-        "line": 901,
+        "line": 265,
       },
     },
   },
@@ -1450,333 +820,25 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 49,
-        "line": 915,
+        "line": 279,
       },
       "start": {
         "character": 47,
-        "line": 915,
+        "line": 279,
       },
     },
   },
   {
     "code": "orthography-variant",
-    "message": "表記「及び」は「および」に統一することが推奨されます。",
-    "range": {
-      "end": {
-        "character": 25,
-        "line": 10,
-      },
-      "start": {
-        "character": 23,
-        "line": 10,
-      },
-    },
-  },
-  {
-    "code": "orthography-variant",
-    "message": "表記「並びに」は「ならびに」に統一することが推奨されます。",
-    "range": {
-      "end": {
-        "character": 29,
-        "line": 10,
-      },
-      "start": {
-        "character": 26,
-        "line": 10,
-      },
-    },
-  },
-  {
-    "code": "orthography-variant",
-    "message": "表記「又」は「また」に統一することが推奨されます。",
-    "range": {
-      "end": {
-        "character": 32,
-        "line": 10,
-      },
-      "start": {
-        "character": 31,
-        "line": 10,
-      },
-    },
-  },
-  {
-    "code": "orthography-variant",
-    "message": "表記「若しくは」は「もしくは」に統一することが推奨されます。",
-    "range": {
-      "end": {
-        "character": 38,
-        "line": 10,
-      },
-      "start": {
-        "character": 34,
-        "line": 10,
-      },
-    },
-  },
-  {
-    "code": "orthography-variant",
-    "message": "表記「下さい」は「ください」に統一することが推奨されます。",
-    "range": {
-      "end": {
-        "character": 5,
-        "line": 201,
-      },
-      "start": {
-        "character": 2,
-        "line": 201,
-      },
-    },
-  },
-  {
-    "code": "orthography-variant",
-    "message": "表記「出来る」は「できる」に統一することが推奨されます。",
-    "range": {
-      "end": {
-        "character": 5,
-        "line": 202,
-      },
-      "start": {
-        "character": 2,
-        "line": 202,
-      },
-    },
-  },
-  {
-    "code": "orthography-variant",
-    "message": "表記「出来ます」は「できます」に統一することが推奨されます。",
-    "range": {
-      "end": {
-        "character": 6,
-        "line": 203,
-      },
-      "start": {
-        "character": 2,
-        "line": 203,
-      },
-    },
-  },
-  {
-    "code": "orthography-variant",
-    "message": "表記「有難う」は「ありがとう」に統一することが推奨されます。",
-    "range": {
-      "end": {
-        "character": 5,
-        "line": 204,
-      },
-      "start": {
-        "character": 2,
-        "line": 204,
-      },
-    },
-  },
-  {
-    "code": "orthography-variant",
-    "message": "表記「宜しく」は「よろしく」に統一することが推奨されます。",
-    "range": {
-      "end": {
-        "character": 5,
-        "line": 205,
-      },
-      "start": {
-        "character": 2,
-        "line": 205,
-      },
-    },
-  },
-  {
-    "code": "orthography-variant",
-    "message": "表記「致します」は「いたします」に統一することが推奨されます。",
-    "range": {
-      "end": {
-        "character": 6,
-        "line": 206,
-      },
-      "start": {
-        "character": 2,
-        "line": 206,
-      },
-    },
-  },
-  {
-    "code": "orthography-variant",
-    "message": "表記「頂く」は「いただく」に統一することが推奨されます。",
-    "range": {
-      "end": {
-        "character": 4,
-        "line": 207,
-      },
-      "start": {
-        "character": 2,
-        "line": 207,
-      },
-    },
-  },
-  {
-    "code": "orthography-variant",
-    "message": "表記「頂きます」は「いただきます」に統一することが推奨されます。",
-    "range": {
-      "end": {
-        "character": 6,
-        "line": 208,
-      },
-      "start": {
-        "character": 2,
-        "line": 208,
-      },
-    },
-  },
-  {
-    "code": "orthography-variant",
-    "message": "表記「置き」は「おき」に統一することが推奨されます。",
-    "range": {
-      "end": {
-        "character": 43,
-        "line": 274,
-      },
-      "start": {
-        "character": 41,
-        "line": 274,
-      },
-    },
-  },
-  {
-    "code": "orthography-variant",
-    "message": "表記「置き」は「おき」に統一することが推奨されます。",
-    "range": {
-      "end": {
-        "character": 16,
-        "line": 281,
-      },
-      "start": {
-        "character": 14,
-        "line": 281,
-      },
-    },
-  },
-  {
-    "code": "orthography-variant",
-    "message": "表記「出来る」は「できる」に統一することが推奨されます。",
-    "range": {
-      "end": {
-        "character": 21,
-        "line": 307,
-      },
-      "start": {
-        "character": 18,
-        "line": 307,
-      },
-    },
-  },
-  {
-    "code": "orthography-variant",
-    "message": "表記「及び」は「および」に統一することが推奨されます。",
-    "range": {
-      "end": {
-        "character": 11,
-        "line": 359,
-      },
-      "start": {
-        "character": 9,
-        "line": 359,
-      },
-    },
-  },
-  {
-    "code": "orthography-variant",
-    "message": "表記「並びに」は「ならびに」に統一することが推奨されます。",
-    "range": {
-      "end": {
-        "character": 15,
-        "line": 359,
-      },
-      "start": {
-        "character": 12,
-        "line": 359,
-      },
-    },
-  },
-  {
-    "code": "orthography-variant",
-    "message": "表記「及び」は「および」に統一することが推奨されます。",
-    "range": {
-      "end": {
-        "character": 13,
-        "line": 361,
-      },
-      "start": {
-        "character": 11,
-        "line": 361,
-      },
-    },
-  },
-  {
-    "code": "orthography-variant",
-    "message": "表記「並びに」は「ならびに」に統一することが推奨されます。",
+    "message": "表記「更に」は「さらに」に統一することが推奨されます。",
     "range": {
       "end": {
         "character": 18,
-        "line": 361,
+        "line": 33,
       },
       "start": {
-        "character": 15,
-        "line": 361,
-      },
-    },
-  },
-  {
-    "code": "orthography-variant",
-    "message": "表記「又」は「また」に統一することが推奨されます。",
-    "range": {
-      "end": {
-        "character": 10,
-        "line": 371,
-      },
-      "start": {
-        "character": 9,
-        "line": 371,
-      },
-    },
-  },
-  {
-    "code": "orthography-variant",
-    "message": "表記「若しくは」は「もしくは」に統一することが推奨されます。",
-    "range": {
-      "end": {
         "character": 16,
-        "line": 371,
-      },
-      "start": {
-        "character": 12,
-        "line": 371,
-      },
-    },
-  },
-  {
-    "code": "orthography-variant",
-    "message": "表記「又」は「また」に統一することが推奨されます。",
-    "range": {
-      "end": {
-        "character": 12,
-        "line": 373,
-      },
-      "start": {
-        "character": 11,
-        "line": 373,
-      },
-    },
-  },
-  {
-    "code": "orthography-variant",
-    "message": "表記「若しくは」は「もしくは」に統一することが推奨されます。",
-    "range": {
-      "end": {
-        "character": 19,
-        "line": 373,
-      },
-      "start": {
-        "character": 15,
-        "line": 373,
+        "line": 33,
       },
     },
   },
@@ -1785,68 +847,152 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "message": "表記「及び」は「および」に統一することが推奨されます。",
     "range": {
       "end": {
-        "character": 46,
-        "line": 604,
-      },
-      "start": {
-        "character": 44,
-        "line": 604,
-      },
-    },
-  },
-  {
-    "code": "orthography-variant",
-    "message": "表記「並びに」は「ならびに」に統一することが推奨されます。",
-    "range": {
-      "end": {
-        "character": 50,
-        "line": 604,
-      },
-      "start": {
-        "character": 47,
-        "line": 604,
-      },
-    },
-  },
-  {
-    "code": "orthography-variant",
-    "message": "表記「又」は「また」に統一することが推奨されます。",
-    "range": {
-      "end": {
-        "character": 49,
-        "line": 605,
-      },
-      "start": {
-        "character": 48,
-        "line": 605,
-      },
-    },
-  },
-  {
-    "code": "orthography-variant",
-    "message": "表記「若しくは」は「もしくは」に統一することが推奨されます。",
-    "range": {
-      "end": {
-        "character": 55,
-        "line": 605,
-      },
-      "start": {
-        "character": 51,
-        "line": 605,
-      },
-    },
-  },
-  {
-    "code": "orthography-variant",
-    "message": "表記「下さい」は「ください」に統一することが推奨されます。",
-    "range": {
-      "end": {
-        "character": 23,
-        "line": 882,
+        "character": 22,
+        "line": 49,
       },
       "start": {
         "character": 20,
-        "line": 882,
+        "line": 49,
+      },
+    },
+  },
+  {
+    "code": "orthography-variant",
+    "message": "表記「並びに」は「ならびに」に統一することが推奨されます。",
+    "range": {
+      "end": {
+        "character": 26,
+        "line": 49,
+      },
+      "start": {
+        "character": 23,
+        "line": 49,
+      },
+    },
+  },
+  {
+    "code": "orthography-variant",
+    "message": "表記「又」は「また」に統一することが推奨されます。",
+    "range": {
+      "end": {
+        "character": 29,
+        "line": 49,
+      },
+      "start": {
+        "character": 28,
+        "line": 49,
+      },
+    },
+  },
+  {
+    "code": "orthography-variant",
+    "message": "表記「若しくは」は「もしくは」に統一することが推奨されます。",
+    "range": {
+      "end": {
+        "character": 35,
+        "line": 49,
+      },
+      "start": {
+        "character": 31,
+        "line": 49,
+      },
+    },
+  },
+  {
+    "code": "orthography-variant",
+    "message": "表記「時」は「とき」に統一することが推奨されます。",
+    "range": {
+      "end": {
+        "character": 27,
+        "line": 54,
+      },
+      "start": {
+        "character": 26,
+        "line": 54,
+      },
+    },
+  },
+  {
+    "code": "orthography-variant",
+    "message": "表記「時」は「とき」に統一することが推奨されます。",
+    "range": {
+      "end": {
+        "character": 71,
+        "line": 97,
+      },
+      "start": {
+        "character": 70,
+        "line": 97,
+      },
+    },
+  },
+  {
+    "code": "orthography-variant",
+    "message": "表記「及び」は「および」に統一することが推奨されます。",
+    "range": {
+      "end": {
+        "character": 16,
+        "line": 112,
+      },
+      "start": {
+        "character": 14,
+        "line": 112,
+      },
+    },
+  },
+  {
+    "code": "orthography-variant",
+    "message": "表記「並びに」は「ならびに」に統一することが推奨されます。",
+    "range": {
+      "end": {
+        "character": 20,
+        "line": 112,
+      },
+      "start": {
+        "character": 17,
+        "line": 112,
+      },
+    },
+  },
+  {
+    "code": "orthography-variant",
+    "message": "表記「又」は「また」に統一することが推奨されます。",
+    "range": {
+      "end": {
+        "character": 23,
+        "line": 112,
+      },
+      "start": {
+        "character": 22,
+        "line": 112,
+      },
+    },
+  },
+  {
+    "code": "orthography-variant",
+    "message": "表記「若しくは」は「もしくは」に統一することが推奨されます。",
+    "range": {
+      "end": {
+        "character": 29,
+        "line": 112,
+      },
+      "start": {
+        "character": 25,
+        "line": 112,
+      },
+    },
+  },
+  {
+    "code": "orthography-variant",
+    "message": "表記「下さい」は「ください」に統一することが推奨されます。",
+    "range": {
+      "end": {
+        "character": 23,
+        "line": 246,
+      },
+      "start": {
+        "character": 20,
+        "line": 246,
       },
     },
   },
@@ -1856,11 +1002,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 19,
-        "line": 902,
+        "line": 266,
       },
       "start": {
         "character": 16,
-        "line": 902,
+        "line": 266,
       },
     },
   },
@@ -1870,11 +1016,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 24,
-        "line": 912,
+        "line": 276,
       },
       "start": {
         "character": 23,
-        "line": 912,
+        "line": 276,
       },
     },
   },
@@ -1884,11 +1030,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 5,
-        "line": 924,
+        "line": 288,
       },
       "start": {
         "character": 3,
-        "line": 924,
+        "line": 288,
       },
     },
   },
@@ -1898,11 +1044,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 9,
-        "line": 924,
+        "line": 288,
       },
       "start": {
         "character": 6,
-        "line": 924,
+        "line": 288,
       },
     },
   },
@@ -1912,11 +1058,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 28,
-        "line": 924,
+        "line": 288,
       },
       "start": {
         "character": 25,
-        "line": 924,
+        "line": 288,
       },
     },
   },
@@ -1926,11 +1072,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 4,
-        "line": 925,
+        "line": 289,
       },
       "start": {
         "character": 3,
-        "line": 925,
+        "line": 289,
       },
     },
   },
@@ -1940,11 +1086,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 10,
-        "line": 925,
+        "line": 289,
       },
       "start": {
         "character": 6,
-        "line": 925,
+        "line": 289,
       },
     },
   },
@@ -1954,81 +1100,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 30,
-        "line": 925,
+        "line": 289,
       },
       "start": {
         "character": 26,
-        "line": 925,
-      },
-    },
-  },
-  {
-    "code": "particle-repetition",
-    "message": "同じ助詞「は」が3回使用されています。文の構造を見直してください。",
-    "range": {
-      "end": {
-        "character": 219,
-        "line": 49,
-      },
-      "start": {
-        "character": 133,
-        "line": 49,
-      },
-    },
-  },
-  {
-    "code": "particle-repetition",
-    "message": "同じ助詞「を」が2回使用されています。文の構造を見直してください。",
-    "range": {
-      "end": {
-        "character": 63,
-        "line": 410,
-      },
-      "start": {
-        "character": 33,
-        "line": 410,
-      },
-    },
-  },
-  {
-    "code": "particle-repetition",
-    "message": "同じ助詞「を」が2回使用されています。文の構造を見直してください。",
-    "range": {
-      "end": {
-        "character": 58,
-        "line": 500,
-      },
-      "start": {
-        "character": 51,
-        "line": 500,
-      },
-    },
-  },
-  {
-    "code": "particle-repetition",
-    "message": "同じ助詞「で」が2回使用されています。文の構造を見直してください。",
-    "range": {
-      "end": {
-        "character": 55,
-        "line": 790,
-      },
-      "start": {
-        "character": 23,
-        "line": 790,
-      },
-    },
-  },
-  {
-    "code": "particle-repetition",
-    "message": "同じ助詞「も」が2回使用されています。文の構造を見直してください。",
-    "range": {
-      "end": {
-        "character": 56,
-        "line": 790,
-      },
-      "start": {
-        "character": 24,
-        "line": 790,
+        "line": 289,
       },
     },
   },
@@ -2037,54 +1113,12 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "message": "同じ助詞「は」が2回使用されています。文の構造を見直してください。",
     "range": {
       "end": {
-        "character": 117,
-        "line": 947,
+        "character": 32,
+        "line": 54,
       },
       "start": {
-        "character": 63,
-        "line": 947,
-      },
-    },
-  },
-  {
-    "code": "particle-repetition",
-    "message": "同じ助詞「から」が2回使用されています。文の構造を見直してください。",
-    "range": {
-      "end": {
-        "character": 147,
-        "line": 947,
-      },
-      "start": {
-        "character": 97,
-        "line": 947,
-      },
-    },
-  },
-  {
-    "code": "particle-sequence",
-    "message": "不適切な助詞連続「がを」が検出されました。文の構造を見直してください。",
-    "range": {
-      "end": {
-        "character": 16,
-        "line": 22,
-      },
-      "start": {
-        "character": 14,
-        "line": 22,
-      },
-    },
-  },
-  {
-    "code": "particle-sequence",
-    "message": "不適切な助詞連続「をに」が検出されました。文の構造を見直してください。",
-    "range": {
-      "end": {
-        "character": 73,
-        "line": 392,
-      },
-      "start": {
-        "character": 62,
-        "line": 392,
+        "character": 15,
+        "line": 54,
       },
     },
   },
@@ -2093,250 +1127,96 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "message": "不適切な助詞連続「がに」が検出されました。文の構造を見直してください。",
     "range": {
       "end": {
-        "character": 31,
-        "line": 772,
+        "character": 99,
+        "line": 199,
       },
       "start": {
-        "character": 10,
-        "line": 772,
-      },
-    },
-  },
-  {
-    "code": "particle-sequence",
-    "message": "不適切な助詞連続「をに」が検出されました。文の構造を見直してください。",
-    "range": {
-      "end": {
-        "character": 26,
-        "line": 784,
-      },
-      "start": {
-        "character": 15,
-        "line": 784,
-      },
-    },
-  },
-  {
-    "code": "particle-sequence",
-    "message": "不適切な助詞連続「をに」が検出されました。文の構造を見直してください。",
-    "range": {
-      "end": {
         "character": 70,
-        "line": 785,
+        "line": 199,
+      },
+    },
+  },
+  {
+    "code": "particle-sequence",
+    "message": "不適切な助詞連続「をに」が検出されました。文の構造を見直してください。",
+    "range": {
+      "end": {
+        "character": 113,
+        "line": 201,
       },
       "start": {
-        "character": 59,
-        "line": 785,
+        "character": 102,
+        "line": 201,
+      },
+    },
+  },
+  {
+    "code": "particle-sequence",
+    "message": "不適切な助詞連続「をに」が検出されました。文の構造を見直してください。",
+    "range": {
+      "end": {
+        "character": 109,
+        "line": 202,
+      },
+      "start": {
+        "character": 98,
+        "line": 202,
       },
     },
   },
   {
     "code": "quotation-style-mix",
-    "message": "引用符のスタイルが混在しています。「」（72箇所）と""（4箇所）が使用されています。どれかに統一してください。 文書全体では「japanese」が支配的です。",
+    "message": "引用符のスタイルが混在しています。「」（4箇所）と""（12箇所）が使用されています。どれかに統一してください。 文書全体では「double」が支配的です。",
     "range": {
       "end": {
-        "character": 4,
-        "line": 485,
+        "character": 20,
+        "line": 49,
       },
       "start": {
-        "character": 3,
-        "line": 485,
+        "character": 19,
+        "line": 49,
       },
     },
   },
   {
     "code": "quotation-style-mix",
-    "message": "引用符のスタイルが混在しています。「」（72箇所）と""（4箇所）が使用されています。どれかに統一してください。 文書全体では「japanese」が支配的です。",
+    "message": "引用符のスタイルが混在しています。「」（4箇所）と""（12箇所）が使用されています。どれかに統一してください。 文書全体では「double」が支配的です。",
     "range": {
       "end": {
-        "character": 13,
-        "line": 485,
+        "character": 27,
+        "line": 49,
       },
       "start": {
-        "character": 12,
-        "line": 485,
+        "character": 26,
+        "line": 49,
       },
     },
   },
   {
     "code": "quotation-style-mix",
-    "message": "引用符のスタイルが混在しています。「」（72箇所）と""（4箇所）が使用されています。どれかに統一してください。 文書全体では「japanese」が支配的です。",
+    "message": "引用符のスタイルが混在しています。「」（4箇所）と""（12箇所）が使用されています。どれかに統一してください。 文書全体では「double」が支配的です。",
     "range": {
       "end": {
-        "character": 4,
-        "line": 493,
+        "character": 28,
+        "line": 49,
       },
       "start": {
-        "character": 3,
-        "line": 493,
+        "character": 27,
+        "line": 49,
       },
     },
   },
   {
     "code": "quotation-style-mix",
-    "message": "引用符のスタイルが混在しています。「」（72箇所）と""（4箇所）が使用されています。どれかに統一してください。 文書全体では「japanese」が支配的です。",
+    "message": "引用符のスタイルが混在しています。「」（4箇所）と""（12箇所）が使用されています。どれかに統一してください。 文書全体では「double」が支配的です。",
     "range": {
       "end": {
-        "character": 37,
-        "line": 493,
-      },
-      "start": {
         "character": 36,
-        "line": 493,
-      },
-    },
-  },
-  {
-    "code": "ra-nuki",
-    "message": "ら抜き言葉「食べれる」が検出されました。正しくは「食べられる」です。",
-    "range": {
-      "end": {
-        "character": 5,
-        "line": 41,
+        "line": 49,
       },
       "start": {
-        "character": 1,
-        "line": 41,
-      },
-    },
-  },
-  {
-    "code": "ra-nuki",
-    "message": "ら抜き言葉「見れる」が検出されました。正しくは「見られる」です。",
-    "range": {
-      "end": {
-        "character": 10,
-        "line": 41,
-      },
-      "start": {
-        "character": 7,
-        "line": 41,
-      },
-    },
-  },
-  {
-    "code": "redundant-expression",
-    "message": "冗長表現「馬から落馬」が検出されました。「落馬」に簡潔化できます。",
-    "range": {
-      "end": {
-        "character": 6,
-        "line": 212,
-      },
-      "start": {
-        "character": 1,
-        "line": 212,
-      },
-    },
-  },
-  {
-    "code": "redundant-expression",
-    "message": "冗長表現「後で後悔」が検出されました。「後悔」に簡潔化できます。",
-    "range": {
-      "end": {
-        "character": 14,
-        "line": 212,
-      },
-      "start": {
-        "character": 10,
-        "line": 212,
-      },
-    },
-  },
-  {
-    "code": "redundant-expression",
-    "message": "冗長表現「馬から落馬」が検出されました。「落馬」に簡潔化できます。",
-    "range": {
-      "end": {
-        "character": 7,
-        "line": 216,
-      },
-      "start": {
-        "character": 2,
-        "line": 216,
-      },
-    },
-  },
-  {
-    "code": "redundant-expression",
-    "message": "冗長表現「後で後悔」が検出されました。「後悔」に簡潔化できます。",
-    "range": {
-      "end": {
-        "character": 6,
-        "line": 217,
-      },
-      "start": {
-        "character": 2,
-        "line": 217,
-      },
-    },
-  },
-  {
-    "code": "redundant-expression",
-    "message": "冗長表現「一番最初」が検出されました。「最初」に簡潔化できます。",
-    "range": {
-      "end": {
-        "character": 6,
-        "line": 218,
-      },
-      "start": {
-        "character": 2,
-        "line": 218,
-      },
-    },
-  },
-  {
-    "code": "redundant-expression",
-    "message": "冗長表現「各々それぞれ」が検出されました。「それぞれ」に簡潔化できます。",
-    "range": {
-      "end": {
-        "character": 8,
-        "line": 219,
-      },
-      "start": {
-        "character": 2,
-        "line": 219,
-      },
-    },
-  },
-  {
-    "code": "redundant-expression",
-    "message": "冗長表現「まず最初に」が検出されました。「最初に」に簡潔化できます。",
-    "range": {
-      "end": {
-        "character": 7,
-        "line": 220,
-      },
-      "start": {
-        "character": 2,
-        "line": 220,
-      },
-    },
-  },
-  {
-    "code": "redundant-expression",
-    "message": "冗長表現「過半数を超える」が検出されました。「過半数」に簡潔化できます。",
-    "range": {
-      "end": {
-        "character": 9,
-        "line": 221,
-      },
-      "start": {
-        "character": 2,
-        "line": 221,
-      },
-    },
-  },
-  {
-    "code": "redundant-expression",
-    "message": "冗長表現「元旦の朝」が検出されました。「元旦」に簡潔化できます。",
-    "range": {
-      "end": {
-        "character": 6,
-        "line": 222,
-      },
-      "start": {
-        "character": 2,
-        "line": 222,
+        "character": 35,
+        "line": 49,
       },
     },
   },
@@ -2346,137 +1226,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 21,
-        "line": 883,
+        "line": 247,
       },
       "start": {
         "character": 16,
-        "line": 883,
-      },
-    },
-  },
-  {
-    "code": "sentence-complexity",
-    "message": "文の複雑度が高いです（スコア: 77/100、閾値: 60）（文字数:246、節深度:4、の連続:6、名詞連続:6）。文の分割や構造の簡素化を検討してください。",
-    "range": {
-      "end": {
-        "character": 286,
-        "line": 50,
-      },
-      "start": {
-        "character": 40,
-        "line": 50,
-      },
-    },
-  },
-  {
-    "code": "sentence-ending-colon",
-    "message": "文末にコロン（：）が使用されています。句点（。）に変更するか、文を続けてください。",
-    "range": {
-      "end": {
-        "character": 58,
-        "line": 19,
-      },
-      "start": {
-        "character": 57,
-        "line": 19,
-      },
-    },
-  },
-  {
-    "code": "symbol-width-mix",
-    "message": "コロン「：」は全角ですが、文書内では半角が多く使用されています。表記を統一することを推奨します。",
-    "range": {
-      "end": {
-        "character": 58,
-        "line": 19,
-      },
-      "start": {
-        "character": 57,
-        "line": 19,
-      },
-    },
-  },
-  {
-    "code": "symbol-width-mix",
-    "message": "コロン「：」は全角ですが、文書内では半角が多く使用されています。表記を統一することを推奨します。",
-    "range": {
-      "end": {
-        "character": 30,
-        "line": 27,
-      },
-      "start": {
-        "character": 29,
-        "line": 27,
-      },
-    },
-  },
-  {
-    "code": "symbol-width-mix",
-    "message": "コロン「：」は全角ですが、文書内では半角が多く使用されています。表記を統一することを推奨します。",
-    "range": {
-      "end": {
-        "character": 13,
-        "line": 274,
-      },
-      "start": {
-        "character": 12,
-        "line": 274,
-      },
-    },
-  },
-  {
-    "code": "symbol-width-mix",
-    "message": "コロン「：」は全角ですが、文書内では半角が多く使用されています。表記を統一することを推奨します。",
-    "range": {
-      "end": {
-        "character": 43,
-        "line": 385,
-      },
-      "start": {
-        "character": 42,
-        "line": 385,
-      },
-    },
-  },
-  {
-    "code": "symbol-width-mix",
-    "message": "コロン「：」は全角ですが、文書内では半角が多く使用されています。表記を統一することを推奨します。",
-    "range": {
-      "end": {
-        "character": 24,
-        "line": 396,
-      },
-      "start": {
-        "character": 23,
-        "line": 396,
-      },
-    },
-  },
-  {
-    "code": "symbol-width-mix",
-    "message": "コロン「：」は全角ですが、文書内では半角が多く使用されています。表記を統一することを推奨します。",
-    "range": {
-      "end": {
-        "character": 37,
-        "line": 498,
-      },
-      "start": {
-        "character": 36,
-        "line": 498,
-      },
-    },
-  },
-  {
-    "code": "symbol-width-mix",
-    "message": "コロン「：」は全角ですが、文書内では半角が多く使用されています。表記を統一することを推奨します。",
-    "range": {
-      "end": {
-        "character": 42,
-        "line": 951,
-      },
-      "start": {
-        "character": 41,
-        "line": 951,
+        "line": 247,
       },
     },
   },
@@ -2486,123 +1240,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 71,
-        "line": 922,
+        "line": 286,
       },
       "start": {
         "character": 21,
-        "line": 922,
-      },
-    },
-  },
-  {
-    "code": "tautology",
-    "message": "重複表現「頭痛が痛い」が検出されました。「頭」と「痛い」が重複しています。",
-    "range": {
-      "end": {
-        "character": 6,
-        "line": 226,
-      },
-      "start": {
-        "character": 1,
-        "line": 226,
-      },
-    },
-  },
-  {
-    "code": "tautology",
-    "message": "重複表現「違和感を感じる」が検出されました。「感」が重複しています。",
-    "range": {
-      "end": {
-        "character": 15,
-        "line": 226,
-      },
-      "start": {
-        "character": 8,
-        "line": 226,
-      },
-    },
-  },
-  {
-    "code": "tautology",
-    "message": "重複表現「頭痛が痛い」が検出されました。「頭」と「痛い」が重複しています。",
-    "range": {
-      "end": {
-        "character": 7,
-        "line": 230,
-      },
-      "start": {
-        "character": 2,
-        "line": 230,
-      },
-    },
-  },
-  {
-    "code": "tautology",
-    "message": "重複表現「違和感を感じる」が検出されました。「感」が重複しています。",
-    "range": {
-      "end": {
-        "character": 9,
-        "line": 231,
-      },
-      "start": {
-        "character": 2,
-        "line": 231,
-      },
-    },
-  },
-  {
-    "code": "tautology",
-    "message": "重複表現「被害を被る」が検出されました。「被」が重複しています。",
-    "range": {
-      "end": {
-        "character": 7,
-        "line": 232,
-      },
-      "start": {
-        "character": 2,
-        "line": 232,
-      },
-    },
-  },
-  {
-    "code": "tautology",
-    "message": "重複表現「犯罪を犯す」が検出されました。「犯」が重複しています。",
-    "range": {
-      "end": {
-        "character": 7,
-        "line": 233,
-      },
-      "start": {
-        "character": 2,
-        "line": 233,
-      },
-    },
-  },
-  {
-    "code": "tautology",
-    "message": "重複表現「危険が危ない」が検出されました。「危」が重複しています。",
-    "range": {
-      "end": {
-        "character": 8,
-        "line": 234,
-      },
-      "start": {
-        "character": 2,
-        "line": 234,
-      },
-    },
-  },
-  {
-    "code": "tautology",
-    "message": "重複表現「歌を歌う」が検出されました。「歌」が重複しています。",
-    "range": {
-      "end": {
-        "character": 6,
-        "line": 235,
-      },
-      "start": {
-        "character": 2,
-        "line": 235,
+        "line": 286,
       },
     },
   },
@@ -2612,11 +1254,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 27,
-        "line": 884,
+        "line": 248,
       },
       "start": {
         "character": 22,
-        "line": 884,
+        "line": 248,
       },
     },
   },
@@ -2626,67 +1268,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 28,
-        "line": 881,
+        "line": 245,
       },
       "start": {
         "character": 18,
-        "line": 881,
-      },
-    },
-  },
-  {
-    "code": "term-notation",
-    "message": "技術用語の表記「vscode」は「VS Code」に統一してください。",
-    "range": {
-      "end": {
-        "character": 38,
-        "line": 945,
-      },
-      "start": {
-        "character": 32,
-        "line": 945,
-      },
-    },
-  },
-  {
-    "code": "weak-expression",
-    "message": "弱い表現「かもしれない」が使用されています。より断定的な表現を検討してください。",
-    "range": {
-      "end": {
-        "character": 8,
-        "line": 106,
-      },
-      "start": {
-        "character": 2,
-        "line": 106,
-      },
-    },
-  },
-  {
-    "code": "weak-expression",
-    "message": "弱い表現「と思われる」が使用されています。より断定的な表現を検討してください。",
-    "range": {
-      "end": {
-        "character": 7,
-        "line": 107,
-      },
-      "start": {
-        "character": 2,
-        "line": 107,
-      },
-    },
-  },
-  {
-    "code": "weak-expression",
-    "message": "弱い表現「ような気がする」が使用されています。より断定的な表現を検討してください。",
-    "range": {
-      "end": {
-        "character": 9,
-        "line": 108,
-      },
-      "start": {
-        "character": 2,
-        "line": 108,
+        "line": 245,
       },
     },
   },
@@ -2696,11 +1282,11 @@ exports[`README Regression Snapshot should match README diagnostics snapshot 1`]
     "range": {
       "end": {
         "character": 28,
-        "line": 879,
+        "line": 243,
       },
       "start": {
         "character": 22,
-        "line": 879,
+        "line": 243,
       },
     },
   },
