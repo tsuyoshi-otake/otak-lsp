@@ -20,12 +20,37 @@
  *   // otak-lsp-disable-line term-notation
  */
 
+import { computeLineStarts } from '../utils/lineStarts';
+
 export type DirectiveKind = 'disable-next-line' | 'disable-line' | 'disable' | 'enable';
+
+/**
+ * ディレクティブとして認める文字オフセット範囲（言語別のコメント範囲）。
+ * includeRanges 指定時は範囲内のみディレクティブとみなし、
+ * excludeRanges（コードフェンス等）はさらにそれを打ち消す。
+ * 両方未指定時は行内位置ルール（行頭・コメント記号直後）で判定する。
+ */
+export interface DirectiveScopeOptions {
+  includeRanges?: { start: number; end: number }[];
+  excludeRanges?: { start: number; end: number }[];
+}
+
+/** 構文は合致したが無効と判定されたディレクティブ */
+export interface InvalidDirective {
+  /** 0始まりの行番号 */
+  line: number;
+  /** ディレクティブ種別 */
+  kind: DirectiveKind;
+  /** 無効の原因となったトークン */
+  offendingToken: string;
+}
 
 /** 抑制判定器 */
 export interface SuppressionScan {
   /** 1件でもディレクティブが存在したか（存在しなければフィルタを丸ごとスキップできる） */
   readonly hasDirectives: boolean;
+  /** 無効と判定されたディレクティブ行（警告用） */
+  readonly invalidDirectives: InvalidDirective[];
   /** 指定行(0始まり)・コードの診断が抑制対象か */
   isSuppressed(line: number, code: string): boolean;
 }
@@ -46,33 +71,58 @@ const DIRECTIVE_RE = /otak-lsp-(disable-next-line|disable-line|disable|enable)\b
 
 /**
  * ディレクティブ行の残り（キーワード以降）からコード列を抽出する。
- * コメント閉じ記号（--> / ​*​/）は除去し、最初の非コードトークンで打ち切る。
+ * コメント閉じ記号（--> / ​*​/）は除去する。
+ * コード列は先頭からの連続した kebab-case トークン。`--` 以降は理由テキストとして無視する。
+ * コードでも理由マーカーでもないトークンが現れた場合は「ユーザーの意図が読み取れない」
+ * ため、誤って全抑制へ拡大しないようディレクティブ全体を無効とする。
  */
-function parseCodes(rest: string): string[] {
+interface ParsedCodes {
+  codes: string[];
+  /** 無効の原因となったトークン（あればディレクティブ無効） */
+  invalidToken?: string;
+}
+
+function parseCodes(rest: string): ParsedCodes {
   const cleaned = rest.replace(/--+>/g, ' ').replace(/\*\//g, ' ').trim();
-  if (!cleaned) return [];
+  if (!cleaned) return { codes: [] };
   const tokens = cleaned.split(/[\s,]+/).filter(Boolean);
   const codes: string[] = [];
   for (const token of tokens) {
+    if (token.startsWith('--')) {
+      break; // 理由テキスト以降は無視
+    }
     if (CODE_TOKEN.test(token)) {
       codes.push(token);
     } else {
-      break; // 理由テキストなどに到達したら打ち切る
+      return { codes: [], invalidToken: token };
     }
   }
-  return codes;
+  return { codes };
+}
+
+// ディレクティブ位置の判定:
+//  - 行頭（空白のみ）またはコメント記号のみからなる前置部 … `// otak-lsp-...`, `<!-- otak-lsp-...`, `* otak-lsp-...`
+//  - 直前がコメント開始記号 … 行中コメント `対象文 // otak-lsp-...`
+// これ以外（`これはotak-lsp-disableの説明` のような本文中の言及）はディレクティブとみなさない。
+const COMMENT_ONLY_PREFIX = /^[\s/*#<!>\-]*$/;
+const COMMENT_TAIL = /(\/\/|<!--|\/\*|#)\s*$/;
+
+function isDirectivePosition(line: string, index: number): boolean {
+  const prefix = line.slice(0, index);
+  return COMMENT_ONLY_PREFIX.test(prefix) || COMMENT_TAIL.test(prefix);
 }
 
 /**
  * 生テキストから抑制ディレクティブを走査する。
  */
-export function parseSuppressionDirectives(text: string): SuppressionScan {
+export function parseSuppressionDirectives(text: string, scope?: DirectiveScopeOptions): SuppressionScan {
   // 高速パス: ディレクティブの痕跡が無ければ何もしない
   if (!text.includes('otak-lsp-disable') && !text.includes('otak-lsp-enable')) {
-    return { hasDirectives: false, isSuppressed: () => false };
+    return { hasDirectives: false, invalidDirectives: [], isSuppressed: () => false };
   }
 
   const lines = text.split('\n');
+  const lineStarts = scope ? computeLineStarts(text) : undefined;
   const lineAll = new Set<number>();
   const lineCodes = new Map<number, Set<string>>();
   const blocks: BlockRange[] = [];
@@ -80,6 +130,7 @@ export function parseSuppressionDirectives(text: string): SuppressionScan {
   let allBlockStart = -1;
   const codeBlockStart = new Map<string, number>();
   let hasDirectives = false;
+  const invalidDirectives: InvalidDirective[] = [];
 
   const addLineSuppress = (target: number, codes: string[]) => {
     if (target < 0) return;
@@ -95,9 +146,28 @@ export function parseSuppressionDirectives(text: string): SuppressionScan {
   for (let i = 0; i < lines.length; i++) {
     const match = lines[i].match(DIRECTIVE_RE);
     if (!match) continue;
+    if (scope?.includeRanges) {
+      // 言語別コメント範囲指定時は範囲内のみディレクティブ。
+      // 文字列リテラルやコードサンプル内の類似表記は範囲外なので無視される。
+      const offset = lineStarts![i] + (match.index ?? 0);
+      if (!scope.includeRanges.some((r) => offset >= r.start && offset < r.end)) continue;
+    }
+    // 実コメント内でも、説明文中の単なる言及を指示にしない。
+    if (!isDirectivePosition(lines[i], match.index ?? 0)) {
+      continue;
+    }
+    if (scope?.excludeRanges) {
+      const offset = lineStarts![i] + (match.index ?? 0);
+      if (scope.excludeRanges.some((r) => offset >= r.start && offset < r.end)) continue;
+    }
     hasDirectives = true;
     const kind = match[1] as DirectiveKind;
-    const codes = parseCodes(match[2] ?? '');
+    const parsed = parseCodes(match[2] ?? '');
+    if (parsed.invalidToken !== undefined) {
+      invalidDirectives.push({ line: i, kind, offendingToken: parsed.invalidToken });
+      continue;
+    }
+    const codes = parsed.codes;
 
     switch (kind) {
       case 'disable-next-line':
@@ -149,6 +219,7 @@ export function parseSuppressionDirectives(text: string): SuppressionScan {
 
   return {
     hasDirectives,
+    invalidDirectives,
     isSuppressed(line: number, code: string): boolean {
       if (lineAll.has(line)) return true;
       const codes = lineCodes.get(line);

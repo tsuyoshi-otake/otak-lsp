@@ -6,6 +6,7 @@
  */
 
 import { isBlank } from '../utils/stringUtils';
+import { ConcurrencyLimiter } from '../utils/concurrencyLimiter';
 
 /**
  * デフォルト設定値
@@ -32,6 +33,11 @@ interface CacheEntry {
   timestamp: number;
 }
 
+interface RetryState {
+  until: number;
+  failures: number;
+}
+
 /**
  * フェッチ関数の型
  */
@@ -49,6 +55,9 @@ export class WikipediaClient {
   private timeoutMs: number = DEFAULT_TIMEOUT_MS;
   private cacheTTL: number = DEFAULT_CACHE_TTL_MS;
   private maxCacheSize: number = DEFAULT_MAX_CACHE_SIZE;
+  private retryStates = new Map<string, RetryState>();
+  private rateLimitUntil = 0;
+  private readonly requestLimiter = new ConcurrencyLimiter(() => 4);
 
   private static readonly BASE_URL = 'https://ja.wikipedia.org/api/rest_v1/page/summary';
   private static readonly USER_AGENT = 'JapaneseGrammarAnalyzer/1.0 (VSCode Extension)';
@@ -167,9 +176,15 @@ export class WikipediaClient {
   private startFetch(term: string): Promise<string | null> {
     const generation = this.cacheGeneration;
 
-    const promise: Promise<string | null> = this.fetchSummary(term)
+    const promise: Promise<string | null> = this.requestLimiter.run(async () => {
+      if (Date.now() < this.rateLimitUntil || Date.now() < (this.retryStates.get(term)?.until ?? 0)) {
+        return null;
+      }
+      return this.fetchSummary(term);
+    })
       .then((summary) => {
         if (summary !== null && generation === this.cacheGeneration) {
+          this.retryStates.delete(term);
           this.setToCache(term, summary);
         }
         return summary;
@@ -184,6 +199,20 @@ export class WikipediaClient {
 
     this.inFlight.set(term, promise);
     return promise;
+  }
+
+  /** 自動再試行はせず、次回ホバーからの再要求をバックオフする。 */
+  private deferRetry(term: string, minimumDelay = 0): number {
+    const failures = (this.retryStates.get(term)?.failures ?? 0) + 1;
+    const delay = Math.max(minimumDelay, Math.min(60_000, 1_000 * 2 ** Math.min(failures - 1, 6)) * (1 + Math.random() * 0.25));
+    const until = Date.now() + delay;
+    this.retryStates.delete(term);
+    if (this.retryStates.size >= DEFAULT_MAX_CACHE_SIZE) {
+      const oldest = this.retryStates.keys().next().value;
+      if (oldest !== undefined) this.retryStates.delete(oldest);
+    }
+    this.retryStates.set(term, { until, failures });
+    return until;
   }
 
   /**
@@ -247,10 +276,18 @@ export class WikipediaClient {
         signal: controller.signal
       });
 
-      clearTimeout(timeoutId);
-
       if (!response.ok) {
-        // レート制限またはその他のエラー
+        const retryAfter = response.headers?.get('Retry-After');
+        const seconds = retryAfter ? Number(retryAfter) : NaN;
+        const retryAt = retryAfter ? Date.parse(retryAfter) : NaN;
+        const minimumDelay = Number.isFinite(seconds)
+          ? Math.max(0, seconds * 1000)
+          : Number.isFinite(retryAt) ? Math.max(0, retryAt - Date.now()) : 0;
+        const until = this.deferRetry(term, response.status === 404 ? 300_000 : minimumDelay);
+        if (response.status === 429) {
+          this.rateLimitUntil = Math.max(this.rateLimitUntil, until);
+        }
+        await response.body?.cancel();
         return null;
       }
 
@@ -258,14 +295,18 @@ export class WikipediaClient {
 
       // 記事が見つからない場合
       if (data.type && data.type.includes('not_found')) {
+        this.deferRetry(term, 300_000);
         return null;
       }
 
       // extractフィールドがサマリーテキスト
+      if (!data.extract) this.deferRetry(term, 60_000);
       return data.extract ?? null;
     } catch {
-      clearTimeout(timeoutId);
+      this.deferRetry(term);
       return null;
+    } finally {
+      clearTimeout(timeoutId);
     }
   }
 }

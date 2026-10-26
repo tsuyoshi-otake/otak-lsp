@@ -29,7 +29,7 @@ import { ParallelRuleExecutor } from './parallelRuleExecutor';
 import { splitLines as splitLinesUtil } from '../utils/stringUtils';
 import { WorkerPoolManager } from '../workers/workerPoolManager';
 
-type RuleExecutionOptions = { analyzeTables?: boolean };
+type RuleExecutionOptions = { analyzeTables?: boolean; config?: AdvancedRulesConfig };
 
 interface PreparedRuleContext {
   readonly baseContext: RuleContext;
@@ -91,6 +91,7 @@ export class AdvancedRulesManager {
     options?: RuleExecutionOptions,
     precomputedLineStarts?: number[]
   ): PreparedRuleContext {
+    const config = options?.config ?? this.config;
     const shouldExcludeTables = Boolean(excludedRanges) && options?.analyzeTables !== true;
     const effectiveText = shouldExcludeTables && excludedRanges
       ? maskTableContent(text, excludedRanges)
@@ -109,7 +110,7 @@ export class AdvancedRulesManager {
     const effectiveLines = splitLinesUtil(effectiveText);
 
     const parsedSentences = SentenceParser.parseSentences(
-      effectiveText, tokens, excludedRanges, this.config.sentenceSplitMode, effectiveLines
+      effectiveText, tokens, excludedRanges, config.sentenceSplitMode, effectiveLines
     );
     const sentences = shouldExcludeTables && excludedRanges
       ? filterOutTableSentences(parsedSentences, excludedRanges)
@@ -119,7 +120,7 @@ export class AdvancedRulesManager {
     const baseContext: RuleContext = {
       documentText: effectiveText,
       sentences,
-      config: this.config,
+      config,
       shared: baseShared
     };
 
@@ -219,8 +220,8 @@ export class AdvancedRulesManager {
   /**
    * 有効なルールを取得
    */
-  getEnabledRules(): AdvancedGrammarRule[] {
-    return this.rules.filter(rule => rule.isEnabled(this.config));
+  getEnabledRules(config: AdvancedRulesConfig = this.config): AdvancedGrammarRule[] {
+    return this.rules.filter(rule => rule.isEnabled(config));
   }
 
   /**
@@ -249,7 +250,7 @@ export class AdvancedRulesManager {
     text: string,
     tokens: Token[],
     excludedRanges?: ExcludedRange[],
-    options?: { analyzeTables?: boolean },
+    options?: RuleExecutionOptions,
     profilingCollector?: RuleProfilingCollector,
     precomputedLineStarts?: number[]
   ): Diagnostic[] {
@@ -296,7 +297,7 @@ export class AdvancedRulesManager {
     profilingCollector?: RuleProfilingCollector,
     precomputedLineStarts?: number[]
   ): Diagnostic[] {
-    const enabledRules = this.getEnabledRules();
+    const enabledRules = this.getEnabledRules(options?.config);
     return this.checkSelectedRules(
       text, tokens, enabledRules, excludedRanges, options, profilingCollector, precomputedLineStarts
     );
@@ -317,7 +318,7 @@ export class AdvancedRulesManager {
     profilingCollector?: RuleProfilingCollector,
     precomputedLineStarts?: number[]
   ): Diagnostic[] {
-    const selectedRules = this.rules.filter(r => ruleNames.includes(r.name) && r.isEnabled(this.config));
+    const selectedRules = this.rules.filter(r => ruleNames.includes(r.name) && r.isEnabled(options?.config ?? this.config));
     return this.checkSelectedRules(
       text, tokens, selectedRules, excludedRanges, options, profilingCollector, precomputedLineStarts
     );
@@ -343,7 +344,7 @@ export class AdvancedRulesManager {
     profilingCollector?: RuleProfilingCollector,
     precomputedLineStarts?: number[]
   ): Promise<Diagnostic[]> {
-    const enabledRules = this.getEnabledRules();
+    const enabledRules = this.getEnabledRules(options?.config);
     return this.checkSelectedRulesAsync(
       text, tokens, enabledRules, excludedRanges, options, profilingCollector, precomputedLineStarts
     );
@@ -356,12 +357,12 @@ export class AdvancedRulesManager {
     text: string,
     tokens: Token[],
     excludedRanges?: ExcludedRange[],
-    options?: { analyzeTables?: boolean },
+    options?: RuleExecutionOptions,
     profilingCollector?: RuleProfilingCollector,
     precomputedLineStarts?: number[]
   ): Promise<Diagnostic[]> {
     const selectedRules = this.rules.filter(
-      (r) => LIGHTWEIGHT_RULE_NAMES.includes(r.name) && r.isEnabled(this.config)
+      (r) => LIGHTWEIGHT_RULE_NAMES.includes(r.name) && r.isEnabled(options?.config ?? this.config)
     );
     return this.checkSelectedRulesAsync(
       text, tokens, selectedRules, excludedRanges, options, profilingCollector, precomputedLineStarts
@@ -394,7 +395,7 @@ export class AdvancedRulesManager {
     profilingCollector?: RuleProfilingCollector,
     precomputedLineStarts?: number[]
   ): Promise<Diagnostic[]> {
-    const enabledRules = this.getEnabledRules();
+    const enabledRules = this.getEnabledRules(options?.config);
     return this.checkSelectedRulesParallel(
       text, tokens, enabledRules, excludedRanges, options, profilingCollector, precomputedLineStarts
     );
@@ -407,12 +408,12 @@ export class AdvancedRulesManager {
     text: string,
     tokens: Token[],
     excludedRanges?: ExcludedRange[],
-    options?: { analyzeTables?: boolean },
+    options?: RuleExecutionOptions,
     profilingCollector?: RuleProfilingCollector,
     precomputedLineStarts?: number[]
   ): Promise<Diagnostic[]> {
     const selectedRules = this.rules.filter(
-      (r) => LIGHTWEIGHT_RULE_NAMES.includes(r.name) && r.isEnabled(this.config)
+      (r) => LIGHTWEIGHT_RULE_NAMES.includes(r.name) && r.isEnabled(options?.config ?? this.config)
     );
     return this.checkSelectedRulesParallel(
       text, tokens, selectedRules, excludedRanges, options, profilingCollector, precomputedLineStarts
@@ -453,7 +454,8 @@ export class AdvancedRulesManager {
       text, tokens, selectedRules, excludedRanges, options, profilingCollector, precomputedLineStarts
     );
 
-    const pool = this.workerPoolManager.ensure(this.config.parallelExecution);
+    const config = options?.config ?? this.config;
+    const pool = this.workerPoolManager.ensure(config.parallelExecution);
     if (!pool || selectedRules.length === 0) {
       return fallback();
     }
@@ -467,7 +469,7 @@ export class AdvancedRulesManager {
       selectedRules,
       tokens,
       prepared,
-      this.config,
+      config,
       excludedRanges,
       profilingCollector,
       () => this.workerPoolManager.markFailed(),

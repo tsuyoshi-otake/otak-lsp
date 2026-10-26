@@ -44,6 +44,8 @@ export interface Diagnostic {
   message: string;
   code: string;
   source: string;
+  /** 修正候補（説明用。自動適用は行わない） */
+  suggestions?: string[];
   relatedInformation?: DiagnosticRelatedInformation[];
 }
 
@@ -213,7 +215,7 @@ export class DocumentAnalysis {
 /**
  * 文法エラータイプ
  */
-export type GrammarErrorType = 'double-particle' | 'particle-sequence' | 'verb-particle-mismatch';
+export type GrammarErrorType = 'double-particle' | 'particle-sequence' | 'verb-particle-mismatch' | 'redundant-copula';
 
 /**
  * 文法エラーパラメータ
@@ -258,7 +260,8 @@ export class GrammarError {
       severity: DiagnosticSeverity.Warning,
       message: this.message,
       code: this.type,
-      source: 'otak-lsp'
+      source: 'otak-lsp',
+      suggestions: this.suggestion ? [this.suggestion] : undefined
     };
   }
 }
@@ -387,6 +390,8 @@ export interface Configuration {
   excludeTableDelimiters: boolean;
   /** 解析パイプラインの計測ログを有効にする */
   enableProfileLogs: boolean;
+  /** デバッグログを有効にする（OTAK_LSP_DEBUG 環境変数と併用可能） */
+  debugLog?: boolean;
   /** Markdown関連設定 */
   markdown: {
     /** Markdownのコードブロック（```）内も文法チェック対象にする */

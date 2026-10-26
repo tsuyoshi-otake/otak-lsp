@@ -16,9 +16,10 @@ import { DocumentAnalyzer } from './documentAnalyzer';
 import { DiagnosticsPublisher } from './diagnosticsPublisher';
 import { HoverProvider } from '../hover/provider';
 import { SemanticTokenProvider, tokenTypes, tokenModifiers } from '../semantic/tokenProvider';
-import { SupportedLanguage, Configuration, GLOSSARY_GROUPS } from '../../../shared/src/types';
+import { SupportedLanguage, Configuration, GLOSSARY_GROUPS, Token } from '../../../shared/src/types';
 import { AnalysisStateManager } from './languageServer';
 import { AdvancedRulesConfig } from '../../../shared/src/advancedTypes';
+import { ResourceConfigurationStore } from './workspaceConfigLoader';
 
 // Mock objects for testing
 const createMockConnection = () => {
@@ -45,6 +46,9 @@ const createMockConnection = () => {
     },
     onHover: (handler: (params: any) => any) => {
       handlers['hover'] = handler;
+    },
+    onCodeAction: (handler: (params: any) => any) => {
+      handlers['codeAction'] = handler;
     },
     onRequest: (type: string, handler: (...args: any[]) => any) => {
       requests[type] = handler;
@@ -96,6 +100,10 @@ const createMockConfigManager = (): ConfigManager => {
 const createMockAnalysisScheduler = (): AnalysisScheduler => ({
   scheduleAnalysis: jest.fn(),
   scheduleFullAnalysis: jest.fn(),
+  runFullAnalysis: jest.fn().mockReturnValue({
+    outcome: Promise.resolve({ status: 'completed', diagnostics: 0, omittedDiagnostics: 0 }),
+    cancel: jest.fn(),
+  }),
   cancelAnalysis: jest.fn(),
   clearAllTimers: jest.fn(),
   setExecuteAnalysis: jest.fn(),
@@ -103,8 +111,10 @@ const createMockAnalysisScheduler = (): AnalysisScheduler => ({
 
 const createMockDocumentAnalyzer = (): DocumentAnalyzer => ({
   analyze: jest.fn().mockResolvedValue({
+    status: 'completed',
     tokens: [],
     diagnostics: [],
+    omittedDiagnostics: 0,
     excludedRanges: [],
     lineStarts: [0],
   }),
@@ -245,6 +255,84 @@ describe('connection', () => {
 
       // Should return empty data when no tokens
       expect(result.data).toEqual([]);
+    });
+  });
+
+  it('文書別設定を解析とホバーに渡し、設定変更後に再取得する', async () => {
+    const doc = TextDocument.create('file:///folder/b.md', 'plaintext', 1, '本文');
+    jest.spyOn(mockDocuments, 'get').mockReturnValue(doc);
+    jest.spyOn(mockDocuments, 'all').mockReturnValue([doc]);
+    mockAnalysisStates.updateState(doc.uri, { latestDocument: doc, latestVersion: doc.version });
+    const token = new Token({ surface: '本文', pos: '名詞', posDetail1: '*', posDetail2: '*', posDetail3: '*',
+      conjugation: '*', conjugationForm: '*', baseForm: '本文', reading: 'ホンブン', pronunciation: 'ホンブン', start: 0, end: 2 });
+    jest.mocked(mockDocumentAnalyzer.analyze).mockResolvedValue({ status: 'completed', tokens: [token],
+      diagnostics: [], omittedDiagnostics: 0, excludedRanges: [], lineStarts: [0], profileSteps: [] });
+    let enabled = false;
+    mockConnection.workspace.getConfiguration.mockImplementation(async ({ section, scopeUri }) => {
+      if (section === 'otakLsp' && scopeUri) {
+        return { enableGrammarCheck: enabled, enableSemanticHighlight: true, hover: { enableWikipedia: false } };
+      }
+      return {};
+    });
+    const resources = new ResourceConfigurationStore(mockConnection as unknown as import('vscode-languageserver/node').Connection, mockConfigManager);
+    connectionHandler = createConnectionHandler(
+      mockConnection as unknown as import('vscode-languageserver/node').Connection,
+      mockDocuments, resources.manager, mockAnalysisScheduler, mockDocumentAnalyzer,
+      mockDiagnosticsPublisher, mockHoverProvider, mockSemanticTokenProvider, mockAnalysisStates,
+      undefined, undefined, resources
+    );
+    connectionHandler.initialize();
+    mockConnection.handlers.initialize!({ capabilities: { workspace: { configuration: true } } });
+    await resources.load(doc.uri);
+    await connectionHandler.getExecuteAnalysis()(doc.uri, false);
+    expect(mockDocumentAnalyzer.analyze).toHaveBeenLastCalledWith(
+      expect.anything(), expect.objectContaining({ enableGrammarCheck: false }), expect.anything(),
+      false, expect.anything(), undefined, expect.anything()
+    );
+    await mockConnection.handlers.hover!({ textDocument: { uri: doc.uri }, position: { line: 0, character: 0 } });
+    expect(mockHoverProvider.provideHover).toHaveBeenLastCalledWith(
+      [token], 0, '本文', expect.objectContaining({ enableWikipedia: false })
+    );
+    enabled = true;
+    await mockConnection.handlers.didChangeConfiguration!({ settings: { otakLsp: {} } });
+    expect(resources.manager.getConfig(doc.uri).enableGrammarCheck).toBe(true);
+    expect(mockAnalysisScheduler.scheduleAnalysis).toHaveBeenCalledWith(doc);
+  });
+
+  describe('手動解析の完了待ち', () => {
+    beforeEach(() => {
+      jest.useFakeTimers();
+      const doc = TextDocument.create('file:///manual.md', 'markdown', 1, '本文');
+      jest.spyOn(mockDocuments, 'get').mockReturnValue(doc);
+      connectionHandler.initialize();
+    });
+    afterEach(() => jest.useRealTimers());
+
+    it('実行の受付だけでは成功せず、完了結果を待ってタイマーを解放する', async () => {
+      let finish!: (value: { status: 'completed'; diagnostics: number; omittedDiagnostics: number }) => void;
+      const outcome = new Promise<{ status: 'completed'; diagnostics: number; omittedDiagnostics: number }>(resolve => { finish = resolve; });
+      const cancel = jest.fn();
+      jest.mocked(mockAnalysisScheduler.runFullAnalysis).mockReturnValue({ outcome, cancel });
+      let settled = false;
+      const response = mockConnection.requests['otakLsp/analyzeDocument']!({ uri: 'file:///manual.md' }).then((value: unknown) => { settled = true; return value; });
+      await Promise.resolve();
+      await Promise.resolve();
+      expect(settled).toBe(false);
+      finish({ status: 'completed', diagnostics: 3, omittedDiagnostics: 0 });
+      expect(await response).toEqual({ ok: true, status: 'completed', diagnostics: 3 });
+      expect(jest.getTimerCount()).toBe(0);
+      expect(cancel).not.toHaveBeenCalled();
+    });
+
+    it('30秒で終端し、他の要求ではなく自分の待機を解除する', async () => {
+      const cancel = jest.fn();
+      jest.mocked(mockAnalysisScheduler.runFullAnalysis).mockReturnValue({ outcome: new Promise(() => undefined), cancel });
+      const response = mockConnection.requests['otakLsp/analyzeDocument']!({ uri: 'file:///manual.md' });
+      await jest.advanceTimersByTimeAsync(30000);
+      expect(await response).toEqual({ ok: false, status: 'failed', reason: 'timeout' });
+      expect(cancel).toHaveBeenCalledTimes(1);
+      expect(jest.getTimerCount()).toBe(0);
+      expect(mockAnalysisScheduler.cancelAnalysis).not.toHaveBeenCalled();
     });
   });
 });

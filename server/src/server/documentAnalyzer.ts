@@ -7,15 +7,16 @@
  */
 
 import { TextDocument } from 'vscode-languageserver-textdocument';
-import { Diagnostic as LSPDiagnostic } from 'vscode-languageserver/node';
+import { Diagnostic as LSPDiagnostic, DiagnosticSeverity as LSPDiagnosticSeverity } from 'vscode-languageserver/node';
 import { MeCabAnalyzer } from '../mecab/analyzer';
 import { CommentExtractor } from '../parser/commentExtractor';
 import { MarkdownFilter } from '../parser/markdownFilter';
 import { TokenFilter } from '../semantic/tokenFilter';
 import { GrammarChecker } from '../grammar/checker';
 import { AdvancedRulesManager } from '../grammar/advancedRulesManager';
-import { parseSuppressionDirectives, applySuppressions } from '../grammar/suppressionDirectives';
+import { parseSuppressionDirectives, applySuppressions, DirectiveScopeOptions } from '../grammar/suppressionDirectives';
 import { ProofreadingRulesManager } from '../proofreading/proofreadingRulesManager';
+import { ProofreadingSettingsConfig } from '../proofreading/proofreadingConfig';
 import { CommentRange, Configuration, Token, SupportedLanguage, Diagnostic } from '../../../shared/src/types';
 import { ExcludedRange } from '../../../shared/src/markdownFilterTypes';
 import { AdvancedRulesConfig, RuleProfilingCollector } from '../../../shared/src/advancedTypes';
@@ -44,8 +45,10 @@ function createStepRecorder(isEnabled: boolean, steps: ProfileStep[]): RecordSte
 
 /**
  * 内部診断をLSP診断に変換
+ * data.documentVersion / data.suggestions は CodeAction が
+ * 古い文書versionへの適用を防ぎ、修正候補を表示するために使う。
  */
-function toLspDiagnostics(diags: Diagnostic[], source: string): LSPDiagnostic[] {
+function toLspDiagnostics(diags: Diagnostic[], source: string, documentVersion: number): LSPDiagnostic[] {
   return diags.map((diag) => ({
     severity: convertSeverity(diag.severity),
     range: {
@@ -55,7 +58,54 @@ function toLspDiagnostics(diags: Diagnostic[], source: string): LSPDiagnostic[] 
     message: diag.message,
     source,
     code: diag.code,
+    data: { suggestions: diag.suggestions, documentVersion },
   }));
+}
+
+/**
+ * 利用者向けの情報診断（Hint）を作成する。
+ * 抑制ディレクティブの対象外とし、診断上限にも消費されないマーカー用途。
+ */
+function makeHintDiagnostic(
+  range: LSPDiagnostic['range'],
+  code: string,
+  message: string
+): LSPDiagnostic {
+  return {
+    range,
+    severity: LSPDiagnosticSeverity.Hint,
+    message,
+    source: 'otak-lsp',
+    code,
+  };
+}
+
+/**
+ * 抑制ディレクティブの走査範囲を言語別に決める。
+ * - markdown: HTML コメント（<!-- -->）内のみ、コードブロック等の除外範囲は除く。
+ * - コード言語: CommentExtractor が抽出した実コメント内のみ
+ *   （文字列リテラル内の "// otak-lsp-..." 等はディレクティブにしない）。
+ * - plaintext: コメント構文が無いため行内位置ルールに委ねる（undefined）。
+ */
+function buildDirectiveScope(
+  text: string,
+  languageId: SupportedLanguage,
+  commentRanges: CommentRange[],
+  excludedRanges: ExcludedRange[]
+): DirectiveScopeOptions | undefined {
+  if (languageId === 'plaintext') {
+    return undefined;
+  }
+  if (languageId === 'markdown') {
+    const includeRanges: { start: number; end: number }[] = [];
+    const re = /<!--[\s\S]*?-->/g;
+    let m: RegExpExecArray | null;
+    while ((m = re.exec(text)) !== null) {
+      includeRanges.push({ start: m.index, end: m.index + m[0].length });
+    }
+    return { includeRanges, excludeRanges: excludedRanges };
+  }
+  return { includeRanges: commentRanges };
 }
 
 function keepOnlyCommentRanges(text: string, comments: CommentRange[]): string {
@@ -68,12 +118,28 @@ function keepOnlyCommentRanges(text: string, comments: CommentRange[]): string {
 }
 
 /**
+ * 解析スキップ理由
+ */
+export type AnalysisSkipReason = 'not-target-language' | 'document-too-large' | 'empty-content';
+
+/**
  * 解析結果
  */
 export interface AnalysisResult {
+  /** 解析が最後まで実行されたか、途中でスキップされたか */
+  status: 'completed' | 'skipped';
+  /** status === 'skipped' の理由 */
+  skipReason?: AnalysisSkipReason;
   tokens: Token[];
   diagnostics: LSPDiagnostic[];
+  /** 診断上限で切り捨てた件数 */
+  omittedDiagnostics: number;
   excludedRanges: ExcludedRange[];
+  /**
+   * 解析対象になった文字オフセット範囲（コード言語のコメント範囲）。
+   * 未設定の場合は「全テキスト - excludedRanges」が解析対象。
+   */
+  includedRanges?: { start: number; end: number }[];
   lineStarts: number[];
   profileSteps: ProfileStep[];
 }
@@ -98,7 +164,8 @@ export interface DocumentAnalyzer {
     advancedConfig: AdvancedRulesConfig,
     lightweightOnly: boolean,
     profiler?: Profiler,
-    ruleProfilingCollector?: RuleProfilingCollector
+    ruleProfilingCollector?: RuleProfilingCollector,
+    proofreadingConfig?: ProofreadingSettingsConfig
   ): Promise<AnalysisResult>;
 }
 
@@ -254,6 +321,7 @@ async function runAdvancedRules(
   languageId: SupportedLanguage,
   excludedRanges: ExcludedRange[],
   config: Configuration,
+  advancedConfig: AdvancedRulesConfig,
   lightweightOnly: boolean,
   advancedRulesManager: AdvancedRulesManager,
   ruleProfilingCollector?: RuleProfilingCollector,
@@ -261,7 +329,7 @@ async function runAdvancedRules(
 ): Promise<Diagnostic[]> {
   const isMarkdown = languageId === 'markdown';
   const mdRanges = isMarkdown ? excludedRanges : undefined;
-  const mdOptions = isMarkdown ? { analyzeTables: config.markdown.analyzeTables } : undefined;
+  const mdOptions = { analyzeTables: isMarkdown ? config.markdown.analyzeTables : undefined, config: advancedConfig };
 
   // Feature: parallel-advanced-rules
   // フラグ on かつ worker bundle が利用可能なら worker_threads で並列実行する。
@@ -269,7 +337,7 @@ async function runAdvancedRules(
   //
   // 軽量ルールは件数が少なく (20 件程度)、worker への serialize コストが
   // 並列化の利益を上回りやすいので、parallel パスは「フル実行」だけに適用する。
-  const parallelEnabled = advancedRulesManager.getConfig().parallelExecution?.enabled === true;
+  const parallelEnabled = advancedConfig.parallelExecution?.enabled === true;
   const useParallel = parallelEnabled && !lightweightOnly;
 
   if (useParallel) {
@@ -308,11 +376,14 @@ async function runGrammarChecks(
   languageId: SupportedLanguage,
   excludedRanges: ExcludedRange[],
   config: Configuration,
+  advancedConfig: AdvancedRulesConfig,
   lightweightOnly: boolean,
   deps: GrammarCheckDeps,
   recordStep: RecordStep,
   ruleProfilingCollector?: RuleProfilingCollector,
-  precomputedLineStarts?: number[]
+  precomputedLineStarts?: number[],
+  proofreadingConfig?: ProofreadingSettingsConfig,
+  documentVersion: number = 0
 ): Promise<LSPDiagnostic[]> {
   const basicStart = Date.now();
   const advancedStart = Date.now();
@@ -327,11 +398,11 @@ async function runGrammarChecks(
       return diags;
     }),
     runAdvancedRules(
-      textToAnalyze, grammarTokens, languageId, excludedRanges, config,
+      textToAnalyze, grammarTokens, languageId, excludedRanges, config, advancedConfig,
       lightweightOnly, deps.advancedRulesManager, ruleProfilingCollector, precomputedLineStarts
     ).then((diags) => {
       // parallel パスが有効かを meta に出す (Feature: parallel-advanced-rules / REQ-10)
-      const parallelOn = deps.advancedRulesManager.getConfig().parallelExecution?.enabled === true;
+      const parallelOn = advancedConfig.parallelExecution?.enabled === true;
       const mode = !lightweightOnly && parallelOn ? 'parallel' : 'async';
       recordStep(
         lightweightOnly ? '軽量ルール評価' : '高度ルール評価',
@@ -342,7 +413,7 @@ async function runGrammarChecks(
     }),
     Promise.resolve().then(() => {
       const diags = deps.proofreadingRulesManager.checkText(
-        textToAnalyze, grammarTokens, precomputedLineStarts
+        textToAnalyze, grammarTokens, precomputedLineStarts, proofreadingConfig
       );
       recordStep('校正ルール評価', Date.now() - proofreadingStart, `件数=${diags.length}`);
       return diags;
@@ -350,9 +421,9 @@ async function runGrammarChecks(
   ]);
 
   const diagnostics: LSPDiagnostic[] = [];
-  diagnostics.push(...toLspDiagnostics(basicDiags, 'otak-lsp'));
-  diagnostics.push(...toLspDiagnostics(advancedDiags, 'otak-lsp'));
-  diagnostics.push(...toLspDiagnostics(proofreadingDiags, 'otak-lsp-proofreading'));
+  diagnostics.push(...toLspDiagnostics(basicDiags, 'otak-lsp', documentVersion));
+  diagnostics.push(...toLspDiagnostics(advancedDiags, 'otak-lsp', documentVersion));
+  diagnostics.push(...toLspDiagnostics(proofreadingDiags, 'otak-lsp-proofreading', documentVersion));
   return diagnostics;
 }
 
@@ -383,10 +454,11 @@ export function createDocumentAnalyzer(
     async analyze(
       document: TextDocument,
       config: Configuration,
-      _advancedConfig: AdvancedRulesConfig,
+      advancedConfig: AdvancedRulesConfig,
       lightweightOnly: boolean,
       profiler?: Profiler,
-      ruleProfilingCollector?: RuleProfilingCollector
+      ruleProfilingCollector?: RuleProfilingCollector,
+      proofreadingConfig?: ProofreadingSettingsConfig
     ): Promise<AnalysisResult> {
       const text = document.getText();
       const languageId = document.languageId as SupportedLanguage;
@@ -399,7 +471,7 @@ export function createDocumentAnalyzer(
 
       if (!config.targetLanguages.includes(languageId)) {
         debugLog(`Language ${languageId} not in target languages, skipping`);
-        return { tokens: [], diagnostics: [], excludedRanges: [], lineStarts, profileSteps };
+        return { status: 'skipped', skipReason: 'not-target-language', tokens: [], diagnostics: [], omittedDiagnostics: 0, excludedRanges: [], lineStarts, profileSteps };
       }
 
       // 巨大ファイルガード: 文字数が上限を超える文書は解析しない。
@@ -409,7 +481,20 @@ export function createDocumentAnalyzer(
       const maxChars = config.maxDocumentChars;
       if (typeof maxChars === 'number' && maxChars > 0 && text.length > maxChars) {
         debugLog(`Document too large (${text.length} > ${maxChars} chars), skipping analysis: ${document.uri}`);
-        return { tokens: [], diagnostics: [], excludedRanges: [], lineStarts, profileSteps };
+        return {
+          status: 'skipped',
+          skipReason: 'document-too-large',
+          tokens: [],
+          diagnostics: [makeHintDiagnostic(
+            { start: { line: 0, character: 0 }, end: { line: 0, character: 0 } },
+            'analysis-skipped',
+            `文書サイズが上限（${maxChars.toLocaleString()}文字）を超えているため解析をスキップしています（現在 ${text.length.toLocaleString()}文字）。otakLsp.maxDocumentChars で上限を変更できます。`
+          )],
+          omittedDiagnostics: 0,
+          excludedRanges: [],
+          lineStarts,
+          profileSteps,
+        };
       }
 
       const { textToAnalyze, excludedRanges, commentRanges } = extractAnalysisText(
@@ -424,7 +509,17 @@ export function createDocumentAnalyzer(
 
       if (!textToAnalyze.trim()) {
         debugLog(`No text to analyze, skipping`);
-        return { tokens: [], diagnostics: [], excludedRanges, lineStarts, profileSteps };
+        return {
+          status: 'skipped',
+          skipReason: 'empty-content',
+          tokens: [],
+          diagnostics: [],
+          omittedDiagnostics: 0,
+          excludedRanges,
+          includedRanges: commentRanges.length > 0 ? commentRanges.map((r) => ({ start: r.start, end: r.end })) : undefined,
+          lineStarts,
+          profileSteps,
+        };
       }
 
       const allTokens = await runMorphologicalAnalysis(
@@ -438,38 +533,75 @@ export function createDocumentAnalyzer(
           : { semanticTokens: allTokens, grammarTokens: allTokens };
 
       let diagnostics: LSPDiagnostic[] = [];
+      let omittedDiagnostics = 0;
       if (config.enableGrammarCheck) {
         // textToAnalyze は MarkdownFilter / keepOnlyCommentRanges どちらの経路でも
         // 改行と長さを保持するため、原文の lineStarts をそのまま使い回せる。
         diagnostics.push(...(await runGrammarChecks(
-          textToAnalyze, grammarTokensList, languageId, excludedRanges, config,
-          lightweightOnly, checkDeps, recordStep, ruleProfilingCollector, lineStarts
+          textToAnalyze, grammarTokensList, languageId, excludedRanges, config, advancedConfig,
+          lightweightOnly, checkDeps, recordStep, ruleProfilingCollector, lineStarts, proofreadingConfig,
+          document.version
         )));
 
         // インライン抑制ディレクティブ（otak-lsp-disable-next-line 等）を適用する。
         // 走査は原文 text に対して行い、コメント構文に依存しない。
         // ディレクティブが無ければ applySuppressions は即リターンする。
         const suppressStart = Date.now();
-        const suppressionScan = parseSuppressionDirectives(text);
+        const suppressionScan = parseSuppressionDirectives(
+          text, buildDirectiveScope(text, languageId, commentRanges, excludedRanges)
+        );
         if (suppressionScan.hasDirectives) {
           const before = diagnostics.length;
           diagnostics = applySuppressions(diagnostics, suppressionScan);
           recordStep('抑制ディレクティブ適用', Date.now() - suppressStart, `抑制=${before - diagnostics.length}`);
         }
 
-        // 診断件数の上限ガード: 病的に多数の診断が出るケースで、診断オブジェクトの
-        // 配列がメモリを圧迫するのを防ぐ。上限を超えた分は切り捨てる。
+        // 無効な抑制ディレクティブ（コードとして解釈できないトークンを含む等）は
+        // 抑制自体を適用しないが、ユーザーが修正できるよう警告診断にする。
+        // これらは抑制対象外の Hint で、文書内のどのディレクティブよりも優先して残す。
+        for (const inv of suppressionScan.invalidDirectives) {
+          const lineStart = lineStarts[inv.line] ?? 0;
+          const lineEnd = inv.line + 1 < lineStarts.length ? lineStarts[inv.line + 1] - 1 : text.length;
+          diagnostics.push(makeHintDiagnostic(
+            {
+              start: { line: inv.line, character: 0 },
+              end: { line: inv.line, character: Math.max(0, lineEnd - lineStart) },
+            },
+            'otak-lsp-invalid-directive',
+            `otak-lsp-${inv.kind}: "${inv.offendingToken}" は診断コードとして解釈できません。このディレクティブは適用されていません。`
+          ));
+        }
+
+        // 診断は文書位置順に並べてから上限で切り捨てる（ルール系統の実行順で
+        // 偏らないようにする）。上限超過分は末尾に省略マーカーを付けて可視化する。
+        diagnostics.sort((a, b) =>
+          a.range.start.line - b.range.start.line
+          || a.range.start.character - b.range.start.character
+          || String(a.code).localeCompare(String(b.code))
+        );
         const maxProblems = config.maxNumberOfProblems;
         if (typeof maxProblems === 'number' && maxProblems > 0 && diagnostics.length > maxProblems) {
           debugLog(`Diagnostics capped: ${diagnostics.length} -> ${maxProblems} for ${document.uri}`);
+          const omitted = diagnostics.length - maxProblems;
           diagnostics = diagnostics.slice(0, maxProblems);
+          const lastLine = lineStarts.length - 1;
+          const lastChar = Math.max(0, text.length - (lineStarts[lastLine] ?? 0));
+          diagnostics.push(makeHintDiagnostic(
+            { start: { line: lastLine, character: lastChar }, end: { line: lastLine, character: lastChar } },
+            'diagnostics-truncated',
+            `診断が上限（${maxProblems.toLocaleString()}件）を超えたため、残り ${omitted.toLocaleString()} 件を省略しています。`
+          ));
+          omittedDiagnostics = omitted;
         }
       }
 
       return {
+        status: 'completed',
         tokens: semanticTokensList,
         diagnostics,
+        omittedDiagnostics,
         excludedRanges,
+        includedRanges: commentRanges.length > 0 ? commentRanges.map((r) => ({ start: r.start, end: r.end })) : undefined,
         lineStarts,
         profileSteps,
       };

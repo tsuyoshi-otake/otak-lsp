@@ -102,7 +102,7 @@ export const NG_EXAMPLE_CATEGORIES: NGExampleCategory[] = [
     id: 'redundant-copula',
     name: '冗長な助動詞',
     description: '助詞と助動詞の不自然な組み合わせ',
-    expectedRule: 'particle-sequence',
+    expectedRule: 'redundant-copula',
     status: 'IMPLEMENTED',
     examples: [
       { text: '問題でです', correctText: '問題です', description: '「でです」は冗長' },

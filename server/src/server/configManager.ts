@@ -11,12 +11,15 @@ import {
   AdvancedRulesConfig,
   SentenceSplitMode,
   WeakExpressionLevel,
+  DEFAULT_ADVANCED_RULES_CONFIG,
 } from '../../../shared/src/advancedTypes';
 import { AdvancedRulesManager } from '../grammar/advancedRulesManager';
 import { ProofreadingRulesManager } from '../proofreading/proofreadingRulesManager';
 import {
   parseProofreadingSettingsFromRaw,
   applyProofreadingSettings,
+  DEFAULT_PROOFREADING_CONFIG,
+  ProofreadingSettingsConfig,
 } from '../proofreading/proofreadingConfig';
 import { HoverProvider } from '../hover/provider';
 import { DEFAULT_ENABLED_GLOSSARIES } from '../hover/glossary';
@@ -29,6 +32,14 @@ import { DEFAULT_MAX_CONCURRENT_ANALYSES } from '../utils/concurrencyLimiter';
  */
 export type ConfigChangeCallback = (config: Configuration) => void;
 
+/** 解析開始時に固定し、他文書の設定変更から分離する設定一式。 */
+export interface ConfigurationSnapshot {
+  config: Configuration;
+  advancedConfig: AdvancedRulesConfig;
+  proofreadingConfig: ProofreadingSettingsConfig;
+  glossariesExplicitlySet: boolean;
+}
+
 /**
  * ConfigManagerインターフェース
  */
@@ -36,12 +47,15 @@ export interface ConfigManager {
   /**
    * 現在の基本設定を取得
    */
-  getConfig(): Configuration;
+  getConfig(uri?: string): Configuration;
 
   /**
    * 高度ルール設定を取得
    */
-  getAdvancedConfig(): AdvancedRulesConfig;
+  getAdvancedConfig(uri?: string): AdvancedRulesConfig;
+
+  getSnapshot?(uri?: string): ConfigurationSnapshot;
+  getRevision?(uri: string): object | undefined;
 
   /**
    * 設定を適用（内部API）
@@ -106,9 +120,9 @@ function isWeakExpressionLevel(v: unknown): v is WeakExpressionLevel {
  * ConfigManagerを作成
  */
 export function createConfigManager(
-  advancedRulesManager: AdvancedRulesManager,
-  proofreadingRulesManager: ProofreadingRulesManager,
-  hoverProvider: HoverProvider,
+  advancedRulesManager: Pick<AdvancedRulesManager, 'getConfig' | 'updateConfig'>,
+  proofreadingRulesManager: Pick<ProofreadingRulesManager, 'getConfig' | 'updateConfig'>,
+  hoverProvider: Pick<HoverProvider, 'setWikipediaEnabled' | 'setGlossaryEnabled' | 'setEnabledGlossaries' | 'setEnabledGlossaryGroups'>,
   logger?: Logger
 ): ConfigManager {
   // 基本設定
@@ -136,6 +150,7 @@ export function createConfigManager(
 
   // 設定変更コールバック
   const changeCallbacks: ConfigChangeCallback[] = [];
+  let glossariesExplicitlySet = false;
 
   /**
    * 基本設定を適用
@@ -145,6 +160,7 @@ export function createConfigManager(
     const enableSemanticHighlight = getSetting(settings, 'enableSemanticHighlight');
     const excludeTableDelimiters = getSetting(settings, 'excludeTableDelimiters');
     const enableProfileLogs = getSetting(settings, 'enableProfileLogs');
+    const debugLog = getSetting(settings, 'debugLog');
     const analyzeCodeBlocks = getSetting(settings, 'markdown.analyzeCodeBlocks');
     const analyzeTables = getSetting(settings, 'markdown.analyzeTables');
     const targetLanguages = getSetting(settings, 'targetLanguages');
@@ -157,6 +173,7 @@ export function createConfigManager(
     const enabledGlossaries = getSetting(settings, 'hover.enabledGlossaries');
     const enabledGlossaryGroups = getSetting(settings, 'hover.enabledGlossaryGroups');
     const hasExplicitGlossaries = Array.isArray(enabledGlossaries);
+    glossariesExplicitlySet = hasExplicitGlossaries;
 
     configuration = {
       ...configuration,
@@ -164,6 +181,7 @@ export function createConfigManager(
       enableSemanticHighlight: typeof enableSemanticHighlight === 'boolean' ? enableSemanticHighlight : configuration.enableSemanticHighlight,
       excludeTableDelimiters: typeof excludeTableDelimiters === 'boolean' ? excludeTableDelimiters : configuration.excludeTableDelimiters,
       enableProfileLogs: typeof enableProfileLogs === 'boolean' ? enableProfileLogs : configuration.enableProfileLogs,
+      debugLog: typeof debugLog === 'boolean' ? debugLog : configuration.debugLog,
       markdown: {
         ...configuration.markdown,
         analyzeCodeBlocks: typeof analyzeCodeBlocks === 'boolean' ? analyzeCodeBlocks : configuration.markdown.analyzeCodeBlocks,
@@ -420,6 +438,15 @@ export function createConfigManager(
       return advancedRulesManager.getConfig();
     },
 
+    getSnapshot(): ConfigurationSnapshot {
+      return {
+        config: { ...configuration },
+        advancedConfig: advancedRulesManager.getConfig(),
+        proofreadingConfig: proofreadingRulesManager.getConfig(),
+        glossariesExplicitlySet,
+      };
+    },
+
     applySettings(settings: unknown): void {
       applyBaseConfigFromSettings(settings);
       applyAdvancedConfigFromSettings(settings);
@@ -437,4 +464,17 @@ export function createConfigManager(
       notifyConfigChange();
     },
   };
+}
+
+/** 設定の解釈だけを再利用し、共有ルールやホバーの状態は変更しない。 */
+export function resolveConfiguration(settings: unknown): ConfigurationSnapshot {
+  let advanced = structuredClone(DEFAULT_ADVANCED_RULES_CONFIG);
+  let proofreading = structuredClone(DEFAULT_PROOFREADING_CONFIG);
+  const manager = createConfigManager(
+    { getConfig: () => advanced, updateConfig: patch => { advanced = { ...advanced, ...patch }; } },
+    { getConfig: () => proofreading, updateConfig: config => { proofreading = config; } },
+    { setWikipediaEnabled() {}, setGlossaryEnabled() {}, setEnabledGlossaries() {}, setEnabledGlossaryGroups() {} }
+  );
+  manager.applySettings(settings);
+  return manager.getSnapshot!();
 }

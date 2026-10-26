@@ -728,7 +728,8 @@ export class AdvancedDiagnostic {
       severity: this.severity,
       message: this.message,
       code: this.code,
-      source: this.source
+      source: this.source,
+      suggestions: this.suggestions.length > 0 ? [...this.suggestions] : undefined
     };
   }
 }

@@ -5,7 +5,7 @@
  * 要件: 5.1, 5.2, 5.3, 5.4, 5.5
  */
 
-import { GlossaryId, GlossaryGroupId, GLOSSARY_GROUPS, Token } from '../../../shared/src/types';
+import { Configuration, GlossaryId, GlossaryGroupId, GLOSSARY_GROUPS, Token } from '../../../shared/src/types';
 import { WikipediaClient } from '../wikipedia/client';
 import { createGlossaryRank, DEFAULT_ENABLED_GLOSSARIES, findGlossaryHitWithRank, findGlossaryMatchWithRank } from './glossary';
 import type { GlossaryHit } from './glossaryTypes';
@@ -18,6 +18,8 @@ export interface HoverResult {
   contents: string;
   range: HoverRange;
 }
+
+export type HoverOptions = Configuration['hover'] & { glossariesExplicitlySet: boolean };
 
 type HoverRange = {
   start: number;
@@ -187,13 +189,13 @@ export class HoverProvider {
    * @param documentText ドキュメント全体（用語図鑑の複合語マッチ用）
    * @returns ホバー情報、または該当トークンがない場合はnull
    */
-  async provideHover(tokens: Token[], position: number, documentText?: string): Promise<HoverResult | null> {
+  async provideHover(tokens: Token[], position: number, documentText?: string, options?: HoverOptions): Promise<HoverResult | null> {
     const token = this.getTokenAtPosition(tokens, position);
     const techTerm = documentText ? this.extractTechTermAtPosition(documentText, position) : null;
     let contents = this.buildInitialHoverContents(token, techTerm);
 
     // Wikipedia検索（有効かつ対象品詞の場合）
-    if (this.wikipediaEnabled) {
+    if (options?.enableWikipedia ?? this.wikipediaEnabled) {
       const search = this.getWikipediaSearch(token, techTerm);
       if (search) {
         const cachedSummary = this.wikipediaClient.getCachedSummary(search.term);
@@ -209,9 +211,10 @@ export class HoverProvider {
 
     // 用語図鑑（オフライン）
     let glossaryRange: { start: number; end: number } | null = null;
-    if (this.glossaryEnabled) {
-      const hitFromText = documentText ? findGlossaryMatchWithRank(documentText, position, this.glossaryRank) : null;
-      const hit = hitFromText?.hit ?? (token ? findGlossaryHitWithRank(token, this.glossaryRank) : null);
+    if (options?.enableGlossary ?? this.glossaryEnabled) {
+      const rank = options ? this.getScopedGlossaryRank(options) : this.glossaryRank;
+      const hitFromText = documentText ? findGlossaryMatchWithRank(documentText, position, rank) : null;
+      const hit = hitFromText?.hit ?? (token ? findGlossaryHitWithRank(token, rank) : null);
       glossaryRange = hitFromText?.range ?? null;
       if (hit) {
         const prefix = contents.length > 0 ? '\n\n---\n\n' : '';
@@ -246,6 +249,12 @@ export class HoverProvider {
         end: selectedRange.end
       }
     };
+  }
+
+  private getScopedGlossaryRank(options: HoverOptions): ReadonlyMap<GlossaryId, number> {
+    if (options.glossariesExplicitlySet) return createGlossaryRank(options.enabledGlossaries);
+    const members = options.enabledGlossaryGroups.flatMap(id => GLOSSARY_GROUPS.find(group => group.id === id)?.members ?? []);
+    return createGlossaryRank([...new Set(members)]);
   }
 
   private buildInitialHoverContents(token: Token | null, techTerm: TechTerm | null): string {

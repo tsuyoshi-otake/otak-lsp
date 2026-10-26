@@ -77,10 +77,11 @@ Markdownではコードブロック、URL、テーブル、リスト記号など
 
 | コマンド | ID | 説明 |
 | --- | --- | --- |
-| otak-lsp: ON/OFF切り替え | `otakLsp.toggle` | 文法チェックとセマンティックハイライトをまとめて切り替えます。 |
+| otak-lsp: ON/OFF切り替え | `otakLsp.toggle` | 文法チェックとセマンティックハイライトをまとめて切り替えます。アクティブ文書の実効値を読み、その値を所有するスコープ（ワークスペースフォルダー > ワークスペース > ユーザー設定）へ書き込み、OFF→ONで元の個別組合せを復元します。 |
 | otak-lsp: ステータス表示 | `otakLsp.showStatus` | 出力パネルに現在の状態、設定、アクティブファイル情報を表示します。 |
 | otak-lsp: 現在のファイルを解析 | `otakLsp.analyzeCurrentFile` | アクティブなファイルを即時に全ルールで再解析します。 |
 | otak-lsp: セマンティックテーマを選択 | `otakLsp.selectTheme` | `default` / `pastel` / `vivid` / `monochrome` / `nature` から配色を選びます。 |
+| otak-lsp: サーバーを再起動 | `otakLsp.restartServer` | Language Server を再起動します。起動失敗時はステータスバーのエラー表示クリックでも実行できます。 |
 
 ## 設定
 
@@ -99,6 +100,7 @@ Markdownではコードブロック、URL、テーブル、リスト記号など
 | `otakLsp.advanced.parallelExecution.enabled` | `false` | worker_threadsによる高度ルールの並列実行を有効にします。 |
 | `otakLsp.maxDocumentChars` | `1000000` | 解析対象にする最大文字数を制限します。 |
 | `otakLsp.maxNumberOfProblems` | `2000` | 1文書あたりの診断数を制限します。 |
+| `otakLsp.debugLog` | `false` | サーバーのデバッグログを出力パネル「otak-lsp」に出します。 |
 
 ルールの完全な一覧は [docs/rules.md](docs/rules.md) に自動生成されています。
 
@@ -130,6 +132,15 @@ Markdownではコードブロック、URL、テーブル、リスト記号など
 
 行末で抑制することもできます。 <!-- otak-lsp-disable-line term-notation -->
 ```
+
+抑制ディレクティブの細則:
+
+- **コードの有無**: コードを省略するとそのスコープの全ルールを抑制します。コードを列挙した場合はそのコードの診断だけを抑制します（コード＝診断コード/ルールID。例: `noun-chain`, `term-notation`。一覧は [docs/rules.md](docs/rules.md)）。
+- **無効なコード指定**: `otak-lsp-disable Noun_Chain` のようにコードの構文として解釈できないトークンを含むディレクティブは全体が無効になります。誤って全抑制へ拡大することはありません。該当行に `otak-lsp-invalid-directive` の Hint 診断が表示されるので、コードを修正してください。構文に合う未知のコードは、その名前だけの指定として扱われ、他のコードの診断を抑制しません。
+- **理由の記述**: コード列の後ろに ` -- 理由` と書けます。`--` 以降は理由テキストとして無視されます。
+- **書ける位置**: MarkdownではHTMLコメント内、コード言語では実際のコメント内が対象です。その中でも行頭（空白とコメント記号だけの前置部）または `//`・`<!--`・`/*`・`#` の直後に限ります。プレーンテキストではこの位置条件で判定します。本文・コメントの説明文中の単なる言及、Markdownのコードブロック内、コード言語の文字列リテラル内の表記は指示になりません。
+- **enable の扱い**: コードなしの `otak-lsp-enable` は全ての抑制を解除します。`otak-lsp-enable コード` は同じコードで始まった `disable` ブロックだけを終了します。「全 disable ブロック内で特定コードだけ再有効化する」部分的な enable は現在未対応です。
+- **診断コード**: `redundant-copula`（冗長な助動詞）など、各診断は独立したコードを持ち個別に抑制できます。
 
 ## ホバー用語図鑑
 
@@ -202,6 +213,8 @@ Markdownではコードブロック、URL、テーブル、リスト記号など
 - **コードブロックやテーブルを対象外にしたい**: `otakLsp.markdown.analyzeCodeBlocks` または `otakLsp.markdown.analyzeTables` を `false` にしてください。
 - **特定ルールだけ無効化したい**: 設定画面で該当する `otakLsp.advanced.*`、`otakLsp.official.*`、`otakLsp.proofreading.*` を `false` にしてください。
 - **初回起動が遅い**: 初回はkuromoji-optimizedの辞書ロードに数秒かかる場合があります。2回目以降は高速に動作します。
+- **詳細なログを確認したい**: 設定 `otakLsp.debugLog` を `true` にすると、出力パネル「otak-lsp」にサーバーのデバッグログ（解析スキップ理由など）が表示されます。VS Code 起動前に環境変数 `OTAK_LSP_DEBUG=1`（旧名 `OTAK_LCP_DEBUG=1` も有効）を設定しても有効になります。現在の状態は `otak-lsp: ステータス表示` で確認できます。
+- **解析がスキップされた・診断が省略された**: 文書サイズ上限（`otakLsp.maxDocumentChars`）や診断数上限（`otakLsp.maxNumberOfProblems`）に達した場合、ステータスバーと出力パネルに理由が表示されます。
 
 ## 開発
 

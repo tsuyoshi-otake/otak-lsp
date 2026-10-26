@@ -2,6 +2,7 @@
  * インライン抑制ディレクティブのユニットテスト
  */
 
+import * as fc from 'fast-check';
 import { parseSuppressionDirectives, applySuppressions } from './suppressionDirectives';
 
 interface Diag {
@@ -135,5 +136,126 @@ describe('applySuppressions', () => {
     const scan = parseSuppressionDirectives(text);
     const diags = [diag(1)]; // code 未設定
     expect(applySuppressions(diags, scan)).toHaveLength(0);
+  });
+});
+
+describe('Issue #26: 無効コード・本文言及を全抑制に拡大しない', () => {
+  it('不正なコードトークンを含むディレクティブは無効で、全抑制に拡大しない', () => {
+    const text = '<!-- otak-lsp-disable-next-line Noun_Chain -->\n対象';
+    const scan = parseSuppressionDirectives(text);
+    expect(scan.isSuppressed(1, 'noun-chain')).toBe(false);
+    expect(scan.isSuppressed(1, 'double-particle')).toBe(false);
+    expect(scan.invalidDirectives).toEqual([
+      { line: 0, kind: 'disable-next-line', offendingToken: 'Noun_Chain' },
+    ]);
+  });
+
+  it('先頭が非コードトークンなら後続の有効コードも採用しない', () => {
+    const text = '// otak-lsp-disable-next-line Bad_Code noun-chain\n対象';
+    const scan = parseSuppressionDirectives(text);
+    expect(scan.isSuppressed(1, 'noun-chain')).toBe(false);
+    expect(scan.invalidDirectives).toHaveLength(1);
+  });
+
+  it('本文中の言及はディレクティブとして扱わない', () => {
+    const text = 'これはotak-lsp-disableの説明です。\n次の行';
+    const scan = parseSuppressionDirectives(text);
+    expect(scan.hasDirectives).toBe(false);
+    expect(scan.isSuppressed(1, 'anything')).toBe(false);
+  });
+
+  it('コードの後の言及もディレクティブとして扱わない', () => {
+    const text = 'call otak-lsp-disable-next-line noun-chain\n対象';
+    const scan = parseSuppressionDirectives(text);
+    expect(scan.isSuppressed(1, 'noun-chain')).toBe(false);
+  });
+
+  it('行末コメント内のディレクティブは引き続き有効', () => {
+    const text = '対象文 // otak-lsp-disable-line noun-chain';
+    const scan = parseSuppressionDirectives(text);
+    expect(scan.isSuppressed(0, 'noun-chain')).toBe(true);
+  });
+
+  it('コード省略 + 理由マーカー（--）は全抑制として有効', () => {
+    const text = '// otak-lsp-disable -- 一時的な回避\nA';
+    const scan = parseSuppressionDirectives(text);
+    expect(scan.isSuppressed(1, 'x')).toBe(true);
+    expect(scan.invalidDirectives).toHaveLength(0);
+  });
+
+  it('コメントなしの行頭ディレクティブは有効（プレーンテキスト）', () => {
+    const text = 'otak-lsp-disable-next-line noun-chain\n対象';
+    const scan = parseSuppressionDirectives(text);
+    expect(scan.isSuppressed(1, 'noun-chain')).toBe(true);
+  });
+
+  it('PBT: 不正コードトークンを含む disable-next-line はどのコードも抑制しない', () => {
+    fc.assert(
+      fc.property(
+        fc.stringMatching(/^[A-Z][A-Za-z_]*$/),
+        fc.constantFrom('//', '<!--', '#', '*'),
+        (badCode, marker) => {
+          const text = `${marker} otak-lsp-disable-next-line ${badCode}\n対象`;
+          const scan = parseSuppressionDirectives(text);
+          expect(scan.isSuppressed(1, 'noun-chain')).toBe(false);
+          expect(scan.isSuppressed(1, 'anything-else')).toBe(false);
+        }
+      ),
+      { numRuns: 30 }
+    );
+  });
+
+  it('PBT: コメント記号を伴わない文中のキーワードはディレクティブにならない', () => {
+    fc.assert(
+      fc.property(
+        fc.stringMatching(/^[ぁ-ん一-龯]+$/),
+        fc.constantFrom('disable-next-line', 'disable-line', 'disable', 'enable'),
+        (prose, kind) => {
+          const text = `${prose}otak-lsp-${kind} noun-chain\n対象`;
+          const scan = parseSuppressionDirectives(text);
+          expect(scan.isSuppressed(0, 'noun-chain')).toBe(false);
+          expect(scan.isSuppressed(1, 'noun-chain')).toBe(false);
+        }
+      ),
+      { numRuns: 30 }
+    );
+  });
+});
+
+describe('Issue #26: 言語別スコープ（文字列・コードサンプルの誤爆防止）', () => {
+  it('コード言語: 文字列リテラル内の類似表記はディレクティブにしない', () => {
+    const text = 'const example = "// otak-lsp-disable -- example";\n対象';
+    // CommentExtractor のコメント範囲に含まれない（文字列内の // はコメントでない）
+    const scan = parseSuppressionDirectives(text, { includeRanges: [] });
+    expect(scan.isSuppressed(1, 'x')).toBe(false);
+    expect(scan.hasDirectives).toBe(false);
+  });
+
+  it('コード言語: 実コメント内のディレクティブは有効', () => {
+    const text = '// otak-lsp-disable-next-line noun-chain\n対象';
+    const scan = parseSuppressionDirectives(text, { includeRanges: [{ start: 0, end: 42 }] });
+    expect(scan.isSuppressed(1, 'noun-chain')).toBe(true);
+  });
+
+  it('markdown: フェンスコードブロック内のディレクティブ風テキストは無効', () => {
+    const text = '```text\notak-lsp-disable\n```\n対象';
+    const scan = parseSuppressionDirectives(text, { includeRanges: [], excludeRanges: [{ start: 0, end: 30 }] });
+    expect(scan.isSuppressed(3, 'x')).toBe(false);
+    expect(scan.hasDirectives).toBe(false);
+  });
+
+  it('markdown: HTMLコメント内のディレクティブは有効', () => {
+    const text = '<!-- otak-lsp-disable-next-line noun-chain -->\n対象';
+    const scan = parseSuppressionDirectives(text, { includeRanges: [{ start: 0, end: 45 }] });
+    expect(scan.isSuppressed(1, 'noun-chain')).toBe(true);
+  });
+
+  it('markdown: 除外範囲内のHTMLコメントは無効（コードフェンス内のサンプル）', () => {
+    const text = '```\n<!-- otak-lsp-disable -->\n```\n対象';
+    const scan = parseSuppressionDirectives(text, {
+      includeRanges: [{ start: 4, end: 28 }],
+      excludeRanges: [{ start: 0, end: 32 }],
+    });
+    expect(scan.isSuppressed(3, 'x')).toBe(false);
   });
 });

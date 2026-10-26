@@ -63,6 +63,7 @@ export type DebugLogCallback = (message: string) => void;
  */
 export class AnalysisStateManager {
   private states: Map<string, AnalysisState> = new Map();
+  private generations: Map<string, object> = new Map();
   private debugLogCallback: DebugLogCallback | null = null;
 
   /**
@@ -99,9 +100,20 @@ export class AnalysisStateManager {
     if (!state) {
       state = createInitialAnalysisState();
       this.states.set(uri, state);
+      this.generations.set(uri, {});
       this.debugLog(`[STATE] Created initial state for ${uri}`);
     }
     return state;
+  }
+
+  /** 参照だけでは閉じた文書の状態を復活させない。 */
+  getExistingState(uri: string): AnalysisState | undefined {
+    return this.states.get(uri);
+  }
+
+  /** 同じURIを開き直した場合も識別する、文書の生存期間ごとの世代。 */
+  getGeneration(uri: string): object | undefined {
+    return this.generations.get(uri);
   }
 
   /**
@@ -127,6 +139,7 @@ export class AnalysisStateManager {
    * 要件: 3.2 - 文書クローズ時に状態を削除
    */
   deleteState(uri: string): boolean {
+    this.generations.delete(uri);
     const existed = this.states.has(uri);
     const result = this.states.delete(uri);
     if (existed) {
@@ -147,6 +160,7 @@ export class AnalysisStateManager {
    */
   clear(): void {
     this.states.clear();
+    this.generations.clear();
   }
 
   /**

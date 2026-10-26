@@ -72,7 +72,9 @@ export class ParallelRuleExecutor {
   ): Promise<Diagnostic[]> {
     const { baseContext, originalText, originalShared, rangeFixer } = prepared;
 
-    const partitions = this.partitionRules(selectedRules, Math.max(1, pool.size));
+    const requestedWorkers = config.parallelExecution?.maxWorkers;
+    const parts = requestedWorkers && requestedWorkers > 0 ? Math.min(pool.size, requestedWorkers) : pool.size;
+    const partitions = this.partitionRules(selectedRules, Math.max(1, Math.floor(parts)));
     const enableProfiling = !!profilingCollector;
 
     // tokens / sentences は全 partition で共通なので 1 度だけ serialize する

@@ -34,13 +34,13 @@ const OFFICIAL_CONFIG_KEYS = new Set([
 /**
  * 基本ルール（checker.ts の GrammarChecker 内部の4クラス。静的に列挙）。
  * 件数の単位は高度ルールと揃えて「ルールクラス」とする。
- * RedundantCopulaRule は診断コードとしては particle-sequence を共有する点に注意。
+ * 各ルールの診断コードを列挙し、個別に抑制できる契約を資料へ反映する。
  */
 const BASIC_RULES: { name: string; code: string; description: string }[] = [
   { name: 'double-particle', code: 'double-particle', description: '二重助詞（「がが」「をを」など同じ助詞の連続）を検出' },
   { name: 'particle-sequence', code: 'particle-sequence', description: '不適切な助詞連続（「がを」など）を検出' },
   { name: 'verb-particle-mismatch', code: 'verb-particle-mismatch', description: '自動詞に「を」を使う動詞-助詞不整合を検出' },
-  { name: 'redundant-copula', code: 'particle-sequence', description: '冗長な助動詞（「でです」「にです」など）を検出（診断コードは particle-sequence を共有）' },
+  { name: 'redundant-copula', code: 'redundant-copula', description: '冗長な助動詞（「でです」「にです」など）を検出' },
 ];
 
 interface AdvancedRuleInfo {
@@ -141,6 +141,8 @@ function generate(repoRoot: string): string {
   for (const r of BASIC_RULES) {
     lines.push(`| \`${r.name}\` | \`${r.code}\` | ${escapeCell(r.description)} |`);
   }
+  lines.push('');
+  lines.push('診断コードの変更: `redundant-copula` は以前 `particle-sequence` とコードを共有していました。冗長な助動詞も抑制したい既存のディレクティブには `redundant-copula` を追加してください（例: `otak-lsp-disable-line particle-sequence redundant-copula`）。');
   lines.push('');
 
   const renderAdvanced = (title: string, rows: AdvancedRuleInfo[]) => {

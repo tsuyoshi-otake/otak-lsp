@@ -400,7 +400,11 @@ describe('documentAnalyzer', () => {
       );
 
       expect(result.tokens).toHaveLength(0);
-      expect(result.diagnostics).toHaveLength(0);
+      expect(result.status).toBe('skipped');
+      expect(result.skipReason).toBe('document-too-large');
+      // スキップ自体を可視化する Hint マーカーが1件出る
+      expect(result.diagnostics).toHaveLength(1);
+      expect(result.diagnostics[0].code).toBe('analysis-skipped');
       // lineStarts は早期リターンでも常に返す（セマンティック等の整合のため）
       expect(result.lineStarts.length).toBeGreaterThan(0);
     }, 10000);
@@ -452,7 +456,10 @@ describe('documentAnalyzer', () => {
         DEFAULT_ADVANCED_RULES_CONFIG,
         false
       );
-      expect(capped.diagnostics).toHaveLength(1);
+      // 上限1件 + 省略を示す末尾の Hint マーカー
+      expect(capped.diagnostics).toHaveLength(2);
+      expect(capped.diagnostics[1].code).toBe('diagnostics-truncated');
+      expect(capped.omittedDiagnostics).toBeGreaterThan(0);
     }, 10000);
   });
 });

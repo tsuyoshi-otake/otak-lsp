@@ -61,9 +61,9 @@ export class ProofreadingRulesManager {
    * @param _tokens トークン（現状未使用）
    * @param precomputedLineStarts 既に算出済みの lineStarts。指定時は再計算しない
    */
-  checkText(text: string, _tokens: Token[], precomputedLineStarts?: number[]): Diagnostic[] {
+  checkText(text: string, _tokens: Token[], precomputedLineStarts?: number[], config: ProofreadingSettingsConfig = this.config): Diagnostic[] {
     this.lineStarts = precomputedLineStarts ?? computeLineStarts(text);
-    const categories = this.config.categories;
+    const categories = config.categories;
     const checkInBrackets = categories.typo.checkInBrackets;
     const bracketRanges = this.bracketDetector.detect(text);
 

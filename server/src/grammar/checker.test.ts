@@ -258,6 +258,31 @@ describe('Grammar Checker', () => {
     });
   });
 
+  describe('Issue #25: 冗長な助動詞の診断コード', () => {
+    it('で+です（助動詞+助動詞）は redundant-copula コードを報告する', () => {
+      const tokens = [
+        createToken('それ', '名詞', 0),
+        createToken('で', '助動詞', 2),
+        createToken('です', '助動詞', 3)
+      ];
+      const diagnostics = checker.check(tokens);
+      expect(diagnostics).toHaveLength(1);
+      expect(diagnostics[0].code).toBe('redundant-copula');
+      expect(diagnostics[0].suggestions).toEqual(['「で」を削除する']);
+    });
+
+    it('に+です（助詞+助動詞）も redundant-copula コードを報告する', () => {
+      const tokens = [
+        createToken('学校', '名詞', 0),
+        createToken('に', '助詞', 2, '格助詞'),
+        createToken('です', '助動詞', 3)
+      ];
+      const diagnostics = checker.check(tokens);
+      expect(diagnostics).toHaveLength(1);
+      expect(diagnostics[0].code).toBe('redundant-copula');
+    });
+  });
+
   describe('Multiple errors', () => {
     it('should detect multiple errors in the same text', () => {
       const tokens = [

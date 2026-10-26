@@ -13,6 +13,11 @@ export interface DocumentCacheEntry {
   tokens: Token[];
   text: string;
   excludedRanges: ExcludedRange[];
+  /**
+   * 解析対象になった文字オフセット範囲（コード言語のコメント範囲）。
+   * 未設定の場合は「全テキスト - excludedRanges」が解析対象。
+   */
+  includedRanges?: { start: number; end: number }[];
   lineStarts: number[];
 }
 
@@ -26,6 +31,7 @@ export class DocumentCacheStore {
   private tokens: Map<string, Token[]> = new Map();
   private texts: Map<string, string> = new Map();
   private excludedRanges: Map<string, ExcludedRange[]> = new Map();
+  private includedRanges: Map<string, { start: number; end: number }[]> = new Map();
   private lineStarts: Map<string, number[]> = new Map();
   private semanticTokensCache: Map<string, SemanticTokensCacheValue> = new Map();
 
@@ -34,12 +40,18 @@ export class DocumentCacheStore {
     tokens: Token[],
     text: string,
     excludedRanges: ExcludedRange[],
-    lineStarts: number[]
+    lineStarts: number[],
+    includedRanges?: { start: number; end: number }[]
   ): void {
     this.tokens.set(uri, tokens);
     this.texts.set(uri, text);
     if (excludedRanges.length > 0) {
       this.excludedRanges.set(uri, excludedRanges);
+    }
+    if (includedRanges) {
+      this.includedRanges.set(uri, includedRanges);
+    } else {
+      this.includedRanges.delete(uri);
     }
     this.lineStarts.set(uri, lineStarts);
     this.semanticTokensCache.delete(uri);
@@ -79,6 +91,7 @@ export class DocumentCacheStore {
       tokens,
       text,
       excludedRanges: this.excludedRanges.get(uri) ?? [],
+      includedRanges: this.includedRanges.get(uri),
       lineStarts: this.lineStarts.get(uri) ?? [0],
     };
   }
@@ -87,6 +100,11 @@ export class DocumentCacheStore {
     this.tokens.set(uri, entry.tokens);
     this.texts.set(uri, entry.text);
     this.excludedRanges.set(uri, entry.excludedRanges);
+    if (entry.includedRanges) {
+      this.includedRanges.set(uri, entry.includedRanges);
+    } else {
+      this.includedRanges.delete(uri);
+    }
     this.lineStarts.set(uri, entry.lineStarts);
   }
 
@@ -94,6 +112,7 @@ export class DocumentCacheStore {
     this.tokens.delete(uri);
     this.texts.delete(uri);
     this.excludedRanges.delete(uri);
+    this.includedRanges.delete(uri);
     this.lineStarts.delete(uri);
     this.semanticTokensCache.delete(uri);
   }
@@ -102,6 +121,7 @@ export class DocumentCacheStore {
     this.tokens.clear();
     this.texts.clear();
     this.excludedRanges.clear();
+    this.includedRanges.clear();
     this.lineStarts.clear();
     this.semanticTokensCache.clear();
   }

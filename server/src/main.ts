@@ -24,12 +24,13 @@ import { TokenFilter } from './semantic/tokenFilter';
 import { HoverProvider } from './hover/provider';
 import { WikipediaClient } from './wikipedia/client';
 import { AnalysisStateManager } from './server/languageServer';
-import { createConfigManager } from './server/configManager';
+import { createConfigManager, ConfigManager } from './server/configManager';
 import { createDiagnosticsPublisher } from './server/diagnosticsPublisher';
 import { createDocumentAnalyzer } from './server/documentAnalyzer';
 import { createAnalysisScheduler } from './server/analysisScheduler';
 import { createConnectionHandler } from './server/connection';
 import { createLogger, isDebugEnabled } from './utils/logger';
+import { ResourceConfigurationStore } from './server/workspaceConfigLoader';
 
 // Create connection
 const connection = createConnection(ProposedFeatures.all);
@@ -37,10 +38,17 @@ const connection = createConnection(ProposedFeatures.all);
 // Create document manager
 const documents: TextDocuments<TextDocument> = new TextDocuments(TextDocument);
 
+// configManager は logger 生成より後に生成される。遅延参照用のホルダーを
+// 先に用意することで、初期化中（manager 未設定）に logger.debug が
+// 呼ばれても TDZ 例外にならないようにする。
+const configManagerRef: { manager?: ConfigManager } = {};
+
 // Create logger
+// デバッグ出力は呼び出し時に評価し、環境変数と otakLsp.debugLog 設定の
+// どちらでも有効化できるようにする（configManager は後に生成されるため遅延参照）。
 const logger = createLogger(
   (msg) => connection.console.log(msg),
-  isDebugEnabled()
+  () => isDebugEnabled() || (configManagerRef.manager?.getConfig().debugLog ?? false)
 );
 
 // Initialize components
@@ -64,12 +72,15 @@ analysisStates.setDebugLogCallback((message: string) => {
 });
 
 // Create managers
-const configManager = createConfigManager(
+const baseConfigManager = createConfigManager(
   advancedRulesManager,
   proofreadingRulesManager,
   hoverProvider,
   logger
 );
+const resourceConfigurations = new ResourceConfigurationStore(connection, baseConfigManager, logger);
+const configManager = resourceConfigurations.manager;
+configManagerRef.manager = configManager;
 
 const diagnosticsPublisher = createDiagnosticsPublisher(
   (params) => connection.sendDiagnostics(params)
@@ -105,7 +116,8 @@ const connectionHandler = createConnectionHandler(
   semanticTokenProvider,
   analysisStates,
   advancedRulesManager,
-  logger
+  logger,
+  resourceConfigurations
 );
 
 // Connect executeAnalysis function from connectionHandler to analysisScheduler
@@ -121,6 +133,9 @@ documents.listen(connection);
 // LSP shutdown / exit で worker pool を停止し、worker_threads がリークしないようにする。
 // onShutdown は client からの明示的な shutdown 要求、onExit はプロセス終了直前にコールされる。
 connection.onShutdown(async () => {
+  analysisScheduler.clearAllTimers();
+  analysisStates.clear();
+  resourceConfigurations.clear();
   try {
     await advancedRulesManager.shutdown();
   } catch (error) {

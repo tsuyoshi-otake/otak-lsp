@@ -3,7 +3,7 @@
 
 # ルールリファレンス
 
-otak-lsp v1.0.26 に同梱される文法・文体・表記ルールの一覧です。
+otak-lsp v1.0.27 に同梱される文法・文体・表記ルールの一覧です。
 真実源は `server/src/grammar/advancedRuleRegistry.ts`（高度ルール）と `server/src/grammar/checker.ts`（基本ルール）です。
 
 | 種別 | 件数 |
@@ -23,7 +23,9 @@ otak-lsp v1.0.26 に同梱される文法・文体・表記ルールの一覧で
 | `double-particle` | `double-particle` | 二重助詞（「がが」「をを」など同じ助詞の連続）を検出 |
 | `particle-sequence` | `particle-sequence` | 不適切な助詞連続（「がを」など）を検出 |
 | `verb-particle-mismatch` | `verb-particle-mismatch` | 自動詞に「を」を使う動詞-助詞不整合を検出 |
-| `redundant-copula` | `particle-sequence` | 冗長な助動詞（「でです」「にです」など）を検出（診断コードは particle-sequence を共有） |
+| `redundant-copula` | `redundant-copula` | 冗長な助動詞（「でです」「にです」など）を検出 |
+
+診断コードの変更: `redundant-copula` は以前 `particle-sequence` とコードを共有していました。冗長な助動詞も抑制したい既存のディレクティブには `redundant-copula` を追加してください（例: `otak-lsp-disable-line particle-sequence redundant-copula`）。
 
 ## 高度ルール
 

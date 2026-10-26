@@ -2,7 +2,7 @@
   "name": "otak-lsp",
   "displayName": "otak-lsp",
   "description": "日本語形態素解析VSCode拡張機能（外部依存なし）。文法チェック、セマンティックハイライト、ホバー情報を提供します。kuromoji-optimized内蔵でMeCab不要。",
-  "version": "1.0.26",
+  "version": "1.0.27",
   "publisher": "odangoo",
   "license": "MIT",
   "icon": "images/otak-lsp.png",
@@ -59,8 +59,20 @@
       {
         "command": "otakLsp.selectTheme",
         "title": "otak-lsp: セマンティックテーマを選択"
+      },
+      {
+        "command": "otakLsp.restartServer",
+        "title": "otak-lsp: サーバーを再起動"
       }
     ],
+    "menus": {
+      "commandPalette": [
+        {
+          "command": "otakLsp.setTheme",
+          "when": "false"
+        }
+      ]
+    },
     "configuration": {
       "type": "object",
       "title": "otak-lsp",
@@ -159,6 +171,12 @@
           "type": "boolean",
           "default": false,
           "description": "解析パイプラインの計測ログを出力します（開発者向け）。",
+          "scope": "resource"
+        },
+        "otakLsp.debugLog": {
+          "type": "boolean",
+          "default": false,
+          "description": "サーバーのデバッグログを出力します（環境変数 OTAK_LSP_DEBUG=1 でも有効化できます）。",
           "scope": "resource"
         },
         "otakLsp.hover.enableWikipedia": {

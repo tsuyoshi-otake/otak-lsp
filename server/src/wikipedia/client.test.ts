@@ -15,6 +15,7 @@ describe('Wikipedia API Client', () => {
 
   afterEach(() => {
     client.clearCache();
+    jest.useRealTimers();
   });
 
   describe('getSummary', () => {
@@ -110,7 +111,8 @@ describe('Wikipedia API Client', () => {
       expect(mockFetch).toHaveBeenCalledTimes(1); // 増えていない
     });
 
-    it('should not cache failed results', async () => {
+    it('失敗後はバックオフし、期限後に再取得できる', async () => {
+      jest.useFakeTimers();
       const mockFetch = jest.fn()
         .mockRejectedValueOnce(new Error('First request failed'))
         .mockResolvedValueOnce({
@@ -125,7 +127,10 @@ describe('Wikipedia API Client', () => {
       const result1 = await client.getSummary('テスト');
       expect(result1).toBeNull();
 
-      // 2回目のリクエスト（成功）
+      expect(await client.getSummary('テスト')).toBeNull();
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+      await jest.advanceTimersByTimeAsync(1251);
+      // バックオフ期限後のリクエスト（成功）
       const result2 = await client.getSummary('テスト');
       expect(result2).toBe('成功したサマリー');
       expect(mockFetch).toHaveBeenCalledTimes(2);

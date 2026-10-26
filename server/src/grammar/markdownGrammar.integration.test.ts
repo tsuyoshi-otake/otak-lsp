@@ -238,7 +238,7 @@ const aws = require('aws-sdk');
 
       expect(filterByCode(diagnostics, 'double-particle').length).toBeGreaterThan(0);
       expect(filterByCode(diagnostics, 'particle-sequence').length).toBeGreaterThan(0);
-      expect(hasMessageContaining(filterByCode(diagnostics, 'particle-sequence'), 'でです')).toBe(true);
+      expect(hasMessageContaining(filterByCode(diagnostics, 'redundant-copula'), 'でです')).toBe(true);
       expect(filterByCode(diagnostics, 'verb-particle-mismatch').length).toBeGreaterThan(0);
 
       expect(filterByCode(diagnostics, 'ra-nuki').length).toBeGreaterThan(0);

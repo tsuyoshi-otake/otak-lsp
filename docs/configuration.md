@@ -3,7 +3,7 @@
 
 # 設定リファレンス
 
-otak-lsp v1.0.26 の全設定項目（142件）の完全な一覧です。
+otak-lsp v1.0.27 の全設定項目（143件）の完全な一覧です。
 真実源は `package.json` の `contributes.configuration` です。READMEには代表的な設定のみを掲載しています。
 
 ## Markdown
@@ -181,5 +181,6 @@ otak-lsp v1.0.26 の全設定項目（142件）の完全な一覧です。
 | `otakLsp.maxNumberOfProblems` | number | `2000` | 範囲: 0〜 | 1文書あたりに報告する診断の最大件数。これを超えた分は切り捨てます。0で無制限。 |
 | `otakLsp.maxConcurrentAnalyses` | number | `4` | 範囲: 1〜32 | 同時に実行する文書解析の最大数。複数ファイルの一斉解析（設定変更時など）でのメモリ使用量のピークを抑えるための上限です。値を小さくするとメモリ使用量が下がり、大きくするとスループットが上がります。 |
 | `otakLsp.enableProfileLogs` | boolean | `false` |  | 解析パイプラインの計測ログを出力します（開発者向け）。 |
+| `otakLsp.debugLog` | boolean | `false` |  | サーバーのデバッグログを出力します（環境変数 OTAK_LSP_DEBUG=1 でも有効化できます）。 |
 | `otakLsp.sentenceSplitMode` | string | `normal` | 列挙: strict / normal / loose | 文分割モード。strict: 改行を常に文の区切りとして扱う、normal: 文脈を考慮して判断（推奨）、loose: 段落区切り（空行）のみを文の区切りとして扱う |
 

@@ -23,9 +23,9 @@ describe('analysisScheduler', () => {
   const analysisExecutions: Array<{ uri: string; lightweightOnly: boolean }> = [];
 
   // Mock execute analysis function
-  const executeAnalysis = async (uri: string, lightweightOnly: boolean): Promise<void> => {
+  const executeAnalysis = async (uri: string, lightweightOnly: boolean) => {
     analysisExecutions.push({ uri, lightweightOnly });
-    return Promise.resolve();
+    return Promise.resolve({ status: 'completed' as const, diagnostics: 0, omittedDiagnostics: 0 });
   };
 
   beforeEach(() => {
@@ -165,13 +165,14 @@ describe('analysisScheduler', () => {
       const completed: string[] = [];
 
       // 並走数を観測する gated executeAnalysis（各解析は 40ms 滞留させる）
-      const gatedExecute = async (uri: string, lightweightOnly: boolean): Promise<void> => {
+      const gatedExecute = async (uri: string, lightweightOnly: boolean) => {
         analysisExecutions.push({ uri, lightweightOnly });
         current++;
         peak = Math.max(peak, current);
         await new Promise((r) => setTimeout(r, 40));
         current--;
         completed.push(uri);
+        return { status: 'completed' as const, diagnostics: 0, omittedDiagnostics: 0 };
       };
       scheduler.setExecuteAnalysis(gatedExecute);
 

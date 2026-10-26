@@ -9,6 +9,7 @@
  */
 
 import { Connection } from 'vscode-languageserver/node';
+import { TextDocument } from 'vscode-languageserver-textdocument';
 import { ConfigManager } from './configManager';
 import { DocumentAnalyzer } from './documentAnalyzer';
 import { DiagnosticsPublisher } from './diagnosticsPublisher';
@@ -18,6 +19,10 @@ import { DocumentCacheStore } from './documentCacheStore';
 import { RuleProfilingCollector } from '../../../shared/src/advancedTypes';
 import { Logger } from '../utils/logger';
 import { logError } from '../utils/errorHandler';
+import { AnalysisRunOutcome } from './analysisScheduler';
+
+/** クライアントへ送る解析結果通知の種別 */
+export type AnalysisNoticeKind = 'analysis-skipped' | 'diagnostics-truncated' | 'analysis-failed';
 
 export interface AnalysisRunnerDeps {
   connection: Connection;
@@ -33,7 +38,7 @@ export interface AnalysisRunnerDeps {
 
 export function createExecuteAnalysis(
   deps: AnalysisRunnerDeps
-): (uri: string, lightweightOnly: boolean) => Promise<void> {
+): (uri: string, lightweightOnly: boolean) => Promise<AnalysisRunOutcome> {
   const {
     connection, cacheStore, analysisStates, configManager,
     documentAnalyzer, diagnosticsPublisher, profiler, isProfileLogsEnabled, logger,
@@ -43,20 +48,37 @@ export function createExecuteAnalysis(
     logger?.debug(message);
   }
 
-  return async function executeAnalysis(uri: string, lightweightOnly: boolean): Promise<void> {
+  /**
+   * 解析スキップ・診断切り捨て・解析失敗をクライアントへ通知する。
+   * 通知の重複抑制（文書単位のデバウンス）はクライアント側で行う。
+   */
+  function sendAnalysisNotice(uri: string, kind: AnalysisNoticeKind, detail: { reason?: string; omitted?: number; total?: number }): void {
+    connection.sendNotification('otakLsp/analysisNotice', { uri, kind, ...detail }).catch(() => undefined);
+  }
+
+  return async function executeAnalysis(uri: string, lightweightOnly: boolean): Promise<AnalysisRunOutcome> {
     debugLog(`executeAnalysis called: uri=${uri}, lightweightOnly=${lightweightOnly}`);
 
-    const state = analysisStates.getState(uri);
-    const document = state.latestDocument;
+    const state = analysisStates.getExistingState(uri);
+    const generation = analysisStates.getGeneration(uri);
+    const document = state?.latestDocument;
 
     if (!document) {
       debugLog(`No document found for ${uri}`);
-      return;
+      return { status: 'skipped', reason: 'no-document' };
     }
 
-    const config = configManager.getConfig();
-    const advancedConfig = configManager.getAdvancedConfig();
-    const analysisVersion = state.latestVersion;
+    const snapshot = configManager.getSnapshot?.(uri);
+    const configRevision = configManager.getRevision?.(uri);
+    const config = snapshot?.config ?? configManager.getConfig(uri);
+    const advancedConfig = snapshot?.advancedConfig ?? configManager.getAdvancedConfig(uri);
+    const analysisVersion = state!.latestVersion;
+    const analysisDocument = TextDocument.create(uri, document.languageId, document.version, document.getText());
+    const isCurrent = (): boolean =>
+      analysisStates.getGeneration(uri) === generation &&
+      analysisStates.getExistingState(uri)?.latestVersion === analysisVersion &&
+      document.version === analysisDocument.version &&
+      configManager.getRevision?.(uri) === configRevision;
 
     const profileEnabled = isProfileLogsEnabled();
     const ruleProfilingCollector: RuleProfilingCollector | undefined = profileEnabled
@@ -67,20 +89,30 @@ export function createExecuteAnalysis(
 
     try {
       const result = await documentAnalyzer.analyze(
-        document, config, advancedConfig, lightweightOnly, profiler, ruleProfilingCollector
+        analysisDocument, config, advancedConfig, lightweightOnly, profiler, ruleProfilingCollector, snapshot?.proofreadingConfig
       );
 
-      const currentState = analysisStates.getState(uri);
-      if (currentState.latestVersion > analysisVersion) {
-        debugLog(`Discarding stale analysis result for ${uri} (analysis version: ${analysisVersion}, current version: ${currentState.latestVersion})`);
-        return;
+      if (!isCurrent()) {
+        debugLog(`Discarding stale analysis result for ${uri} (analysis version: ${analysisVersion})`);
+        return { status: 'stale' };
       }
 
       cacheStore.setAnalysisResult(
-        uri, result.tokens, document.getText(), result.excludedRanges, result.lineStarts
+        uri, result.tokens, analysisDocument.getText(), result.excludedRanges, result.lineStarts,
+        result.includedRanges
       );
 
       diagnosticsPublisher.publish(uri, result.diagnostics);
+
+      if (result.status === 'skipped' && result.skipReason === 'document-too-large') {
+        sendAnalysisNotice(uri, 'analysis-skipped', { reason: result.skipReason });
+      } else if (result.omittedDiagnostics > 0) {
+        sendAnalysisNotice(uri, 'diagnostics-truncated', {
+          omitted: result.omittedDiagnostics,
+          total: result.diagnostics.filter(diagnostic => diagnostic.code !== 'diagnostics-truncated').length
+            + result.omittedDiagnostics,
+        });
+      }
 
       if (config.enableSemanticHighlight) {
         connection.sendRequest('workspace/semanticTokens/refresh').catch(() => undefined);
@@ -99,10 +131,24 @@ export function createExecuteAnalysis(
           totalMs
         );
       }
+
+      if (result.status === 'skipped') {
+        return { status: 'skipped', reason: result.skipReason ?? 'unknown' };
+      }
+      return {
+        status: 'completed',
+        diagnostics: result.diagnostics.length,
+        omittedDiagnostics: result.omittedDiagnostics,
+      };
     } catch (error) {
       logError(logger, `Analysis failed for ${uri}`, error);
+      if (!isCurrent()) {
+        return { status: 'stale' };
+      }
       cacheStore.clear(uri);
       diagnosticsPublisher.clear(uri);
+      sendAnalysisNotice(uri, 'analysis-failed', { reason: error instanceof Error ? error.message : String(error) });
+      return { status: 'failed', error: error instanceof Error ? error.message : String(error) };
     }
   };
 }

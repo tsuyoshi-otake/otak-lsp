@@ -349,7 +349,7 @@ class RedundantCopulaRule implements GrammarRule {
       ) {
         const range = createTokenRange(this.checker, current, next);
         return new GrammarError({
-          type: 'particle-sequence' as GrammarErrorType,
+          type: 'redundant-copula' as GrammarErrorType,
           tokens: [current, next],
           range,
           message: pattern.message,
