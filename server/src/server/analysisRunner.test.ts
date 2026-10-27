@@ -4,6 +4,9 @@ import { AnalysisResult } from './documentAnalyzer';
 import { AnalysisStateManager } from './languageServer';
 import { DocumentCacheStore } from './documentCacheStore';
 import { DEFAULT_ADVANCED_RULES_CONFIG } from '../../../shared/src/advancedTypes';
+import { ConfigManager, resolveConfiguration } from './configManager';
+import { ResourceConfigurationStore } from './workspaceConfigLoader';
+import { Connection } from 'vscode-languageserver/node';
 
 describe('解析結果の世代確認', () => {
   const uri = 'file:///result.md';
@@ -64,6 +67,35 @@ describe('解析結果の世代確認', () => {
     await task;
     expect(clear).not.toHaveBeenCalled();
     expect(cache.getText(uri)).toBe('新しい本文');
+  });
+
+  it('文書別設定に対応しないクライアントでも設定変更前の診断を再公開しない', async () => {
+    let snapshot = resolveConfiguration({});
+    const base = {
+      getConfig: () => snapshot.config,
+      getAdvancedConfig: () => snapshot.advancedConfig,
+      getSnapshot: () => snapshot,
+    } as ConfigManager;
+    const store = new ResourceConfigurationStore({} as Connection, base);
+    const work = new Promise<AnalysisResult>(resolve => { finish = resolve; });
+    const run = createExecuteAnalysis({
+      analysisStates: states, cacheStore: cache,
+      connection: { sendRequest: jest.fn().mockResolvedValue(undefined), sendNotification: notify },
+      configManager: store.manager,
+      documentAnalyzer: { analyze: () => work },
+      diagnosticsPublisher: { publish, clear },
+      profiler: {}, isProfileLogsEnabled: () => false,
+    } as unknown as AnalysisRunnerDeps);
+
+    const oldRun = run(uri, false);
+    store.clear();
+    snapshot = resolveConfiguration({ enableGrammarCheck: false });
+    finish(result);
+    await expect(oldRun).resolves.toEqual({ status: 'stale' });
+    expect(publish).not.toHaveBeenCalled();
+    expect(cache.getEntry(uri)).toBeUndefined();
+    await expect(run(uri, false)).resolves.toMatchObject({ status: 'completed' });
+    expect(publish).toHaveBeenCalledTimes(1);
   });
 
   it('省略通知の総件数に案内用マーカーを含めない', async () => {

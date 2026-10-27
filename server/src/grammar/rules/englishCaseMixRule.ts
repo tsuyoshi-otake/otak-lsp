@@ -15,6 +15,8 @@ import {
   AdvancedGrammarErrorType
 } from '../../../../shared/src/advancedTypes';
 import { MixDetectionRule, PatternInfo } from './mixDetectionRule';
+import { findHtmlTagRanges } from '../technicalTextRanges';
+import { normalizeRanges } from '../../utils/rangeSweep';
 
 /**
  * English Case Mix Detection Rule
@@ -107,29 +109,21 @@ export class EnglishCaseMixRule extends MixDetectionRule {
     for (const [normalizedWord, variants] of wordVariants) {
       if (variants.size > 1) {
         const variantList = Array.from(variants.keys());
-
-        let firstIndex = Number.POSITIVE_INFINITY;
-        let firstVariant = normalizedWord;
+        const message = `英語表記「${normalizedWord}」の大文字小文字が統一されていません。${variantList.join('、')}が混在しています。`;
+        // 正しい表記を推定せず、各表記の最初の位置を示す。
+        // 繰返し出現するたびに診断を増やさず、利用者が各表記へ移動できるようにする。
         for (const [variant, index] of variants) {
-          if (index < firstIndex) {
-            firstIndex = index;
-            firstVariant = variant;
-          }
+          diagnostics.push(new AdvancedDiagnostic({
+            range: {
+              start: { line: 0, character: index },
+              end: { line: 0, character: Math.min(index + variant.length, context.documentText.length) }
+            },
+            message,
+            code: 'english-case-mix',
+            ruleName: this.name,
+            suggestions: ['いずれか一つの表記に統一してください']
+          }));
         }
-
-        const startOffset = Number.isFinite(firstIndex) ? firstIndex : 0;
-        const endOffset = Math.min(startOffset + firstVariant.length, context.documentText.length);
-
-        diagnostics.push(new AdvancedDiagnostic({
-          range: {
-            start: { line: 0, character: startOffset },
-            end: { line: 0, character: endOffset }
-          },
-          message: `英語表記「${normalizedWord}」の大文字小文字が統一されていません。${variantList.join('、')}が混在しています。`,
-          code: 'english-case-mix',
-          ruleName: this.name,
-          suggestions: [`「${variantList[0]}」または「${normalizedWord.toUpperCase()}」に統一してください`]
-        }));
       }
     }
 
@@ -144,7 +138,7 @@ export class EnglishCaseMixRule extends MixDetectionRule {
    */
   private findWordVariantsWithContext(text: string, context: RuleContext): Map<string, Map<string, number>> {
     // 共有コンテキストがあれば再利用、なければ個別計算
-    const codeRanges = context.shared?.codeRanges ?? this.getCodeRanges(text);
+    const codeRanges = normalizeRanges([...(context.shared?.codeRanges ?? this.getCodeRanges(text)), ...findHtmlTagRanges(text)]);
     return this.findWordVariantsWithCodeRanges(text, codeRanges);
   }
 

@@ -26,6 +26,7 @@ import { DEFAULT_ENABLED_GLOSSARIES } from '../hover/glossary';
 import { Logger } from '../utils/logger';
 import { isNotEmptyObject } from '../utils/arrayUtils';
 import { DEFAULT_MAX_CONCURRENT_ANALYSES } from '../utils/concurrencyLimiter';
+import { getSetting } from '../utils/configValue';
 
 /**
  * 設定変更コールバック型
@@ -71,35 +72,6 @@ export interface ConfigManager {
    * LSP設定変更ハンドラ（onDidChangeConfigurationから呼び出し）
    */
   handleLspConfigChange(settings: unknown): void;
-}
-
-/**
- * 設定値を取得するユーティリティ
- */
-function getSetting(config: unknown, keyPath: string): unknown {
-  if (!config || typeof config !== 'object') {
-    return undefined;
-  }
-
-  const record = config as Record<string, unknown>;
-  if (Object.prototype.hasOwnProperty.call(record, keyPath)) {
-    return record[keyPath];
-  }
-
-  const parts = keyPath.split('.');
-  let cursor: unknown = config;
-  for (const part of parts) {
-    if (!cursor || typeof cursor !== 'object') {
-      return undefined;
-    }
-    const asRecord = cursor as Record<string, unknown>;
-    if (!Object.prototype.hasOwnProperty.call(asRecord, part)) {
-      return undefined;
-    }
-    cursor = asRecord[part];
-  }
-
-  return cursor;
 }
 
 /**
@@ -245,6 +217,11 @@ export function createConfigManager(
   }
 
   const ADVANCED_FIELD_HANDLERS: Partial<Record<keyof AdvancedRulesConfig, AdvancedFieldHandler>> = {
+    sentenceComplexityThreshold: (incoming, patch) => {
+      if (typeof incoming === 'number' && Number.isFinite(incoming) && incoming >= 0 && incoming <= 100) {
+        patch.sentenceComplexityThreshold = incoming;
+      }
+    },
     customNotationRules: (incoming, patch) => {
       const parsed = parseCustomNotationRules(incoming);
       if (parsed !== undefined) {

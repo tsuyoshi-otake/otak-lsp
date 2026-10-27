@@ -145,12 +145,25 @@ export class EvalsReporter {
   static generateReadmeSection(result: EvalResult): string {
     const lines: string[] = [];
 
-    lines.push('## Detection Coverage');
+    lines.push('## Evals（評価例）');
     lines.push('');
 
     // バッジ
-    const badgeColor = this.getBadgeColor(result.detectionRate);
-    lines.push(`![Coverage](https://img.shields.io/badge/coverage-${result.detectionRate}%25-${badgeColor})`);
+    const badgeColor = result.categories.some(cat => cat.status === 'FAIL') ? 'red'
+      : result.categories.some(cat => cat.status === 'NOT_IMPL') ? 'yellow'
+        : this.getBadgeColor(result.detectionRate);
+    lines.push(`![評価例一致率](https://img.shields.io/badge/evals-${result.detectionRate}%25-${badgeColor})`);
+    const implemented = result.categories.filter(cat => cat.status !== 'NOT_IMPL');
+    const total = implemented.reduce((sum, cat) => sum + cat.total, 0);
+    const examples = implemented.flatMap(cat => cat.examples);
+    const positives = examples.filter(example => example.expectedDetection).length;
+    const negatives = examples.length - positives;
+    const notImplemented = result.categories.length - implemented.length;
+    lines.push('');
+    lines.push(`評価例の期待結果との一致: ${result.detectedExamples}/${total}（検出期待 ${positives}例、非検出期待 ${negatives}例）。未実装 ${notImplemented}カテゴリは一致率に含めません。`);
+    lines.push('');
+    lines.push('この一致率はコード網羅率や実文書での誤検出率を示すものではありません。');
+    lines.push('評価は各ルールを直接実行します。常用漢字の検出期待例では固有名詞・人名・地名の除外を無効にしています。表内の例文の改行は空白で表示します。');
     lines.push('');
 
     // カテゴリテーブル
@@ -159,9 +172,7 @@ export class EvalsReporter {
 
     for (const cat of result.categories) {
       const status = this.getStatusIndicator(cat.status);
-      // NOTE: 長すぎる文は「長文であること」を示すため、例文を切り詰めない
-      const maxExampleLength = cat.categoryId === 'long-sentence' ? 150 : 50;
-      const example = this.escapeMarkdown(cat.representativeExample, maxExampleLength);
+      const example = this.escapeMarkdown(cat.representativeExample);
       lines.push(`| ${cat.categoryName} | ${status} | ${example} |`);
     }
     lines.push('');
@@ -235,19 +246,8 @@ export class EvalsReporter {
   /**
    * Markdownエスケープ
    */
-  private static escapeMarkdown(text: string, maxLength: number = 50): string {
+  private static escapeMarkdown(text: string): string {
     // テーブル内で問題になる文字をエスケープ
-    const escaped = text.replace(/\|/g, '\\|').replace(/\n/g, ' ');
-
-    if (escaped.length <= maxLength) {
-      return escaped;
-    }
-
-    // 末尾がバックスラッシュだとエスケープが壊れるため避ける
-    let head = escaped.substring(0, maxLength);
-    if (head.endsWith('\\')) {
-      head = head.slice(0, -1);
-    }
-    return `${head}…`;
+    return text.replace(/\|/g, '\\|').replace(/\r?\n/g, ' ');
   }
 }

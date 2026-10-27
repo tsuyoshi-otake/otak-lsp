@@ -24,16 +24,25 @@ describe('Japanese Grammar Evals', () => {
   }, 120000); // 2分タイムアウト（全テスト実行）
 
   describe('Overall Coverage', () => {
+    it('should match every example in implemented categories', () => {
+      const failures = result.categories
+        .filter(category => category.status === 'FAIL')
+        .flatMap(category => category.examples
+          .filter(example => !example.detected)
+          .map(example => `${category.categoryId}: ${example.text}`));
+      expect(failures).toEqual([]);
+    });
+
     it(`should have detection rate above ${DETECTION_RATE_THRESHOLD}%`, () => {
       expect(result.detectionRate).toBeGreaterThanOrEqual(DETECTION_RATE_THRESHOLD);
     });
 
-    it('should have 71 total categories', () => {
-      expect(result.totalCategories).toBe(71);
+    it('should have 72 total categories', () => {
+      expect(result.totalCategories).toBe(72);
     });
 
-    it('should have all 71 categories implemented', () => {
-      expect(result.implementedCategories).toBe(71);
+    it('should have all 72 categories implemented', () => {
+      expect(result.implementedCategories).toBe(72);
     });
   });
 
@@ -129,7 +138,7 @@ describe('Japanese Grammar Evals', () => {
   describe('Summary Output', () => {
     it('should generate summary without errors', () => {
       expect(result.timestamp).toBeDefined();
-      expect(result.categories.length).toBe(71); // Updated for all grammar rule categories
+      expect(result.categories.length).toBe(72); // さ入れ表現を含む全カテゴリ
     });
 
     it('should have valid detection counts', () => {

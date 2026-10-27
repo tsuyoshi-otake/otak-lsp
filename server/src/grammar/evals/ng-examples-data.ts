@@ -145,6 +145,22 @@ export const NG_EXAMPLE_CATEGORIES: NGExampleCategory[] = [
     ]
   },
 
+  {
+    id: 'sa-ire',
+    name: 'さ入れ表現',
+    description: '五段動詞の使役形に余分な「さ」を加えた表現',
+    expectedRule: 'sa-ire',
+    status: 'IMPLEMENTED',
+    examples: [
+      { text: '休まさせていただきます。', correctText: '休ませていただきます。' },
+      { text: '帰らさせてください。', correctText: '帰らせてください。' },
+      { text: '伺わさせます。', correctText: '伺わせます。' },
+      { text: '読まさせていただきます。', correctText: '読ませていただきます。' },
+      { text: '見させてください。', expectedDetection: false },
+      { text: '生かさせる。', expectedDetection: false }
+    ]
+  },
+
   // 7. 二重否定
   {
     id: 'double-negation',
@@ -270,7 +286,9 @@ export const NG_EXAMPLE_CATEGORIES: NGExampleCategory[] = [
       { text: 'それは出来る', correctText: 'それはできる' },
       { text: '有難うございます', correctText: 'ありがとうございます' },
       { text: '宜しくお願いします', correctText: 'よろしくお願いします' },
-      { text: '頂きます', correctText: 'いただきます' }
+      { text: '頂きます', correctText: 'いただきます' },
+      { text: '約物を制御します。', expectedDetection: false, description: '複合語の一部は形式名詞ではない' },
+      { text: 'アイドル時に実行する。', expectedDetection: false, description: '接尾語「時」は「とき」ではない' }
     ]
   },
 
@@ -371,7 +389,14 @@ export const NG_EXAMPLE_CATEGORIES: NGExampleCategory[] = [
     status: 'IMPLEMENTED',
     examples: [
       { text: '意志が低い', correctText: '意識が低い / 志が低い', description: '「意志」と「意識」の混同' },
-      { text: '移動の制約', correctText: '異動の制約', description: '会社の異動の場合' }
+      { text: '移動の辞令を受け取る', correctText: '異動の辞令を受け取る', description: '人事の辞令' },
+      { text: '完了の報告をします。', expectedDetection: false, description: '正常な報告' },
+      { text: '家庭で作る料理。', expectedDetection: false, description: '正常な家庭の用例' },
+      { text: '移動の制約があります。', expectedDetection: false, description: '物理的な移動の制約' },
+      { text: '異動の制約があります。', expectedDetection: false, description: '人事異動の制約' },
+      { text: '過程が良い。', expectedDetection: false, description: 'プロセスの評価' },
+      { text: '被害は東京以外に多い。', expectedDetection: false, description: '東京を除く地域についての説明' },
+      { text: '結果は以外に多い。', correctText: '結果は意外に多い。', description: '予想外の意味' }
     ]
   },
 
@@ -534,13 +559,19 @@ export const NG_EXAMPLE_CATEGORIES: NGExampleCategory[] = [
   {
     id: 'okurigana-variant',
     name: '送り仮名の揺れ',
-    description: '動詞・形容詞の送り仮名が標準形と異なる',
+    description: '送り仮名の表記方針への提案と不要な指摘の区別',
     expectedRule: 'okurigana-variant',
     status: 'IMPLEMENTED',
     examples: [
-      { text: '愛でる心を表わす', correctText: '愛でる心を表す', description: '「表す」の送り仮名誤り' },
-      { text: '結果を現わす', correctText: '結果を現す', description: '「現す」の送り仮名誤り' },
-      { text: '感じて戴きたい', correctText: '感じていただきたい', description: '補助動詞「いただく」の送り誤り' }
+      { text: '愛でる心を表わす', description: '「表わす」は許容形。本則への表記統一の提案' },
+      { text: '結果を現わす', description: '「現わす」は許容形。本則への表記統一の提案' },
+      { text: '今月の売上げ', description: '「売上げ」は許容形。表記方針の参考提案' },
+      { text: '感謝の贈物', description: '「贈物」は公用文の省略形。表記方針の参考提案' },
+      { text: '気持ちを表す', expectedDetection: false, description: '本則の表記' },
+      { text: 'データの取り扱い', expectedDetection: false, description: '本則の表記' },
+      { text: '感じて戴きたい', correctText: '感じていただきたい', description: '補助動詞「いただく」の送り誤り' },
+      { text: '質問に答えた。', expectedDetection: false, description: '同じ送り仮名への変更は不要' },
+      { text: 'データと一致しています。', expectedDetection: false, description: '「一致し」を補助動詞「致し」と誤認しない' }
     ]
   },
 
@@ -554,7 +585,8 @@ export const NG_EXAMPLE_CATEGORIES: NGExampleCategory[] = [
     examples: [
       { text: '出来るだけ早く対応します', correctText: 'できるだけ早く対応します' },
       { text: 'ご対応下さい', correctText: 'ご対応ください' },
-      { text: 'ご連絡致します', correctText: 'ご連絡いたします' }
+      { text: 'ご連絡致します', correctText: 'ご連絡いたします' },
+      { text: 'アイドル時に実行する。', expectedDetection: false, description: '接尾語「時」は「とき」ではない' }
     ]
   },
 
@@ -606,7 +638,10 @@ export const NG_EXAMPLE_CATEGORIES: NGExampleCategory[] = [
     status: 'IMPLEMENTED',
     examples: [
       { text: '二〇二五年に20件受注', correctText: '2025年に20件受注' },
-      { text: '十五人で5本の飲料を買った', correctText: '15人で5本の飲料を買った' }
+      { text: '十五人で5本の飲料を買った', correctText: '15人で5本の飲料を買った' },
+      { text: '三人で5本の飲料を買った', correctText: '3人で5本の飲料を買った' },
+      { text: '一方、2人が出発した。', expectedDetection: false, description: '「一方」は数詞ではない' },
+      { text: '一人で5本を買う。', expectedDetection: false, description: '慣用表記「一人」は除外する' }
     ]
   },
 
@@ -925,7 +960,7 @@ export const NG_EXAMPLE_CATEGORIES: NGExampleCategory[] = [
       { text: '煽る発言', correctText: 'あおる発言', description: '「煽」は常用漢字外' },
       { text: '牽引する', correctText: 'けんいんする', description: '「牽」は常用漢字外' },
       { text: '窺う機会', correctText: 'うかがう機会', description: '「窺」は常用漢字外' },
-      { text: '捉える視点', correctText: 'とらえる視点', description: '「捉」は常用漢字外' },
+      { text: '捉える視点', description: '「捉」は常用漢字', expectedDetection: false },
       { text: '鸚鵡を飼う', correctText: 'おうむを飼う', description: '「鸚」「鵡」は常用漢字外' },
       { text: '餡子を作る', correctText: 'あんこを作る', description: '「餡」は常用漢字外' },
       // 旧字体・異体字（8例）
@@ -1127,6 +1162,20 @@ export const NG_EXAMPLE_CATEGORIES: NGExampleCategory[] = [
       {
         text: '昨日私が買った本を読んでいた彼女が言っていたことを聞いた友人が教えてくれた情報によると、来週開催される予定のイベントは中止になるらしい。',
         description: '従属節が深くネストしている複雑な文'
+      },
+      {
+        text: '資料を確認して、担当者に結果を連絡してください。',
+        expectedDetection: false,
+        description: '短い依頼文は複雑な文として警告しない'
+      },
+      {
+        text: '昨日は友人と図書館に行き、新しい本を借りました。',
+        expectedDetection: false,
+        description: '短い日常文は複雑な文として警告しない'
+      },
+      {
+        text: '私の友人の妹の会社の社長の息子の学校の先生の家の庭の木の葉が落ち、東京大阪京都名古屋福岡横浜広島仙台神戸奈良金沢長野の工事報告書を確認し、同時に、申請し、登録し、検査し、整理し、保管し、共有し、再度確認した。',
+        description: '長さ・読点・複数の連続指標が既定閾値を超える文'
       }
     ]
   }

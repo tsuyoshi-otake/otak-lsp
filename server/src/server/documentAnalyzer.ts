@@ -17,6 +17,7 @@ import { AdvancedRulesManager } from '../grammar/advancedRulesManager';
 import { parseSuppressionDirectives, applySuppressions, DirectiveScopeOptions } from '../grammar/suppressionDirectives';
 import { ProofreadingRulesManager } from '../proofreading/proofreadingRulesManager';
 import { ProofreadingSettingsConfig } from '../proofreading/proofreadingConfig';
+import { findQuoteLineRanges } from '../proofreading/quoteLineFilter';
 import { CommentRange, Configuration, Token, SupportedLanguage, Diagnostic } from '../../../shared/src/types';
 import { ExcludedRange } from '../../../shared/src/markdownFilterTypes';
 import { AdvancedRulesConfig, RuleProfilingCollector } from '../../../shared/src/advancedTypes';
@@ -25,8 +26,11 @@ import { convertSeverity } from './diagnosticsPublisher';
 import { computeLineStarts } from '../utils/lineStarts';
 import { Logger } from '../utils/logger';
 import { isNotEmpty } from '../utils/arrayUtils';
+import { DictionaryExecutor } from '../dictionaries/dictionaryExecutor';
+import { ProofreadingDictionaryService } from '../dictionaries/proofreadingDictionaryService';
 import {
   buildMaskedTextByKeepRanges,
+  buildMaskedTextByMaskRanges,
 } from '../utils/rangeSweep';
 
 /**
@@ -91,10 +95,11 @@ function buildDirectiveScope(
   text: string,
   languageId: SupportedLanguage,
   commentRanges: CommentRange[],
-  excludedRanges: ExcludedRange[]
+  excludedRanges: ExcludedRange[],
+  quoteRanges: ExcludedRange[],
 ): DirectiveScopeOptions | undefined {
   if (languageId === 'plaintext') {
-    return undefined;
+    return quoteRanges.length > 0 ? { excludeRanges: quoteRanges } : undefined;
   }
   if (languageId === 'markdown') {
     const includeRanges: { start: number; end: number }[] = [];
@@ -103,9 +108,9 @@ function buildDirectiveScope(
     while ((m = re.exec(text)) !== null) {
       includeRanges.push({ start: m.index, end: m.index + m[0].length });
     }
-    return { includeRanges, excludeRanges: excludedRanges };
+    return { includeRanges, excludeRanges: [...excludedRanges, ...quoteRanges] };
   }
-  return { includeRanges: commentRanges };
+  return { includeRanges: commentRanges, excludeRanges: quoteRanges };
 }
 
 function keepOnlyCommentRanges(text: string, comments: CommentRange[]): string {
@@ -313,6 +318,7 @@ interface GrammarCheckDeps {
   grammarChecker: GrammarChecker;
   advancedRulesManager: AdvancedRulesManager;
   proofreadingRulesManager: ProofreadingRulesManager;
+  proofreadingDictionaries: ProofreadingDictionaryService;
 }
 
 async function runAdvancedRules(
@@ -383,7 +389,10 @@ async function runGrammarChecks(
   ruleProfilingCollector?: RuleProfilingCollector,
   precomputedLineStarts?: number[],
   proofreadingConfig?: ProofreadingSettingsConfig,
-  documentVersion: number = 0
+  documentVersion: number = 0,
+  documentUri: string = '',
+  commentRanges: CommentRange[] = [],
+  quoteRanges: ExcludedRange[] = [],
 ): Promise<LSPDiagnostic[]> {
   const basicStart = Date.now();
   const advancedStart = Date.now();
@@ -391,7 +400,7 @@ async function runGrammarChecks(
 
   // 3 系統を Promise.all で並行スケジュール。
   // advanced は内部で setImmediate yield するため、他系統が間に入りやすい。
-  const [basicDiags, advancedDiags, proofreadingDiags] = await Promise.all([
+  const [basicDiags, advancedDiags, proofreadingDiags, dictionaryResult] = await Promise.all([
     Promise.resolve().then(() => {
       const diags = deps.grammarChecker.check(grammarTokens, textToAnalyze, precomputedLineStarts);
       recordStep('基本ルール評価', Date.now() - basicStart, `件数=${diags.length}`);
@@ -413,17 +422,53 @@ async function runGrammarChecks(
     }),
     Promise.resolve().then(() => {
       const diags = deps.proofreadingRulesManager.checkText(
-        textToAnalyze, grammarTokens, precomputedLineStarts, proofreadingConfig
+        textToAnalyze, grammarTokens, precomputedLineStarts, proofreadingConfig,
+        languageId === 'markdown' ? excludedRanges : undefined
       );
       recordStep('校正ルール評価', Date.now() - proofreadingStart, `件数=${diags.length}`);
       return diags;
     }),
+    (async () => {
+      const settings = proofreadingConfig ?? deps.proofreadingRulesManager.getConfig();
+      if (settings.dictionaries.proofreading.length === 0 && (!settings.categories.rule.enable || settings.dictionaries.rule.length === 0) && !settings.categories.spell.enable) return { diagnostics: [], errors: [], truncated: false };
+      let blocked: Array<{ start: number; end: number }> = languageId === 'markdown'
+        ? excludedRanges.filter(range =>
+          !(range.type === 'table' && config.markdown.analyzeTables) &&
+          !(range.type === 'code-block' && config.markdown.analyzeCodeBlocks))
+        : [];
+      if (languageId !== 'markdown' && languageId !== 'plaintext') {
+        blocked = [];
+        let cursor = 0;
+        for (const range of commentRanges.slice().sort((a, b) => a.start - b.start)) {
+          if (range.start > cursor) blocked.push({ start: cursor, end: range.start });
+          cursor = Math.max(cursor, range.end);
+        }
+        if (cursor < textToAnalyze.length) blocked.push({ start: cursor, end: textToAnalyze.length });
+      }
+      blocked.push(...quoteRanges);
+      const results = await Promise.all([
+        deps.proofreadingDictionaries.check(textToAnalyze, documentUri, settings.dictionaries.proofreading, settings.categories.typo.checkInBrackets, blocked),
+        deps.proofreadingDictionaries.check(textToAnalyze, documentUri, settings.categories.rule.enable ? settings.dictionaries.rule : [], true, blocked, 'rule'),
+        settings.categories.spell.enable
+          ? deps.proofreadingDictionaries.checkSpell(textToAnalyze, documentUri, settings.dictionaries.spell, blocked, settings.categories.spell)
+          : Promise.resolve({ diagnostics: [], errors: [], truncated: false }),
+      ]);
+      return { diagnostics: results.flatMap(result => result.diagnostics), errors: results.flatMap(result => result.errors), truncated: results.some(result => result.truncated) };
+    })(),
   ]);
 
   const diagnostics: LSPDiagnostic[] = [];
-  diagnostics.push(...toLspDiagnostics(basicDiags, 'otak-lsp', documentVersion));
-  diagnostics.push(...toLspDiagnostics(advancedDiags, 'otak-lsp', documentVersion));
-  diagnostics.push(...toLspDiagnostics(proofreadingDiags, 'otak-lsp-proofreading', documentVersion));
+  // 診断は上限適用前に大量になり得る。引数展開はエンジンの引数上限を超える。
+  for (const diagnostic of toLspDiagnostics(basicDiags, 'otak-lsp', documentVersion)) diagnostics.push(diagnostic);
+  for (const diagnostic of toLspDiagnostics(advancedDiags, 'otak-lsp', documentVersion)) diagnostics.push(diagnostic);
+  for (const diagnostic of toLspDiagnostics(proofreadingDiags, 'otak-lsp-proofreading', documentVersion)) diagnostics.push(diagnostic);
+  for (const diagnostic of toLspDiagnostics(dictionaryResult.diagnostics, 'otak-lsp-proofreading', documentVersion)) diagnostics.push(diagnostic);
+  for (const error of dictionaryResult.errors) {
+    diagnostics.push(makeHintDiagnostic({ start: { line: 0, character: 0 }, end: { line: 0, character: 0 } }, 'dictionary-check-failed', error));
+  }
+  if (dictionaryResult.truncated) {
+    diagnostics.push(makeHintDiagnostic({ start: { line: 0, character: 0 }, end: { line: 0, character: 0 } }, 'dictionary-truncated', '辞書の診断を上限で打ち切りました。'));
+  }
   return diagnostics;
 }
 
@@ -438,7 +483,8 @@ export function createDocumentAnalyzer(
   grammarChecker: GrammarChecker,
   advancedRulesManager: AdvancedRulesManager,
   proofreadingRulesManager: ProofreadingRulesManager,
-  logger?: Logger
+  logger?: Logger,
+  dictionaryExecutor?: DictionaryExecutor
 ): DocumentAnalyzer {
   function debugLog(message: string): void {
     logger?.debug(message);
@@ -448,6 +494,7 @@ export function createDocumentAnalyzer(
     grammarChecker,
     advancedRulesManager,
     proofreadingRulesManager,
+    proofreadingDictionaries: new ProofreadingDictionaryService(dictionaryExecutor ?? new DictionaryExecutor(), logger),
   };
 
   return {
@@ -532,23 +579,35 @@ export function createDocumentAnalyzer(
           ? partitionMarkdownTokens(allTokens, excludedRanges, config, tokenFilter, recordStep)
           : { semanticTokens: allTokens, grammarTokens: allTokens };
 
+      const quoteConfig = (proofreadingConfig ?? proofreadingRulesManager.getConfig()).categories.quoteLine;
+      const quoteRanges = findQuoteLineRanges(text, languageId, commentRanges, excludedRanges, quoteConfig);
+      const grammarText = quoteRanges.length > 0 ? buildMaskedTextByMaskRanges(textToAnalyze, quoteRanges) : textToAnalyze;
+      const grammarTokens = quoteRanges.length > 0 ? tokenFilter.filterTokens(grammarTokensList, quoteRanges) : grammarTokensList;
+      const grammarExcludedRanges = quoteRanges.length > 0
+        ? [...excludedRanges, ...quoteRanges].sort((a, b) => a.start - b.start)
+        : excludedRanges;
+
       let diagnostics: LSPDiagnostic[] = [];
       let omittedDiagnostics = 0;
       if (config.enableGrammarCheck) {
         // textToAnalyze は MarkdownFilter / keepOnlyCommentRanges どちらの経路でも
         // 改行と長さを保持するため、原文の lineStarts をそのまま使い回せる。
-        diagnostics.push(...(await runGrammarChecks(
-          textToAnalyze, grammarTokensList, languageId, excludedRanges, config, advancedConfig,
+        diagnostics = await runGrammarChecks(
+          grammarText, grammarTokens, languageId, grammarExcludedRanges, config, advancedConfig,
           lightweightOnly, checkDeps, recordStep, ruleProfilingCollector, lineStarts, proofreadingConfig,
-          document.version
-        )));
+          document.version, document.uri, commentRanges, quoteRanges
+        );
+        // 辞書の不完全な検査は通常の診断抑制や件数制限で隠さない。
+        const dictionaryNotices = diagnostics.filter(d => d.source === 'otak-lsp' &&
+          (d.code === 'dictionary-check-failed' || d.code === 'dictionary-truncated'));
+        diagnostics = diagnostics.filter(d => !dictionaryNotices.includes(d));
 
         // インライン抑制ディレクティブ（otak-lsp-disable-next-line 等）を適用する。
         // 走査は原文 text に対して行い、コメント構文に依存しない。
         // ディレクティブが無ければ applySuppressions は即リターンする。
         const suppressStart = Date.now();
         const suppressionScan = parseSuppressionDirectives(
-          text, buildDirectiveScope(text, languageId, commentRanges, excludedRanges)
+          text, buildDirectiveScope(text, languageId, commentRanges, excludedRanges, quoteRanges)
         );
         if (suppressionScan.hasDirectives) {
           const before = diagnostics.length;
@@ -593,6 +652,7 @@ export function createDocumentAnalyzer(
           ));
           omittedDiagnostics = omitted;
         }
+        diagnostics.push(...dictionaryNotices);
       }
 
       return {

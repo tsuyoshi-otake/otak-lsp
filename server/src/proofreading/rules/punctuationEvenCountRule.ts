@@ -29,6 +29,13 @@ function checkSingleChar(ctx: ProofreadingRuleContext, spec: EvenSpec): Proofrea
     }
     const start = match.index;
     const end = match.index + match[0].length;
+    if (spec.code === 'even-wave' && count === 1) {
+      let before = start - 1;
+      let after = end;
+      while (before >= 0 && /[ \t]/.test(ctx.text[before])) before--;
+      while (after < ctx.text.length && /[ \t]/.test(ctx.text[after])) after++;
+      if (/\d/.test(ctx.text[before] ?? '') && /\d/.test(ctx.text[after] ?? '')) continue;
+    }
 
     diagnostics.push({
       range: {

@@ -10,6 +10,9 @@ import { applyPreset } from './proofreadingDefaults';
 function mapTypoSettings(categories: ProofreadingCategories, patch: Partial<AdvancedRulesConfig>): void {
   const enabled = categories.typo.enable;
   patch.enableRaNukiDetection = enabled && categories.typo.raNuki;
+  patch.enableSaIreDetection = enabled && categories.typo.saIre;
+  patch.enableHomophone = enabled && categories.typo.homophone;
+  patch.proofreadingCheckInBrackets = categories.typo.checkInBrackets;
   patch.enableHonorificError = enabled && categories.typo.doubleHonorific;
   patch.enableAdverbAgreement = enabled && categories.typo.adverbAgreement;
 }
@@ -17,10 +20,13 @@ function mapTypoSettings(categories: ProofreadingCategories, patch: Partial<Adva
 function mapTermBaseSettings(categories: ProofreadingCategories, patch: Partial<AdvancedRulesConfig>): void {
   const enabled = categories.termBase.enable;
   patch.enableOkuriganaVariant = enabled && categories.termBase.okurigana;
-  patch.enableJouyouKanji = enabled && categories.termBase.jouyouKanji;
-  patch.enableOrthographyVariant = enabled && categories.termBase.oldKanji;
+  patch.enableJouyouKanji = enabled && (categories.termBase.jouyouKanji || categories.termBase.oldKanji);
+  patch.proofreadingOldKanjiOnly = enabled && categories.termBase.oldKanji && !categories.termBase.jouyouKanji;
+  patch.proofreadingOldKanjiSuggestions = enabled && categories.termBase.oldKanji;
   patch.enableKanjiOpening = enabled && categories.termBase.kanjiOpening;
   patch.excludeProperNounsFromJouyouKanji = categories.termBase.excludeProperNouns;
+  patch.excludeJinmeiKanji = categories.termBase.excludeProperNouns;
+  patch.excludePlaceNames = categories.termBase.excludeProperNouns;
 }
 
 function mapExpressionSettings(categories: ProofreadingCategories, patch: Partial<AdvancedRulesConfig>): void {
@@ -38,6 +44,8 @@ function mapCharTypeSettings(categories: ProofreadingCategories, patch: Partial<
   patch.enableNumberWidthMix = enabled;
   patch.enableSymbolWidthMix = enabled;
   patch.enableAlphabetWidth = enabled;
+  patch.proofreadingPreferredNumeral = categories.charType.preferred.numeral;
+  patch.proofreadingPreferredAlphabet = categories.charType.preferred.alphabet;
   patch.enablePunctuationStyleMix = enabled;
   patch.enableNumeralStyleMix = enabled;
 }
@@ -52,12 +60,13 @@ function mapLengthSettings(categories: ProofreadingCategories, patch: Partial<Ad
 
 function mapNotationVariantAndBracket(categories: ProofreadingCategories, patch: Partial<AdvancedRulesConfig>): void {
   const notationEnabled = categories.notationVariant.enable;
-  const termBaseEnabled = categories.termBase.enable;
 
   patch.enableBracketQuoteMismatch = categories.bracket.enable && categories.bracket.checkPairing;
-  patch.enableOrthographyVariant = notationEnabled || (termBaseEnabled && categories.termBase.oldKanji);
+  patch.enableOrthographyVariant = notationEnabled;
+  patch.proofreadingNotationKatakanaOnly = notationEnabled && categories.notationVariant.katakanaOnly;
   patch.enableKatakanaChouon = notationEnabled;
   patch.enableHalfwidthKana = notationEnabled;
+  patch.proofreadingHalfwidthKanaWordsOnly = notationEnabled && categories.notationVariant.katakanaOnly;
 }
 
 export class ProofreadingConfigMapper {
@@ -95,6 +104,17 @@ export class ProofreadingConfigMapper {
         merged[key as keyof AdvancedRulesConfig] = value as never;
       }
     }
+    // 文字幅には高度設定側の対になる選択肢がないため、mergeでも校正設定を使う。
+    merged.proofreadingPreferredNumeral = patch.proofreadingPreferredNumeral;
+    merged.proofreadingPreferredAlphabet = patch.proofreadingPreferredAlphabet;
+    merged.proofreadingCheckInBrackets = patch.proofreadingCheckInBrackets;
+    // mergeでは独立した高度設定が全対象を要求する場合、その対象を残す。
+    merged.proofreadingNotationKatakanaOnly = Boolean(patch.proofreadingNotationKatakanaOnly) && !advancedConfig.enableOrthographyVariant;
+    merged.proofreadingHalfwidthKanaWordsOnly = Boolean(patch.proofreadingHalfwidthKanaWordsOnly) && !advancedConfig.enableHalfwidthKana;
+    merged.proofreadingOldKanjiOnly = Boolean(patch.proofreadingOldKanjiOnly) && !advancedConfig.enableJouyouKanji;
+    merged.proofreadingOldKanjiSuggestions = Boolean(patch.proofreadingOldKanjiSuggestions);
+    // さ入れには独立した公開高度設定がなく、校正設定が唯一の所有者。
+    merged.enableSaIreDetection = patch.enableSaIreDetection ?? false;
     return merged;
   }
 }

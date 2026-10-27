@@ -6,7 +6,7 @@
 kuromoji-optimizedを内蔵しているため、MeCabや外部辞書のインストールなしで使えます。
 
 [![VS Marketplace](https://img.shields.io/visual-studio-marketplace/v/odangoo.otak-lsp?label=Marketplace&color=1d4ed8)](https://marketplace.visualstudio.com/items?itemName=odangoo.otak-lsp)
-[![VS Code engine](https://img.shields.io/badge/VS%20Code-%5E1.60.0-007acc)](https://code.visualstudio.com/)
+[![VS Code engine](https://img.shields.io/badge/VS%20Code-%5E1.82.0-007acc)](https://code.visualstudio.com/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 [![GitHub](https://img.shields.io/badge/GitHub-otak--lsp-24292f)](https://github.com/tsuyoshi-otake/otak-lsp)
 
@@ -45,7 +45,7 @@ code --install-extension otak-lsp-1.0.26.vsix
 ## 主な機能
 
 - **日本語文法チェック**: 二重助詞、助詞連続、動詞と助詞の不整合、文体混在、ら抜き言葉、二重否定、ねじれ文などを検出します。
-- **高度ルール57種**: 表現、表記、約物、Markdown構造、公文書向けルールまで、実装済みの高度ルールをまとめて提供します。
+- **高度ルール58種**: 表現、表記、約物、Markdown構造、公文書向けルールまで、実装済みの高度ルールをまとめて提供します。
 - **校正ルール**: 誤字、用語基準、表現洗練、字種統一、長さ、環境依存文字、約物、括弧、表記ゆれをカテゴリ別に制御できます。
 - **公文書対応**: 常用漢字外、「及び/並びに」「又は/若しくは」、箇条書き句点運用をチェックします。
 - **技術用語の表記統一**: JavaScript、GitHub、Node.js、AWS、Azure、OCI、生成AI関連語などの揺れを検出します。
@@ -202,7 +202,7 @@ Markdownではコードブロック、URL、テーブル、リスト記号など
 
 ## 要件
 
-- VS Code **1.60.0** 以上
+- VS Code **1.82.0** 以上
 - 日本語テキストを含むMarkdown、プレーンテキスト、または対応言語のソースファイル
 - Wikipediaホバーを使う場合のみネットワーク接続
 
@@ -237,9 +237,14 @@ npm run check:consistency
 評価データとランナーは `server/src/grammar/evals/` にあります。`npm run evals:update-readme` で以下のブロックを更新できます。
 
 <!-- EVALS-START -->
-## Detection Coverage
+## Evals（評価例）
 
-![Coverage](https://img.shields.io/badge/coverage-100%25-brightgreen)
+![評価例一致率](https://img.shields.io/badge/evals-100%25-brightgreen)
+
+評価例の期待結果との一致: 268/268（検出期待 239例、非検出期待 29例）。未実装 0カテゴリは一致率に含めません。
+
+この一致率はコード網羅率や実文書での誤検出率を示すものではありません。
+評価は各ルールを直接実行します。常用漢字の検出期待例では固有名詞・人名・地名の除外を無効にしています。表内の例文の改行は空白で表示します。
 
 | Category | Status | Example |
 |----------|--------|---------|
@@ -249,6 +254,7 @@ npm run check:consistency
 | 冗長な助動詞 | PASS | 問題でです |
 | 文体混在 | PASS | これは素敵です。あれは平凡である。 |
 | ら抜き言葉 | PASS | 食べれる |
+| さ入れ表現 | PASS | 休まさせていただきます。 |
 | 二重否定 | PASS | できないわけではない |
 | 同じ助詞の連続使用 | PASS | 私は本を彼は読む |
 | 接続詞連続使用 | PASS | しかし、Aです。しかし、Bです。 |
@@ -304,7 +310,7 @@ npm run check:consistency
 | 常用漢字外使用 | PASS | 斡旋を依頼する |
 | 常用漢字外使用（除外） | PASS | 澤田さん |
 | 和暦初年の統一 | PASS | 令和1年に設立 |
-| ひらがな連続 | PASS | これはとてもながいひらがなのれんぞくぶんしょうでありますがこのぶんしょうはさらにながくつづきますので… |
+| ひらがな連続 | PASS | これはとてもながいひらがなのれんぞくぶんしょうでありますがこのぶんしょうはさらにながくつづきますのでもうすこしながくします |
 | カタカナ連続 | PASS | コレハトテモナガイカタカナノレンゾクブンショウデアリマスモット |
 | 漢字連続 | PASS | 東京都渋谷区松濤一丁目 |
 | 二点リーダ偶数 | PASS | これは‥テストです |
@@ -313,9 +319,9 @@ npm run check:consistency
 | 括弧内句点 | PASS | （以下「基本計画」という） |
 | 括弧の入れ子深さ | PASS | （（（（深い括弧）））） |
 | 箇条書き句点運用 | PASS | - 項目。 |
-| 文複雑度 | PASS | 本契約に基づき甲が乙に対して負担する債務の履行に関連して生じた損害については、甲は乙に対して、その損… |
+| 文複雑度 | PASS | 本契約に基づき甲が乙に対して負担する債務の履行に関連して生じた損害については、甲は乙に対して、その損害の発生原因の如何を問わず、一切の責任を負わないものとする。 |
 
-Last updated: 2026-06-29
+Last updated: 2026-10-27
 <!-- EVALS-END -->
 
 ## 関連拡張機能

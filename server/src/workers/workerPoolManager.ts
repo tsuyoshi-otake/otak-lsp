@@ -38,6 +38,8 @@ export class WorkerPoolManager {
 
   /** worker pool (lazy init)。POOL_INIT_FAILED の場合は初期化済みかつ失敗 */
   private workerPool: PoolInitResult | null = null;
+  private readonly stopping = new Set<Promise<void>>();
+  private readonly shutdownErrors: Error[] = [];
 
   constructor(logger?: Logger) {
     this.logger = logger;
@@ -84,8 +86,9 @@ export class WorkerPoolManager {
   /**
    * worker 実行が全滅した等の致命的失敗を記録し、以降 in-process フォールバックさせる。
    */
-  markFailed(): void {
-    this.workerPool = POOL_INIT_FAILED;
+  markFailed(pool: ManagedWorkerPool): void {
+    if (this.workerPool === pool) this.workerPool = POOL_INIT_FAILED;
+    this.stop(pool);
   }
 
   /**
@@ -123,8 +126,19 @@ export class WorkerPoolManager {
     const pool = this.workerPool;
     this.workerPool = null;
     if (pool && pool !== POOL_INIT_FAILED) {
-      pool.shutdown().catch(() => undefined);
+      this.stop(pool);
     }
+  }
+
+  private stop(pool: ManagedWorkerPool): void {
+    const stopping = pool.shutdown()
+      .catch(error => {
+        const failure = error instanceof Error ? error : new Error(String(error));
+        this.shutdownErrors.push(failure);
+        logError(this.logger, 'Failed to shutdown worker pool', failure);
+      })
+      .finally(() => this.stopping.delete(stopping));
+    this.stopping.add(stopping);
   }
 
   /**
@@ -132,10 +146,13 @@ export class WorkerPoolManager {
    */
   async shutdown(): Promise<void> {
     const pool = this.workerPool;
-    if (pool && pool !== POOL_INIT_FAILED) {
-      await pool.shutdown();
-    }
     this.workerPool = null;
+    if (pool && pool !== POOL_INIT_FAILED) this.stop(pool);
+    while (this.stopping.size > 0) await Promise.all(this.stopping);
+    if (this.shutdownErrors.length > 0) {
+      const errors = this.shutdownErrors.splice(0);
+      throw new Error(`Worker pool shutdown failed: ${errors.map(error => error.message).join('; ')}`);
+    }
   }
 
   /**

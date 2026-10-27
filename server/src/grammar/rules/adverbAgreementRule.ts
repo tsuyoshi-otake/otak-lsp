@@ -15,6 +15,8 @@ import {
   Sentence
 } from '../../../../shared/src/advancedTypes';
 import { isEmpty } from '../../utils/arrayUtils';
+import { buildMaskedTextByMaskRanges, normalizeRanges } from '../../utils/rangeSweep';
+import { isTypoInsideBracket, typoBracketRanges } from './typoBracketScope';
 
 /**
  * 副詞と呼応する文末表現のルール
@@ -126,9 +128,29 @@ export class AdverbAgreementRule implements AdvancedGrammarRule {
    */
   check(tokens: Token[], context: RuleContext): AdvancedDiagnostic[] {
     const diagnostics: AdvancedDiagnostic[] = [];
+    const brackets = typoBracketRanges(context);
+    const mergedBrackets = normalizeRanges(brackets);
 
     for (const sentence of context.sentences) {
-      const errors = this.detectAdverbAgreementErrors(sentence);
+      let low = 0;
+      let high = mergedBrackets.length;
+      while (low < high) {
+        const mid = Math.floor((low + high) / 2);
+        if (mergedBrackets[mid].end <= sentence.start) low = mid + 1;
+        else high = mid;
+      }
+      const localRanges: Array<{ start: number; end: number }> = [];
+      for (let i = low; i < mergedBrackets.length && mergedBrackets[i].start < sentence.end; i++) {
+        const range = mergedBrackets[i];
+        localRanges.push({ start: Math.max(0, range.start - sentence.start), end: Math.min(sentence.text.length, range.end - sentence.start) });
+      }
+      const scoped = localRanges.length === 0 ? sentence : new Sentence({
+        text: buildMaskedTextByMaskRanges(sentence.text, localRanges),
+        tokens: sentence.tokens.filter(token => !isTypoInsideBracket(token.start, brackets)),
+        start: sentence.start,
+        end: sentence.end,
+      });
+      const errors = this.detectAdverbAgreementErrors(scoped);
 
       for (const error of errors) {
         diagnostics.push(new AdvancedDiagnostic({

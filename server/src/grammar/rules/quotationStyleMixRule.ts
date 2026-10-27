@@ -10,6 +10,7 @@
  */
 
 import { Token } from '../../../../shared/src/types';
+import { findHtmlTagRanges } from '../technicalTextRanges';
 import {
   AdvancedRulesConfig,
   RuleContext,
@@ -104,7 +105,7 @@ export class QuotationStyleMixRule extends MixDetectionRule {
 
     // 除外範囲を取得（コードブロック、インラインコード）
     // 共有コンテキストがあれば再利用、なければ個別計算
-    const excludedRanges = this.currentContext?.shared?.codeRanges ?? this.getExcludedRanges(text);
+    const excludedRanges = [...(this.currentContext?.shared?.codeRanges ?? this.getExcludedRanges(text)), ...findHtmlTagRanges(text)];
 
     // Japanese quotes: 「」『』
     const japaneseQuotes = this.findAllPositionsExcluding(text, /[「」『』]/g, excludedRanges);

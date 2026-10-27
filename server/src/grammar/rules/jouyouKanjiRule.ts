@@ -22,6 +22,7 @@ import {
   getAlternative,
   NonJouyouAlternative
 } from '../../../../shared/src/jouyouKanjiData';
+import { getJouyouFormOfOldKanji } from '../../../../shared/src/oldKanjiData';
 import {
   isJinmeiKanji,
   isKyujitai,
@@ -506,8 +507,23 @@ export class JouyouKanjiRule implements AdvancedGrammarRule {
 
     // 各検出結果に対して診断を生成
     for (const match of matches) {
-      const message = this.createDiagnosticMessage(match);
-      const suggestions = this.createSuggestions(match);
+      const jouyouForm = context.config.proofreadingOldKanjiSuggestions
+        ? getJouyouFormOfOldKanji(match.kanji)
+        : undefined;
+      if (context.config.proofreadingOldKanjiOnly && !jouyouForm) {
+        continue;
+      }
+      const nextCodePoint = context.documentText.codePointAt(match.position + match.kanji.length);
+      const hasVariationSelector = nextCodePoint !== undefined &&
+        ((nextCodePoint >= 0xFE00 && nextCodePoint <= 0xFE0F) || (nextCodePoint >= 0xE0100 && nextCodePoint <= 0xE01EF));
+      const message = hasVariationSelector
+        ? `「${match.kanji}」には異体字セレクターが付いています。字体を確認してください。`
+        : jouyouForm
+        ? `「${match.kanji}」は常用漢字表の索引で「${jouyouForm}」の参考字体として併記されています。固有名詞などの表記に注意して変更を検討してください。`
+        : this.createDiagnosticMessage(match);
+      const suggestions = hasVariationSelector ? [] : jouyouForm
+        ? [`「${jouyouForm}」に変更する（常用漢字表の字体）`]
+        : this.createSuggestions(match);
 
       diagnostics.push(new AdvancedDiagnostic({
         range: {

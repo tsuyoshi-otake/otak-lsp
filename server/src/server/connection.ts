@@ -89,6 +89,7 @@ export function createConnectionHandler(
   const sentenceComplexityRule = new SentenceComplexityRule();
   let supportsResourceConfiguration = false;
   let supportsDynamicConfiguration = false;
+  let clientSynchronizesConfiguration = false;
   let configurationRevision = 0;
 
   function debugLog(message: string): void {
@@ -215,14 +216,15 @@ export function createConnectionHandler(
     connection.onInitialize((params: InitializeParams): InitializeResult => {
       supportsResourceConfiguration = params.capabilities.workspace?.configuration === true;
       supportsDynamicConfiguration = params.capabilities.workspace?.didChangeConfiguration?.dynamicRegistration === true;
+      clientSynchronizesConfiguration = params.initializationOptions?.configurationSync === 'otakLsp';
       logger?.info('otak-lsp Language Server initializing...');
       return { capabilities: getCapabilities() };
     });
 
     connection.onInitialized(() => {
       logger?.info('otak-lsp Language Server initialized');
-      if (supportsDynamicConfiguration) {
-        void connection.client.register(DidChangeConfigurationNotification.type, undefined).catch(error => {
+      if (supportsDynamicConfiguration && !clientSynchronizesConfiguration) {
+        void connection.client.register(DidChangeConfigurationNotification.type, { section: 'otakLsp' }).catch(error => {
           logError(logger, 'Failed to register configuration notifications', error);
         });
       }

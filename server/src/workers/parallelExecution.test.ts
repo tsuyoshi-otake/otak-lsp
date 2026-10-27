@@ -19,6 +19,10 @@ import * as path from 'path';
 
 import { Diagnostic } from '../../../shared/src/types';
 import { AdvancedRulesManager } from '../grammar/advancedRulesManager';
+import { DEFAULT_ADVANCED_RULES_CONFIG } from '../../../shared/src/advancedTypes';
+import { MarkdownFilter } from '../parser/markdownFilter';
+import { MeCabAnalyzer } from '../mecab/analyzer';
+import { TokenFilter } from '../semantic/tokenFilter';
 
 const WORKER_BUNDLE = path.resolve(__dirname, '../../out/advancedRulesWorker.js');
 const HAS_WORKER_BUNDLE = fs.existsSync(WORKER_BUNDLE);
@@ -103,6 +107,143 @@ describeIfHasBundle('AdvancedRulesManager parallel identity', () => {
       expect(actual.map(diagKey)).toEqual(expected.map(diagKey));
     }, 30_000);
   }
+
+  it('並列Workerにも校正設定の優先幅を渡し、正しい候補を返す', async () => {
+    const text = 'ＡＢＣ ABCD １２３ 1234';
+    const options = { config: { ...DEFAULT_ADVANCED_RULES_CONFIG, proofreadingPreferredAlphabet: 'full' as const, proofreadingPreferredNumeral: 'full' as const,
+      parallelExecution: { enabled: true, maxWorkers: 2, workerScript: WORKER_BUNDLE } } };
+    const result = await parallelManager.checkTextParallel(text, [], undefined, options);
+    expect(parallelManager.hasActiveWorkerPool()).toBe(true);
+    expect(result.filter(d => d.code === 'alphabet-width' || d.code === 'number-width-mix')
+      .map(d => ({ code: d.code, text: text.slice(d.range.start.character, d.range.end.character), suggestions: d.suggestions })))
+      .toEqual(expect.arrayContaining([
+        { code: 'alphabet-width', text: 'ABCD', suggestions: ['「ＡＢＣＤ」に変更する'] },
+        { code: 'number-width-mix', text: '1234', suggestions: ['「１２３４」に変更して統一する'] },
+      ]));
+  }, 30000);
+
+  it('Issue #29: 実トークンとMarkdown範囲をworkerへ渡し、表示長と本動詞を保つ', async () => {
+    const text = `[案内](https://example.com/${'a'.repeat(150)})です。\n資料を見る。容量は10GBです。`;
+    const filtered = new MarkdownFilter().filter(text);
+    const tokens = new TokenFilter().filterTokens(await new MeCabAnalyzer().analyze(filtered.filteredText), filtered.excludedRanges);
+    const options = { config: { ...DEFAULT_ADVANCED_RULES_CONFIG, longSentenceThreshold: 20 } };
+    const expected = sortByKey(sequentialManager.checkText(filtered.filteredText, tokens, filtered.excludedRanges, options));
+    const actual = sortByKey(await parallelManager.checkTextParallel(filtered.filteredText, tokens, filtered.excludedRanges, options));
+    expect(actual.map(diagKey)).toEqual(expected.map(diagKey));
+    expect(actual.some(d => d.code === 'long-sentence')).toBe(false);
+    expect(actual.some(d => d.code === 'orthography-variant')).toBe(false);
+    expect(actual.some(d => d.code === 'space-around-unit')).toBe(true);
+  }, 30_000);
+
+  it('表の各セルと行間の連続検出はworkerと通常経路で一致する', async () => {
+    const text = [
+      '| ルール | 例 |', '| --- | --- |',
+      '| 接続詞連続 | `しかし、Aです` |', '| 接続詞連続 | `しかし、Bです` |',
+      '| 文末コロン | これはテストです： |',
+      '| 「及び/並びに」 | A並びにBを確認する |',
+    ].join('\n');
+    const filtered = new MarkdownFilter().filter(text);
+    const tokens = new TokenFilter().filterTokens(await new MeCabAnalyzer().analyze(filtered.filteredText), filtered.excludedRanges.filter(r => r.type !== 'table'));
+    const options = { analyzeTables: true };
+    const expected = sortByKey(sequentialManager.checkText(filtered.filteredText, tokens, filtered.excludedRanges, options));
+    const actual = sortByKey(await parallelManager.checkTextParallel(filtered.filteredText, tokens, filtered.excludedRanges, options));
+    expect(actual.map(diagKey)).toEqual(expected.map(diagKey));
+    expect(actual.some(d => d.code === 'conjunction-repetition')).toBe(true);
+    expect(actual.some(d => d.code === 'sentence-ending-colon')).toBe(true);
+    expect(actual.some(d => d.code === 'oyobi-narabini')).toBe(true);
+  }, 30_000);
+
+  it.each([
+    ['三人で5本の飲料を買った。', true],
+    ['一方、2人が出発した。', false],
+  ] as const)('一文字の数詞の診断と修正案がworkerと通常経路で一致する: %s', async (text, expectedDetected) => {
+    const tokens = await new MeCabAnalyzer().analyze(text);
+    const expected = sequentialManager.checkText(text, tokens).filter(d => d.code === 'numeral-style-mix');
+    const actual = (await parallelManager.checkTextParallel(text, tokens)).filter(d => d.code === 'numeral-style-mix');
+    expect(actual).toEqual(expected);
+    expect(actual.length > 0).toBe(expectedDetected);
+  }, 30_000);
+
+  it.each([
+    ['私は朝食を食べて、学校に行って、本を読んで、友人と話して、家に帰って、夕食を作りました。', false],
+    ['昨日私が買った本を読んでいた彼女が言っていたことを聞いた友人が教えてくれた情報によると、来週開催される予定のイベントは中止になるらしい。', true],
+  ] as const)('文複雑度の実トークンによる診断がworkerと通常経路で一致する: %s', async (text, expectedDetected) => {
+    const tokens = await new MeCabAnalyzer().analyze(text);
+    const options = { config: { ...DEFAULT_ADVANCED_RULES_CONFIG, sentenceComplexityThreshold: 35 } };
+    const expected = sequentialManager.checkText(text, tokens, undefined, options).filter(d => d.code === 'sentence-complexity');
+    const actual = (await parallelManager.checkTextParallel(text, tokens, undefined, options)).filter(d => d.code === 'sentence-complexity');
+    expect(actual).toEqual(expected);
+    expect(actual.length > 0).toBe(expectedDetected);
+  }, 30_000);
+
+  it('非表示リンクを含む文複雑度の診断がworkerと通常経路で一致する', async () => {
+    const text = `[案内](https://example.com/${'a'.repeat(300)})資料を確認してください。`;
+    const filtered = new MarkdownFilter().filter(text);
+    const tokens = new TokenFilter().filterTokens(await new MeCabAnalyzer().analyze(filtered.filteredText), filtered.excludedRanges);
+    const options = { config: { ...DEFAULT_ADVANCED_RULES_CONFIG, sentenceComplexityThreshold: 20 } };
+    const expected = sequentialManager.checkText(filtered.filteredText, tokens, filtered.excludedRanges, options).filter(d => d.code === 'sentence-complexity');
+    const actual = (await parallelManager.checkTextParallel(filtered.filteredText, tokens, filtered.excludedRanges, options)).filter(d => d.code === 'sentence-complexity');
+    expect(expected).toHaveLength(0);
+    expect(actual).toEqual(expected);
+  }, 30_000);
+
+  it('HTMLタグの除外範囲を実workerにも渡し、表示文と同じ複雑度にする', async () => {
+    const plain = '案内資料を確認してください。';
+    const text = `<a href="https://example.com/${'a'.repeat(300)}">案内資料</a>を確認してください。`;
+    const filtered = new MarkdownFilter().filter(text);
+    const mecab = new MeCabAnalyzer();
+    const tokens = new TokenFilter().filterTokens(await mecab.analyze(filtered.filteredText), filtered.excludedRanges);
+    const options = { config: { ...DEFAULT_ADVANCED_RULES_CONFIG, sentenceComplexityThreshold: 0 } };
+    const oracle = sequentialManager.checkText(plain, await mecab.analyze(plain), undefined, options)
+      .filter(d => d.code === 'sentence-complexity');
+    const expected = sequentialManager.checkText(filtered.filteredText, tokens, filtered.excludedRanges, options)
+      .filter(d => d.code === 'sentence-complexity');
+    const actual = (await parallelManager.checkTextParallel(filtered.filteredText, tokens, filtered.excludedRanges, options))
+      .filter(d => d.code === 'sentence-complexity');
+    expect(oracle).toHaveLength(1);
+    expect(expected).toHaveLength(1);
+    expect(expected[0].message).toBe(oracle[0].message);
+    expect(actual).toEqual(expected);
+  }, 30_000);
+
+  it('読点のない並列動作と入れ子を実workerでも区別する', async () => {
+    const options = { config: { ...DEFAULT_ADVANCED_RULES_CONFIG, sentenceComplexityThreshold: 25 } };
+    const samples = [
+      ['私は朝食を食べて学校に行って本を読んで友人と話して家に帰って夕食を作りました。', false],
+      ['昨日私が買った本を読んでいた彼女が言っていたことを聞いた友人が教えてくれた情報によると、来週開催される予定のイベントは中止になるらしい。', true],
+    ] as const;
+    for (const [text, detected] of samples) {
+      const tokens = await new MeCabAnalyzer().analyze(text);
+      const expected = sequentialManager.checkText(text, tokens, undefined, options).filter(d => d.code === 'sentence-complexity');
+      const observed = (await parallelManager.checkTextParallel(text, tokens, undefined, options)).filter(d => d.code === 'sentence-complexity');
+      expect(observed).toEqual(expected);
+      expect(observed.length > 0).toBe(detected);
+    }
+  }, 30_000);
+
+  it.each([
+    ['本契約に基づき甲が乙に対して負担する債務の履行に関連して生じた損害については、甲は乙に対して、その損害の発生原因の如何を問わず、一切の責任を負わないものとする。', true],
+    ['私の友人の妹の会社の社長の息子の学校の先生の家の庭の木の葉が落ちた。', true],
+    ['東京都港区六本木一丁目交差点付近高層ビル群地下駐車場入口案内標識設置工事完了報告書', true],
+    ['昨日私が買った本を読んでいた彼女が言っていたことを聞いた友人が教えてくれた情報によると、来週開催される予定のイベントは中止になるらしい。', true],
+    ['2026年10月27日火曜日午前10時30分に会議を開始します。', false],
+    ['申請者は、提出した書類に変更が生じた場合、速やかに担当窓口へ届け出なければなりません。', false],
+  ] as const)('既定の複雑度を実workerと通常経路で確認する: %s', async (text, detected) => {
+    const tokens = await new MeCabAnalyzer().analyze(text);
+    const expected = sequentialManager.checkText(text, tokens).filter(d => d.code === 'sentence-complexity');
+    const actual = (await parallelManager.checkTextParallel(text, tokens)).filter(d => d.code === 'sentence-complexity');
+    expect(expected.length > 0).toBe(detected);
+    expect(actual).toEqual(expected);
+  }, 30_000);
+
+  it('英字表記の各代表位置を実workerと通常経路で確認する', async () => {
+    const text = '😀APIを説明。\nAPIを確認。\napiを使用。';
+    const tokens = await new MeCabAnalyzer().analyze(text);
+    const expected = sequentialManager.checkText(text, tokens).filter(d => d.code === 'english-case-mix');
+    const actual = (await parallelManager.checkTextParallel(text, tokens)).filter(d => d.code === 'english-case-mix');
+    expect(expected.map(d => d.range.start)).toEqual([{ line: 0, character: 2 }, { line: 2, character: 0 }]);
+    expect(actual).toEqual(expected);
+  }, 30_000);
 
   it('軽量ルール並列も sequential と同一', async () => {
     const text = SAMPLES[0].text;

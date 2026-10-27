@@ -14,6 +14,7 @@ export const DEFAULT_PROOFREADING_CONFIG: ProofreadingSettingsConfig = {
       checkInBrackets: true,
       raNuki: true,
       saIre: true,
+      homophone: true,
       doubleHonorific: true,
       adverbAgreement: true,
       eraFirstYear: true,
@@ -88,10 +89,12 @@ export const DEFAULT_PROOFREADING_CONFIG: ProofreadingSettingsConfig = {
       spaceBeforeCloseBracket: false,
       periodBeforeCloseBracket: true,
     },
+    rule: { enable: true },
     spell: {
       enable: false,
-      checkUppercase: true,
-      checkAllCaps: true,
+      // 従来は小文字だけを検査していたため、追加の大文字検査は明示的に有効化する。
+      checkUppercase: false,
+      checkAllCaps: false,
       checkDigits: true,
       checkFullwidth: true,
       checkEmailUrl: true,

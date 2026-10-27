@@ -50,7 +50,7 @@ inclusion: always
 
 ### 必須ツール
 - Node.js 18+
-- VSCode 1.60+
+- VSCode 1.82+
 
 ### 主要コマンド
 ```bash

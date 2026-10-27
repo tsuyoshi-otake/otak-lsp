@@ -3,7 +3,7 @@
 
 # 設定リファレンス
 
-otak-lsp v1.0.27 の全設定項目（143件）の完全な一覧です。
+otak-lsp v1.0.28 の全設定項目（152件）の完全な一覧です。
 真実源は `package.json` の `contributes.configuration` です。READMEには代表的な設定のみを掲載しています。
 
 ## Markdown
@@ -50,6 +50,8 @@ otak-lsp v1.0.27 の全設定項目（143件）の完全な一覧です。
 | `otakLsp.advanced.enableNoParticleChain` | boolean | `true` |  | 助詞「の」連続使用検出の有効/無効 |
 | `otakLsp.advanced.enableMonotonousEnding` | boolean | `true` |  | 文末表現の単調さ検出の有効/無効 |
 | `otakLsp.advanced.enableLongSentence` | boolean | `true` |  | 長すぎる文の検出の有効/無効 |
+| `otakLsp.advanced.enableSentenceComplexity` | boolean | `true` |  | 文複雑度の検出の有効/無効 |
+| `otakLsp.advanced.sentenceComplexityThreshold` | number | `60` | 範囲: 0〜100 | 文複雑度の警告閾値（0〜100）。長さ・読点・文構造の組合せや、極端な「の」・名詞の連続、深い節を評価し、スコアがこの値以上で警告します。 |
 | `otakLsp.advanced.enableSahenVerb` | boolean | `true` |  | サ変動詞の誤用検出（「勉強をする」→「勉強する」など）の有効/無効 |
 | `otakLsp.advanced.enableMissingSubject` | boolean | `true` |  | 主語の欠如検出の有効/無効 |
 | `otakLsp.advanced.enableTwistedSentence` | boolean | `true` |  | ねじれ文の検出の有効/無効 |
@@ -120,16 +122,18 @@ otak-lsp v1.0.27 の全設定項目（143件）の完全な一覧です。
 | `otakLsp.proofreading.typo.enable` | boolean | `true` |  | 誤字チェックカテゴリの有効/無効 |
 | `otakLsp.proofreading.typo.checkInBrackets` | boolean | `true` |  | 括弧内もチェックする |
 | `otakLsp.proofreading.typo.raNuki` | boolean | `true` |  | ら抜き表現の検出 |
-| `otakLsp.proofreading.typo.saIre` | boolean | `true` |  | さ入れ表現の検出 |
+| `otakLsp.proofreading.typo.saIre` | boolean | `true` |  | 五段動詞のさ入れ表現を検出します。形態素解析の結果によっては検出できない場合があります。 |
 | `otakLsp.proofreading.typo.doubleHonorific` | boolean | `true` |  | 二重敬語の検出 |
+| `otakLsp.proofreading.typo.homophone` | boolean | `true` |  | 同音異義語の誤用候補を検出します。文脈によっては検出できない場合があります。 |
 | `otakLsp.proofreading.typo.adverbAgreement` | boolean | `true` |  | 呼応表現（副詞呼応）の検出 |
 | `otakLsp.proofreading.typo.eraFirstYear` | boolean | `true` |  | 和暦の初年を「元年」に統一するオプション |
 | `otakLsp.proofreading.termBase.enable` | boolean | `true` |  | 用語基準カテゴリの有効/無効 |
-| `otakLsp.proofreading.termBase.okuriganaMode` | string | `public-text` | 列挙: public-text / public-text-honkoku / custom | 送り仮名チェックモード。public-text: 公用文（解説・広報）、public-text-honkoku: 公用文（本則） |
+| `otakLsp.proofreading.termBase.okuriganaMode` | string | `public-text` | 列挙: public-text / public-text-honkoku / custom | 送り仮名チェックモード。現在、選択肢による診断の切替とカスタム辞書は未対応です。 |
+| `otakLsp.proofreading.termBase.okurigana` | boolean | `true` |  | 送り仮名チェックの有効/無効。高度ルールとのmerge時は高度設定が有効なら検査を維持します。 |
 | `otakLsp.proofreading.termBase.jouyouKanji` | boolean | `true` |  | 常用漢字チェックの有効/無効 |
-| `otakLsp.proofreading.termBase.oldKanji` | boolean | `true` |  | 旧字体検出の有効/無効 |
+| `otakLsp.proofreading.termBase.oldKanji` | boolean | `true` |  | 旧字体の検出。常用漢字表の索引に参考として併記された字体を対象にします。常用漢字チェックが有効な場合は、この設定を無効にしても常用漢字表外の字として検出されることがあります。 |
 | `otakLsp.proofreading.termBase.kanjiOpening` | boolean | `true` |  | 難しい語の言い換え（漢字開き）の有効/無効 |
-| `otakLsp.proofreading.termBase.excludeProperNouns` | boolean | `true` |  | 固有名詞を常用漢字チェックから除外 |
+| `otakLsp.proofreading.termBase.excludeProperNouns` | boolean | `true` |  | 固有名詞を常用漢字・旧字体チェックから除外 |
 | `otakLsp.proofreading.termJournalist.enable` | boolean | `false` |  | 用語基準（記者ハンドブック）カテゴリの有効/無効 |
 | `otakLsp.proofreading.termJournalist.journalistHandbook` | boolean | `false` |  | 記者ハンドブック準拠チェック |
 | `otakLsp.proofreading.expression.enable` | boolean | `true` |  | 表現洗練カテゴリの有効/無効 |
@@ -139,33 +143,38 @@ otak-lsp v1.0.27 の全設定項目（143件）の完全な一覧です。
 | `otakLsp.proofreading.expression.doubleNegation` | boolean | `true` |  | 二重否定の検出 |
 | `otakLsp.proofreading.expression.twistedSentence` | boolean | `true` |  | 回りくどい表現の検出 |
 | `otakLsp.proofreading.charType.enable` | boolean | `true` |  | 字種統一カテゴリの有効/無効 |
-| `otakLsp.proofreading.charType.preferredNumeral` | string | `half` | 列挙: full / half / mix | 数字の優先表記（全角/半角/混在） |
-| `otakLsp.proofreading.charType.preferredAlphabet` | string | `half` | 列挙: full / half | アルファベットの優先表記（全角/半角） |
+| `otakLsp.proofreading.charType.preferredNumeral` | string | `half` | 列挙: full / half / mix | 数字が全角・半角で混在するときの優先表記。混在を選ぶと数字の幅の混在を指摘しない |
+| `otakLsp.proofreading.charType.preferredAlphabet` | string | `half` | 列挙: full / half | アルファベットが全角・半角で混在するときの優先表記 |
 | `otakLsp.proofreading.length.enable` | boolean | `true` |  | 長さチェックカテゴリの有効/無効 |
 | `otakLsp.proofreading.length.sentence` | number | `120` | 範囲: 1〜999 | 文の長さの閾値（文字数） |
 | `otakLsp.proofreading.length.comma` | number | `4` | 範囲: 1〜999 | 句読点の閾値（1文中の読点数） |
 | `otakLsp.proofreading.length.hiragana` | number | `18` | 範囲: 1〜999 | ひらがな連続の閾値（文字数） |
 | `otakLsp.proofreading.length.katakana` | number | `18` | 範囲: 1〜999 | カタカナ連続の閾値（文字数） |
 | `otakLsp.proofreading.length.kanji` | number | `10` | 範囲: 1〜999 | 漢字連続の閾値（文字数） |
-| `otakLsp.proofreading.envDependent.enable` | boolean | `true` |  | 環境依存文字カテゴリの有効/無効 |
-| `otakLsp.proofreading.envDependent.mode` | string | `all` | 列挙: all / partial | 機種依存文字の検出モード。all: すべて指摘、partial: 一部のみ指摘 |
+| `otakLsp.proofreading.envDependent.enable` | boolean | `true` |  | 私用領域の文字を検出します。その他の環境依存文字の検出は未対応です。 |
+| `otakLsp.proofreading.envDependent.checkUserCreatedGaiji` | boolean | `true` |  | Unicode私用領域の文字を検出します。利用先によって意味や字形が異なる場合があります。 |
+| `otakLsp.proofreading.envDependent.mode` | string | `all` | 列挙: all / partial | 機種依存文字の検出範囲（現在未対応）。私用領域の検査には影響しません。 |
 | `otakLsp.proofreading.punctuation.enable` | boolean | `true` |  | 約物チェックカテゴリの有効/無効 |
 | `otakLsp.proofreading.punctuation.evenLeader` | boolean | `true` |  | 二点リーダは偶数個を要求 |
 | `otakLsp.proofreading.punctuation.evenDash` | boolean | `true` |  | ダッシュは偶数個を要求 |
 | `otakLsp.proofreading.punctuation.evenWave` | boolean | `true` |  | 波線は偶数個を要求 |
 | `otakLsp.proofreading.punctuation.spaceAfterQE` | boolean | `true` |  | 疑問符/感嘆符後の空白チェック |
 | `otakLsp.proofreading.punctuation.periodBeforeCloseBracket` | boolean | `true` |  | 括弧内が文のときに句点を付けるチェック |
-| `otakLsp.proofreading.spell.enable` | boolean | `false` |  | スペルチェックカテゴリの有効/無効 |
+| `otakLsp.proofreading.rule.enable` | boolean | `true` |  | ルール辞書によるチェックを有効にする |
+| `otakLsp.proofreading.spell.enable` | boolean | `false` |  | 英語辞書によるスペル検査を有効にする（英小文字3文字以上が対象）。大文字は別の設定で検査できます。技術用語などの未知語も指摘される場合があります。 |
+| `otakLsp.proofreading.spell.checkUppercase` | boolean | `false` |  | 先頭だけが大文字の英単語もスペル検査する。 |
+| `otakLsp.proofreading.spell.checkAllCaps` | boolean | `false` |  | すべて大文字の英単語もスペル検査する。略語や固有名詞は未知語と判定される場合があります。 |
+| `otakLsp.proofreading.spell.checkRepeat` | boolean | `true` |  | 同じ英単語が同じ行で連続するときに通知する |
 | `otakLsp.proofreading.notationVariant.enable` | boolean | `true` |  | 表記ゆれカテゴリの有効/無効 |
-| `otakLsp.proofreading.notationVariant.katakanaOnly` | boolean | `false` |  | カタカナ語のみをチェック |
+| `otakLsp.proofreading.notationVariant.katakanaOnly` | boolean | `false` |  | 表記ゆれをカタカナ語に限定します。mergeモードで高度側の同じルールが有効な場合、そのルールは全対象を検査します。 |
 | `otakLsp.proofreading.bracket.enable` | boolean | `true` |  | 括弧カテゴリの有効/無効 |
 | `otakLsp.proofreading.bracket.checkPairing` | boolean | `true` |  | 括弧の対応チェック |
 | `otakLsp.proofreading.bracket.maxDepth` | number | `3` | 範囲: 1〜10 | 括弧階層の深さの閾値 |
-| `otakLsp.proofreading.quoteLine.enable` | boolean | `true` |  | 引用行の除外を有効にする |
-| `otakLsp.proofreading.quoteLine.markers` | string | `>,\|` |  | 引用行とみなす記号（半角カンマ区切り） |
-| `otakLsp.proofreading.dictionaries.rule` | string[] | `[]` | 最大3件 | ルール辞書のファイルパス（最大3つ） |
-| `otakLsp.proofreading.dictionaries.proofreading` | string[] | `[]` | 最大5件 | 校正用辞書の拡張辞書パス（最大5つ） |
-| `otakLsp.proofreading.dictionaries.spell` | string[] | `[]` | 最大3件 | スペルチェック用辞書のパス（最大3つ） |
+| `otakLsp.proofreading.quoteLine.enable` | boolean | `true` |  | 引用行を診断対象から除外する。Markdownの区切り行を持つ表は表の解析設定に従う |
+| `otakLsp.proofreading.quoteLine.markers` | string | `>,\|` |  | 引用行とみなす行頭の記号（半角カンマ区切り）。コードではコメント記号の後を判定する |
+| `otakLsp.proofreading.dictionaries.rule` | string[] | `[]` | 最大3件 | ルール辞書のJSONファイルパス（最大3つ、1ファイル2 MiBまで）。相対パスは対象文書のフォルダーを基準にします。 |
+| `otakLsp.proofreading.dictionaries.proofreading` | string[] | `[]` | 最大5件 | 校正用JSON辞書のパス（最大5つ、1ファイル2 MiBまで）。相対パスは対象文書のフォルダーを基準にします。 |
+| `otakLsp.proofreading.dictionaries.spell` | string[] | `[]` | 最大3件 | スペル検査に追加する単語リスト（最大3つ、1ファイル2 MiBまで）。相対パスは対象文書のフォルダーを基準にします。 |
 | `otakLsp.proofreading.description` | string | `""` |  | 校正設定の詳細説明 |
 
 ## 基本設定

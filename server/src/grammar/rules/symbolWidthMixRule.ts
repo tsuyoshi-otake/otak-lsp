@@ -121,6 +121,10 @@ export class SymbolWidthMixRule implements AdvancedGrammarRule {
       if (!pair) {
         continue;
       }
+      // 比率や時刻のコロンは句読点の表記統一対象ではない。
+      if (char === ':' && /\d/.test(text[i - 1] ?? '') && /\d/.test(text[i + 1] ?? '')) {
+        continue;
+      }
 
       let group = groups.get(pair.name);
       if (!group) {

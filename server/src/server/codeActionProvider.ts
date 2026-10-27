@@ -93,8 +93,9 @@ export function buildCodeActions(document: TextDocument, diagnostics: Diagnostic
     //    インフラ用マーカー（抑制不可）と、ディレクティブに安全に埋め込めない
     //    コード（改行・記号混入など）は対象外。
     const code = typeof diag.code === 'string' ? diag.code : '';
+    const dictionaryNotice = source === 'otak-lsp' && (code === 'dictionary-check-failed' || code === 'dictionary-truncated');
     const targetLine = diag.range.start.line;
-    if (code.length > 0 && SAFE_CODE.test(code) && !INFRA_CODES.has(code)
+    if (code.length > 0 && SAFE_CODE.test(code) && !INFRA_CODES.has(code) && !dictionaryNotice
         && targetLine >= 0 && targetLine < lines.length) {
       const insertPos = { line: targetLine, character: lineEndChar(targetLine) };
       const edit: WorkspaceEdit = {

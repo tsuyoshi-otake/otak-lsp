@@ -201,6 +201,31 @@ describe('connection', () => {
   });
 
   describe('onInitialize handler', () => {
+    it('動的登録ではotakLsp設定だけを対象にする', async () => {
+      mockConnection.client.register.mockResolvedValue(undefined);
+      connectionHandler.initialize();
+      mockConnection.handlers.initialize!({ capabilities: { workspace: { didChangeConfiguration: { dynamicRegistration: true } } } });
+      mockConnection.handlers.initialized!();
+      expect(mockConnection.client.register).toHaveBeenCalledWith(expect.anything(), { section: 'otakLsp' });
+    });
+
+    it('動的登録をサポートしないクライアントに登録要求を送らない', () => {
+      connectionHandler.initialize();
+      mockConnection.handlers.initialize!({ capabilities: { workspace: {} } });
+      mockConnection.handlers.initialized!();
+      expect(mockConnection.client.register).not.toHaveBeenCalled();
+    });
+
+    it('クライアントが設定同期を所有する場合は重複登録しない', () => {
+      connectionHandler.initialize();
+      mockConnection.handlers.initialize!({
+        capabilities: { workspace: { didChangeConfiguration: { dynamicRegistration: true } } },
+        initializationOptions: { configurationSync: 'otakLsp' },
+      });
+      mockConnection.handlers.initialized!();
+      expect(mockConnection.client.register).not.toHaveBeenCalled();
+    });
+
     it('should return capabilities on initialize', () => {
       connectionHandler.initialize();
 

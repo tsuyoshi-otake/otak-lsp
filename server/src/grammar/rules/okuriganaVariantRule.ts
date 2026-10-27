@@ -6,7 +6,7 @@
  * 要件: 12.1, 12.2, 12.3
  */
 
-import { Token } from '../../../../shared/src/types';
+import { DiagnosticSeverity, Token } from '../../../../shared/src/types';
 import {
   AdvancedGrammarRule,
   AdvancedRulesConfig,
@@ -63,7 +63,6 @@ const OKURIGANA_VARIANTS: Map<string, string> = new Map([
   ['生れる', '生まれる'],
   ['生れ', '生まれ'],
   ['答る', '答える'],
-  ['答え', '答え'],
   ['捕える', '捕らえる'],
   ['捕え', '捕らえ'],
 
@@ -104,6 +103,17 @@ const OKURIGANA_VARIANTS: Map<string, string> = new Map([
   ['贈物', '贈り物'],
   ['届出', '届け出'],
   ['届出る', '届け出る'],
+]);
+
+// 文化庁「送り仮名の付け方」の許容形、または公用文で認められる省略形。
+// https://www.bunka.go.jp/tokei_hakusho_shuppan/hakusho_nenjihokokusho/archive/pdf/r1402577_01.pdf
+// https://www.bunka.go.jp/kokugo_nihongo/sisaku/joho/joho/kijun/naikaku/okurikana/honbun06.html
+// https://www.bunka.go.jp/kokugo_nihongo/sisaku/joho/joho/kijun/sanko/koyobun/pdf/kunrei.pdf
+const ACCEPTED_FORMS = new Set([
+  '表わす', '表わし', '表わせ', '表わそ',
+  '現わす', '現わし', '現わせ', '現わそ',
+  '行なう', '行ない', '行なえ', '行なお', '行なわ', '行なっ',
+  '売上げ', '取扱い', '贈物',
 ]);
 
 /**
@@ -161,16 +171,24 @@ export class OkuriganaVariantRule implements AdvancedGrammarRule {
   check(tokens: Token[], context: RuleContext): AdvancedDiagnostic[] {
     const diagnostics: AdvancedDiagnostic[] = [];
     const variants = this.detectVariants(context.documentText);
+    const tokensByStart = new Map(tokens.map(token => [token.start, token]));
 
     for (const item of variants) {
+      // 「一致し」の一部を補助動詞「致し」として置換しない。
+      if (item.variant.startsWith('致') && tokens.length > 0 &&
+          tokensByStart.get(item.index)?.baseForm !== '致す') continue;
+      const isAcceptedForm = ACCEPTED_FORMS.has(item.variant);
       diagnostics.push(new AdvancedDiagnostic({
         range: {
           start: { line: 0, character: item.index },
           end: { line: 0, character: item.index + item.variant.length }
         },
-        message: `送り仮名「${item.variant}」は「${item.standard}」が標準的な表記です。`,
+        message: isAcceptedForm
+          ? `「${item.variant}」は許容される表記です。文書の表記方針に応じて「${item.standard}」への統一を検討できます。`
+          : `送り仮名「${item.variant}」は「${item.standard}」が標準的な表記です。`,
         code: 'okurigana-variant',
         ruleName: this.name,
+        severity: isAcceptedForm ? DiagnosticSeverity.Information : DiagnosticSeverity.Warning,
         suggestions: [`「${item.standard}」に変更する`]
       }));
     }

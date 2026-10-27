@@ -117,17 +117,62 @@ describe('EvalsReporter', () => {
   });
 
   describe('generateReadmeSection', () => {
+    it('高い一致率でも失敗カテゴリがあれば緑のバッジを表示しない', () => {
+      const section = EvalsReporter.generateReadmeSection({ ...mockEvalResult, detectionRate: 99 });
+      expect(section).toContain('evals-99%25-red');
+    });
+
+    it('未実装カテゴリがある場合は全例一致でも緑のバッジを表示しない', () => {
+      const categories = [mockEvalResult.categories[0], mockEvalResult.categories[2]];
+      const section = EvalsReporter.generateReadmeSection({ ...mockEvalResult, categories, detectionRate: 100 });
+      expect(section).toContain('evals-100%25-yellow');
+    });
+
+    it('全カテゴリの全例が一致した場合は緑のバッジを表示する', () => {
+      const categories = [mockEvalResult.categories[0]];
+      const section = EvalsReporter.generateReadmeSection({ ...mockEvalResult, categories, detectionRate: 100 });
+      expect(section).toContain('evals-100%25-brightgreen');
+    });
+
+    it('評価した長い例文を途中で省略せず表示する', () => {
+      const example = '漢字'.repeat(50) + '終わり。';
+      const category = { ...mockEvalResult.categories[0], representativeExample: example };
+      const section = EvalsReporter.generateReadmeSection({ ...mockEvalResult, categories: [category] });
+      expect(section).toContain(example);
+    });
+
+    it('評価例の一致と非検出期待の内訳を示し、コード網羅率と区別する', () => {
+      const example = mockEvalResult.categories[0].examples[0];
+      const result: EvalResult = {
+        ...mockEvalResult,
+        totalCategories: 2, implementedCategories: 1, totalExamples: 3,
+        detectedExamples: 2, detectionRate: 100,
+        categories: [
+          { ...mockEvalResult.categories[0], total: 2, detected: 2,
+            examples: [example, { ...example, text: '正常な文', expectedDetection: false, actualDetected: false }] },
+          { ...mockEvalResult.categories[2], total: 1 },
+        ],
+      };
+      const section = EvalsReporter.generateReadmeSection(result);
+      expect(section).toContain('2/2');
+      expect(section).toContain('検出期待 1例');
+      expect(section).toContain('非検出期待 1例');
+      expect(section).toContain('コード網羅率');
+      expect(section).toContain('未実装 1カテゴリ');
+      expect(section).not.toContain('Detection Coverage');
+    });
+
     it('should generate a README-compatible section', () => {
       const section = EvalsReporter.generateReadmeSection(mockEvalResult);
 
-      expect(section).toContain('## Detection Coverage');
+      expect(section).toContain('## Evals（評価例）');
       expect(section).toContain('Last updated:');
     });
 
-    it('should include coverage badge', () => {
+    it('should include an eval match badge', () => {
       const section = EvalsReporter.generateReadmeSection(mockEvalResult);
 
-      expect(section).toContain('![Coverage]');
+      expect(section).toContain('![評価例一致率]');
       expect(section).toContain('img.shields.io/badge');
     });
 

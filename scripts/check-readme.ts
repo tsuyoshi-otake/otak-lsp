@@ -1,6 +1,6 @@
 /**
- * README.md を main.ts と同等のパイプラインで解析し、
- * 文法診断をコンソールに出力するCLI。
+ * README.md をMarkdownフィルタ・形態素解析・基本/高度文法ルールで解析し、
+ * 文法診断をコンソールに出力するCLI。校正ルールや文書別設定は実行しない。
  */
 
 import { readFileSync } from 'fs';

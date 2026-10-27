@@ -245,6 +245,9 @@ export class KanjiOpeningRule implements AdvancedGrammarRule {
     if (isNotEmpty(tokens)) {
       const closedKanji = this.detectClosedKanjiFromTokens(tokens);
       for (const item of closedKanji) {
+        // 辞書にない複合語は別トークンへ分割されるため、原文の隣接文字も確認する。
+        if (READING_CONSTRAINTS.has(item.kanji) &&
+            !this.isValidClosedKanjiOccurrence(context.documentText, item.kanji, item.start)) continue;
         diagnostics.push(new AdvancedDiagnostic({
           range: {
             start: { line: 0, character: item.start },

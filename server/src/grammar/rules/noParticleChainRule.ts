@@ -27,7 +27,7 @@ export class NoParticleChainRule implements AdvancedGrammarRule {
    * 連続判定で「境界」として扱う文字
    * - 括弧内は補足情報であることが多く、本文と同一チェーンにすると誤検知が増えるため
    */
-  private static readonly CHAIN_BOUNDARY_PATTERN = /[（）()]/;
+  private static readonly CHAIN_BOUNDARY_PATTERN = /[（）()、，,；;。！？!?\n\r]/;
 
   /**
    * 「の」同士を同一チェーンとして扱う最大距離（文字オフセット差）
@@ -56,16 +56,26 @@ export class NoParticleChainRule implements AdvancedGrammarRule {
       // 連続した「の」を検出
       let chainStart = 0;
       let chainCount = 1;
+      let tokenIndex = 0;
 
       for (let i = 1; i < noTokens.length; i++) {
         const prev = noTokens[i - 1];
         const current = noTokens[i];
         const gap = current.start - prev.start;
         const between = text.slice(prev.end, current.start);
+        while (tokenIndex < sentence.tokens.length && sentence.tokens[tokenIndex].start < prev.end) tokenIndex++;
+        let hasClauseBoundary = false;
+        while (tokenIndex < sentence.tokens.length && sentence.tokens[tokenIndex].start < current.start) {
+          const token = sentence.tokens[tokenIndex++];
+          if (['動詞', '形容詞', '助動詞'].includes(token.pos) ||
+              (token.pos === '助詞' && ['を', 'が', 'は', 'に', 'で', 'へ'].includes(token.surface))) {
+            hasClauseBoundary = true;
+          }
+        }
 
         // 「の」の間に他のテキストがある場合（最大20文字程度）
         // ただし括弧をまたぐ場合は補足情報として扱い、チェーンを分断する
-        if (gap <= NoParticleChainRule.DEFAULT_MAX_GAP && !NoParticleChainRule.CHAIN_BOUNDARY_PATTERN.test(between)) {
+        if (gap <= NoParticleChainRule.DEFAULT_MAX_GAP && !hasClauseBoundary && !NoParticleChainRule.CHAIN_BOUNDARY_PATTERN.test(between)) {
           chainCount++;
         } else {
           // 連続が途切れた

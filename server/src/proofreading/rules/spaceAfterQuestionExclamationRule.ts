@@ -3,6 +3,8 @@
  */
 
 import { DiagnosticSeverity } from '../../../../shared/src/types';
+import { ExcludedRange } from '../../../../shared/src/markdownFilterTypes';
+import { isEscapedAt } from '../../parser/markdownFilter/rangeUtils';
 import { ProofreadingDiagnostic, ProofreadingRuleContext, isClosingBracket } from './proofreadingRuleTypes';
 
 const QE_PATTERN = /[?!？！]/g;
@@ -23,12 +25,17 @@ function hasFollowingWhitespace(text: string, startIndex: number): boolean {
   return true;
 }
 
-export function checkSpaceAfterQuestionExclamation(ctx: ProofreadingRuleContext): ProofreadingDiagnostic[] {
+export function checkSpaceAfterQuestionExclamation(ctx: ProofreadingRuleContext, markdownRanges?: readonly ExcludedRange[]): ProofreadingDiagnostic[] {
   const diagnostics: ProofreadingDiagnostic[] = [];
+  const imageMarkers = new Set((markdownRanges ?? []).filter(r => r.type === 'link-marker' && ctx.text[r.start] === '!').map(r => r.start));
   let match;
 
   while ((match = QE_PATTERN.exec(ctx.text)) !== null) {
     const index = match.index;
+
+    if (imageMarkers.has(index) ||
+        (markdownRanges !== undefined && index > 0 && ctx.text.startsWith('<!--', index - 1) &&
+         !isEscapedAt(ctx.text, index - 1))) continue;
 
     if (!ctx.checkInBrackets && ctx.bracketDetector.isInsideBracket(index, ctx.bracketRanges)) {
       continue;

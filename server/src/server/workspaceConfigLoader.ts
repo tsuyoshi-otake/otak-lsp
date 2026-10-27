@@ -71,6 +71,7 @@ export { SECTION_KEYS };
 /** 文書単位の設定取得を集約し、クローズや設定更新前の応答を破棄する。 */
 export class ResourceConfigurationStore {
   private readonly entries = new Map<string, { snapshot?: ConfigurationSnapshot; loaded: Promise<boolean> }>();
+  private fallbackRevision: object = {};
   private readonly limiter = new ConcurrencyLimiter(() => 4);
   readonly manager: ConfigManager;
 
@@ -84,7 +85,7 @@ export class ResourceConfigurationStore {
       getConfig: uri => this.snapshot(uri)?.config ?? base.getConfig(),
       getAdvancedConfig: uri => this.snapshot(uri)?.advancedConfig ?? base.getAdvancedConfig(),
       getSnapshot: uri => this.snapshot(uri) ?? base.getSnapshot?.() ?? resolveConfiguration({}),
-      getRevision: uri => this.entries.get(uri),
+      getRevision: uri => this.entries.get(uri) ?? this.fallbackRevision,
     };
   }
 
@@ -113,5 +114,6 @@ export class ResourceConfigurationStore {
 
   clear(): void {
     this.entries.clear();
+    this.fallbackRevision = {};
   }
 }

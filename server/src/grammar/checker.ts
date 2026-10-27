@@ -122,7 +122,7 @@ class DoubleParticleRule implements GrammarRule {
     const current = tokens[index];
     const next = tokens[index + 1];
 
-    if (!current || !next) {
+    if (!current || !next || current.end !== next.start) {
       return null;
     }
 
@@ -158,7 +158,7 @@ class ParticleSequenceRule implements GrammarRule {
     const current = tokens[index];
     const next = tokens[index + 1];
 
-    if (!current || !next) {
+    if (!current || !next || current.end !== next.start) {
       return null;
     }
 

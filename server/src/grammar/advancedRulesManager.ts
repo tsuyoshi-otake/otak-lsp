@@ -120,6 +120,9 @@ export class AdvancedRulesManager {
     const baseContext: RuleContext = {
       documentText: effectiveText,
       sentences,
+      sequenceSentences: !shouldExcludeTables && excludedRanges?.some(range => range.type === 'table')
+        ? SentenceParser.parseSentences(effectiveText, tokens, excludedRanges, config.sentenceSplitMode, effectiveLines, true)
+        : undefined,
       config,
       shared: baseShared
     };
@@ -472,7 +475,7 @@ export class AdvancedRulesManager {
       config,
       excludedRanges,
       profilingCollector,
-      () => this.workerPoolManager.markFailed(),
+      () => this.workerPoolManager.markFailed(pool),
       fallback
     );
   }

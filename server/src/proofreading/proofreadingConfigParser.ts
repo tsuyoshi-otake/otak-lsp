@@ -4,6 +4,7 @@
  */
 
 import { splitAndTrimCommas } from '../utils/stringUtils';
+import { getSetting } from '../utils/configValue';
 import {
   ProofreadingSettingsConfig,
   ProofreadingCategories,
@@ -34,7 +35,7 @@ function cloneDefaultProofreadingConfig(): ProofreadingSettingsConfig {
 }
 
 function applyBoolean(raw: Record<string, unknown>, key: string, apply: (value: boolean) => void): void {
-  const value = raw[key];
+  const value = getSetting(raw, key);
   if (typeof value === 'boolean') {
     apply(value);
   }
@@ -47,7 +48,7 @@ function applyNumber(
   max: number,
   apply: (value: number) => void
 ): void {
-  const value = raw[key];
+  const value = getSetting(raw, key);
   if (isValidNumber(value, min, max)) {
     apply(value);
   }
@@ -65,7 +66,7 @@ function applyStringArray(
   key: string,
   apply: (value: string[]) => void
 ): void {
-  const value = readStringArray(raw[key]);
+  const value = readStringArray(getSetting(raw, key));
   if (value !== undefined) {
     apply(value);
   }
@@ -101,6 +102,7 @@ function applyTypoSettings(raw: Record<string, unknown>, config: TypoCheckConfig
   applyBoolean(raw, 'typo.checkInBrackets', (v) => { config.checkInBrackets = v; });
   applyBoolean(raw, 'typo.raNuki', (v) => { config.raNuki = v; });
   applyBoolean(raw, 'typo.saIre', (v) => { config.saIre = v; });
+  applyBoolean(raw, 'typo.homophone', (v) => { config.homophone = v; });
   applyBoolean(raw, 'typo.doubleHonorific', (v) => { config.doubleHonorific = v; });
   applyBoolean(raw, 'typo.adverbAgreement', (v) => { config.adverbAgreement = v; });
   applyBoolean(raw, 'typo.eraFirstYear', (v) => { config.eraFirstYear = v; });
@@ -108,9 +110,11 @@ function applyTypoSettings(raw: Record<string, unknown>, config: TypoCheckConfig
 
 function applyTermBaseSettings(raw: Record<string, unknown>, config: TermBaseConfig): void {
   applyBoolean(raw, 'termBase.enable', (v) => { config.enable = v; });
-  if (isOkuriganaMode(raw['termBase.okuriganaMode'])) {
-    config.okuriganaMode = raw['termBase.okuriganaMode'];
+  const mode = getSetting(raw, 'termBase.okuriganaMode');
+  if (isOkuriganaMode(mode)) {
+    config.okuriganaMode = mode;
   }
+  applyBoolean(raw, 'termBase.okurigana', (v) => { config.okurigana = v; });
   applyBoolean(raw, 'termBase.jouyouKanji', (v) => { config.jouyouKanji = v; });
   applyBoolean(raw, 'termBase.oldKanji', (v) => { config.oldKanji = v; });
   applyBoolean(raw, 'termBase.kanjiOpening', (v) => { config.kanjiOpening = v; });
@@ -133,6 +137,10 @@ function applyExpressionSettings(raw: Record<string, unknown>, config: Expressio
 
 function applyCharTypeSettings(raw: Record<string, unknown>, config: CharTypeConfig): void {
   applyBoolean(raw, 'charType.enable', (v) => { config.enable = v; });
+  const numeral = getSetting(raw, 'charType.preferredNumeral');
+  if (numeral === 'full' || numeral === 'half' || numeral === 'mix') config.preferred.numeral = numeral;
+  const alphabet = getSetting(raw, 'charType.preferredAlphabet');
+  if (alphabet === 'full' || alphabet === 'half') config.preferred.alphabet = alphabet;
 }
 
 function applyLengthSettings(raw: Record<string, unknown>, config: LengthCheckConfig): void {
@@ -146,8 +154,10 @@ function applyLengthSettings(raw: Record<string, unknown>, config: LengthCheckCo
 
 function applyEnvDependentSettings(raw: Record<string, unknown>, config: EnvDependentConfig): void {
   applyBoolean(raw, 'envDependent.enable', (v) => { config.enable = v; });
-  if (isEnvDependentMode(raw['envDependent.mode'])) {
-    config.mode = raw['envDependent.mode'];
+  applyBoolean(raw, 'envDependent.checkUserCreatedGaiji', (v) => { config.checkUserCreatedGaiji = v; });
+  const mode = getSetting(raw, 'envDependent.mode');
+  if (isEnvDependentMode(mode)) {
+    config.mode = mode;
   }
 }
 
@@ -162,6 +172,9 @@ function applyPunctuationSettings(raw: Record<string, unknown>, config: Punctuat
 
 function applySpellSettings(raw: Record<string, unknown>, config: SpellCheckConfig): void {
   applyBoolean(raw, 'spell.enable', (v) => { config.enable = v; });
+  applyBoolean(raw, 'spell.checkUppercase', (v) => { config.checkUppercase = v; });
+  applyBoolean(raw, 'spell.checkAllCaps', (v) => { config.checkAllCaps = v; });
+  applyBoolean(raw, 'spell.checkRepeat', (v) => { config.checkRepeat = v; });
 }
 
 function applyNotationVariantSettings(raw: Record<string, unknown>, config: NotationVariantConfig): void {
@@ -184,7 +197,7 @@ function readQuoteLineMarkers(value: unknown): string[] | undefined {
 
 function applyQuoteLineSettings(raw: Record<string, unknown>, config: QuoteLineConfig): void {
   applyBoolean(raw, 'quoteLine.enable', (v) => { config.enable = v; });
-  const markers = readQuoteLineMarkers(raw['quoteLine.markers']);
+  const markers = readQuoteLineMarkers(getSetting(raw, 'quoteLine.markers'));
   if (markers !== undefined) {
     config.markers = markers;
   }
@@ -202,6 +215,7 @@ function applyCategoryProofreadingSettings(
   applyLengthSettings(raw, categories.length);
   applyEnvDependentSettings(raw, categories.envDependent);
   applyPunctuationSettings(raw, categories.punctuation);
+  applyBoolean(raw, 'rule.enable', (v) => { categories.rule.enable = v; });
   applySpellSettings(raw, categories.spell);
   applyNotationVariantSettings(raw, categories.notationVariant);
   applyBracketSettings(raw, categories.bracket);

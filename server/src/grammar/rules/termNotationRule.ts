@@ -6,6 +6,7 @@
  */
 
 import { Token } from '../../../../shared/src/types';
+import { findHtmlTagRanges } from '../technicalTextRanges';
 import {
   AdvancedGrammarRule,
   AdvancedRulesConfig,
@@ -361,12 +362,16 @@ export class TermNotationRule implements AdvancedGrammarRule {
     const excludedRanges = normalizeRanges([
       ...codeBlockRanges,
       ...inlineCodeRanges,
+      ...findHtmlTagRanges(text),
       ...this.getTableExampleColumnRanges(text, context.shared?.lines)
     ]);
 
     const errors = this.detectIncorrectNotation(text, context.config);
 
     for (const error of errors) {
+      // ファイル拡張子は識別子の一部であり、本文の技術用語ではない。
+      if (error.index > 0 && text[error.index - 1] === '.' &&
+          error.index > 1 && /[\w-]/.test(text[error.index - 2])) continue;
       // 除外範囲内の検出はスキップ
       if (this.isInExcludedRegion(error.index, error.incorrect.length, excludedRanges)) {
         continue;

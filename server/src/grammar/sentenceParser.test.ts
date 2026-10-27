@@ -171,11 +171,7 @@ describe('SentenceParser', () => {
         const { filteredText, excludedRanges } = markdownFilter.filter(markdown);
         const sentences = SentenceParser.parseSentences(filteredText, [], excludedRanges);
 
-        expect(sentences).toHaveLength(4);
-        expect(sentences[0].text.trim()).toBe('前文です');
-        expect(['A', 'B']).toContain(sentences[1].text.trim());
-        expect(['1', '2']).toContain(sentences[2].text.trim());
-        expect(sentences[3].text.trim()).toBe('後文です。');
+        expect(sentences.map(s => s.text.trim())).toEqual(['前文です', 'A', 'B', '1', '2', '後文です。']);
       });
 
       it('should extract last table cell even without trailing pipe', () => {

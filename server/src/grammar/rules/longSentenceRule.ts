@@ -12,7 +12,8 @@ import {
   RuleContext,
   AdvancedDiagnostic,
   Sentence,
-  LongSentence
+  LongSentence,
+  CodeRange
 } from '../../../../shared/src/advancedTypes';
 
 /**
@@ -28,11 +29,16 @@ export class LongSentenceRule implements AdvancedGrammarRule {
    * @param threshold 閾値
    * @returns 検出された長文のリスト
    */
-  detectLongSentences(sentences: Sentence[], threshold: number): LongSentence[] {
+  detectLongSentences(sentences: Sentence[], threshold: number, hiddenRanges: CodeRange[] = []): LongSentence[] {
     const results: LongSentence[] = [];
+    let rangeIndex = 0;
 
     for (const sentence of sentences) {
-      const charCount = sentence.text.length;
+      while (rangeIndex < hiddenRanges.length && hiddenRanges[rangeIndex].end <= sentence.start) rangeIndex++;
+      let charCount = sentence.text.length;
+      for (let i = rangeIndex; i < hiddenRanges.length && hiddenRanges[i].start < sentence.end; i++) {
+        charCount -= Math.max(0, Math.min(sentence.end, hiddenRanges[i].end) - Math.max(sentence.start, hiddenRanges[i].start));
+      }
 
       if (charCount > threshold) {
         results.push({
@@ -87,7 +93,7 @@ export class LongSentenceRule implements AdvancedGrammarRule {
   check(tokens: Token[], context: RuleContext): AdvancedDiagnostic[] {
     const diagnostics: AdvancedDiagnostic[] = [];
     const threshold = context.config.longSentenceThreshold || 120;
-    const longSentences = this.detectLongSentences(context.sentences, threshold);
+    const longSentences = this.detectLongSentences(context.sentences, threshold, context.hiddenTextRanges);
 
     for (const longSentence of longSentences) {
       diagnostics.push(new AdvancedDiagnostic({

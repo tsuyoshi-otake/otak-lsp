@@ -52,6 +52,7 @@ export interface RunRulesMessage {
   baseContext: {
     documentText: string;
     serializedSentences: SerializedSentence[];
+    serializedSequenceSentences?: SerializedSentence[];
     shared: AdvancedRuleSharedContext;
   };
   originalText: string;
@@ -116,6 +117,8 @@ export function handleRunRules(msg: RunRulesMessage): RunRulesResponse {
     const baseContext: RuleContext = {
       documentText: msg.baseContext.documentText,
       sentences,
+      sequenceSentences: msg.baseContext.serializedSequenceSentences
+        ? deserializeSentences(msg.baseContext.serializedSequenceSentences) : undefined,
       config: msg.config,
       shared: msg.baseContext.shared,
     };

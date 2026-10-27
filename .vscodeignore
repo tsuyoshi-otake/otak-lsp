@@ -4,6 +4,7 @@
 .claude/**
 .kiro/**
 .codex/**
+verification/**
 
 # Source files (bundled by esbuild)
 client/src/**

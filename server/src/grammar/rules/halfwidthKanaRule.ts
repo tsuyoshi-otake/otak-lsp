@@ -121,26 +121,26 @@ export class HalfwidthKanaRule implements AdvancedGrammarRule {
   /**
    * テキスト内の半角カナを検出
    */
-  findHalfwidthKana(text: string): Array<{ value: string; index: number; fullwidth: string }> {
+  findHalfwidthKana(text: string, wordsOnly = false): Array<{ value: string; index: number; fullwidth: string }> {
     const results: Array<{ value: string; index: number; fullwidth: string }> = [];
+    const isTarget = (char: string): boolean => this.isHalfwidthKana(char) && (!wordsOnly || char.charCodeAt(0) >= 0xFF66);
     let i = 0;
 
     while (i < text.length) {
-      if (this.isHalfwidthKana(text[i])) {
+      if (isTarget(text[i])) {
         // 連続する半角カナを取得
         let j = i;
-        while (j < text.length && this.isHalfwidthKana(text[j])) {
+        while (j < text.length && isTarget(text[j])) {
           j++;
         }
 
         const halfwidth = text.slice(i, j);
         const fullwidth = this.toFullwidth(halfwidth);
 
-        results.push({
-          value: halfwidth,
-          index: i,
-          fullwidth
-        });
+        // 長音や濁点だけではカタカナ語にならない。
+        if (!wordsOnly || /[\uFF66-\uFF6F\uFF71-\uFF9D]/u.test(halfwidth)) {
+          results.push({ value: halfwidth, index: i, fullwidth });
+        }
 
         i = j;
       } else {
@@ -156,7 +156,7 @@ export class HalfwidthKanaRule implements AdvancedGrammarRule {
    */
   check(tokens: Token[], context: RuleContext): AdvancedDiagnostic[] {
     const diagnostics: AdvancedDiagnostic[] = [];
-    const halfwidthKana = this.findHalfwidthKana(context.documentText);
+    const halfwidthKana = this.findHalfwidthKana(context.documentText, context.config.proofreadingHalfwidthKanaWordsOnly === true);
 
     for (const item of halfwidthKana) {
       diagnostics.push(new AdvancedDiagnostic({

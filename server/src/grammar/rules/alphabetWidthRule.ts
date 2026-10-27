@@ -74,6 +74,10 @@ export class AlphabetWidthRule implements AdvancedGrammarRule {
     });
   }
 
+  toFullwidth(text: string): string {
+    return text.replace(/[A-Za-z]/g, char => String.fromCharCode(char.charCodeAt(0) + 0xFEE0));
+  }
+
   /**
    * 文法チェックを実行
    */
@@ -86,7 +90,7 @@ export class AlphabetWidthRule implements AdvancedGrammarRule {
 
     // 両方存在する場合のみ混在として検出
     if (fullwidth.length > 0 && halfwidth.length > 0) {
-      const dominantWidth = this.getDominantWidth(text);
+      const dominantWidth = context.config.proofreadingPreferredAlphabet ?? this.getDominantWidth(text);
 
       // 少数派の幅をエラーとして報告
       const minorityItems = dominantWidth === 'half' ? fullwidth : halfwidth;
@@ -94,7 +98,7 @@ export class AlphabetWidthRule implements AdvancedGrammarRule {
       for (const item of minorityItems) {
         const suggestion = dominantWidth === 'half'
           ? this.toHalfwidth(item.text)
-          : item.text; // 全角優先の場合はそのまま
+          : this.toFullwidth(item.text);
 
         diagnostics.push(new AdvancedDiagnostic({
           range: {
@@ -104,7 +108,7 @@ export class AlphabetWidthRule implements AdvancedGrammarRule {
           message: `全角と半角アルファベットが混在しています。「${item.text}」を${dominantWidth === 'half' ? '半角' : '全角'}に統一してください。`,
           code: 'alphabet-width',
           ruleName: this.name,
-          suggestions: dominantWidth === 'half' ? [`「${suggestion}」に変更する`] : [`半角「${this.toHalfwidth(item.text)}」に変更する`]
+          suggestions: [`「${suggestion}」に変更する`]
         }));
       }
     }

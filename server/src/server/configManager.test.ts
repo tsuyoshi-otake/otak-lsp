@@ -4,13 +4,15 @@
  * TDD: RED -> GREEN -> REFACTOR
  */
 
-import { createConfigManager, ConfigManager } from './configManager';
+import { createConfigManager, ConfigManager, resolveConfiguration } from './configManager';
 import { AdvancedRulesManager } from '../grammar/advancedRulesManager';
 import { ProofreadingRulesManager } from '../proofreading/proofreadingRulesManager';
 import { HoverProvider } from '../hover/provider';
 import { WikipediaClient } from '../wikipedia/client';
 import { Configuration } from '../../../shared/src/types';
 import { createLogger } from '../utils/logger';
+import { readFileSync } from 'fs';
+import * as fc from 'fast-check';
 
 describe('configManager', () => {
   let advancedRulesManager: AdvancedRulesManager;
@@ -19,6 +21,40 @@ describe('configManager', () => {
   let configManager: ConfigManager;
   const logs: string[] = [];
   const logger = createLogger((msg: string) => { logs.push(msg); }, true);
+
+  it('文複雑度の設定を利用者に公開し、既定値と許容範囲を一致させる', () => {
+    const pkg = JSON.parse(readFileSync('package.json', 'utf8'));
+    const properties = pkg.contributes.configuration.properties;
+    expect(properties['otakLsp.advanced.enableSentenceComplexity']).toMatchObject({
+      type: 'boolean', default: true, scope: 'resource',
+    });
+    expect(properties['otakLsp.advanced.sentenceComplexityThreshold']).toMatchObject({
+      type: 'number', default: 60, minimum: 0, maximum: 100, scope: 'resource',
+    });
+  });
+
+  it.each([-1, 101, Infinity, NaN, '35', null])('無効な文複雑度閾値 %s は既定値を維持する', value => {
+    expect(resolveConfiguration({ advanced: { sentenceComplexityThreshold: value } }).advancedConfig.sentenceComplexityThreshold).toBe(60);
+  });
+
+  it.each([0, 35, 35.5, 100])('範囲内の文複雑度閾値 %s と有効状態を受け取る', value => {
+    const config = resolveConfiguration({ advanced: { sentenceComplexityThreshold: value, enableSentenceComplexity: false } }).advancedConfig;
+    expect(config.sentenceComplexityThreshold).toBe(value);
+    expect(config.enableSentenceComplexity).toBe(false);
+  });
+
+  it('無効な値は適用済みの文複雑度閾値を上書きしない', () => {
+    configManager.applySettings({ advanced: { sentenceComplexityThreshold: 35 } });
+    configManager.applySettings({ advanced: { sentenceComplexityThreshold: 101 } });
+    expect(configManager.getAdvancedConfig().sentenceComplexityThreshold).toBe(35);
+  });
+
+  it('生成した文複雑度閾値は0〜100なら適用し、範囲外は既定値を保つ', () => {
+    fc.assert(fc.property(fc.integer({ min: -1000, max: 1000 }), value => {
+      const actual = resolveConfiguration({ advanced: { sentenceComplexityThreshold: value } }).advancedConfig.sentenceComplexityThreshold;
+      expect(actual).toBe(value >= 0 && value <= 100 ? value : 60);
+    }), { numRuns: 30, seed: 20261027 });
+  });
 
   beforeEach(() => {
     logs.length = 0;

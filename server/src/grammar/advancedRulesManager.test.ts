@@ -834,7 +834,9 @@ describe('AdvancedRulesManager - Shared Preprocessing Context', () => {
       // コード外のAPI/apiの混在を検出
       const englishCaseDiags = diagnostics.filter(d => d.code === 'english-case-mix');
       // コードブロック内のapiは無視され、本文のAPI/apiのみ検出
-      expect(englishCaseDiags.length).toBe(1);
+      expect(englishCaseDiags.map(d => d.range.start)).toEqual([
+        { line: 3, character: 0 }, { line: 3, character: 4 }
+      ]);
     });
 
     it('QuotationStyleMixRuleが共有コンテキストのコード範囲を利用できる', () => {

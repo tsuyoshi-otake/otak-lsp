@@ -6,6 +6,7 @@
  */
 
 import { Token } from '../../../../shared/src/types';
+import { isTypoInsideBracket, typoBracketRanges } from './typoBracketScope';
 import {
   AdvancedGrammarRule,
   AdvancedRulesConfig,
@@ -124,8 +125,10 @@ export class HonorificErrorRule implements AdvancedGrammarRule {
   check(tokens: Token[], context: RuleContext): AdvancedDiagnostic[] {
     const diagnostics: AdvancedDiagnostic[] = [];
     const errors = this.detectHonorificErrors(context.documentText);
+    const brackets = typoBracketRanges(context);
 
     for (const error of errors) {
+      if (isTypoInsideBracket(error.range.start.character, brackets)) continue;
       const message = error.errorType === 'double-honorific'
         ? `二重敬語「${error.expression}」が検出されました。「${error.correction}」が正しい形式です。`
         : `敬語の誤用「${error.expression}」が検出されました。`;

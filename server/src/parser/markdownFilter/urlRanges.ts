@@ -1,5 +1,5 @@
 import { ExcludedRange } from '../../../../shared/src/markdownFilterTypes';
-import { findClosingParenForMarkdownLink, isOverlapping } from './rangeUtils';
+import { findClosingParenForMarkdownLink, isEscapedAt, isOverlapping } from './rangeUtils';
 
 /**
  * URLを検出する。
@@ -98,16 +98,31 @@ export function findUrls(text: string, existingRanges: ExcludedRange[]): Exclude
   };
 
   // マークダウンリンクのURL/タイトル部分 [text](...)/![alt](...)
+  let openBrackets = 0;
   for (let i = 0; i < text.length - 1; i++) {
-    if (text[i] !== ']' || text[i + 1] !== '(') {
+    if (text[i] === '\n' || text[i] === '\r') openBrackets = 0;
+    else if (text[i] === '[' && !isEscapedAt(text, i)) openBrackets++;
+    if (text[i] !== ']' || isEscapedAt(text, i)) {
       continue;
     }
+    if (openBrackets === 0) continue;
+    openBrackets--;
+    if (text[i + 1] !== '(') continue;
 
     const contentStart = i + 2;
     const closingParen = findClosingParenForMarkdownLink(text, contentStart);
     if (closingParen === -1) {
       continue;
     }
+
+    // 改行後の通常本文を未完成リンクの宛先として飲み込まない。
+    // 改行後に引用符付きタイトルが続く正当なリンクは維持する。
+    const destination = text.slice(contentStart, closingParen);
+    const lineBreak = destination.search(/[\r\n]/);
+    if (lineBreak >= 0 && !/^\s*(?:"[^"\r\n]*"|'[^'\r\n]*'|\([^()\r\n]*\))\s*$/.test(destination.slice(lineBreak))) {
+      continue;
+    }
+    if (lineBreak >= 0) openBrackets = 0;
 
     addUrlRange(contentStart, closingParen, 'マークダウンリンクURL検出');
     i = closingParen;

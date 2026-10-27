@@ -136,28 +136,33 @@ describe('Property-Based Tests: Markdown Filter', () => {
       );
     });
 
-    it('should preserve text outside code blocks', () => {
+    it('コードブロック外の本文を位置どおり保持し、HTMLタグのみマスクする', () => {
+      const plain = fc.array(fc.constantFrom('a', 'Z', 'あ', '漢', ' ', '。', '😀'), { minLength: 1, maxLength: 25 })
+        .map(chars => chars.join(''));
       fc.assert(
         fc.property(
-          // テーブル行パターン、リストマーカー、見出しマーカーを除外
-          fc.string({ minLength: 1, maxLength: 50 }).filter(
-            (s) => !s.includes('`') && 
-                   !/^\|.*\|$/.test(s.trim()) &&
-                   !/^\s*[-*+]\s/.test(s) &&  // リストマーカー（- * +）を除外
-                   !/^\s*\d+\.\s/.test(s) &&  // 番号付きリストマーカーを除外
-                   !/^#{1,6}\s/.test(s)       // 見出しマーカーを除外
-          ),
+          plain,
+          plain,
+          fc.boolean(),
           fc.string({ minLength: 1, maxLength: 30 }).filter((s) => !s.includes('`')),
-          (normalText, codeContent) => {
+          (prefix, suffix, withTag, codeContent) => {
+            const tag = withTag ? '<A>' : '';
+            const normalText = `${prefix}${tag}${suffix}`;
             const text = `${normalText}\n\`\`\`\n${codeContent}\n\`\`\``;
             const result = filter.filter(text);
-
-            // 通常テキストがフィルタリング結果に含まれていることを確認
-            expect(result.filteredText.includes(normalText)).toBe(true);
+            // 期待値は入力を組み立てたタグと本文から求める。
+            expect(result.filteredText.slice(0, normalText.length)).toBe(`${prefix}${' '.repeat(tag.length)}${suffix}`);
           }
         ),
-        { numRuns: 30 }
+        { numRuns: 50, seed: 501469767 }
       );
+    });
+
+    it('生成された反例のタグと直後の空白を、コードブロック外で正しく扱う', () => {
+      const text = '<A> \n```\n \n```';
+      const result = filter.filter(text);
+      expect(result.filteredText.slice(0, 4)).toBe('    ');
+      expect(result.excludedRanges.some(range => range.type === 'html-tag' && text.slice(range.start, range.end) === '<A>')).toBe(true);
     });
   });
 
@@ -324,15 +329,9 @@ describe('Property-Based Tests: Markdown Filter', () => {
     it('should preserve text outside tables', () => {
       fc.assert(
         fc.property(
-          // テーブルマーカー、改行、バッククォート（インラインコード）、リストマーカーを除外
-          fc.string({ minLength: 1, maxLength: 30 }).filter(
-            (s) => !s.includes('|') && 
-                   !s.includes('\n') && 
-                   !s.includes('`') &&
-                   !/^\s*[-*+]\s/.test(s) &&  // リストマーカー（- * +）を除外
-                   !/^\s*\d+\.\s/.test(s) &&  // 番号付きリストマーカーを除外
-                   !/^#{1,6}\s/.test(s)       // 見出しマーカーを除外
-          ),
+          // 文章自体にHTMLタグやMarkdown構文を混ぜず、表の影響を検査する。
+          fc.array(fc.constantFrom('文', '字', 'あ', 'A', 'B', '0', ' ', '😀'),
+            { minLength: 1, maxLength: 30 }).map(chars => chars.join('')),
           (normalText) => {
             const table = `| A | B |
 |---|---|
@@ -340,11 +339,19 @@ describe('Property-Based Tests: Markdown Filter', () => {
             const text = `${normalText}\n${table}`;
             const result = filter.filter(text);
 
-            expect(result.filteredText.includes(normalText)).toBe(true);
+            expect(result.filteredText.slice(0, normalText.length)).toBe(normalText);
           }
         ),
         { numRuns: 30 }
       );
+    });
+
+    it('should mask HTML tags outside tables while preserving surrounding text', () => {
+      const normalText = '<A> 本文';
+      const text = `${normalText}\n| A | B |\n|---|---|\n| 1 | 2 |`;
+      const result = filter.filter(text);
+      expect(result.filteredText.slice(0, normalText.length)).toBe('    本文');
+      expect(result.excludedRanges.some(r => r.type === 'html-tag' && text.slice(r.start, r.end) === '<A>')).toBe(true);
     });
 
     it('should exclude pipe characters as table delimiters', () => {
@@ -392,12 +399,14 @@ describe('Property-Based Tests: Markdown Filter', () => {
     it('should preserve link text while excluding URL', () => {
       fc.assert(
         fc.property(
-          // リンク記法文字、バッククォート（インラインコード）、リストマーカー、見出しマーカーを除外
+          // リンク記法、HTMLタグ、インラインコード、リスト・見出しの記法は別途検証する。
           fc.string({ minLength: 1, maxLength: 20 }).filter(
             (s) => !s.includes('[') && 
                    !s.includes(']') && 
                    !s.includes('(') && 
                    !s.includes(')') && 
+                   !s.includes('<') &&
+                   !s.includes('>') &&
                    !s.includes('`') &&
                    !/^\s*[-*+]\s/.test(s) &&  // リストマーカー（- * +）を除外
                    !/^\s*\d+\.\s/.test(s) &&  // 番号付きリストマーカーを除外
@@ -416,6 +425,15 @@ describe('Property-Based Tests: Markdown Filter', () => {
         ),
         { numRuns: 30 }
       );
+    });
+
+    it('リンク本文内のHTMLタグを除外して表示本文を保持する', () => {
+      const text = 'Click [<a>本文</a>](https://example.com)';
+      const result = filter.filter(text);
+      const start = text.indexOf('本文');
+      expect(result.filteredText.slice(start, start + 2)).toBe('本文');
+      expect(result.excludedRanges.filter(r => r.type === 'html-tag').map(r => text.slice(r.start, r.end))).toEqual(['<a>', '</a>']);
+      expect(result.excludedRanges.some(r => r.type === 'url')).toBe(true);
     });
 
     it('should handle auto-link syntax', () => {

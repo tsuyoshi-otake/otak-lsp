@@ -18,7 +18,8 @@ export function tryPushTableCellSentences(
   start: number,
   end: number,
   sentenceText: string,
-  tableRanges?: ExcludedRange[]
+  tableRanges?: ExcludedRange[],
+  sequenceCompatibility = false
 ): boolean {
   const insideTable = isOffsetInsideExcludedType(start, tableRanges, 'table');
   if (!insideTable || !isMarkdownTableRowLine(sentenceText)) {
@@ -26,13 +27,28 @@ export function tryPushTableCellSentences(
   }
 
   const cellRanges = extractMarkdownTableCellRanges(text, start, end);
-  const selected = selectBestTableCellRange(text, cellRanges);
-  if (!selected) {
-    return true;
+  const cells = sequenceCompatibility ? selectSequenceCell(text, cellRanges) : cellRanges;
+  for (const cell of cells) {
+    pushSentencesFromRange(sentences, text, tokens, cell.start, cell.end);
   }
-
-  pushSentencesFromRange(sentences, text, tokens, selected.start, selected.end);
   return true;
+}
+
+/** 既存の行をまたぐ連続検出に使う代表セルを選ぶ。 */
+function selectSequenceCell(text: string, ranges: TextRange[]): TextRange[] {
+  let best: TextRange | undefined;
+  let bestScore = 0;
+  for (const range of ranges) {
+    const normalized = text.slice(range.start, range.end).replace(/`/g, '').trim();
+    if (!normalized || /^(?:PASS|FAIL|OK|NG)$/i.test(normalized)) continue;
+    let score = Math.min(normalized.length, 200);
+    if (/[ぁ-んァ-ン一-龠]/.test(normalized)) score += 100;
+    if (/[。！？!?]/.test(normalized)) score += 40;
+    if (/、/.test(normalized)) score += 20;
+    if (/(?:です|ます|である|だ|た|ない)$/.test(normalized.replace(/[。！？!?]$/, ''))) score += 10;
+    if (score > bestScore) { best = range; bestScore = score; }
+  }
+  return best ? [best] : [];
 }
 
 export function isMarkdownTableSeparatorLine(lineText: string): boolean {
@@ -129,59 +145,4 @@ function extractMarkdownTableCellRanges(text: string, lineStart: number, lineEnd
   }
 
   return ranges;
-}
-
-function scoreTableCell(text: string): number {
-  const trimmed = text.trim();
-  if (trimmed.length === 0) {
-    return -1;
-  }
-
-  const withoutTicks = trimmed.replace(/`/g, '');
-  const normalized = withoutTicks.trim();
-
-  if (/^(?:PASS|FAIL|OK|NG)$/i.test(normalized)) {
-    return 0;
-  }
-
-  let score = 0;
-  if (/[ぁ-んァ-ン一-龠]/.test(normalized)) {
-    score += 100;
-  }
-  if (/[。！？!?]/.test(normalized)) {
-    score += 40;
-  }
-  if (/、/.test(normalized)) {
-    score += 20;
-  }
-  if (/(?:です|ます|である|だ|た|ない)$/.test(normalized.replace(/[。！？!?]$/, ''))) {
-    score += 10;
-  }
-  score += Math.min(normalized.length, 200);
-  return score;
-}
-
-function selectBestTableCellRange(
-  text: string,
-  ranges: TextRange[]
-): TextRange | null {
-  if (ranges.length === 0) {
-    return null;
-  }
-
-  let best = ranges[0];
-  let bestScore = scoreTableCell(text.substring(best.start, best.end));
-
-  for (const range of ranges.slice(1)) {
-    const score = scoreTableCell(text.substring(range.start, range.end));
-    if (score > bestScore) {
-      best = range;
-      bestScore = score;
-    }
-  }
-
-  if (bestScore <= 0) {
-    return null;
-  }
-  return best;
 }

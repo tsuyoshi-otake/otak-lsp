@@ -5,6 +5,7 @@
 
 export { StyleConsistencyRule } from './styleConsistencyRule';
 export { RaNukiRule } from './raNukiRule';
+export { SaIreRule } from './saIreRule';
 export { DoubleNegationRule } from './doubleNegationRule';
 export { ParticleRepetitionRule } from './particleRepetitionRule';
 export { ConjunctionRepetitionRule } from './conjunctionRepetitionRule';

@@ -12,6 +12,7 @@ import { Token, Range, Diagnostic, DiagnosticSeverity } from './types';
 export type AdvancedGrammarErrorType =
   | 'style-inconsistency'
   | 'ra-nuki'
+  | 'sa-ire'
   | 'double-negation'
   | 'particle-repetition'
   | 'conjunction-repetition'
@@ -447,11 +448,16 @@ export interface AdvancedRulesConfig {
   // ルールの有効/無効
   enableStyleConsistency: boolean;
   enableRaNukiDetection: boolean;
+  enableSaIreDetection: boolean;
+  /** 校正設定で指定した括弧内の誤字チェック。未指定なら検査する。 */
+  proofreadingCheckInBrackets?: boolean;
   enableDoubleNegation: boolean;
   enableParticleRepetition: boolean;
   enableConjunctionRepetition: boolean;
   enableAdversativeGa: boolean;
   enableAlphabetWidth: boolean;
+  /** 校正設定から指定された英字の優先幅。未指定時は従来の多数派判定。 */
+  proofreadingPreferredAlphabet?: 'full' | 'half';
   enableWeakExpression: boolean;
   enableCommaCount: boolean;
   enableTermNotation: boolean;
@@ -484,9 +490,15 @@ export interface AdvancedRulesConfig {
   // 拡張文法ルール（Tasks 14-25）
   enableOkuriganaVariant: boolean;
   enableOrthographyVariant: boolean;
+  /** 校正の表記ゆれ対象をカタカナ語に限定する。 */
+  proofreadingNotationKatakanaOnly?: boolean;
   enableNumberWidthMix: boolean;
+  /** 校正設定から指定された数字の優先幅。mixは混在を許容する。 */
+  proofreadingPreferredNumeral?: 'full' | 'half' | 'mix';
   enableKatakanaChouon: boolean;
   enableHalfwidthKana: boolean;
+  /** 半角カナ診断をカタカナ語に限定する。 */
+  proofreadingHalfwidthKanaWordsOnly?: boolean;
   enableNumeralStyleMix: boolean;
   enableSpaceAroundUnit: boolean;
   enableBracketQuoteMismatch: boolean;
@@ -515,6 +527,10 @@ export interface AdvancedRulesConfig {
   enableOyobiNarabini: boolean;
   enableMatawaWakushikuwa: boolean;
   enableJouyouKanji: boolean;
+  /** 校正設定で旧字体だけを選択したとき、常用漢字外のその他の字を除外する。 */
+  proofreadingOldKanjiOnly?: boolean;
+  /** 校正設定で旧字体の参考字体を照合し、常用漢字表の見出しを候補にする。 */
+  proofreadingOldKanjiSuggestions?: boolean;
   enableBulletPunctuation: boolean;
 
   // 文複雑度ルール（Feature: sentence-complexity-rule）
@@ -573,6 +589,7 @@ export interface AdvancedRulesConfig {
 export const DEFAULT_ADVANCED_RULES_CONFIG: AdvancedRulesConfig = {
   enableStyleConsistency: true,
   enableRaNukiDetection: true,
+  enableSaIreDetection: true,
   enableDoubleNegation: true,
   enableParticleRepetition: true,
   enableConjunctionRepetition: true,
@@ -769,7 +786,11 @@ export interface AdvancedRuleSharedContext {
 export interface RuleContext {
   documentText: string;
   sentences: Sentence[];
+  /** 表の行をまたぐ連続検出で既存の代表セル選択を維持する文列。 */
+  sequenceSentences?: Sentence[];
   config: AdvancedRulesConfig;
+  /** 長文判定で表示文字数から除くMarkdownリンク構文の範囲。元文書のオフセット。 */
+  hiddenTextRanges?: CodeRange[];
   /** 共有コンテキスト（解析サイクル内で再利用可能な前処理結果） */
   shared?: AdvancedRuleSharedContext;
 }

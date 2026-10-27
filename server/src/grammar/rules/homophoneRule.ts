@@ -6,6 +6,7 @@
  */
 
 import { Token } from '../../../../shared/src/types';
+import { isTypoInsideBracket, typoBracketRanges } from './typoBracketScope';
 import {
   AdvancedGrammarRule,
   AdvancedRulesConfig,
@@ -23,14 +24,6 @@ const HOMOPHONE_ERROR_PATTERNS: Map<string, { correct: string[]; explanation: st
     correct: ['意識が低い', '志が低い'],
     explanation: '「意志」は決意や意図、「意識」は認識や自覚を意味します'
   }],
-  ['異動の制約', {
-    correct: ['移動の制約'],
-    explanation: '物理的な移動には「移動」、人事には「異動」を使用します'
-  }],
-  ['移動の制約', {
-    correct: ['異動の制約'],
-    explanation: '人事異動の文脈では「異動」を使用します'
-  }],
   ['移動の辞令', {
     correct: ['異動の辞令'],
     explanation: '人事関連には「異動」を使用します'
@@ -43,18 +36,6 @@ const HOMOPHONE_ERROR_PATTERNS: Map<string, { correct: string[]; explanation: st
     correct: ['以外の人'],
     explanation: '〜を除いてを表す場合は「以外」を使用します'
   }],
-  ['過程が良い', {
-    correct: ['家庭が良い'],
-    explanation: '家族関係を表す場合は「家庭」を使用します'
-  }],
-  ['家庭で作る', {
-    correct: ['過程で作る'],
-    explanation: 'プロセスを表す場合は「過程」を使用します'
-  }],
-  ['完了の報告', {
-    correct: ['感慨深い'],
-    explanation: '文脈を確認してください'
-  }]
 ]);
 
 /**
@@ -75,6 +56,16 @@ export class HomophoneRule implements AdvancedGrammarRule {
     for (const [pattern, info] of HOMOPHONE_ERROR_PATTERNS) {
       let index = text.indexOf(pattern);
       while (index !== -1) {
+        // 「東京以外に多い」のように除外対象が直前にある場合は正しい用法。
+        // 候補は文頭・句読点後・主題や主語の助詞後に限定する。
+        if (pattern === '以外に多い') {
+          let previous = index - 1;
+          while (previous >= 0 && /\s/u.test(text[previous])) previous--;
+          if (previous >= 0 && !/[はがも、。！？!?「（(]/u.test(text[previous])) {
+            index = text.indexOf(pattern, index + 1);
+            continue;
+          }
+        }
         results.push({
           used: pattern,
           expected: info.correct,
@@ -101,8 +92,10 @@ export class HomophoneRule implements AdvancedGrammarRule {
   check(tokens: Token[], context: RuleContext): AdvancedDiagnostic[] {
     const diagnostics: AdvancedDiagnostic[] = [];
     const errors = this.detectHomophoneErrors(context.documentText);
+    const brackets = typoBracketRanges(context);
 
     for (const error of errors) {
+      if (isTypoInsideBracket(error.range.start.character, brackets)) continue;
       diagnostics.push(new AdvancedDiagnostic({
         range: error.range,
         message: `同音異義語「${error.used}」の使い方を確認してください。${error.context}`,

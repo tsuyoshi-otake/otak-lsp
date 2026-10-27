@@ -5,7 +5,7 @@
  * 要件: 4.1, 4.2, 4.3, 4.4, 4.5
  */
 
-import { Token } from '../../../../shared/src/types';
+import { DiagnosticSeverity, Token } from '../../../../shared/src/types';
 import {
   AdvancedGrammarRule,
   AdvancedRulesConfig,
@@ -32,16 +32,7 @@ const ENDING_PATTERNS: RegExp[] = [
 /**
  * 文末表現のバリエーション提案
  */
-const ENDING_VARIATIONS: Map<string, string[]> = new Map([
-  ['です', ['である', 'だ', 'になります', 'となります']],
-  ['ます', ['る', 'である', 'だ', 'になる', 'となる']],
-  ['である', ['です', 'だ', 'になる', 'となる']],
-  ['だ', ['です', 'である', 'になる', 'となる']],
-  ['ました', ['た', 'だった', 'でした']],
-  ['た', ['ました', 'だった', 'でした']],
-  ['でした', ['ました', 'た', 'だった']],
-  ['だった', ['でした', 'た', 'ました']]
-]);
+const ENDING_VARIATIONS = ['文体を保ちながら、必要に応じて文の構成を変える'];
 
 /**
  * 文末表現の単調さ検出ルール
@@ -138,7 +129,7 @@ export class MonotonousEndingRule implements AdvancedGrammarRule {
         start: { line: 0, character: firstSentence.start },
         end: { line: 0, character: lastSentence.end }
       },
-      variations: ENDING_VARIATIONS.get(ending) || ['文末表現を変化させてください']
+      variations: ENDING_VARIATIONS
     };
   }
 
@@ -156,9 +147,10 @@ export class MonotonousEndingRule implements AdvancedGrammarRule {
     for (const ending of monotonousEndings) {
       diagnostics.push(new AdvancedDiagnostic({
         range: ending.range,
-        message: `文末「${ending.endingPattern}」が${ending.consecutiveCount}回連続しています（閾値: ${threshold}回）。表現を多様化してください。`,
+        message: `文末「${ending.endingPattern}」が${ending.consecutiveCount}回連続しています（閾値: ${threshold}回）。文体上の参考として、必要に応じて表現を見直せます。`,
         code: 'monotonous-ending',
         ruleName: this.name,
+        severity: DiagnosticSeverity.Information,
         suggestions: ending.variations
       }));
     }

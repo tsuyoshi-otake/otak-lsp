@@ -6,6 +6,8 @@
 
 import { EvalsRunner } from './evals-runner';
 import { NG_EXAMPLE_CATEGORIES, getImplementedCategories } from './ng-examples-data';
+import { KanjiOpeningRule } from '../rules/kanjiOpeningRule';
+import { ProofreadingRulesManager } from '../../proofreading/proofreadingRulesManager';
 
 describe('EvalsRunner', () => {
   let runner: EvalsRunner;
@@ -38,6 +40,28 @@ describe('EvalsRunner', () => {
   });
 
   describe('evaluateCategory', () => {
+    it('未一致がある場合、99.5%を100%と表示しない', async () => {
+      const template = NG_EXAMPLE_CATEGORIES.find(c => c.id === 'double-particle')!;
+      const category = {
+        ...template,
+        examples: [
+          ...Array.from({ length: 200 }, () => ({ text: '私がが行く' })),
+          { text: 'これは正常です。' },
+        ],
+      };
+      const result = await runner.evaluateCategory(category);
+      expect(result.detected).toBe(200);
+      expect(result.total).toBe(201);
+      expect(result.status).toBe('FAIL');
+      expect(result.detectionRate).toBe(99.5);
+    }, 30000);
+
+    it('常用漢字「捉」は表外の例として扱わない', () => {
+      const category = NG_EXAMPLE_CATEGORIES.find(c => c.id === 'jouyou-kanji')!;
+      const example = category.examples.find(e => e.text === '捉える視点')!;
+      expect(example.expectedDetection).toBe(false);
+    });
+
     it('should evaluate a single category', async () => {
       const category = NG_EXAMPLE_CATEGORIES.find(c => c.id === 'double-particle');
       expect(category).toBeDefined();
@@ -63,6 +87,54 @@ describe('EvalsRunner', () => {
   });
 
   describe('evaluateExample', () => {
+    it('文複雑度を本番と同じ既定閾値で評価し、未検出を失敗として返す', async () => {
+      // 短い正常文に意図的に検出を期待し、不一致が失敗として返る契約を確認する。
+      const text = '資料を確認して、担当者に結果を連絡してください。';
+      const result = await runner.evaluateExample(text, 'sentence-complexity', true);
+      expect(result.expectedDetection).toBe(true);
+      expect(result.actualDetected).toBe(false);
+      expect(result.detected).toBe(false);
+    });
+
+    it('絵文字の後でも二重助詞の診断範囲を元のUTF-16位置に合わせる', async () => {
+      const result = await runner.evaluateExample('😀私はは学校に行きます。', 'double-particle');
+      expect(result.detected).toBe(true);
+      expect(result.diagnostics.find(d => d.code === 'double-particle')?.range).toEqual({
+        start: { line: 0, character: 3 }, end: { line: 0, character: 5 },
+      });
+    });
+
+    it('期待するルールに一致しない診断をmatchedRuleと表示しない', async () => {
+      const result = await runner.evaluateExample('正常な文章です。', 'kanji-opening', false);
+      expect(result.diagnostics.some(d => d.code === 'missing-subject')).toBe(true);
+      expect(result.detected).toBe(true);
+      expect(result.matchedRule).toBeUndefined();
+    });
+
+    it('評価対象ルールの例外を、非検出期待の成功として扱わない', async () => {
+      const fault = jest.spyOn(KanjiOpeningRule.prototype, 'check').mockImplementation(() => { throw new Error('injected failure'); });
+      const log = jest.spyOn(console, 'log').mockImplementation(() => undefined);
+      try {
+        await expect(runner.evaluateExample('正常な文章です。', 'kanji-opening', false)).rejects.toThrow('injected failure');
+        expect(log).toHaveBeenCalledWith(expect.stringContaining('Rule kanji-opening failed'));
+      } finally {
+        fault.mockRestore();
+        log.mockRestore();
+      }
+    });
+
+    it('校正ルールの例外を、非検出期待の成功として扱わない', async () => {
+      const fault = jest.spyOn(ProofreadingRulesManager.prototype, 'checkText').mockImplementation(() => { throw new Error('injected failure'); });
+      const log = jest.spyOn(console, 'log').mockImplementation(() => undefined);
+      try {
+        await expect(runner.evaluateExample('正常な文章です。', 'space-after-question-exclamation', false)).rejects.toThrow('injected failure');
+        expect(log).toHaveBeenCalledWith(expect.stringContaining('Proofreading rules failed'));
+      } finally {
+        fault.mockRestore();
+        log.mockRestore();
+      }
+    });
+
     it('should detect double-particle error', async () => {
       const result = await runner.evaluateExample('私がが行く', 'double-particle');
 
@@ -135,7 +207,7 @@ describe('EvalsRunner', () => {
         .filter(c => c.status !== 'NOT_IMPL')
         .forEach(category => {
           const expectedRate = category.total > 0
-            ? Math.round((category.detected / category.total) * 100)
+            ? Math.min(category.detected === category.total ? 100 : 99.99, Math.round((category.detected / category.total) * 10000) / 100)
             : 0;
           expect(category.detectionRate).toBe(expectedRate);
         });
@@ -207,9 +279,9 @@ describe('EvalsRunner', () => {
       }, 30000);
     });
 
-    // 新しいカテゴリの総数が71であることを確認
-    it('should have 71 total categories', async () => {
-      expect(NG_EXAMPLE_CATEGORIES.length).toBe(71);
+    // さ入れ表現を含むカテゴリの総数を確認
+    it('should have 72 total categories', async () => {
+      expect(NG_EXAMPLE_CATEGORIES.length).toBe(72);
     });
 
     // 全カテゴリが実装済み（IMPLEMENTED）であることを確認

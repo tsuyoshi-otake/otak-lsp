@@ -68,7 +68,12 @@ export class SentenceEndingColonRule implements AdvancedGrammarRule {
     const sentenceEnd = sentence.end;
     const remainingText = documentText.substring(sentenceEnd);
 
-    const nextLine = this.getNextNonEmptyLine(remainingText);
+    // 同じ表のセルに続く「|」を、次行のテーブル開始と扱わない。
+    const lineEnd = remainingText.indexOf('\n');
+    const remainderOfLine = lineEnd < 0 ? remainingText : remainingText.slice(0, lineEnd);
+    if (remainderOfLine.trim() !== '') return false;
+
+    const nextLine = this.getNextNonEmptyLine(lineEnd < 0 ? '' : remainingText.slice(lineEnd + 1));
     if (!nextLine) {
       return false;
     }

@@ -170,6 +170,14 @@ export class ParticleRepetitionRule implements AdvancedGrammarRule {
       const token = sentence.tokens[index];
       const prev = index > 0 ? sentence.tokens[index - 1] : undefined;
 
+      // 読点を越えた節や「ではなく」の対比は別の用法として扱う。
+      if (/[、，,；;\n\r]/.test(token.surface)) segmentIndex++;
+      if (token.surface === 'は' && prev?.surface === 'で' &&
+          documentText.slice(token.end, token.end + 2) === 'なく') {
+        segmentIndex++;
+        continue;
+      }
+
       // 述語（動詞/形容詞/助動詞）が出現したら、以降は別節として扱う
       // 例: 「Aを解析し、Bを検出する」の「を」は別述語に掛かるため誤検知しやすい
       if (ParticleRepetitionRule.PREDICATE_BOUNDARY_POS.has(token.pos)) {
@@ -207,13 +215,9 @@ export class ParticleRepetitionRule implements AdvancedGrammarRule {
       if (entry.totalPositions.length < 2) {
         continue;
       }
-      const hasProblemSegment = Array.from(entry.positionsBySegment.values()).some(
-        (positions) => positions.length >= 2
-      );
-      if (!hasProblemSegment) {
-        continue;
+      for (const positions of entry.positionsBySegment.values()) {
+        if (positions.length >= 2) repetitions.push({ particle, positions });
       }
-      repetitions.push({ particle, positions: entry.totalPositions });
     }
 
     return repetitions;

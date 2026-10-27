@@ -18,6 +18,13 @@ import {
 
 describe('JouyouKanjiData', () => {
   describe('JOUYOU_KANJI_SET', () => {
+    // 文化庁「常用漢字表の音訓索引」と照合した字種。件数だけでは欠落と混入が相殺される。
+    test.each(Array.from('省井婿夕折摂煎箋狙桑曽踪捉釣貼嘲澄勃冥'))('%s は常用漢字に含まれる', (kanji) => {
+      expect(JOUYOU_KANJI_SET.has(kanji)).toBe(true);
+    });
+    test.each(Array.from('棲栖脆蹟碩蝉銑噌鼠宋匝漕糟綜聡牒脹灘馴'))('%s は常用漢字表の字種に含まれない', (kanji) => {
+      expect(JOUYOU_KANJI_SET.has(kanji)).toBe(false);
+    });
     test('常用漢字表は2136字を含む', () => {
       expect(JOUYOU_KANJI_SET.size).toBe(2136);
     });
@@ -289,7 +296,7 @@ describe('False Positive Prevention Tests', () => {
   const NON_JOUYOU_40_EXAMPLES = [
     '繋', '嘘', '噂', '麹', '齧', '鰯', '鯛', '鷹', '鸚', '靄',
     '斡', '齟', '齬', '瑕', '疵', '躊', '躇', '顛', '呟', '絆',
-    '罠', '皺', '歪', '溜', '掴', '贅', '煽', '牽', '窺', '捉',
+    '罠', '皺', '歪', '溜', '掴', '贅', '煽', '牽', '窺', '冪',
     '澤', '濱', '廣', '齋', '邊', '國', '龍', '鐵', '鑛', '眩'
   ];
 

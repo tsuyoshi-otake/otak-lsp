@@ -80,6 +80,7 @@ export class ParallelRuleExecutor {
     // tokens / sentences は全 partition で共通なので 1 度だけ serialize する
     const serializedTokens: SerializedToken[] = serializeTokens(tokens);
     const serializedSentences: SerializedSentence[] = serializeSentences(baseContext.sentences);
+    const serializedSequenceSentences = baseContext.sequenceSentences ? serializeSentences(baseContext.sequenceSentences) : undefined;
     const baseShared = baseContext.shared;
     if (!baseShared) {
       // shared が無いケースは設計上ないが、念のため async fallback
@@ -97,6 +98,7 @@ export class ParallelRuleExecutor {
             baseContext: {
               documentText: baseContext.documentText,
               serializedSentences,
+              serializedSequenceSentences,
               shared: baseShared,
             },
             originalText,

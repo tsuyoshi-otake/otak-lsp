@@ -9,6 +9,38 @@
 import { Logger } from '../utils/logger';
 import { logWarning, formatError } from '../utils/errorHandler';
 
+// 設定から指定される各辞書の読込上限。超過時は途中の結果を採用しない。
+const MAX_DICTIONARY_BYTES = 2 * 1024 * 1024;
+
+async function readDictionaryFile(filePath: string): Promise<string> {
+  const fs = await import('fs').then(m => m.promises);
+  const file = await fs.open(filePath, 'r');
+  try {
+    const stat = await file.stat();
+    if (!stat.isFile()) throw new Error('Dictionary path is not a regular file');
+    if (stat.size > MAX_DICTIONARY_BYTES) throw new Error(`Dictionary exceeds ${MAX_DICTIONARY_BYTES} bytes`);
+
+    // stat後のファイル変更も考慮し、上限+1バイト以上は読まない。
+    const buffer = Buffer.allocUnsafe(MAX_DICTIONARY_BYTES + 1);
+    let total = 0;
+    while (total < buffer.length) {
+      const { bytesRead } = await file.read(buffer, total, buffer.length - total, null);
+      if (bytesRead === 0) break;
+      total += bytesRead;
+    }
+    if (total > MAX_DICTIONARY_BYTES) throw new Error(`Dictionary exceeds ${MAX_DICTIONARY_BYTES} bytes`);
+    return buffer.toString('utf8', 0, total);
+  } finally {
+    await file.close();
+  }
+}
+
+function jsonArrayLength(content: string): number {
+  const data: unknown = JSON.parse(content);
+  if (!Array.isArray(data)) throw new Error('Dictionary JSON must be an array');
+  return data.length;
+}
+
 /**
  * 辞書エントリ
  */
@@ -23,6 +55,8 @@ export interface DictionaryEntry {
   message?: string;
   /** 検出モード */
   mode: 'exact' | 'regex';
+  /** ルール辞書が指定する重要度。校正用辞書は従来どおり情報。 */
+  severity?: 'info' | 'warn';
 }
 
 /**
@@ -55,6 +89,8 @@ export interface DictionaryLoadResult<T> {
   entries: T[];
   /** エラーメッセージ */
   error?: string;
+  /** 必須フィールドの形式が不正で読み飛ばした項目数 */
+  invalidEntries?: number;
 }
 
 /**
@@ -193,10 +229,10 @@ export class ProofreadingDictionaryLoader {
    */
   async loadJsonDictionary(filePath: string): Promise<DictionaryLoadResult<DictionaryEntry>> {
     try {
-      const fs = await import('fs').then(m => m.promises);
-      const content = await fs.readFile(filePath, 'utf-8');
+      const content = await readDictionaryFile(filePath);
+      const total = jsonArrayLength(content);
       const entries = this.parseJsonDictionary(content);
-      return { success: true, entries };
+      return { success: true, entries, invalidEntries: total - entries.length };
     } catch (e) {
       const errorMessage = formatError(e);
       logWarning(this.logger, `Failed to load dictionary from ${filePath}`, e);
@@ -211,8 +247,7 @@ export class ProofreadingDictionaryLoader {
    */
   async loadSpellDictionary(filePath: string): Promise<DictionaryLoadResult<SpellDictionaryEntry>> {
     try {
-      const fs = await import('fs').then(m => m.promises);
-      const content = await fs.readFile(filePath, 'utf-8');
+      const content = await readDictionaryFile(filePath);
       const entries = this.parseSpellDictionary(content);
       return { success: true, entries };
     } catch (e) {
@@ -229,10 +264,10 @@ export class ProofreadingDictionaryLoader {
    */
   async loadRuleDictionary(filePath: string): Promise<DictionaryLoadResult<RuleDictionaryEntry>> {
     try {
-      const fs = await import('fs').then(m => m.promises);
-      const content = await fs.readFile(filePath, 'utf-8');
+      const content = await readDictionaryFile(filePath);
+      const total = jsonArrayLength(content);
       const entries = this.parseRuleDictionary(content);
-      return { success: true, entries };
+      return { success: true, entries, invalidEntries: total - entries.length };
     } catch (e) {
       const errorMessage = formatError(e);
       logWarning(this.logger, `Failed to load rule dictionary from ${filePath}`, e);
@@ -251,7 +286,7 @@ export class ProofreadingDictionaryLoader {
     for (const filePath of filePaths) {
       const result = await this.loadJsonDictionary(filePath);
       if (result.success) {
-        allEntries.push(...result.entries);
+        for (const entry of result.entries) allEntries.push(entry);
       }
       // 失敗した場合は警告ログのみ（解析は継続）
     }

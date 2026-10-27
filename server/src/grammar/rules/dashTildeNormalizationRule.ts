@@ -65,6 +65,7 @@ export class DashTildeNormalizationRule implements AdvancedGrammarRule {
    */
   findRangeExpressions(text: string): RangeExpression[] {
     const results: RangeExpression[] = [];
+    const dateRanges = Array.from(text.matchAll(/\b\d{4}-\d{2}-\d{2}\b/g), m => ({ start: m.index!, end: m.index! + m[0].length }));
 
     // 数字/時刻 + 記号 + 数字/時刻 のパターンを検出
     // 例: 9:00-18:00, 10-15, 1〜10
@@ -77,7 +78,10 @@ export class DashTildeNormalizationRule implements AdvancedGrammarRule {
 
     for (const pattern of patterns) {
       let match: RegExpExecArray | null;
+      let dateIndex = 0;
       while ((match = pattern.exec(text)) !== null) {
+        while (dateIndex < dateRanges.length && dateRanges[dateIndex].end <= match.index) dateIndex++;
+        if (dateIndex < dateRanges.length && dateRanges[dateIndex].start < match.index + match[0].length) continue;
         const symbol = match[2];
 
         // 推奨記号以外の場合のみ記録

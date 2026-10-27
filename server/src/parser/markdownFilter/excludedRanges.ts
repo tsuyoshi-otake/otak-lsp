@@ -5,6 +5,7 @@ import { findCodeBlocks, findInlineCode, restoreInlineCodeInTables } from './cod
 import { findEmphasisMarkers, findHeadings, findLinkMarkers, findListMarkers } from './structureRanges';
 import { findTables } from './tableRanges';
 import { findConfigKeys, findCustomPatterns, findUrls } from './urlRanges';
+import { findHtmlTagRanges } from './htmlTagRanges';
 
 /**
  * Markdownテキストから除外範囲を取得する。
@@ -50,7 +51,12 @@ export function getMarkdownExcludedRanges(text: string, config: FilterConfig): E
     ranges.push(...findInlineCode(text, ranges, getLines()));
   }
 
-  if (config.excludeUrls && hasUrlLike) {
+  if (text.includes('<')) {
+    ranges.push(...findHtmlTagRanges(text, ranges));
+  }
+
+  // 相対パスのリンク先にも疑問符などがあり、本文の文末ではない。
+  if (config.excludeUrls && (hasUrlLike || hasBracketLike)) {
     ranges.push(...findUrls(text, ranges));
   }
 

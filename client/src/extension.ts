@@ -125,9 +125,9 @@ export function createLanguageClientOptions(
   return {
     documentSelector: createDocumentSelector(languages),
     outputChannel: channel,
-    synchronize: {
-      configurationSection: ['otakLsp', 'otakLsp.advanced'],
-    },
+    // このクライアントは設定変更を自ら同期するため、サーバー側の重複登録は不要。
+    initializationOptions: { configurationSync: 'otakLsp' },
+    synchronize: { configurationSection: 'otakLsp' },
   };
 }
 

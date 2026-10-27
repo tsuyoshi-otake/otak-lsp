@@ -6,6 +6,7 @@
  */
 
 import { Token, Range } from '../../../../shared/src/types';
+import { isTypoInsideBracket, typoBracketRanges } from './typoBracketScope';
 import {
   AdvancedGrammarRule,
   AdvancedRulesConfig,
@@ -173,11 +174,13 @@ export class RaNukiRule implements AdvancedGrammarRule {
    * @param context ルールコンテキスト
    * @returns 診断情報のリスト
    */
-  check(tokens: Token[], _context: RuleContext): AdvancedDiagnostic[] {
+  check(tokens: Token[], context: RuleContext): AdvancedDiagnostic[] {
     const diagnostics: AdvancedDiagnostic[] = [];
+    const brackets = typoBracketRanges(context);
 
     for (let i = 0; i < tokens.length; i++) {
       const token = tokens[i];
+      if (isTypoInsideBracket(token.start, brackets)) continue;
 
       // パターン1: 単一トークンのら抜き言葉（例：「見れる」）
       if (token.pos === '動詞') {
@@ -203,7 +206,7 @@ export class RaNukiRule implements AdvancedGrammarRule {
       // パターン2: 2トークンに分割されたら抜き言葉（例：「食べ」+「れる」）
       if (i < tokens.length - 1) {
         const nextToken = tokens[i + 1];
-        const result = this.checkTwoTokenRaNuki(token, nextToken);
+        const result = isTypoInsideBracket(nextToken.start, brackets) ? null : this.checkTwoTokenRaNuki(token, nextToken);
         if (result) {
           diagnostics.push(new AdvancedDiagnostic({
             range: this.createRangeForTokens(token, nextToken),

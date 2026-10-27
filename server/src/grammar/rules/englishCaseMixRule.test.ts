@@ -33,20 +33,28 @@ describe('EnglishCaseMixRule', () => {
     it('should detect mix of API and api', () => {
       context.documentText = 'APIを使用します。apiの設計は重要です。';
       const diagnostics = rule.check(emptyTokens, context);
-      expect(diagnostics.length).toBe(1);
+      expect(diagnostics.map(d => d.range.start.character)).toEqual([0, 10]);
       expect(diagnostics[0].code).toBe('english-case-mix');
     });
 
     it('should detect mix of Json and JSON', () => {
       context.documentText = 'Jsonデータを解析する。JSONのフォーマットを確認。';
       const diagnostics = rule.check(emptyTokens, context);
-      expect(diagnostics.length).toBe(1);
+      expect(diagnostics.length).toBe(2);
     });
 
     it('should detect three variants of the same word', () => {
       context.documentText = 'htmlを書く。HTMLの基礎。Htmlタグ。';
       const diagnostics = rule.check(emptyTokens, context);
-      expect(diagnostics.length).toBe(1);
+      expect(diagnostics.length).toBe(3);
+    });
+
+    it('後から現れる別表記も示し、登場していない表記を統一候補にしない', () => {
+      context.documentText = 'apiを使う。apiを確認。Apiを説明。';
+      const diagnostics = rule.check(emptyTokens, context);
+      expect(diagnostics.map(d => context.documentText.slice(d.range.start.character, d.range.end.character)))
+        .toEqual(['api', 'Api']);
+      expect(diagnostics.every(d => !d.suggestions.some(s => s.includes('API')))).toBe(true);
     });
 
     it('should not detect when all uppercase', () => {

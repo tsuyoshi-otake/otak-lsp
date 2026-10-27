@@ -46,6 +46,7 @@ interface InternalRequest<TMessage, TResult> {
   message: TMessage;
   resolve: (value: TResult) => void;
   reject: (reason: Error) => void;
+  timeout: NodeJS.Timeout;
 }
 
 interface ManagedWorker {
@@ -66,6 +67,8 @@ export interface WorkerPoolOptions {
   size: number;
   /** worker 起動時に渡す初期データ (worker 側で `workerData` として受け取る) */
   workerData?: unknown;
+  /** キュー待ちを含む要求の期限。未指定なら30秒。 */
+  requestTimeoutMs?: number;
 }
 
 /**
@@ -75,6 +78,7 @@ export class WorkerPool<TMessage = unknown, TResult = unknown> {
   private readonly workerScript: string;
   private readonly desiredSize: number;
   private readonly workerData: unknown;
+  private readonly requestTimeoutMs: number;
 
   private workers: ManagedWorker[] = [];
   private pendingRequests = new Map<number, InternalRequest<TMessage, TResult>>();
@@ -85,6 +89,7 @@ export class WorkerPool<TMessage = unknown, TResult = unknown> {
   private initialized = false;
   /** shutdown 済みフラグ。以降の submit は reject */
   private closed = false;
+  private shutdownPromise: Promise<void> | undefined;
 
   constructor(options: WorkerPoolOptions) {
     if (options.size < 1) {
@@ -93,6 +98,10 @@ export class WorkerPool<TMessage = unknown, TResult = unknown> {
     this.workerScript = options.workerScript;
     this.desiredSize = options.size;
     this.workerData = options.workerData;
+    this.requestTimeoutMs = options.requestTimeoutMs ?? 30_000;
+    if (!Number.isFinite(this.requestTimeoutMs) || this.requestTimeoutMs <= 0 || this.requestTimeoutMs > 2_147_483_647) {
+      throw new Error('WorkerPool requestTimeoutMs must be within the supported timer range');
+    }
   }
 
   /**
@@ -136,7 +145,12 @@ export class WorkerPool<TMessage = unknown, TResult = unknown> {
       return Promise.reject(new Error('WorkerPool is closed'));
     }
 
-    this.ensureInitialized();
+    try {
+      this.ensureInitialized();
+    } catch (error) {
+      void this.shutdown().catch(() => undefined);
+      return Promise.reject(error);
+    }
 
     return new Promise<TResult>((resolve, reject) => {
       if (this.liveWorkerCount() === 0) {
@@ -150,6 +164,10 @@ export class WorkerPool<TMessage = unknown, TResult = unknown> {
         message,
         resolve,
         reject,
+        timeout: setTimeout(() => {
+          // 一つでも応答しない場合はpool全体を停止し、全呼出し元に失敗を返す。
+          void this.close(new Error(`WorkerPool request timed out after ${this.requestTimeoutMs} ms`)).catch(() => undefined);
+        }, this.requestTimeoutMs),
       };
       this.queue.push(request);
       this.tryAssignNext();
@@ -164,21 +182,23 @@ export class WorkerPool<TMessage = unknown, TResult = unknown> {
    * - すべての worker に `terminate()` を送る
    * - 以降の submit は即 reject
    */
-  async shutdown(): Promise<void> {
-    if (this.closed) {
-      return;
-    }
+  shutdown(): Promise<void> {
+    return this.close(new Error('WorkerPool shutdown: request canceled'));
+  }
+
+  private close(reason: Error): Promise<void> {
+    if (this.shutdownPromise) return this.shutdownPromise;
     this.closed = true;
 
-    const queuedError = new Error('WorkerPool shutdown: request canceled');
     for (const request of this.queue) {
-      request.reject(queuedError);
+      clearTimeout(request.timeout);
+      request.reject(reason);
     }
     this.queue = [];
 
-    const pendingError = new Error('WorkerPool shutdown: request canceled');
     for (const request of this.pendingRequests.values()) {
-      request.reject(pendingError);
+      clearTimeout(request.timeout);
+      request.reject(reason);
     }
     this.pendingRequests.clear();
 
@@ -187,14 +207,16 @@ export class WorkerPool<TMessage = unknown, TResult = unknown> {
         return;
       }
       managed.dead = true;
-      try {
-        await managed.worker.terminate();
-      } catch {
-        // terminate 失敗 (= 既に死んでいる) は無視
-      }
+      await managed.worker.terminate();
     });
-    await Promise.all(terminations);
-    this.workers = [];
+    this.shutdownPromise = Promise.allSettled(terminations).then(results => {
+      const failures = results.filter((result): result is PromiseRejectedResult => result.status === 'rejected');
+      if (failures.length > 0) {
+        throw new Error(`WorkerPool termination failed: ${failures.map(failure => String(failure.reason)).join('; ')}`);
+      }
+      this.workers = [];
+    });
+    return this.shutdownPromise;
   }
 
   // ---------- internal ----------
@@ -226,11 +248,7 @@ export class WorkerPool<TMessage = unknown, TResult = unknown> {
       this.handleWorkerError(managed, err);
     });
     worker.on('exit', (code) => {
-      if (code !== 0) {
-        this.handleWorkerError(managed, new Error(`Worker exited with code ${code}`));
-      } else {
-        managed.dead = true;
-      }
+      this.handleWorkerError(managed, new Error(`Worker exited with code ${code}`));
     });
 
     this.workers.push(managed);
@@ -242,10 +260,11 @@ export class WorkerPool<TMessage = unknown, TResult = unknown> {
       return;
     }
     const request = this.pendingRequests.get(requestId);
-    if (!request) {
+    if (!request || managed.currentRequestId !== requestId) {
       return;
     }
     this.pendingRequests.delete(requestId);
+    clearTimeout(request.timeout);
     managed.currentRequestId = null;
 
     if (raw.error !== undefined) {
@@ -268,6 +287,7 @@ export class WorkerPool<TMessage = unknown, TResult = unknown> {
       const request = this.pendingRequests.get(currentId);
       if (request) {
         this.pendingRequests.delete(currentId);
+        clearTimeout(request.timeout);
         request.reject(err);
       }
       managed.currentRequestId = null;
@@ -277,6 +297,7 @@ export class WorkerPool<TMessage = unknown, TResult = unknown> {
       // 全 worker 死亡。キュー上の request も reject する
       const fatal = new Error('All workers in the pool have died');
       for (const request of this.queue) {
+        clearTimeout(request.timeout);
         request.reject(fatal);
       }
       this.queue = [];
@@ -293,13 +314,19 @@ export class WorkerPool<TMessage = unknown, TResult = unknown> {
       if (managed.dead || managed.currentRequestId !== null) {
         continue;
       }
-      const request = this.queue.shift();
-      if (!request) {
-        return;
+      while (this.queue.length > 0 && managed.currentRequestId === null) {
+        const request = this.queue.shift()!;
+        managed.currentRequestId = request.id;
+        this.pendingRequests.set(request.id, request);
+        try {
+          managed.worker.postMessage({ id: request.id, ...(request.message as object) });
+        } catch (error) {
+          this.pendingRequests.delete(request.id);
+          managed.currentRequestId = null;
+          clearTimeout(request.timeout);
+          request.reject(error instanceof Error ? error : new Error(String(error)));
+        }
       }
-      managed.currentRequestId = request.id;
-      this.pendingRequests.set(request.id, request);
-      managed.worker.postMessage({ id: request.id, ...(request.message as object) });
       if (this.queue.length === 0) {
         return;
       }

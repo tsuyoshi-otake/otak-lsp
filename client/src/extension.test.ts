@@ -131,8 +131,8 @@ describe('Extension Client', () => {
 
       expect(options.documentSelector).toHaveLength(2);
       expect(options.outputChannel).toBe(mockOutputChannel);
-      expect(options.synchronize).toBeDefined();
-      expect(options.synchronize?.configurationSection).toEqual(['otakLsp', 'otakLsp.advanced']);
+      expect(options.synchronize?.configurationSection).toBe('otakLsp');
+      expect(options.initializationOptions).toEqual({ configurationSync: 'otakLsp' });
     });
   });
 

@@ -70,8 +70,8 @@ describe('Extension Client 命名規則テスト', () => {
   });
 
   describe('プロパティ5: 内部コードの命名統一', () => {
-    it('configurationSectionは「otakLsp」である', () => {
-      expect(extensionSource).toMatch(/configurationSection:\s*\[\s*['"]otakLsp['"]\s*,\s*['"]otakLsp\.advanced['"]\s*\]/);
+    it('設定同期はotakLspセクションを使用する', () => {
+      expect(extensionSource).toMatch(/configurationSection\s*:\s*['"]otakLsp['"]/);
     });
 
     it('ステータスバーテキストには「otak-lsp」が使用されている', () => {

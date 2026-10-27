@@ -7,6 +7,7 @@ import { AdvancedGrammarRule } from '../../../shared/src/advancedTypes';
 import {
   StyleConsistencyRule,
   RaNukiRule,
+  SaIreRule,
   DoubleNegationRule,
   ParticleRepetitionRule,
   ConjunctionRepetitionRule,
@@ -108,6 +109,7 @@ export function createDefaultAdvancedRules(): AdvancedGrammarRule[] {
   return [
     new StyleConsistencyRule(),
     new RaNukiRule(),
+    new SaIreRule(),
     new DoubleNegationRule(),
     new ParticleRepetitionRule(),
     new ConjunctionRepetitionRule(),

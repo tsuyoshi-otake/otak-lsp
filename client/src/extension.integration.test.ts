@@ -125,11 +125,11 @@ describe('Extension Integration Tests', () => {
       expect(options.documentSelector).toContainEqual({ scheme: 'file', language: 'typescript' });
     });
 
-    it('should configure synchronize for configuration changes', () => {
+    it('should synchronize only otakLsp and advertise its ownership to the server', () => {
       const options = createLanguageClientOptions(['markdown'], mockOutputChannel as unknown as import('vscode').OutputChannel);
 
-      expect(options.synchronize).toBeDefined();
-      expect(options.synchronize?.configurationSection).toEqual(['otakLsp', 'otakLsp.advanced']);
+      expect(options.synchronize?.configurationSection).toBe('otakLsp');
+      expect(options.initializationOptions).toEqual({ configurationSync: 'otakLsp' });
     });
 
     it('should include output channel for logging', () => {
@@ -281,15 +281,14 @@ describe('Extension Lifecycle Integration', () => {
   });
 
   describe('Configuration Synchronization', () => {
-    it('should synchronize configuration section with language server', () => {
+    it('should synchronize configuration through a single client registration', () => {
       const options = createLanguageClientOptions(
         ['markdown'],
         mockOutputChannel as unknown as import('vscode').OutputChannel
       );
 
-      // Verify synchronization is configured
-      expect(options.synchronize).toBeDefined();
-      expect(options.synchronize?.configurationSection).toEqual(['otakLsp', 'otakLsp.advanced']);
+      expect(options.synchronize?.configurationSection).toBe('otakLsp');
+      expect(options.initializationOptions).toEqual({ configurationSync: 'otakLsp' });
     });
   });
 });

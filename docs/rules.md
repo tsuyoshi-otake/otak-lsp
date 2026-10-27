@@ -3,14 +3,14 @@
 
 # ルールリファレンス
 
-otak-lsp v1.0.27 に同梱される文法・文体・表記ルールの一覧です。
+otak-lsp v1.0.28 に同梱される文法・文体・表記ルールの一覧です。
 真実源は `server/src/grammar/advancedRuleRegistry.ts`（高度ルール）と `server/src/grammar/checker.ts`（基本ルール）です。
 
 | 種別 | 件数 |
 |---|---|
 | 基本ルール | 4 |
-| 高度ルール（うち公文書 4） | 57 |
-| 合計 | 61 |
+| 高度ルール（うち公文書 4） | 58 |
+| 合計 | 62 |
 
 > このほかに校正設定（`otakLsp.proofreading.*`）のチェック群があります。検出カテゴリの実測一覧は README の「Detection Coverage」（evalsから自動生成）を参照してください。
 
@@ -33,6 +33,7 @@ otak-lsp v1.0.27 に同梱される文法・文体・表記ルールの一覧で
 |---|---|---|---|
 | `style-consistency` | 文体の混在（敬体/常体）を検出します | `otakLsp.advanced.enableStyleConsistency` |  |
 | `ra-nuki-detection` | ら抜き言葉を検出します | `otakLsp.advanced.enableRaNukiDetection` |  |
+| `sa-ire-detection` | 五段動詞のさ入れ表現を検出します | `otakLsp.proofreading.typo.saIre` |  |
 | `double-negation` | 二重否定を検出します | `otakLsp.advanced.enableDoubleNegation` |  |
 | `particle-repetition` | 同じ助詞の連続使用を検出します | `otakLsp.advanced.enableParticleRepetition` |  |
 | `conjunction-repetition` | 同じ接続詞の連続使用を検出します | `otakLsp.advanced.enableConjunctionRepetition` |  |
@@ -83,7 +84,7 @@ otak-lsp v1.0.27 に同梱される文法・文体・表記ルールの一覧で
 | `heading-level-skip` | 見出しレベルの飛び（h1の次にh3など）を検出します | `otakLsp.advanced.enableHeadingLevelSkip` |  |
 | `table-column-mismatch` | Markdownテーブルの列数不一致を検出します | `otakLsp.advanced.enableTableColumnMismatch` |  |
 | `code-block-language` | コードブロックの言語指定欠落を検出します | `otakLsp.advanced.enableCodeBlockLanguage` |  |
-| `sentence-complexity` | 文単位の複雑度を計測し、複雑すぎる文を検出します | `enableSentenceComplexity` |  |
+| `sentence-complexity` | 文単位の複雑度を計測し、複雑すぎる文を検出します | `otakLsp.advanced.enableSentenceComplexity` |  |
 
 ## 公文書ルール
 

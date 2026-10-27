@@ -47,8 +47,6 @@ const ENGLISH_PREFIXES: Set<string> = new Set([
   'version',
   'Ver',
   'ver',
-  'v',
-  'V',
   'Rev',
   'rev',
   'No',
@@ -115,6 +113,8 @@ export class SpaceAroundUnitRule implements AdvancedGrammarRule {
       let match: RegExpExecArray | null;
 
       while ((match = pattern.exec(text)) !== null) {
+        // 英数字の途中にある接尾部分を独立したプレフィックスとしない。
+        if (match.index > 0 && /[A-Za-z0-9_]/.test(text[match.index - 1])) continue;
         results.push({
           match: match[0],
           index: match.index,

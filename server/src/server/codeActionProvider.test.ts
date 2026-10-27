@@ -95,6 +95,14 @@ describe('buildCodeActions', () => {
     }
   });
 
+  it('辞書失敗の通知には効かない抑制アクションを出さず、同名の通常診断には出す', () => {
+    const doc = TextDocument.create('file:///a.md', 'markdown', 1, 'line0\n対象行');
+    for (const code of ['dictionary-check-failed', 'dictionary-truncated']) {
+      expect(buildCodeActions(doc, [makeDiag({ code, source: 'otak-lsp' })]).find(a => a.title.includes('抑制'))).toBeUndefined();
+      expect(buildCodeActions(doc, [makeDiag({ code, source: 'otak-lsp-proofreading' })]).find(a => a.title.includes('抑制'))).toBeDefined();
+    }
+  });
+
   it('改行や記号を含むコードはディレクティブ注入しない', () => {
     const doc = TextDocument.create('file:///a.md', 'markdown', 1, 'line0\n対象行');
     for (const code of ['a\nb', 'x -->', 'CODE', 'a code', 'a_b']) {

@@ -18,7 +18,8 @@ export function parseTextIntoSentences(
   tokens: Token[],
   excludedRanges?: ExcludedRange[],
   splitMode: SentenceSplitMode = 'normal',
-  precomputedLines?: string[]
+  precomputedLines?: string[],
+  sequenceCompatibility = false
 ): Sentence[] {
   if (isBlank(text)) {
     return [];
@@ -31,7 +32,7 @@ export function parseTextIntoSentences(
 
   for (let i = 0; i < text.length; i++) {
     if (markdownBreaks && markdownBreaks.has(i)) {
-      pushSentence(sentences, text, tokens, currentStart, i, excludedRanges, tableRanges);
+      pushSentence(sentences, text, tokens, currentStart, i, excludedRanges, tableRanges, sequenceCompatibility);
       currentStart = getStartAfterMarkdownBreak(text, i);
       continue;
     }
@@ -45,31 +46,31 @@ export function parseTextIntoSentences(
         i++;
       }
 
-      pushSentence(sentences, text, tokens, currentStart, i + 1, excludedRanges, tableRanges);
+      pushSentence(sentences, text, tokens, currentStart, i + 1, excludedRanges, tableRanges, sequenceCompatibility);
       currentStart = i + 1;
     } else if (text[i] === '\n') {
       const newlineStart = (i > 0 && text[i - 1] === '\r') ? i - 1 : i;
 
       if (isOffsetInsideExcludedType(newlineStart, tableRanges, 'table')) {
-        pushSentence(sentences, text, tokens, currentStart, newlineStart, excludedRanges, tableRanges);
+        pushSentence(sentences, text, tokens, currentStart, newlineStart, excludedRanges, tableRanges, sequenceCompatibility);
         currentStart = i + 1;
         continue;
       }
 
       const emptyLineEnd = findEmptyLineEnd(text, i + 1);
       if (emptyLineEnd !== null) {
-        pushSentence(sentences, text, tokens, currentStart, newlineStart, excludedRanges, tableRanges);
+        pushSentence(sentences, text, tokens, currentStart, newlineStart, excludedRanges, tableRanges, sequenceCompatibility);
         i = emptyLineEnd - 1;
         currentStart = emptyLineEnd;
       } else if (splitMode !== 'loose' && (splitMode === 'strict' || shouldSplitOnNewline(text, newlineStart))) {
-        pushSentence(sentences, text, tokens, currentStart, newlineStart, excludedRanges, tableRanges);
+        pushSentence(sentences, text, tokens, currentStart, newlineStart, excludedRanges, tableRanges, sequenceCompatibility);
         currentStart = i + 1;
       }
     }
   }
 
   if (currentStart < text.length) {
-    pushSentence(sentences, text, tokens, currentStart, text.length, excludedRanges, tableRanges);
+    pushSentence(sentences, text, tokens, currentStart, text.length, excludedRanges, tableRanges, sequenceCompatibility);
   }
 
   return sentences;
@@ -125,7 +126,8 @@ function pushSentence(
   start: number,
   end: number,
   excludedRanges?: ExcludedRange[],
-  tableRanges?: ExcludedRange[]
+  tableRanges?: ExcludedRange[],
+  sequenceCompatibility = false
 ): void {
   if (end <= start) {
     return;
@@ -152,7 +154,8 @@ function pushSentence(
     effectiveStart,
     end,
     sentenceText,
-    tableRanges ?? excludedRanges
+    tableRanges ?? excludedRanges,
+    sequenceCompatibility
   )) {
     return;
   }

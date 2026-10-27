@@ -63,20 +63,29 @@ export class NumeralStyleMixRule implements AdvancedGrammarRule {
   /**
    * テキスト内の数字を検出
    */
-  findNumerals(text: string): {
+  findNumerals(text: string, tokens: readonly Token[] = []): {
     kanji: Array<{ value: string; index: number }>;
     arabic: Array<{ value: string; index: number }>;
   } {
     const kanji: Array<{ value: string; index: number }> = [];
     const arabic: Array<{ value: string; index: number }> = [];
+    const tokensByStart = new Map(tokens.map(token => [token.start, token]));
 
     // 漢数字の検出
     let match: RegExpExecArray | null;
     const kanjiPattern = new RegExp(KANJI_NUMERAL_PATTERN.source, 'g');
     while ((match = kanjiPattern.exec(text)) !== null) {
-      // 単独の漢数字表現（「一人」「一つ」など）は除外
-      // 2文字以上、または後ろに単位がない場合のみ検出
-      if (match[0].length >= 2) {
+      const token = tokensByStart.get(match.index);
+      // 一文字は数詞として独立したトークンだけを対象にする。
+      // 慣用表記、複合語の接頭辞、住所の丁目と「第」に続く序数は除外する。
+      const next = match.index + match[0].length;
+      const fixedExpression = (match[0] === '一' && ['人', 'つ', '度'].includes(text[next])) ||
+        (match[0] === '二' && (text.startsWith('重', next) || text.startsWith('点リーダ', next))) ||
+        text.startsWith('丁目', next);
+      const singleNumber = match[0].length === 1 && token?.surface === match[0] &&
+        token.pos === '名詞' && token.posDetail1 === '数' && text[match.index - 1] !== '第' &&
+        !fixedExpression;
+      if (match[0].length >= 2 || singleNumber) {
         kanji.push({ value: match[0], index: match.index });
       }
     }
@@ -91,41 +100,59 @@ export class NumeralStyleMixRule implements AdvancedGrammarRule {
   }
 
   /**
-   * 漢数字をアラビア数字に変換（簡易版）
+   * 桁数字または万・億までの位取り表記を変換。不正・曖昧な表記は変換しない。
    */
-  kanjiToArabic(kanjiNum: string): string {
-    // 単純な変換（位取りは考慮しない簡易版）
-    let result = '';
+  kanjiToArabic(kanjiNum: string): string | null {
+    if (!kanjiNum || [...kanjiNum].some(char => !KANJI_TO_ARABIC.has(char))) return null;
+    if (!/[十百千万億]/.test(kanjiNum)) {
+      return [...kanjiNum].map(char => KANJI_TO_ARABIC.get(char)).join('');
+    }
+
+    const smallUnits: Record<string, number> = { 十: 10, 百: 100, 千: 1000 };
+    const largeUnits: Record<string, number> = { 万: 10000, 億: 100000000 };
+    let total = 0;
+    let group = 0;
+    let pending: number | null = null;
+    let previousSmall = 10000;
+    let previousLarge = Infinity;
     for (const char of kanjiNum) {
-      const arabic = KANJI_TO_ARABIC.get(char);
-      if (arabic && arabic.length === 1) {
-        result += arabic;
+      const digit = KANJI_TO_ARABIC.get(char)!;
+      if (digit.length === 1) {
+        if (digit === '0' || pending !== null) return null;
+        pending = Number(digit);
+      } else if (smallUnits[char]) {
+        const unit = smallUnits[char];
+        if (unit >= previousSmall) return null;
+        group += (pending ?? 1) * unit;
+        pending = null;
+        previousSmall = unit;
+      } else {
+        const unit = largeUnits[char];
+        if (!unit || unit >= previousLarge) return null;
+        group += pending ?? 0;
+        if (group === 0) return null;
+        total += group * unit;
+        group = 0;
+        pending = null;
+        previousSmall = 10000;
+        previousLarge = unit;
       }
     }
-    return result || kanjiNum;
+    return String(total + group + (pending ?? 0));
   }
 
   /**
-   * アラビア数字を漢数字に変換（簡易版）
+   * アラビア数字を通常の桁数字表記に変換する。
    */
-  arabicToKanji(arabicNum: string): string {
-    const reverseMap: Map<string, string> = new Map();
-    for (const [kanji, arabic] of KANJI_TO_ARABIC) {
-      if (arabic.length === 1) {
-        reverseMap.set(arabic, kanji);
-      }
-    }
-
+  arabicToKanji(arabicNum: string): string | null {
+    if (!/^[0-9０-９]+$/.test(arabicNum)) return null;
+    const digits = '〇一二三四五六七八九';
     // 全角数字を半角に変換
     const normalized = arabicNum.replace(/[０-９]/g, (char) => {
       return String.fromCharCode(char.charCodeAt(0) - 0xFEE0);
     });
 
-    let result = '';
-    for (const char of normalized) {
-      result += reverseMap.get(char) || char;
-    }
-    return result;
+    return [...normalized].map(char => digits[Number(char)]).join('');
   }
 
   /**
@@ -133,7 +160,7 @@ export class NumeralStyleMixRule implements AdvancedGrammarRule {
    */
   check(tokens: Token[], context: RuleContext): AdvancedDiagnostic[] {
     const diagnostics: AdvancedDiagnostic[] = [];
-    const { kanji, arabic } = this.findNumerals(context.documentText);
+    const { kanji, arabic } = this.findNumerals(context.documentText, tokens);
 
     // 漢数字とアラビア数字の両方が存在するかチェック
     if (isEmpty(kanji) || isEmpty(arabic)) {
@@ -158,7 +185,7 @@ export class NumeralStyleMixRule implements AdvancedGrammarRule {
           message: `数字「${num.value}」はアラビア数字ですが、文書内では漢数字が多く使用されています。表記を統一することを推奨します。`,
           code: 'numeral-style-mix',
           ruleName: this.name,
-          suggestions: [`漢数字「${suggestion}」に変更して統一する`]
+          suggestions: suggestion === null ? [] : [`漢数字「${suggestion}」に変更して統一する`]
         }));
       }
     } else {
@@ -173,7 +200,7 @@ export class NumeralStyleMixRule implements AdvancedGrammarRule {
           message: `数字「${num.value}」は漢数字ですが、文書内ではアラビア数字が多く使用されています。表記を統一することを推奨します。`,
           code: 'numeral-style-mix',
           ruleName: this.name,
-          suggestions: [`アラビア数字「${suggestion}」に変更して統一する`]
+          suggestions: suggestion === null ? [] : [`アラビア数字「${suggestion}」に変更して統一する`]
         }));
       }
     }

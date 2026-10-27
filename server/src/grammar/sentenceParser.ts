@@ -27,9 +27,10 @@ export class SentenceParser {
     tokens: Token[],
     excludedRanges?: ExcludedRange[],
     splitMode: SentenceSplitMode = 'normal',
-    precomputedLines?: string[]
+    precomputedLines?: string[],
+    sequenceCompatibility = false
   ): Sentence[] {
-    return parseTextIntoSentences(text, tokens, excludedRanges, splitMode, precomputedLines);
+    return parseTextIntoSentences(text, tokens, excludedRanges, splitMode, precomputedLines, sequenceCompatibility);
   }
 
   /**

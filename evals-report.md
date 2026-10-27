@@ -1,15 +1,15 @@
 # Japanese Grammar Evals Report
 
-Generated: 2025-12-30
+Generated: 2026-10-27
 
 ## Summary
 
 | Metric | Value |
 |--------|-------|
-| Total Categories | 71 |
-| Implemented Categories | 71 (100%) |
-| Total Examples | 240 |
-| 期待どおりの検出数 | 240 |
+| Total Categories | 72 |
+| Implemented Categories | 72 (100%) |
+| Total Examples | 268 |
+| 期待どおりの検出数 | 268 |
 | 一致率 | 100% |
 
 ## Category Results
@@ -22,6 +22,7 @@ Generated: 2025-12-30
 | 冗長な助動詞 | PASS | 3 | 3 | 100% |
 | 文体混在 | PASS | 2 | 2 | 100% |
 | ら抜き言葉 | PASS | 4 | 4 | 100% |
+| さ入れ表現 | PASS | 6 | 6 | 100% |
 | 二重否定 | PASS | 4 | 4 | 100% |
 | 同じ助詞の連続使用 | PASS | 3 | 3 | 100% |
 | 接続詞連続使用 | PASS | 3 | 3 | 100% |
@@ -30,14 +31,14 @@ Generated: 2025-12-30
 | 弱い表現 | PASS | 3 | 3 | 100% |
 | 読点過多 | PASS | 2 | 2 | 100% |
 | 技術用語表記 | PASS | 6 | 6 | 100% |
-| 漢字開き | PASS | 5 | 5 | 100% |
+| 漢字開き | PASS | 7 | 7 | 100% |
 | 冗長表現 | PASS | 4 | 4 | 100% |
 | 重複表現（同語反復） | PASS | 4 | 4 | 100% |
 | サ変動詞 | PASS | 2 | 2 | 100% |
 | 主語の欠如 | PASS | 2 | 2 | 100% |
 | ねじれ文 | PASS | 2 | 2 | 100% |
 | 長すぎる文 | PASS | 1 | 1 | 100% |
-| 同音異義語 | PASS | 2 | 2 | 100% |
+| 同音異義語 | PASS | 9 | 9 | 100% |
 | 敬語の誤用 | PASS | 3 | 3 | 100% |
 | 副詞の呼応 | PASS | 3 | 3 | 100% |
 | 助詞「の」の連続 | PASS | 2 | 2 | 100% |
@@ -49,12 +50,12 @@ Generated: 2025-12-30
 | 名詞の連続 | PASS | 2 | 2 | 100% |
 | 接続詞の誤用 | PASS | 2 | 2 | 100% |
 | 文末表現の単調さ | PASS | 2 | 2 | 100% |
-| 送り仮名の揺れ | PASS | 3 | 3 | 100% |
-| 表記ゆれ | PASS | 3 | 3 | 100% |
+| 送り仮名の揺れ | PASS | 9 | 9 | 100% |
+| 表記ゆれ | PASS | 4 | 4 | 100% |
 | 全角半角数字・記号混在 | PASS | 2 | 2 | 100% |
 | カタカナ長音 | PASS | 2 | 2 | 100% |
 | 半角カナ | PASS | 2 | 2 | 100% |
-| 数字表記の混在 | PASS | 2 | 2 | 100% |
+| 数字表記の混在 | PASS | 5 | 5 | 100% |
 | スペースと単位 | PASS | 2 | 2 | 100% |
 | 括弧・引用符の不一致 | PASS | 2 | 2 | 100% |
 | 日付表記ゆれ | PASS | 2 | 2 | 100% |
@@ -86,7 +87,7 @@ Generated: 2025-12-30
 | 括弧内句点 | PASS | 2 | 2 | 100% |
 | 括弧の入れ子深さ | PASS | 2 | 2 | 100% |
 | 箇条書き句点運用 | PASS | 10 | 10 | 100% |
-| 文複雑度 | PASS | 4 | 4 | 100% |
+| 文複雑度 | PASS | 7 | 7 | 100% |
 
 ## Implemented Categories
 
@@ -119,6 +120,11 @@ Generated: 2025-12-30
 
 - Status: PASS
 - 一致率: 100% (4/4)
+
+### さ入れ表現 (sa-ire)
+
+- Status: PASS
+- 一致率: 100% (6/6)
 
 ### 二重否定 (double-negation)
 
@@ -163,7 +169,7 @@ Generated: 2025-12-30
 ### 漢字開き (kanji-opening)
 
 - Status: PASS
-- 一致率: 100% (5/5)
+- 一致率: 100% (7/7)
 
 ### 冗長表現 (redundant-expression)
 
@@ -198,7 +204,7 @@ Generated: 2025-12-30
 ### 同音異義語 (homophone)
 
 - Status: PASS
-- 一致率: 100% (2/2)
+- 一致率: 100% (9/9)
 
 ### 敬語の誤用 (honorific-error)
 
@@ -258,12 +264,12 @@ Generated: 2025-12-30
 ### 送り仮名の揺れ (okurigana-variant)
 
 - Status: PASS
-- 一致率: 100% (3/3)
+- 一致率: 100% (9/9)
 
 ### 表記ゆれ (orthography-variant)
 
 - Status: PASS
-- 一致率: 100% (3/3)
+- 一致率: 100% (4/4)
 
 ### 全角半角数字・記号混在 (number-width-mix)
 
@@ -283,7 +289,7 @@ Generated: 2025-12-30
 ### 数字表記の混在 (numeral-style-mix)
 
 - Status: PASS
-- 一致率: 100% (2/2)
+- 一致率: 100% (5/5)
 
 ### スペースと単位 (space-around-unit)
 
@@ -443,7 +449,7 @@ Generated: 2025-12-30
 ### 文複雑度 (sentence-complexity)
 
 - Status: PASS
-- 一致率: 100% (4/4)
+- 一致率: 100% (7/7)
 
 ## Not Implemented Categories
 

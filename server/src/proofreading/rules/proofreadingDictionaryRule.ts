@@ -25,9 +25,11 @@ function compilePattern(entry: DictionaryEntry): RegExp | null {
 
   let pattern: RegExp | null;
   try {
-    pattern = entry.mode === 'regex'
-      ? new RegExp(entry.match, 'g')
-      : new RegExp(escapeRegex(entry.match), 'g');
+    pattern = entry.match === ''
+      ? null
+      : entry.mode === 'regex'
+        ? new RegExp(entry.match, 'g')
+        : new RegExp(escapeRegex(entry.match), 'g');
   } catch {
     pattern = null;
   }
@@ -46,9 +48,28 @@ function buildMessage(entry: DictionaryEntry, matched: string): string {
 
 export function checkDictionaryEntries(
   ctx: ProofreadingRuleContext,
-  entries: DictionaryEntry[]
+  entries: DictionaryEntry[],
+  maxDiagnostics = Number.POSITIVE_INFINITY,
+  excludedRanges: readonly { start: number; end: number }[] = []
 ): ProofreadingDiagnostic[] {
   const diagnostics: ProofreadingDiagnostic[] = [];
+  const sorted = excludedRanges.filter(range => range.start < range.end).slice().sort((a, b) => a.start - b.start);
+  const merged: Array<{ start: number; end: number }> = [];
+  for (const range of sorted) {
+    const last = merged[merged.length - 1];
+    if (last && range.start <= last.end) last.end = Math.max(last.end, range.end);
+    else merged.push({ ...range });
+  }
+  const isExcluded = (start: number, end: number): boolean => {
+    let lo = 0;
+    let hi = merged.length;
+    while (lo < hi) {
+      const mid = Math.floor((lo + hi) / 2);
+      if (merged[mid].end <= start) lo = mid + 1;
+      else hi = mid;
+    }
+    return lo < merged.length && merged[lo].start < end;
+  };
 
   for (const entry of entries) {
     const pattern = compilePattern(entry);
@@ -60,8 +81,15 @@ export function checkDictionaryEntries(
 
     let match;
     while ((match = pattern.exec(ctx.text)) !== null) {
+      if (match[0].length === 0) {
+        // execはゼロ幅一致でlastIndexを進めない。括弧判定より先に進める。
+        pattern.lastIndex = match.index + 1;
+        continue;
+      }
       const start = match.index;
       const end = match.index + match[0].length;
+
+      if (isExcluded(start, end)) continue;
 
       if (!ctx.checkInBrackets && ctx.bracketDetector.isInsideBracket(start, ctx.bracketRanges)) {
         continue;
@@ -73,9 +101,10 @@ export function checkDictionaryEntries(
           end: ctx.offsetToPosition(end),
         },
         message: buildMessage(entry, match[0]),
-        severity: DiagnosticSeverity.Information,
+        severity: entry.severity === 'warn' ? DiagnosticSeverity.Warning : DiagnosticSeverity.Information,
         code: `dictionary-${entry.category}`,
       });
+      if (diagnostics.length >= maxDiagnostics) return diagnostics;
     }
   }
 

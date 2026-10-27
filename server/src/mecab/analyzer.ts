@@ -10,6 +10,7 @@ import * as path from 'path';
 import { Token } from '../../../shared/src/types';
 import { formatError } from '../utils/errorHandler';
 import { isBlank, splitLines } from '../utils/stringUtils';
+import { installOptimizedLatticeBuilder } from './optimizedLatticeBuilder';
 
 // kuromoji のトークン型定義
 interface KuromojiToken {
@@ -100,7 +101,7 @@ export class MeCabAnalyzer {
   /**
    * トークナイザーを初期化
    */
-  private async initialize(): Promise<void> {
+  async initialize(): Promise<void> {
     if (MeCabAnalyzer.tokenizer) {
       return;
     }
@@ -126,6 +127,13 @@ export class MeCabAnalyzer {
           if (err) {
             MeCabAnalyzer.initPromise = null;
             reject(new Error(`辞書の読み込みに失敗しました: ${err.message}`));
+            return;
+          }
+          try {
+            installOptimizedLatticeBuilder(tokenizer);
+          } catch (error) {
+            MeCabAnalyzer.initPromise = null;
+            reject(error);
             return;
           }
           MeCabAnalyzer.tokenizer = tokenizer as kuromoji.Tokenizer<KuromojiToken>;
@@ -184,8 +192,31 @@ export class MeCabAnalyzer {
     }
 
     MeCabAnalyzer.cacheMisses++;
-    const kuromojiTokens = MeCabAnalyzer.tokenizer.tokenize(text);
-    const tokens = this.convertToTokens(kuromojiTokens, text);
+    // kuromoji-optimizedはNULで例外となり、BMP外文字の後で位置・表層が壊れる。
+    // 1文字の未知記号へ一時置換し、解析結果をUTF-16の元位置へ戻す。
+    const shifts: number[] = [];
+    let removedUnits = 0;
+    const tokenizerText = text.replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]|[\uD800-\uDFFF]|\u0000/g, (match, offset: number) => {
+      if (match.length === 2) {
+        shifts.push(offset - removedUnits + 1);
+        removedUnits++;
+      }
+      return '\uFFFD';
+    });
+    const kuromojiTokens = MeCabAnalyzer.tokenizer.tokenize(tokenizerText);
+    const tokens = this.convertToTokens(kuromojiTokens, tokenizerText);
+    if (tokenizerText !== text) {
+      let shiftIndex = 0;
+      const originalOffset = (offset: number): number => {
+        while (shiftIndex < shifts.length && shifts[shiftIndex] <= offset) shiftIndex++;
+        return offset + shiftIndex;
+      };
+      for (const token of tokens) {
+        token.start = originalOffset(token.start);
+        token.end = originalOffset(token.end);
+        token.surface = text.slice(token.start, token.end);
+      }
+    }
 
     // キャッシュに保存
     this.addToCache(cacheKey, tokens);

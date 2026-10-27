@@ -11,6 +11,7 @@ import {
 } from '../../../shared/src/advancedTypes';
 import { ExcludedRange } from '../../../shared/src/markdownFilterTypes';
 import { isNotEmpty } from '../utils/arrayUtils';
+import { findClosingParenForMarkdownLink, isEscapedAt } from '../parser/markdownFilter/rangeUtils';
 import {
   buildMaskedTextByMaskRanges,
   normalizeRanges,
@@ -139,11 +140,16 @@ function insertBoundariesBetweenTableRows(
     return null;
   };
 
-  const hasLineBreakBetween = (start: number, end: number): boolean => {
+  const hasTableBoundaryBetween = (start: number, end: number): boolean => {
     const safeStart = Math.max(0, Math.min(start, documentText.length));
     const safeEnd = Math.max(safeStart, Math.min(end, documentText.length));
-    const between = documentText.slice(safeStart, safeEnd);
-    return between.includes('\n') || between.includes('\r');
+    for (let i = safeStart; i < safeEnd; i++) {
+      if (documentText[i] === '\n' || documentText[i] === '\r' ||
+          (documentText[i] === '|' && !isEscapedAt(documentText, i))) {
+        return true;
+      }
+    }
+    return false;
   };
 
   const withBoundaries: Sentence[] = [];
@@ -163,7 +169,7 @@ function insertBoundariesBetweenTableRows(
       Boolean(currentTable || nextTable) &&
       (
         currentTable !== nextTable ||
-        (currentTable !== null && nextTable !== null && hasLineBreakBetween(current.end, next.start))
+        (currentTable !== null && nextTable !== null && hasTableBoundaryBetween(current.end, next.start))
       );
 
     if (!shouldInsertBoundary) {
@@ -271,6 +277,35 @@ export function buildRuleContextForRule(
   originalText?: string,
   originalShared?: AdvancedRuleSharedContext
 ): RuleContext {
+  if ((rule.name === 'long-sentence' || rule.name === 'sentence-complexity') && excludedRanges) {
+    // フィルター後も位置とリンクの括弧は保持される。入れ子の画像リンクも
+    // 構文とリンク先のみを除き、表示テキストはそのまま数える。
+    const text = baseContext.documentText;
+    const hiddenTextRanges: Array<{ start: number; end: number }> = [];
+    hiddenTextRanges.push(...excludedRanges.filter(r => r.type === 'html-tag'));
+    const codeRanges = normalizeRanges(excludedRanges.filter(r => r.type === 'code-block' || r.type === 'inline-code'));
+    const openings: number[] = [];
+    let codeIndex = 0;
+    for (let i = 0; i < text.length; i++) {
+      while (codeIndex < codeRanges.length && codeRanges[codeIndex].end <= i) codeIndex++;
+      if (codeIndex < codeRanges.length && codeRanges[codeIndex].start <= i) {
+        i = codeRanges[codeIndex].end - 1;
+        continue;
+      }
+      if (text[i] === '\n' || text[i] === '\r') openings.length = 0;
+      else if (text[i] === '[' && !isEscapedAt(text, i)) openings.push(i);
+      else if (text[i] === ']' && !isEscapedAt(text, i) && openings.length) {
+        const opening = openings.pop()!;
+        if (text[i + 1] !== '(') continue;
+        const close = findClosingParenForMarkdownLink(text, i + 2);
+        if (close < 0 || /[\r\n]/.test(text.slice(i, close))) continue;
+        const start = opening > 0 && text[opening - 1] === '!' && !isEscapedAt(text, opening - 1) ? opening - 1 : opening;
+        hiddenTextRanges.push({ start, end: opening + 1 }, { start: i, end: close + 1 });
+        i = close;
+      }
+    }
+    return { ...baseContext, hiddenTextRanges: normalizeRanges(hiddenTextRanges) };
+  }
   // Markdown テーブルのマスク（analyzeTables=false）でも、構造/表記の一部ルールは原文を参照したい。
   // - EVALS 表などの「例文」をテーブルに載せるケースで、記号がマスクされると検出できなくなるため
   if (
@@ -310,7 +345,7 @@ export function buildRuleContextForRule(
     const codeBlocksToExclude = codeBlockRanges.filter((r) => !isProseCodeBlock(r));
     return {
       ...baseContext,
-      sentences: replaceSentencesOverlappingExcludedTypesWithBoundary(baseContext.sentences, codeBlocksToExclude, ['code-block'])
+      sentences: replaceSentencesOverlappingExcludedTypesWithBoundary(baseContext.sequenceSentences ?? baseContext.sentences, codeBlocksToExclude, ['code-block'])
     };
   }
 

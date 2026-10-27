@@ -6,12 +6,11 @@
  */
 
 import { Token, Diagnostic, Position } from '../../../shared/src/types';
+import { ExcludedRange } from '../../../shared/src/markdownFilterTypes';
 import { ProofreadingSettingsConfig, DEFAULT_PROOFREADING_CONFIG } from './proofreadingConfig';
 import { BracketRangeDetector } from './bracketRangeDetector';
-import { DictionaryEntry } from '../dictionaries/proofreadingDictionaryLoader';
 import { computeLineStarts, offsetToLineAndCharacter } from '../utils/lineStarts';
 import { Logger } from '../utils/logger';
-import { isNotEmpty } from '../utils/arrayUtils';
 import {
   ProofreadingDiagnostic,
   ProofreadingRuleContext,
@@ -22,7 +21,7 @@ import { checkPunctuationEvenCount } from './rules/punctuationEvenCountRule';
 import { checkSpaceAfterQuestionExclamation } from './rules/spaceAfterQuestionExclamationRule';
 import { checkPeriodBeforeCloseBracket } from './rules/periodBeforeCloseBracketRule';
 import { checkBracketDepth } from './rules/bracketDepthRule';
-import { checkDictionaryEntries } from './rules/proofreadingDictionaryRule';
+import { checkPrivateUseCharacters } from './rules/privateUseCharacterRule';
 
 /**
  * 校正設定向けルールマネージャー
@@ -30,7 +29,6 @@ import { checkDictionaryEntries } from './rules/proofreadingDictionaryRule';
 export class ProofreadingRulesManager {
   private config: ProofreadingSettingsConfig;
   private bracketDetector: BracketRangeDetector;
-  private dictionaryEntries: DictionaryEntry[] = [];
   private lineStarts: number[] = [];
 
   constructor(config?: ProofreadingSettingsConfig, _logger?: Logger) {
@@ -46,10 +44,6 @@ export class ProofreadingRulesManager {
     return this.config;
   }
 
-  setDictionaryEntries(entries: DictionaryEntry[]): void {
-    this.dictionaryEntries = entries;
-  }
-
   private offsetToPosition = (offset: number): Position => {
     return offsetToLineAndCharacter(this.lineStarts, offset);
   };
@@ -61,7 +55,7 @@ export class ProofreadingRulesManager {
    * @param _tokens トークン（現状未使用）
    * @param precomputedLineStarts 既に算出済みの lineStarts。指定時は再計算しない
    */
-  checkText(text: string, _tokens: Token[], precomputedLineStarts?: number[], config: ProofreadingSettingsConfig = this.config): Diagnostic[] {
+  checkText(text: string, _tokens: Token[], precomputedLineStarts?: number[], config: ProofreadingSettingsConfig = this.config, markdownRanges?: readonly ExcludedRange[]): Diagnostic[] {
     this.lineStarts = precomputedLineStarts ?? computeLineStarts(text);
     const categories = config.categories;
     const checkInBrackets = categories.typo.checkInBrackets;
@@ -76,40 +70,44 @@ export class ProofreadingRulesManager {
     };
 
     const diagnostics: ProofreadingDiagnostic[] = [];
+    // 誤字カテゴリの括弧設定は、長さ・約物の検査には適用しない。
+    const nonTypoContext: ProofreadingRuleContext = { ...ctx, checkInBrackets: true };
 
     if (categories.typo.enable && categories.typo.eraFirstYear) {
       diagnostics.push(...checkEraFirstYear(ctx));
     }
 
     if (categories.length.enable) {
-      diagnostics.push(...checkCharTypeRunLength(ctx, {
+      diagnostics.push(...checkCharTypeRunLength(nonTypoContext, {
         hiragana: categories.length.hiragana,
         katakana: categories.length.katakana,
         kanji: categories.length.kanji,
       }));
     }
 
+    if (categories.envDependent.enable && categories.envDependent.checkUserCreatedGaiji) {
+      for (const diagnostic of checkPrivateUseCharacters(nonTypoContext)) {
+        diagnostics.push(diagnostic);
+      }
+    }
+
     if (categories.punctuation.enable) {
-      diagnostics.push(...checkPunctuationEvenCount(ctx, {
+      diagnostics.push(...checkPunctuationEvenCount(nonTypoContext, {
         evenLeader: categories.punctuation.evenLeader,
         evenDash: categories.punctuation.evenDash,
         evenWave: categories.punctuation.evenWave,
       }));
 
       if (categories.punctuation.spaceAfterQE) {
-        diagnostics.push(...checkSpaceAfterQuestionExclamation(ctx));
+        diagnostics.push(...checkSpaceAfterQuestionExclamation(nonTypoContext, markdownRanges));
       }
       if (categories.punctuation.periodBeforeCloseBracket) {
-        diagnostics.push(...checkPeriodBeforeCloseBracket(ctx));
+        diagnostics.push(...checkPeriodBeforeCloseBracket(nonTypoContext));
       }
     }
 
     if (categories.bracket.enable) {
       diagnostics.push(...checkBracketDepth(ctx, bracketRanges, categories.bracket.maxDepth));
-    }
-
-    if (isNotEmpty(this.dictionaryEntries)) {
-      diagnostics.push(...checkDictionaryEntries(ctx, this.dictionaryEntries));
     }
 
     return diagnostics.map((d) => ({

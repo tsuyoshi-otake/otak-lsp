@@ -8,6 +8,7 @@ export interface TypoCheckConfig {
   checkInBrackets: boolean;
   raNuki: boolean;
   saIre: boolean;
+  homophone: boolean;
   doubleHonorific: boolean;
   adverbAgreement: boolean;
   eraFirstYear: boolean;
@@ -133,6 +134,7 @@ export interface ProofreadingCategories {
   envDependent: EnvDependentConfig;
   printingStandard: PrintingStandardConfig;
   punctuation: PunctuationConfig;
+  rule: { enable: boolean };
   spell: SpellCheckConfig;
   notationVariant: NotationVariantConfig;
   bracket: BracketConfig;

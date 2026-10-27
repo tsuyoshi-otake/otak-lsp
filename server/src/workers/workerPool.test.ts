@@ -12,8 +12,14 @@
 import * as fs from 'fs';
 import * as os from 'os';
 import * as path from 'path';
+import { Worker } from 'worker_threads';
+import { buildSync } from 'esbuild';
 
 import { WorkerPool } from './workerPool';
+import { WorkerPoolManager } from './workerPoolManager';
+import { AdvancedRulesManager } from '../grammar/advancedRulesManager';
+import { MeCabAnalyzer } from '../mecab/analyzer';
+import * as fc from 'fast-check';
 
 const TEST_TIMEOUT_MS = 10_000;
 
@@ -45,16 +51,35 @@ parentPort.on('message', (msg) => {
 });
 `;
 
+const HANG_WORKER_SOURCE = `
+const { parentPort } = require('worker_threads');
+parentPort.on('message', msg => {
+  if (msg.type === 'exit-cleanly') process.exit(0);
+  // Keep the worker alive while deliberately never responding.
+  setInterval(() => {}, 1000);
+});
+`;
+
 let tempDir: string;
 let echoWorkerPath: string;
 let errorWorkerPath: string;
+let hangWorkerPath: string;
+let advancedWorkerPath: string;
 
 beforeAll(() => {
   tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'otak-lsp-worker-pool-test-'));
   echoWorkerPath = path.join(tempDir, 'echoWorker.js');
   errorWorkerPath = path.join(tempDir, 'errorWorker.js');
+  hangWorkerPath = path.join(tempDir, 'hangWorker.js');
+  advancedWorkerPath = path.join(tempDir, 'advancedRulesWorker.js');
   fs.writeFileSync(echoWorkerPath, ECHO_WORKER_SOURCE);
   fs.writeFileSync(errorWorkerPath, ERROR_WORKER_SOURCE);
+  fs.writeFileSync(hangWorkerPath, HANG_WORKER_SOURCE);
+  buildSync({
+    entryPoints: [path.resolve(__dirname, 'advancedRulesWorker.ts')],
+    bundle: true, format: 'cjs', platform: 'node', outfile: advancedWorkerPath,
+    external: ['vscode', 'kuromoji'], logLevel: 'silent',
+  });
 });
 
 afterAll(() => {
@@ -66,6 +91,172 @@ afterAll(() => {
 });
 
 describe('WorkerPool', () => {
+  it('無応答workerと待機中の要求を期限内に失敗させる', async () => {
+    const options = { workerScript: hangWorkerPath, size: 1, requestTimeoutMs: 150 };
+    const pool = new WorkerPool<{ type: string }, number>(options);
+    try {
+      const results = Promise.allSettled([pool.submit({ type: 'hang' }), pool.submit({ type: 'hang' })]);
+      const observed = await Promise.race([results, new Promise<'deadline'>(resolve => setTimeout(() => resolve('deadline'), 1000))]);
+      expect(observed).not.toBe('deadline');
+      expect(observed).toEqual([expect.objectContaining({ status: 'rejected' }), expect.objectContaining({ status: 'rejected' })]);
+      if (observed !== 'deadline') {
+        expect(observed.every(result => result.status === 'rejected' && /timed out/.test(String(result.reason)))).toBe(true);
+      }
+      expect(pool.isClosed()).toBe(true);
+    } finally {
+      await pool.shutdown();
+    }
+  }, TEST_TIMEOUT_MS);
+
+  it('処理中のworkerが正常終了しても要求を失敗させる', async () => {
+    const pool = new WorkerPool<{ type: string }, number>({ workerScript: hangWorkerPath, size: 1 });
+    try {
+      const result = pool.submit({ type: 'exit-cleanly' }).then(() => 'resolved', () => 'rejected');
+      const observed = await Promise.race([result, new Promise<'deadline'>(resolve => setTimeout(() => resolve('deadline'), 1000))]);
+      expect(observed).toBe('rejected');
+    } finally {
+      await pool.shutdown();
+    }
+  }, TEST_TIMEOUT_MS);
+
+  it('古いpoolの失敗通知は設定変更後の新しいpoolを無効化しない', async () => {
+    const manager = new WorkerPoolManager();
+    const firstConfig = { enabled: true, maxWorkers: 1, workerScript: echoWorkerPath };
+    const secondConfig = { ...firstConfig, maxWorkers: 2 };
+    const first = manager.ensure(firstConfig)!;
+    let second: typeof first | null = null;
+    try {
+      manager.onConfigChanged(firstConfig, secondConfig);
+      second = manager.ensure(secondConfig);
+      expect(second).not.toBeNull();
+      (manager.markFailed as (pool: typeof first) => void)(first);
+      expect(manager.ensure(secondConfig)).toBe(second);
+      expect(second?.isClosed()).toBe(false);
+    } finally {
+      await first.shutdown();
+      if (second) await second.shutdown();
+      await manager.shutdown();
+    }
+  }, TEST_TIMEOUT_MS);
+
+  it('現在のpoolが失敗したら終了し、設定変更まで再試行せず、変更後は復旧する', async () => {
+    const manager = new WorkerPoolManager();
+    const firstConfig = { enabled: true, maxWorkers: 1, workerScript: hangWorkerPath };
+    const nextConfig = { ...firstConfig, workerScript: echoWorkerPath };
+    const pool = manager.ensure(firstConfig)!;
+    try {
+      const pending = pool.submit({} as Parameters<typeof pool.submit>[0]);
+      const outcome = pending.then(() => 'resolved', () => 'rejected');
+      manager.markFailed(pool);
+      expect(await outcome).toBe('rejected');
+      expect(pool.isClosed()).toBe(true);
+      expect(manager.ensure(firstConfig)).toBeNull();
+      manager.onConfigChanged(firstConfig, nextConfig);
+      const next = manager.ensure(nextConfig);
+      expect(next).not.toBeNull();
+      expect(next).not.toBe(pool);
+    } finally {
+      await manager.shutdown();
+    }
+  }, TEST_TIMEOUT_MS);
+
+  it('実行中に設定を変えても古い失敗は新しい実workerの診断を妨げない', async () => {
+    const manager = new AdvancedRulesManager({
+      parallelExecution: { enabled: true, maxWorkers: 1, workerScript: hangWorkerPath },
+    });
+    try {
+      const text = '容量は10GBです。';
+      const tokens = await new MeCabAnalyzer().analyze(text);
+      const expected = await manager.checkTextAsync(text, tokens);
+      expect(expected.some(d => d.code === 'space-around-unit')).toBe(true);
+      const oldResult = manager.checkTextParallel(text, tokens);
+      manager.updateConfig({ parallelExecution: {
+        enabled: true, maxWorkers: 1, workerScript: advancedWorkerPath,
+      } });
+      const newResult = manager.checkTextParallel(text, tokens);
+      const [oldDiagnostics, newDiagnostics] = await Promise.all([oldResult, newResult]);
+      expect(oldDiagnostics).toEqual(expected);
+      expect(newDiagnostics).toEqual(expected);
+      expect(manager.hasActiveWorkerPool()).toBe(true);
+    } finally {
+      await manager.shutdown();
+    }
+  }, TEST_TIMEOUT_MS);
+
+  it('複製できない入力の失敗後もworkerは正常な要求を処理する', async () => {
+    const pool = new WorkerPool<{ payload: unknown }, number>({ workerScript: echoWorkerPath, size: 1 });
+    try {
+      await expect(pool.submit({ payload: () => 1 })).rejects.toThrow();
+      await expect(pool.submit({ payload: 7 })).resolves.toBe(14);
+    } finally {
+      await pool.shutdown();
+    }
+  }, TEST_TIMEOUT_MS);
+
+  it('worker終了失敗はmanagerのshutdownから観測できる', async () => {
+    const original = Worker.prototype.terminate;
+    const termination = jest.spyOn(Worker.prototype, 'terminate').mockImplementation(function (this: Worker) {
+      // 実workerは終了したうえでエラーを注入し、テスト後にプロセスを残さない。
+      return original.call(this).then(() => { throw new Error('termination failure'); });
+    });
+    const manager = new WorkerPoolManager();
+    const config = { enabled: true, maxWorkers: 1, workerScript: echoWorkerPath };
+    const pool = manager.ensure(config)!;
+    try {
+      const pending = pool.submit({ payload: 2 } as unknown as Parameters<typeof pool.submit>[0]);
+      await pending;
+      manager.markFailed(pool);
+      await expect(manager.shutdown()).rejects.toThrow('termination failure');
+    } finally {
+      termination.mockRestore();
+    }
+  }, TEST_TIMEOUT_MS);
+
+  it('生成した送信と終了の履歴で、実poolが正常進行と終了後の拒否を守る', async () => {
+    const command = fc.oneof(
+      fc.integer({ min: -100, max: 100 }).map(value => ({ type: 'submit' as const, value })),
+      fc.constant({ type: 'shutdown' as const })
+    );
+    await fc.assert(fc.asyncProperty(fc.array(command, { minLength: 1, maxLength: 6 }), async commands => {
+      const pool = new WorkerPool<{ payload: number }, number>({ workerScript: echoWorkerPath, size: 1 });
+      let closed = false;
+      try {
+        for (const operation of commands) {
+          if (operation.type === 'shutdown') {
+            await pool.shutdown();
+            closed = true;
+          } else if (closed) {
+            await expect(pool.submit({ payload: operation.value })).rejects.toThrow(/closed/i);
+          } else {
+            await expect(pool.submit({ payload: operation.value })).resolves.toBe(operation.value * 2);
+          }
+          expect(pool.isClosed()).toBe(closed);
+        }
+      } finally {
+        await pool.shutdown();
+      }
+    }), { numRuns: 20, seed: 20261027 });
+  }, TEST_TIMEOUT_MS);
+
+  it('実際の無応答workerから30秒で文法診断へフォールバックする', async () => {
+    const manager = new AdvancedRulesManager({
+      parallelExecution: { enabled: true, maxWorkers: 1, workerScript: hangWorkerPath },
+    });
+    try {
+      const text = '容量は10GBです。';
+      const tokens = await new MeCabAnalyzer().analyze(text);
+      const expected = await manager.checkTextAsync(text, tokens);
+      expect(expected.some(d => d.code === 'space-around-unit')).toBe(true);
+      const started = Date.now();
+      const actual = await manager.checkTextParallel(text, tokens);
+      expect(Date.now() - started).toBeLessThan(35_000);
+      expect(actual).toEqual(expected);
+      expect(manager.hasActiveWorkerPool()).toBe(false);
+      await expect(manager.checkTextParallel(text, tokens)).resolves.toEqual(expected);
+    } finally {
+      await manager.shutdown();
+    }
+  }, 40_000);
   it(
     'lazy init: 起動は最初の submit のとき',
     async () => {

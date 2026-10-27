@@ -6,6 +6,8 @@
 import { SentenceComplexityRule } from './sentenceComplexityRule';
 import { Token } from '../../../../shared/src/types';
 import { DEFAULT_ADVANCED_RULES_CONFIG, RuleContext, Sentence } from '../../../../shared/src/advancedTypes';
+import { MeCabAnalyzer } from '../../mecab/analyzer';
+import * as fc from 'fast-check';
 
 describe('SentenceComplexityRule', () => {
   let rule: SentenceComplexityRule;
@@ -161,7 +163,89 @@ describe('SentenceComplexityRule', () => {
     });
   });
 
+  describe('実際の形態素解析による文境界', () => {
+    const analyzer = new MeCabAnalyzer();
+
+    it('名詞を修飾する基本形の動詞は連体節として数え、文末動詞は数えない', async () => {
+      expect(rule.estimateClauseDepth(await analyzer.analyze('私は資料を読む。'))).toBe(0);
+      expect(rule.estimateClauseDepth(await analyzer.analyze('私は資料を読む友人と話す。'))).toBe(1);
+      expect(rule.estimateClauseDepth(await analyzer.analyze('私が作る資料を読む友人が話す内容を聞く。'))).toBe(3);
+    });
+
+    it('読点で並列した動作を従属節の入れ子として数えない', async () => {
+      const text = '私は朝食を食べて、学校に行って、本を読んで、友人と話して、家に帰って、夕食を作りました。';
+      const tokens = await analyzer.analyze(text);
+      expect(rule.estimateClauseDepth(tokens)).toBe(1);
+    });
+
+    it('読点のない「て・で」の並列動作も入れ子として累積しない', async () => {
+      const text = '私は朝食を食べて学校に行って本を読んで友人と話して家に帰って夕食を作りました。';
+      expect(rule.estimateClauseDepth(await analyzer.analyze(text))).toBe(1);
+    });
+
+    it('「読んでいた」の補助動詞を含む連体修飾は維持する', async () => {
+      const text = '私が買った本を読んでいた彼女が言っていたことを聞いた友人が教えてくれた情報を確認する。';
+      expect(rule.estimateClauseDepth(await analyzer.analyze(text))).toBeGreaterThanOrEqual(4);
+    });
+
+    it('生成した読点なしの動作列で、接続助詞が独立した動作を区切る', async () => {
+      const clauses = ['朝食を食べて', '学校に行って', '本を読んで', '友人と話して', '家に帰って'];
+      await fc.assert(fc.asyncProperty(fc.array(fc.constantFrom(...clauses), { minLength: 2, maxLength: 6 }), async parts => {
+        expect(rule.estimateClauseDepth(await analyzer.analyze('私は' + parts.join('') + '夕食を作りました。'))).toBe(1);
+      }), { numRuns: 30, seed: 20261027 });
+    });
+
+    it('別の動作や読点を挟む「の」を一連の連続としない', async () => {
+      const text = '山田さんの本を読み、田中さんの資料を確認し、鈴木さんの報告を待つ。';
+      const tokens = await analyzer.analyze(text);
+      expect(rule.calculateMaxNoChainLength(tokens)).toBe(1);
+    });
+
+    it('同じ名詞句内で続く「の」は数える', async () => {
+      const tokens = await analyzer.analyze('私の友人の妹の会社に行く。');
+      expect(rule.calculateMaxNoChainLength(tokens)).toBe(3);
+    });
+
+    it('操作を読点で列挙しても別の所有関係が連続しない', async () => {
+      const clauses = ['山田さんの本を読み', '田中さんの資料を確認し', '鈴木さんの報告を待ち'];
+      await fc.assert(fc.asyncProperty(
+        fc.array(fc.constantFrom(...clauses), { minLength: 2, maxLength: 6 }), async parts => {
+          const tokens = await analyzer.analyze(parts.join('、') + 'ました。');
+          expect(rule.calculateMaxNoChainLength(tokens)).toBe(1);
+        }
+      ), { numRuns: 30, seed: 20261027 });
+    });
+
+    it('異なる節を結合する故障を所有関係の契約が検出する', async () => {
+      const tokens = await analyzer.analyze('山田さんの本を読み、田中さんの資料を確認する。');
+      expect(rule.calculateMaxNoChainLength(tokens)).toBe(1);
+      const fault = jest.spyOn(rule, 'calculateMaxNoChainLength').mockImplementation(input =>
+        input.filter(token => token.surface === 'の' && token.isParticle()).length);
+      try {
+        expect(() => expect(rule.calculateMaxNoChainLength(tokens)).toBe(1)).toThrow();
+      } finally {
+        fault.mockRestore();
+      }
+    });
+  });
+
   describe('calculateMetrics', () => {
+    it('実トークンの「の」が増えるとスコアは減らず、100を超えない', async () => {
+      const analyzer = new MeCabAnalyzer();
+      const score = async (count: number) => {
+        const text = '私' + 'の友人'.repeat(count) + 'の本を確認する。';
+        const sentence = new Sentence({ text, tokens: await analyzer.analyze(text), start: 0, end: text.length });
+        return rule.calculateMetrics(sentence, DEFAULT_ADVANCED_RULES_CONFIG).score;
+      };
+      await fc.assert(fc.asyncProperty(fc.integer({ min: 0, max: 18 }), async count => {
+        const lower = await score(count);
+        const higher = await score(count + 1);
+        expect(lower).toBeGreaterThanOrEqual(0);
+        expect(higher).toBeLessThanOrEqual(100);
+        expect(higher).toBeGreaterThanOrEqual(lower);
+      }), { numRuns: 25, seed: 20261027 });
+    });
+
     it('should calculate metrics for simple sentence', () => {
       const text = '今日は天気がいいですね。';
       const sentence = createSimpleSentence(text, 0);
@@ -235,6 +319,12 @@ describe('SentenceComplexityRule', () => {
 
       const diagnostics = rule.check([], context);
 
+      expect(diagnostics).toHaveLength(0);
+    });
+
+    it('前後の空白だけでは短い文を検出対象にしない', () => {
+      const text = '        明日行く。        ';
+      const diagnostics = rule.check([], createContext(text, [createSimpleSentence(text, 0)], 0));
       expect(diagnostics).toHaveLength(0);
     });
 

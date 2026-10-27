@@ -123,10 +123,13 @@ export class NumberWidthMixRule implements AdvancedGrammarRule {
       return diagnostics;
     }
 
+    const preferred = context.config.proofreadingPreferredNumeral;
+    if (preferred === 'mix') return diagnostics;
+
     // 多数派を判定
     const fullwidthCount = numbers.filter(n => n.isFullwidth).reduce((sum, n) => sum + n.value.length, 0);
     const halfwidthCount = numbers.filter(n => !n.isFullwidth).reduce((sum, n) => sum + n.value.length, 0);
-    const dominantIsFullwidth = fullwidthCount > halfwidthCount;
+    const dominantIsFullwidth = preferred ? preferred === 'full' : fullwidthCount > halfwidthCount;
 
     // 少数派を警告
     for (const num of numbers) {
@@ -140,7 +143,9 @@ export class NumberWidthMixRule implements AdvancedGrammarRule {
             start: { line: 0, character: num.index },
             end: { line: 0, character: num.index + num.value.length }
           },
-          message: `数字「${num.value}」は${num.isFullwidth ? '全角' : '半角'}ですが、文書内では${dominantIsFullwidth ? '全角' : '半角'}が多く使用されています。表記を統一することを推奨します。`,
+          message: preferred
+            ? `数字「${num.value}」を設定された${dominantIsFullwidth ? '全角' : '半角'}に統一することを推奨します。`
+            : `数字「${num.value}」は${num.isFullwidth ? '全角' : '半角'}ですが、文書内では${dominantIsFullwidth ? '全角' : '半角'}が多く使用されています。表記を統一することを推奨します。`,
           code: 'number-width-mix',
           ruleName: this.name,
           suggestions: [`「${suggestion}」に変更して統一する`]

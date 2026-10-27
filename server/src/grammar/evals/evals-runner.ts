@@ -18,6 +18,7 @@ import { logError } from '../../utils/errorHandler';
 import {
   StyleConsistencyRule,
   RaNukiRule,
+  SaIreRule,
   DoubleNegationRule,
   ParticleRepetitionRule,
   ConjunctionRepetitionRule,
@@ -82,37 +83,11 @@ import {
 } from '../rules';
 import { SentenceParser } from '../sentenceParser';
 import { ProofreadingRulesManager } from '../../proofreading/proofreadingRulesManager';
+import { MeCabAnalyzer } from '../../mecab/analyzer';
 import {
   NGExampleCategory,
   NG_EXAMPLE_CATEGORIES
 } from './ng-examples-data';
-
-// kuromoji用の型定義
-interface KuromojiToken {
-  surface_form: string;
-  pos: string;
-  pos_detail_1: string;
-  pos_detail_2: string;
-  pos_detail_3: string;
-  conjugated_type: string;
-  conjugated_form: string;
-  basic_form: string;
-  reading?: string;
-  pronunciation?: string;
-  word_position: number;
-}
-
-interface KuromojiTokenizer {
-  tokenize(text: string): KuromojiToken[];
-}
-
-interface KuromojiBuilder {
-  build(callback: (err: Error | null, tokenizer: KuromojiTokenizer) => void): void;
-}
-
-interface Kuromoji {
-  builder(options: { dicPath: string }): KuromojiBuilder;
-}
 
 /**
  * 例文評価ステータス
@@ -181,11 +156,19 @@ export interface EvalResult {
   timestamp: string;
 }
 
+/** 未一致がある場合は、丸めによって100%と表示しない。 */
+function matchPercentage(matched: number, total: number): number {
+  if (total === 0) return 0;
+  if (matched === total) return 100;
+  return Math.min(99.99, Math.round((matched / total) * 10000) / 100);
+}
+
 /**
  * Evals実行エンジン
  */
 export class EvalsRunner {
-  private tokenizer: KuromojiTokenizer | null = null;
+  private readonly analyzer = new MeCabAnalyzer();
+  private initialized = false;
   private grammarChecker: GrammarChecker;
   private advancedRules: Map<string, {
     check: (tokens: Token[], context: RuleContext) => AdvancedDiagnostic[];
@@ -204,22 +187,10 @@ export class EvalsRunner {
    * 初期化（kuromoji-optimized辞書のロード）
    */
   async initialize(): Promise<void> {
-    // kuromoji-optimizedのロード
-    const kuromoji = require('kuromoji-optimized') as Kuromoji;
-    const path = require('path');
-    const dicPath = path.join(__dirname, '../../../../node_modules/kuromoji-optimized/dict');
-
-    return new Promise((resolve, reject) => {
-      kuromoji.builder({ dicPath }).build((err, tokenizer) => {
-        if (err) {
-          reject(err);
-        } else {
-          this.tokenizer = tokenizer;
-          this.initializeAdvancedRules();
-          resolve();
-        }
-      });
-    });
+    if (this.initialized) return;
+    await this.analyzer.initialize();
+    this.initializeAdvancedRules();
+    this.initialized = true;
   }
 
   /**
@@ -228,6 +199,7 @@ export class EvalsRunner {
   private initializeAdvancedRules(): void {
     this.advancedRules.set('style-inconsistency', new StyleConsistencyRule());
     this.advancedRules.set('ra-nuki', new RaNukiRule());
+    this.advancedRules.set('sa-ire', new SaIreRule());
     this.advancedRules.set('double-negation', new DoubleNegationRule());
     this.advancedRules.set('particle-repetition', new ParticleRepetitionRule());
     this.advancedRules.set('conjunction-repetition', new ConjunctionRepetitionRule());
@@ -296,7 +268,7 @@ export class EvalsRunner {
    * 全カテゴリのEvalsを実行
    */
   async runEvals(): Promise<EvalResult> {
-    if (!this.tokenizer) {
+    if (!this.initialized) {
       await this.initialize();
     }
 
@@ -325,9 +297,7 @@ export class EvalsRunner {
       implementedCategories: implementedCount,
       totalExamples,
       detectedExamples: totalDetected,
-      detectionRate: implementedExamples > 0
-        ? Math.round((totalDetected / implementedExamples) * 100)
-        : 0,
+      detectionRate: matchPercentage(totalDetected, implementedExamples),
       categories: categoryResults,
       timestamp: new Date().toISOString()
     };
@@ -369,9 +339,7 @@ export class EvalsRunner {
       }
     }
 
-    const detectionRate = category.examples.length > 0
-      ? Math.round((detectedCount / category.examples.length) * 100)
-      : 0;
+    const detectionRate = matchPercentage(detectedCount, category.examples.length);
 
     const status: EvalStatus = detectedCount === category.examples.length
       ? 'PASS'
@@ -399,11 +367,11 @@ export class EvalsRunner {
     expectedRule: string,
     expectedDetection: boolean = true
   ): Promise<ExampleEvalResult> {
-    if (!this.tokenizer) {
+    if (!this.initialized) {
       await this.initialize();
     }
 
-    const tokens = this.tokenize(text);
+    const tokens = await this.analyzer.analyze(text);
     const diagnostics: Diagnostic[] = [];
 
     const isJouyouKanjiEval = expectedRule === 'jouyou-kanji' && expectedDetection;
@@ -425,9 +393,7 @@ export class EvalsRunner {
         enableMatawaWakushikuwa: true,
         enableJouyouKanji: true,
         enableBulletPunctuation: true,
-        // Sentence Complexity Rule (Evals用に閾値を低く設定)
-        enableSentenceComplexity: true,
-        sentenceComplexityThreshold: 15,
+        // 文複雑度の閾値は既定設定を使い、利用時との差を隠さない。
         ...(isJouyouKanjiEval
           ? {
               excludeProperNounsFromJouyouKanji: false,
@@ -444,6 +410,7 @@ export class EvalsRunner {
         diagnostics.push(...advancedDiagnostics.map(d => d.toDiagnostic()));
       } catch (e) {
         logError(this.logger, `Rule ${ruleName} failed`, e);
+        throw e;
       }
     }
 
@@ -453,12 +420,13 @@ export class EvalsRunner {
       diagnostics.push(...proofreadingDiagnostics);
     } catch (e) {
       logError(this.logger, 'Proofreading rules failed', e);
+      throw e;
     }
 
     // 期待されるルールまたは関連するルールで検出されたかチェック
     const actualDetected = this.isDetected(diagnostics, expectedRule, text);
     const detected = actualDetected === expectedDetection;
-    const matchedRule = diagnostics.length > 0 ? diagnostics[0].code : undefined;
+    const matchedRule = diagnostics.find(d => this.isDetected([d], expectedRule, text))?.code;
 
     return {
       text,
@@ -469,39 +437,6 @@ export class EvalsRunner {
       expectedRule,
       matchedRule
     };
-  }
-
-  /**
-   * トークナイズ
-   */
-  private tokenize(text: string): Token[] {
-    if (!this.tokenizer) {
-      throw new Error('Tokenizer not initialized');
-    }
-
-    const kuromojiTokens = this.tokenizer.tokenize(text);
-    let currentPos = 0;
-
-    return kuromojiTokens.map((t: KuromojiToken) => {
-      const start = currentPos;
-      const end = start + t.surface_form.length;
-      currentPos = end;
-
-      return new Token({
-        surface: t.surface_form,
-        pos: t.pos,
-        posDetail1: t.pos_detail_1 ?? '*',
-        posDetail2: t.pos_detail_2 ?? '*',
-        posDetail3: t.pos_detail_3 ?? '*',
-        conjugation: t.conjugated_type ?? '*',
-        conjugationForm: t.conjugated_form ?? '*',
-        baseForm: t.basic_form || t.surface_form,
-        reading: t.reading ?? '',
-        pronunciation: t.pronunciation ?? '',
-        start,
-        end
-      });
-    });
   }
 
   /**
@@ -520,6 +455,7 @@ export class EvalsRunner {
       'verb-particle-mismatch': ['verb-particle-mismatch'],
       'style-inconsistency': ['style-inconsistency'],
       'ra-nuki': ['ra-nuki'],
+      'sa-ire': ['sa-ire'],
       'double-negation': ['double-negation'],
       'particle-repetition': ['particle-repetition', 'no-particle-chain'], // 「の」連続は no-particle-chain で検出
       'conjunction-repetition': ['conjunction-repetition'],

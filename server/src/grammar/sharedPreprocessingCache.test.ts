@@ -317,7 +317,7 @@ describe('ルール側の共有コンテキスト参照', () => {
         };
 
         const diagnostics = rule.check(emptyTokens, context);
-        expect(diagnostics.length).toBe(1);
+        expect(diagnostics.map(d => d.range.start.character)).toEqual([text.indexOf('API'), text.indexOf('api')]);
         expect(diagnostics[0].code).toBe('english-case-mix');
       });
 
@@ -335,7 +335,7 @@ describe('ルール側の共有コンテキスト参照', () => {
         };
 
         const diagnostics = rule.check(emptyTokens, context);
-        expect(diagnostics.length).toBe(1);
+        expect(diagnostics.map(d => d.range.start.character)).toEqual([text.indexOf('API'), text.indexOf('api')]);
         expect(diagnostics[0].code).toBe('english-case-mix');
       });
 
@@ -354,7 +354,7 @@ describe('ルール側の共有コンテキスト参照', () => {
         };
 
         const diagnostics = rule.check(emptyTokens, context);
-        expect(diagnostics.length).toBe(1);
+        expect(diagnostics.map(d => d.range.start.character)).toEqual([text.lastIndexOf('API'), text.lastIndexOf('api')]);
       });
     });
 

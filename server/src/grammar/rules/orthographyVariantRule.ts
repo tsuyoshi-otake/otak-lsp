@@ -24,6 +24,7 @@ import {
  * - 「事」→「こと」: 「その事」は変換推奨、「食事」「事件」は除外
  */
 const SINGLE_CHAR_FORMAL_NOUNS = new Set(['事', '物', '所', '時', '為', '筈', '訳', '様']);
+const AUXILIARY_VERB_VARIANTS = new Set(['置く', '置き', '置いて', '見る', '見て']);
 
 /**
  * 漢字かどうかを判定（CJK統合漢字）
@@ -232,8 +233,25 @@ export class OrthographyVariantRule implements AdvancedGrammarRule {
   check(tokens: Token[], context: RuleContext): AdvancedDiagnostic[] {
     const diagnostics: AdvancedDiagnostic[] = [];
     const variants = this.detectVariants(context.documentText);
+    const tokensByStart = new Map(tokens.map((token, index) => [token.start, index]));
 
     for (const item of variants) {
+      // 「カ月」のような漢字を含む数量表現はカタカナ語には含めない。
+      if (context.config.proofreadingNotationKatakanaOnly && !/^[\p{Script=Katakana}ー]+$/u.test(item.variant.normalize('NFKC'))) continue;
+      const tokenIndex = tokensByStart.get(item.index) ?? -1;
+      // 接尾語「時」（ジ）と形式名詞「時」（トキ）は同じ表層でも用法が異なる。
+      if (item.variant === '時' && tokens.length > 0 &&
+          (tokens[tokenIndex]?.surface !== '時' || tokens[tokenIndex]?.reading !== 'トキ')) continue;
+      if (item.variant === '更に' && (tokens[tokenIndex]?.surface !== item.variant || tokens[tokenIndex]?.pos !== '副詞')) continue;
+      if (AUXILIARY_VERB_VARIANTS.has(item.variant)) {
+        const current = tokens[tokenIndex];
+        const previous = tokenIndex > 0 ? tokens[tokenIndex - 1] : undefined;
+        // 「資料を見る」「置き換える」は本動詞。接続助詞に続く補助用法のみ提案する。
+        if (!current || !previous || previous.end !== item.index ||
+            previous.pos !== '助詞' || previous.posDetail1 !== '接続助詞' ||
+            !['て', 'で'].includes(previous.surface) ||
+            !['見る', '置く'].includes(current.baseForm)) continue;
+      }
       diagnostics.push(new AdvancedDiagnostic({
         range: {
           start: { line: 0, character: item.index },

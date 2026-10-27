@@ -6,6 +6,8 @@
 
 import { MeCabAnalyzer } from './analyzer';
 import { Token } from '../../../shared/src/types';
+import * as fc from 'fast-check';
+import { execFileSync } from 'node:child_process';
 
 // MeCabの利用可能性を確認
 let mecabAvailable = false;
@@ -30,6 +32,60 @@ describe('MeCab Analyzer', () => {
   });
 
   describe('analyze', () => {
+    it('連続する未知文字を限られたメモリで解析し表層と位置を維持する', () => {
+      const script = `
+        const assert = require('node:assert/strict');
+        const { MeCabAnalyzer } = require('./server/src/mecab/analyzer');
+        (async () => {
+          const analyzer = new MeCabAnalyzer();
+          for (const fragment of [String.fromCodePoint(0xE000).repeat(130000), ' '.repeat(20000), 'a'.repeat(20000), '1'.repeat(20000), '😀'.repeat(10000)]) {
+            const text = '前' + fragment + '後';
+            const tokens = await analyzer.analyze(text);
+            assert.equal(tokens.map(t => t.surface).join(''), text);
+            for (const token of tokens) assert.equal(text.slice(token.start, token.end), token.surface);
+          }
+          console.log('analyzed');
+        })().catch(error => { console.error(error); process.exitCode = 1; });
+      `;
+      const output = execFileSync(process.execPath, ['--max-old-space-size=256', '-r', 'ts-node/register/transpile-only', '-e', script], {
+        cwd: process.cwd(), encoding: 'utf8', timeout: 30000,
+      });
+      expect(output.trim()).toBe('analyzed');
+    }, 40000);
+    it.each([
+      '😀私の母',
+      '𠮷野家の話',
+      '猫😀😄は好き。',
+      '前\u0000後',
+      '👩‍💻私はは行く。',
+    ])('特殊文字を含む入力のトークンが元文書と一致する: %s', async text => {
+      const tokens = await analyzer.analyze(text);
+      expect(tokens.length).toBeGreaterThan(0);
+      let end = 0;
+      for (const token of tokens) {
+        expect(token.start).toBeGreaterThanOrEqual(end);
+        expect(token.end).toBeGreaterThan(token.start);
+        expect(token.end).toBeLessThanOrEqual(text.length);
+        expect(text.slice(token.start, token.end)).toBe(token.surface);
+        end = token.end;
+      }
+      expect(tokens.map(token => token.surface).join('')).toBe(text);
+    });
+
+    it('特殊文字の位置や隣接を変えても、原文をトークン列から復元できる', async () => {
+      await fc.assert(fc.asyncProperty(
+        fc.array(fc.constantFrom('私', 'は', '猫', ' ', '。', '\u0000', '😀', '𠮷', '😄', '\uFFFD'), { maxLength: 15 }),
+        async fragments => {
+          const text = `前${fragments.join('')}後`;
+          const tokens = await analyzer.analyze(text);
+          expect(tokens.map(token => token.surface).join('')).toBe(text);
+          for (const token of tokens) {
+            expect(text.slice(token.start, token.end)).toBe(token.surface);
+          }
+        },
+      ), { numRuns: 100, seed: 20261027 });
+    });
+
     it('should return empty array for empty string', async () => {
       const tokens = await analyzer.analyze('');
       expect(tokens).toEqual([]);

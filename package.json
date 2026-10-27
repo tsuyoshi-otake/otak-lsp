@@ -2,7 +2,7 @@
   "name": "otak-lsp",
   "displayName": "otak-lsp",
   "description": "日本語形態素解析VSCode拡張機能（外部依存なし）。文法チェック、セマンティックハイライト、ホバー情報を提供します。kuromoji-optimized内蔵でMeCab不要。",
-  "version": "1.0.27",
+  "version": "1.0.28",
   "publisher": "odangoo",
   "license": "MIT",
   "icon": "images/otak-lsp.png",
@@ -27,7 +27,7 @@
     "semantic-highlighting"
   ],
   "engines": {
-    "vscode": "^1.60.0"
+    "vscode": "^1.82.0"
   },
   "categories": [
     "Programming Languages",
@@ -506,6 +506,20 @@
           "description": "長すぎる文の検出の有効/無効",
           "scope": "resource"
         },
+        "otakLsp.advanced.enableSentenceComplexity": {
+          "type": "boolean",
+          "default": true,
+          "description": "文複雑度の検出の有効/無効",
+          "scope": "resource"
+        },
+        "otakLsp.advanced.sentenceComplexityThreshold": {
+          "type": "number",
+          "default": 60,
+          "minimum": 0,
+          "maximum": 100,
+          "description": "文複雑度の警告閾値（0〜100）。長さ・読点・文構造の組合せや、極端な「の」・名詞の連続、深い節を評価し、スコアがこの値以上で警告します。",
+          "scope": "resource"
+        },
         "otakLsp.advanced.enableSahenVerb": {
           "type": "boolean",
           "default": true,
@@ -861,13 +875,19 @@
         "otakLsp.proofreading.typo.saIre": {
           "type": "boolean",
           "default": true,
-          "description": "さ入れ表現の検出",
+          "description": "五段動詞のさ入れ表現を検出します。形態素解析の結果によっては検出できない場合があります。",
           "scope": "resource"
         },
         "otakLsp.proofreading.typo.doubleHonorific": {
           "type": "boolean",
           "default": true,
           "description": "二重敬語の検出",
+          "scope": "resource"
+        },
+        "otakLsp.proofreading.typo.homophone": {
+          "type": "boolean",
+          "default": true,
+          "description": "同音異義語の誤用候補を検出します。文脈によっては検出できない場合があります。",
           "scope": "resource"
         },
         "otakLsp.proofreading.typo.adverbAgreement": {
@@ -896,7 +916,13 @@
             "custom"
           ],
           "default": "public-text",
-          "description": "送り仮名チェックモード。public-text: 公用文（解説・広報）、public-text-honkoku: 公用文（本則）",
+          "description": "送り仮名チェックモード。現在、選択肢による診断の切替とカスタム辞書は未対応です。",
+          "scope": "resource"
+        },
+        "otakLsp.proofreading.termBase.okurigana": {
+          "type": "boolean",
+          "default": true,
+          "description": "送り仮名チェックの有効/無効。高度ルールとのmerge時は高度設定が有効なら検査を維持します。",
           "scope": "resource"
         },
         "otakLsp.proofreading.termBase.jouyouKanji": {
@@ -908,7 +934,7 @@
         "otakLsp.proofreading.termBase.oldKanji": {
           "type": "boolean",
           "default": true,
-          "description": "旧字体検出の有効/無効",
+          "description": "旧字体の検出。常用漢字表の索引に参考として併記された字体を対象にします。常用漢字チェックが有効な場合は、この設定を無効にしても常用漢字表外の字として検出されることがあります。",
           "scope": "resource"
         },
         "otakLsp.proofreading.termBase.kanjiOpening": {
@@ -920,7 +946,7 @@
         "otakLsp.proofreading.termBase.excludeProperNouns": {
           "type": "boolean",
           "default": true,
-          "description": "固有名詞を常用漢字チェックから除外",
+          "description": "固有名詞を常用漢字・旧字体チェックから除外",
           "scope": "resource"
         },
         "otakLsp.proofreading.termJournalist.enable": {
@@ -985,7 +1011,7 @@
             "mix"
           ],
           "default": "half",
-          "description": "数字の優先表記（全角/半角/混在）",
+          "description": "数字が全角・半角で混在するときの優先表記。混在を選ぶと数字の幅の混在を指摘しない",
           "scope": "resource"
         },
         "otakLsp.proofreading.charType.preferredAlphabet": {
@@ -995,7 +1021,7 @@
             "half"
           ],
           "default": "half",
-          "description": "アルファベットの優先表記（全角/半角）",
+          "description": "アルファベットが全角・半角で混在するときの優先表記",
           "scope": "resource"
         },
         "otakLsp.proofreading.length.enable": {
@@ -1047,7 +1073,13 @@
         "otakLsp.proofreading.envDependent.enable": {
           "type": "boolean",
           "default": true,
-          "description": "環境依存文字カテゴリの有効/無効",
+          "description": "私用領域の文字を検出します。その他の環境依存文字の検出は未対応です。",
+          "scope": "resource"
+        },
+        "otakLsp.proofreading.envDependent.checkUserCreatedGaiji": {
+          "type": "boolean",
+          "default": true,
+          "description": "Unicode私用領域の文字を検出します。利用先によって意味や字形が異なる場合があります。",
           "scope": "resource"
         },
         "otakLsp.proofreading.envDependent.mode": {
@@ -1057,7 +1089,7 @@
             "partial"
           ],
           "default": "all",
-          "description": "機種依存文字の検出モード。all: すべて指摘、partial: 一部のみ指摘",
+          "description": "機種依存文字の検出範囲（現在未対応）。私用領域の検査には影響しません。",
           "scope": "resource"
         },
         "otakLsp.proofreading.punctuation.enable": {
@@ -1096,10 +1128,34 @@
           "description": "括弧内が文のときに句点を付けるチェック",
           "scope": "resource"
         },
+        "otakLsp.proofreading.rule.enable": {
+          "type": "boolean",
+          "default": true,
+          "description": "ルール辞書によるチェックを有効にする",
+          "scope": "resource"
+        },
         "otakLsp.proofreading.spell.enable": {
           "type": "boolean",
           "default": false,
-          "description": "スペルチェックカテゴリの有効/無効",
+          "description": "英語辞書によるスペル検査を有効にする（英小文字3文字以上が対象）。大文字は別の設定で検査できます。技術用語などの未知語も指摘される場合があります。",
+          "scope": "resource"
+        },
+        "otakLsp.proofreading.spell.checkUppercase": {
+          "type": "boolean",
+          "default": false,
+          "description": "先頭だけが大文字の英単語もスペル検査する。",
+          "scope": "resource"
+        },
+        "otakLsp.proofreading.spell.checkAllCaps": {
+          "type": "boolean",
+          "default": false,
+          "description": "すべて大文字の英単語もスペル検査する。略語や固有名詞は未知語と判定される場合があります。",
+          "scope": "resource"
+        },
+        "otakLsp.proofreading.spell.checkRepeat": {
+          "type": "boolean",
+          "default": true,
+          "description": "同じ英単語が同じ行で連続するときに通知する",
           "scope": "resource"
         },
         "otakLsp.proofreading.notationVariant.enable": {
@@ -1111,7 +1167,7 @@
         "otakLsp.proofreading.notationVariant.katakanaOnly": {
           "type": "boolean",
           "default": false,
-          "description": "カタカナ語のみをチェック",
+          "description": "表記ゆれをカタカナ語に限定します。mergeモードで高度側の同じルールが有効な場合、そのルールは全対象を検査します。",
           "scope": "resource"
         },
         "otakLsp.proofreading.bracket.enable": {
@@ -1137,13 +1193,13 @@
         "otakLsp.proofreading.quoteLine.enable": {
           "type": "boolean",
           "default": true,
-          "description": "引用行の除外を有効にする",
+          "description": "引用行を診断対象から除外する。Markdownの区切り行を持つ表は表の解析設定に従う",
           "scope": "resource"
         },
         "otakLsp.proofreading.quoteLine.markers": {
           "type": "string",
           "default": ">,|",
-          "description": "引用行とみなす記号（半角カンマ区切り）",
+          "description": "引用行とみなす行頭の記号（半角カンマ区切り）。コードではコメント記号の後を判定する",
           "scope": "resource"
         },
         "otakLsp.proofreading.dictionaries.rule": {
@@ -1153,7 +1209,7 @@
           },
           "default": [],
           "maxItems": 3,
-          "description": "ルール辞書のファイルパス（最大3つ）",
+          "description": "ルール辞書のJSONファイルパス（最大3つ、1ファイル2 MiBまで）。相対パスは対象文書のフォルダーを基準にします。",
           "scope": "resource"
         },
         "otakLsp.proofreading.dictionaries.proofreading": {
@@ -1163,7 +1219,7 @@
           },
           "default": [],
           "maxItems": 5,
-          "description": "校正用辞書の拡張辞書パス（最大5つ）",
+          "description": "校正用JSON辞書のパス（最大5つ、1ファイル2 MiBまで）。相対パスは対象文書のフォルダーを基準にします。",
           "scope": "resource"
         },
         "otakLsp.proofreading.dictionaries.spell": {
@@ -1173,7 +1229,7 @@
           },
           "default": [],
           "maxItems": 3,
-          "description": "スペルチェック用辞書のパス（最大3つ）",
+          "description": "スペル検査に追加する単語リスト（最大3つ、1ファイル2 MiBまで）。相対パスは対象文書のフォルダーを基準にします。",
           "scope": "resource"
         },
         "otakLsp.proofreading.description": {
@@ -1295,7 +1351,7 @@
     "@types/jest": "^29.5.0",
     "@types/kuromoji": "^0.1.3",
     "@types/node": "^18.15.0",
-    "@types/vscode": "^1.60.0",
+    "@types/vscode": "1.82.0",
     "@typescript-eslint/eslint-plugin": "^8.60.1",
     "@typescript-eslint/parser": "^8.60.1",
     "@vscode/vsce": "^3.9.2",
@@ -1311,7 +1367,9 @@
     "typescript": "^5.3.0"
   },
   "dependencies": {
+    "dictionary-en": "4.0.0",
     "kuromoji-optimized": "github:tsuyoshi-otake/kuromoji-optimized",
+    "nspell": "2.1.5",
     "vscode-languageclient": "^9.0.0",
     "vscode-languageserver": "^9.0.0",
     "vscode-languageserver-textdocument": "^1.0.0"

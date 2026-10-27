@@ -74,6 +74,10 @@ function discoverConfigKeys(): Map<string, string[]> {
 
 /** package.json から、短いキー名に対応する完全な設定パスを引く */
 function resolveConfigPath(properties: Record<string, unknown>, shortKey: string): string | null {
+  if (shortKey === 'enableSaIreDetection') {
+    const path = 'otakLsp.proofreading.typo.saIre';
+    return path in properties ? path : null;
+  }
   for (const fullKey of Object.keys(properties)) {
     if (fullKey.endsWith(`.${shortKey}`)) return fullKey;
   }

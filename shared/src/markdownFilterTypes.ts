@@ -10,6 +10,7 @@
 export type ExcludeType =
   | 'code-block'
   | 'inline-code'
+  | 'html-tag'
   | 'table'
   | 'table-delimiter'
   | 'table-separator'
